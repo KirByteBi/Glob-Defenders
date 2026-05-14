@@ -99,6 +99,18 @@ let USERS = {
   "Player": "1234"
 };
 
+function saveUsers() {
+  localStorage.setItem('glob_users', JSON.stringify(USERS));
+}
+
+function loadUsers() {
+  const saved = localStorage.getItem('glob_users');
+  if (saved) {
+    USERS = { ...USERS, ...JSON.parse(saved) };
+  }
+}
+loadUsers(); // Cargar al inicio
+
 let currentLanguage = 'es';
 
 const IMAGE_PATHS = {
@@ -130,9 +142,9 @@ const IMAGE_PATHS = {
   'NOeye_Pyce': 'img/NOeye_Pyce.png',
   'MoonStar_Pyce': 'img/MoonStar_Pyce.png',
   'Work_Bombot': 'img/Work_Bombot.png',
-  'Globetin': 'img/Globetin.png',
-  'PyCoin': 'img/PyCoin.png',
-  'DuckyPass': 'img/Duckpass.png'
+  'Globetin': 'img/Currencies/Globetin.png',
+  'PyCoin': 'img/Currencies/PyCoin.png',
+  'DuckyPass': 'img/Currencies/DuckPass.png'
 };
 
 const NARRATOR_DATA = {
@@ -658,14 +670,27 @@ function handleLogin() {
     return;
   }
 
-  if (USERS[name] && USERS[name] === password) {
-    try {
-      localStorage.setItem('glob_username', name);
-      loadProgress(name); // Cargar progreso específico de este usuario
-      drawBadges();       // Actualizar UI con sus logros
-      updateMetaUI();     // Actualizar UI con sus PyCoins/Pase
-      drawTowerShop();    // Actualizar tienda (por si tiene torres desbloqueadas)
-    } catch (e) { }
+  if (USERS[name]) {
+    // Usuario existente, verificar contraseña
+    if (USERS[name] !== password) {
+      const msgEl = document.getElementById('login-msg');
+      if (msgEl) msgEl.textContent = translate('loginError');
+      return;
+    }
+  } else {
+    // NUEVO: Registro automático de usuario
+    USERS[name] = password;
+    saveUsers(); // Guardar la lista de usuarios actualizada
+    showMessage("¡Nuevo usuario registrado!", 'success');
+  }
+
+  try {
+    localStorage.setItem('glob_username', name);
+    loadProgress(name);
+    drawBadges();
+    updateMetaUI();
+    drawTowerShop();
+  } catch (e) { }
 
     document.getElementById('login-screen').style.display = 'none';
     const modeScreen = document.getElementById('mode-selection');
@@ -1162,6 +1187,9 @@ function drawShop() {
   } else {
     // Pestaña de Skins
     Object.keys(SKINS_DATA).forEach(family => {
+      // Ocultar la categoría 'Global' (Skins del Pase) de la tienda normal
+      if (family === 'Global') return;
+
       SKINS_DATA[family].forEach(skin => {
         const isUnlocked = gameState.unlockedSkins.includes(skin.id) || 
                           (skin.type === 'duckpass_level' && gameState.duckPassLevel >= skin.level);
@@ -1175,18 +1203,13 @@ function drawShop() {
         let btnDisabled = !isUnlocked;
 
         if (!isUnlocked) {
-          if (skin.type === 'duckpass_level') {
-            btnText = `Nivel ${skin.level} Pass`;
-            btnAction = "";
-          } else {
-            btnText = `Comprar (${skin.cost} PyCoins)`;
-            btnAction = `buySkin('${family}', '${skin.id}', ${skin.cost})`;
-            btnDisabled = gameState.pycoins < skin.cost;
-          }
+          btnText = `Comprar (${skin.cost} PyCoins)`;
+          btnAction = `buySkin('${family}', '${skin.id}', ${skin.cost})`;
+          btnDisabled = gameState.pycoins < skin.cost;
         } else if (isEquipped) {
-          btnText = "Desequipar";
-          btnAction = `equipSkin('${family}', 'default')`;
-          btnDisabled = false;
+          btnText = "Seleccionada";
+          btnAction = "";
+          btnDisabled = true; // No hace falta desequipar si es la única de su familia
         }
 
         let previewImg = 'img/Glob_DEF.png';
@@ -1194,10 +1217,11 @@ function drawShop() {
         else if (family === 'Recolors' || family === 'Global') previewImg = 'img/Glob_DEF.png';
 
         el.innerHTML = `
+          ${isEquipped ? '<div class="equipped-tag">ACTUAL</div>' : ''}
           <div class="skin-preview ${skin.class || ''}" style="background-image: url('${previewImg}'); ${skin.filter ? 'filter:' + skin.filter : ''}"></div>
           <h3>${skin.name}</h3>
           <p>${skin.desc}</p>
-          <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''} ${isEquipped ? 'sell-btn' : ''}" ${btnDisabled ? 'disabled' : ''} onclick="${btnAction}">${btnText}</button>
+          <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${btnDisabled ? 'disabled' : ''} onclick="${btnAction}">${btnText}</button>
         `;
         container.appendChild(el);
       });
