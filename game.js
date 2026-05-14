@@ -1099,63 +1099,38 @@ function translate(key, params = {}) {
 }
 
 function updateLanguage() {
-  const t = (id, key, attr) => { 
-    const el = document.getElementById(id); 
-    if (el) {
-      if (attr) el.setAttribute(attr, translate(key));
-      else el.textContent = translate(key);
+  // Traducir todos los elementos con data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const attr = el.getAttribute('data-i18n-attr');
+    if (attr) {
+      el.setAttribute(attr, translate(key));
+    } else {
+      // Caso especial para el Duck Pass Level que tiene un span dentro
+      if (key === 'level_label' && el.firstChild && el.firstChild.nodeType === 3) {
+        el.firstChild.textContent = translate(key) + " ";
+      } else {
+        el.textContent = translate(key);
+      }
     }
-  };
-
-  // Login
-  t('username-input', 'login_user', 'placeholder');
-  t('password-input', 'login_pass', 'placeholder');
-  t('login-btn', 'login_btn');
-  
-  // Modos
-  const modeHeader = document.querySelector('#mode-selection h2');
-  if (modeHeader) modeHeader.textContent = translate('select_mode');
-  
-  // UI Principal
-  t('health-label', 'health'); 
-  t('money-label', 'money'); 
-  t('wave-label', 'wave');
-  t('pycoins-label', 'pycoins_title');
-  t('duckpass-label', 'duckpass_title');
-  t('total-damage-label', 'show_total_damage');
-
-  // Botones de acción
-  document.querySelectorAll('.btn-text').forEach(el => {
-    const txt = el.textContent;
-    if (txt.includes('Oleada') || txt.includes('Wave')) el.textContent = translate('startWave');
-    if (txt.includes('Auto-')) el.textContent = translate('autoWave');
-    if (txt.includes('Cancelar') || txt.includes('Cancel')) el.textContent = translate('cancel');
-    if (txt.includes('Tienda') || txt.includes('Shop')) el.textContent = translate('shop_title').replace('🛒 ', '');
-    if (txt.includes('Pass')) el.textContent = translate('pass_title').replace('🦆 ', '');
-    if (txt.includes('Volver') || txt.includes('Back')) el.textContent = translate('back_to_modes');
   });
 
-  // Ajustes
-  const optHeader = document.querySelector('#options-modal h2');
-  if (optHeader) optHeader.textContent = translate('settings_title');
-  const optRows = document.querySelectorAll('.option-row span');
-  if (optRows[0]) optRows[0].textContent = translate('show_shop_desc');
-  if (optRows[1]) optRows[1].textContent = translate('show_total_damage');
-  const optClose = document.querySelector('#options-modal .close-btn');
-  if (optClose) optClose.textContent = translate('save_close');
+  // Casos especiales que no pueden usar data-i18n fácilmente (ej. botones con iconos y texto)
+  document.querySelectorAll('.btn-text').forEach(el => {
+    const parent = el.parentElement;
+    if (parent.id === 'start-wave') el.textContent = translate('startWave');
+    if (parent.id === 'auto-wave') el.textContent = translate('autoWave');
+    if (parent.id === 'deselect-tower') el.textContent = translate('cancel');
+    if (parent.classList.contains('back-btn')) el.textContent = translate('back_to_modes');
+    if (parent.classList.contains('retry-btn')) el.textContent = translate('playAgain');
+  });
 
-  // Modales Meta
-  t('shop-title', 'shop_title');
-  t('pass-title', 'pass_title');
-  t('game-code', 'code_placeholder', 'placeholder');
-  t('apply-code', 'apply_btn');
-  
-  const tabs = document.querySelectorAll('.shop-tab');
-  if (tabs[0]) tabs[0].textContent = translate('shop_upgrades');
-  if (tabs[1]) tabs[1].textContent = translate('shop_skins');
-
-  const passLevelLabel = document.querySelector('.pass-level-container span');
-  if (passLevelLabel) passLevelLabel.firstChild.textContent = translate('level_label') + " ";
+  // Títulos de modales
+  const shopTitle = document.getElementById('shop-title');
+  if (shopTitle) shopTitle.innerHTML = `🛒 ${translate('shop_title').replace('🛒 ', '')}`;
+  const passTitle = document.getElementById('pass-title');
+  if (passTitle) passTitle.innerHTML = `🦆 ${translate('pass_title').replace('🦆 ', '')}`;
+}
 
   // Evolución
   const evolveTitle = document.querySelector('#evolve-panel h2');

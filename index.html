@@ -17,8 +17,8 @@
     <div id="portrait-overlay">
         <div class="portrait-content">
             <div class="portrait-icon">📱🔄</div>
-            <h2>Gira el dispositivo</h2>
-            <p>Glob Defenders se juega en modo horizontal</p>
+            <h2 data-i18n="rotate_device">Gira el dispositivo</h2>
+            <p data-i18n="landscape_msg">Glob Defenders se juega en modo horizontal</p>
         </div>
     </div>
 
@@ -37,18 +37,18 @@
         <div class="login-box">
             <img src="img/GlobDefendersLogo.png" alt="Glob Defenders Logo" class="login-logo">
             <div class="login-inputs">
-                <input type="text" id="username-input" placeholder="Nombre de Usuario">
-                <input type="password" id="password-input" placeholder="Contraseña">
+                <input type="text" id="username-input" data-i18n="login_user" data-i18n-attr="placeholder" placeholder="Nombre de Usuario">
+                <input type="password" id="password-input" data-i18n="login_pass" data-i18n-attr="placeholder" placeholder="Contraseña">
             </div>
             <div id="login-msg" style="color: #ff4444; font-size: 0.9rem; margin-bottom: 15px; min-height: 20px;"></div>
-            <button id="login-btn">Unirse a la batalla</button>
+            <button id="login-btn" data-i18n="login_btn">Unirse a la batalla</button>
         </div>
     </div>
 
     <div id="mode-selection" style="display: none;">
         <div id="mode-decorations"></div>
         <div class="login-box">
-            <h2>Seleccionar Modo</h2>
+            <h2 data-i18n="select_mode">Seleccionar Modo</h2>
             <div class="modes-grid">
                 <button class="mode-btn" data-mode="facil">🌱 Fácil</button>
                 <button class="mode-btn" data-mode="normal">⚔️ Normal</button>
@@ -72,30 +72,30 @@
             <div id="game-stats">
                 <div class="stat" id="health-stat" title="Salud de la base">
                     <span class="stat-value" id="health">100</span>
-                    <span class="stat-label" id="health-label">Salud</span>
+                    <span class="stat-label" data-i18n="health">Salud</span>
                 </div>
                 <div class="stat" id="money-stat" title="Globetines">
                     <img src="img/Tokens/Globetin.png" width="20">
                     <span class="stat-value" id="money">500</span>
-                    <span class="stat-label" id="money-label">Globetines</span>
+                    <span class="stat-label" data-i18n="money">Globetines</span>
                 </div>
                 <div class="stat" id="pycoins-stat" title="PyCoins">
                     <img src="img/Tokens/PyCoin.png" width="20">
                     <span class="stat-value" id="pycoins-value">0</span>
-                    <span class="stat-label" id="pycoins-label">PyCoins</span>
+                    <span class="stat-label" data-i18n="pycoins_title">PyCoins</span>
                 </div>
                 <div class="stat" id="duckpass-stat" title="Ducky Pass">
                     <img src="img/Tokens/DuckPass.png" width="20">
                     <span class="stat-value" id="duckpass-currency">0</span>
-                    <span class="stat-label" id="duckpass-label">Duck Pass</span>
+                    <span class="stat-label" data-i18n="duckpass_title">Duck Pass</span>
                 </div>
                 <div class="stat" title="Oleada actual">
                     <span class="stat-value" id="wave-count">0</span>
-                    <span class="stat-label" id="wave-label">Oleada</span>
+                    <span class="stat-label" data-i18n="wave">Oleada</span>
                 </div>
                 <div class="stat" id="total-damage-stat" style="display: none;" title="Daño total infligido">
                     <span class="stat-value" id="total-damage">0</span>
-                    <span class="stat-label" id="total-damage-label">Daño Total</span>
+                    <span class="stat-label" data-i18n="show_total_damage">Daño Total</span>
                 </div>
             </div>
 
@@ -124,9 +124,9 @@
 
                 <div id="game-over" class="modal">
                     <div class="modal-content">
-                        <h2>💀 GAME OVER 💀</h2>
-                        <p>Llegaste a la oleada <span id="final-wave">0</span></p>
-                        <button class="retry-btn" onclick="location.reload()">🔄 Reintentar</button>
+                        <h2 data-i18n="gameOver">💀 GAME OVER 💀</h2>
+                        <p id="game-over-msg">Llegaste a la oleada <span id="final-wave">0</span></p>
+                        <button class="retry-btn" onclick="location.reload()" data-i18n="playAgain">🔄 Reintentar</button>
                     </div>
                 </div>
             </div>
@@ -138,18 +138,18 @@
 
 
         <div id="badges-panel">
-            <h4>Logros</h4>
+            <h4 data-i18n="achievements">Logros</h4>
             <div id="badges-list">
                 <!-- Logros generados por JS -->
             </div>
         </div>
 
         <div id="evolve-panel" class="side-panel" style="display: none;">
-            <h3 id="tower-name">Torre</h3>
-            <div id="tower-desc"></div>
+            <h3 data-i18n="evolve_title">Evolución de Torre</h3>
+            <div id="tower-name">Torre</div>
             <div id="evolve-options"></div>
-            <button id="sell-tower-btn" class="sell-btn">Vender</button>
-            <button onclick="deselectTower()" class="close-btn">Cerrar</button>
+            <button id="sell-tower-btn" class="sell-btn" data-i18n="sell">Vender</button>
+            <button onclick="deselectTower()" class="close-btn" data-i18n="close">Cerrar</button>
         </div>
     </div>
 
@@ -158,22 +158,22 @@
     <!-- Modal de Opciones -->
     <div id="options-modal" class="modal">
         <div class="modal-content options-content">
-            <h2>⚙️ Ajustes</h2>
+            <h2 data-i18n="settings_title">⚙️ Ajustes</h2>
             <div class="option-row">
-                <span>Mostrar descripción en tienda</span>
+                <span data-i18n="show_shop_desc">Mostrar descripción en tienda</span>
                 <label class="switch">
                     <input type="checkbox" id="opt-show-desc" checked onchange="updateSettings()">
                     <span class="slider"></span>
                 </label>
             </div>
             <div class="option-row">
-                <span>Ver Daño Total de torres</span>
+                <span data-i18n="show_total_damage">Ver Daño Total de torres</span>
                 <label class="switch">
                     <input type="checkbox" id="opt-show-damage" onchange="updateSettings()">
                     <span class="slider"></span>
                 </label>
             </div>
-            <button onclick="closeOptions()" class="close-btn" style="margin-top: 20px;">Guardar y Cerrar</button>
+            <button onclick="closeOptions()" class="close-btn" style="margin-top: 20px;" data-i18n="save_close">Guardar y Cerrar</button>
         </div>
     </div>
 
@@ -183,8 +183,8 @@
             <div class="modal-header">
                 <h2 id="shop-title">🛒 Tienda Meta</h2>
                 <div class="shop-tabs">
-                    <button class="shop-tab active" onclick="switchShopTab('upgrades')">Mejoras</button>
-                    <button class="shop-tab" onclick="switchShopTab('skins')">Skins</button>
+                    <button class="shop-tab active" onclick="switchShopTab('upgrades')" data-i18n="shop_upgrades">Mejoras</button>
+                    <button class="shop-tab" onclick="switchShopTab('skins')" data-i18n="shop_skins">Skins</button>
                 </div>
                 <div class="header-btns">
                     <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a
@@ -195,8 +195,8 @@
             <div id="shop-items" class="meta-grid"></div>
 
             <div id="code-area">
-                <input type="text" id="game-code" placeholder="Código Secreto...">
-                <button id="apply-code">Aplicar</button>
+                <input type="text" id="game-code" data-i18n="code_placeholder" data-i18n-attr="placeholder" placeholder="Código Secreto...">
+                <button id="apply-code" data-i18n="apply_btn">Aplicar</button>
             </div>
         </div>
     </div>
@@ -213,7 +213,7 @@
             </div>
             <div class="pass-info">
                 <div class="pass-level-container">
-                    <span>Nivel <span id="pass-level">1</span></span>
+                    <span data-i18n="level_label">Nivel <span id="pass-level">1</span></span>
                     <div class="xp-bar-bg">
                         <div id="xp-fill" class="xp-bar-fill"></div>
                     </div>
