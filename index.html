@@ -126,7 +126,10 @@
                     <div class="modal-content">
                         <h2 data-i18n="gameOver">💀 GAME OVER 💀</h2>
                         <p id="game-over-msg">Llegaste a la oleada <span id="final-wave">0</span></p>
-                        <button class="retry-btn" onclick="location.reload()" data-i18n="playAgain">🔄 Reintentar</button>
+                        <div class="game-over-actions">
+                            <button class="retry-btn" onclick="retryGame()" data-i18n="playAgain">🔄 Reintentar</button>
+                            <button class="back-btn" onclick="location.reload()" data-i18n="back_to_modes">📋 Modos</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -144,12 +147,19 @@
             </div>
         </div>
 
-        <div id="evolve-panel" class="side-panel" style="display: none;">
-            <h3 data-i18n="evolve_title">Evolución de Torre</h3>
-            <div id="tower-name">Torre</div>
-            <div id="evolve-options"></div>
-            <button id="sell-tower-btn" class="sell-btn" data-i18n="sell">Vender</button>
-            <button onclick="deselectTower()" class="close-btn" data-i18n="close">Cerrar</button>
+        <div id="evolve-panel" class="info-card" style="display: none;">
+            <div class="info-card-header">
+                <h3 data-i18n="evolve_title">Evolución de Torre</h3>
+                <button onclick="deselectTower()" class="close-btn-round">×</button>
+            </div>
+            <div class="info-card-body">
+                <div id="tower-name" class="info-title">Torre</div>
+                <div id="tower-desc" class="info-desc">Descripción...</div>
+                <div id="evolve-options" class="evolve-container"></div>
+            </div>
+            <div class="info-card-footer">
+                <button id="sell-tower-btn" class="sell-btn" onclick="sellTower()"></button>
+            </div>
         </div>
     </div>
 

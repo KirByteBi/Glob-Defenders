@@ -385,6 +385,8 @@ function selectMode(mode) {
 
   document.getElementById('mode-selection').style.display = 'none';
   document.getElementById('mode-selection').classList.remove('glitch-state');
+  gameState.globetines = 500; // Reset globetines to 500 at start
+  updateUI();
   showMessage(translate('mode_selected', { mode: mode.toUpperCase() }), 'info');
 }
 
@@ -1190,6 +1192,24 @@ function drawRangePreview(x, y, range) {
   document.getElementById('map').appendChild(p);
 }
 
+function retryGame() {
+  gameState.health = 100 + (gameState.baseHealthLevel * 20);
+  gameState.wave = 0;
+  gameState.globetines = 500;
+  gameState.towers.forEach(t => t.el.remove()); gameState.towers = [];
+  gameState.enemies.forEach(e => e.el.remove()); gameState.enemies = [];
+  gameState.projectiles.forEach(p => p.el.remove()); gameState.projectiles = [];
+  gameState.towerSpots.forEach(s => s.occupied = false);
+  gameState.towerCounts = {};
+  gameState.gameOver = false;
+  gameState.waveActive = false;
+  gameState.totalDamage = 0;
+  deselectTower();
+  updateUI();
+  drawTowerShop();
+  document.getElementById('game-over').style.display = 'none';
+}
+
 function endGame(victory = false) {
   gameState.gameOver = true;
   const modal = document.getElementById('game-over');
@@ -1197,8 +1217,7 @@ function endGame(victory = false) {
   modal.style.display = 'flex';
   
   const title = modal.querySelector('h2');
-  const msg = modal.querySelector('p');
-  const btn = modal.querySelector('button');
+  const msg = document.getElementById('game-over-msg');
 
   if (victory) {
     if (title) title.textContent = translate('victory_title');
@@ -1208,10 +1227,8 @@ function endGame(victory = false) {
     if (msg) msg.innerHTML = translate('waveStarted', { wave: gameState.wave }).replace('Oleada', 'Llegaste a la oleada').replace('Wave', 'You reached wave');
   }
 
-  if (btn) {
-    btn.textContent = translate('backToModes');
-    btn.onclick = () => location.reload(); // Por ahora recargar es más seguro
-  }
+  // Update button texts for the buttons we added in HTML
+  updateLanguage(); 
 }
 
 window.onload = init;
