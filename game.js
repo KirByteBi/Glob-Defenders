@@ -341,7 +341,7 @@ const ENEMY_TYPES = {
 
   '1x1x1x1_Pyce': { name: '1x1x1x1 Pyce', health: 500, speed: 0.5, reward: 500, image: IMAGE_PATHS['1x1x1x1_Pyce'], boss: true, bossStun: true, stunCooldown: 10 },
   'NOeye_Pyce': { name: 'NOeye Pyce', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12 },
-  'MoonStar_Pyce': { name: 'MoonStar Pyce', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, shield: 0.3, doubleLap: true },
+  'MoonStar_Pyce': { name: 'MoonStar Pyce', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true },
 
   'Stupid_GoldPyce': { name: 'Stupid GoldPyce', health: 80, speed: 2.0, reward: 150, image: IMAGE_PATHS.Stupid_GoldPyce, mimic: true }
 };
@@ -438,9 +438,13 @@ const SKINS_DATA = {
   ],
   'Global': [
     { id: 'recolor_emerald', name: 'Edición Esmeralda', desc: 'Poder de la naturaleza.', type: 'duckpass_level', level: 5, filter: 'hue-rotate(60deg) saturate(2) brightness(1.1)' },
+    { id: 'buff_damage_1', name: 'Entrenamiento Básico', desc: '⚔️ +5% Daño Permanente.', type: 'duckpass_level', level: 10, buff: { damage: 1.05 } },
     { id: 'recolor_ruby', name: 'Edición Rubí', desc: 'Pasión ardiente en cada disparo.', type: 'duckpass_level', level: 15, filter: 'hue-rotate(-60deg) saturate(2) brightness(1.1)' },
+    { id: 'buff_range_1', name: 'Visión de Águila', desc: '🔭 +10 Alcance Permanente.', type: 'duckpass_level', level: 20, buff: { range_flat: 10 } },
     { id: 'recolor_cyan', name: 'Edición Cian', desc: 'Frío como el hielo de Bitlands.', type: 'duckpass_level', level: 25, filter: 'hue-rotate(140deg) saturate(1.5) brightness(1.2)' },
+    { id: 'buff_speed_1', name: 'Cadencia Mejorada', desc: '⚡ +5% Velocidad de Ataque.', type: 'duckpass_level', level: 30, buff: { speed: 1.05 } },
     { id: 'recolor_neon', name: 'Edición Neón', desc: 'Brillo cibernético futurista.', type: 'duckpass_level', level: 40, filter: 'brightness(1.5) saturate(3) hue-rotate(150deg)' },
+    { id: 'buff_damage_2', name: 'Ingeniería de Bitlands', desc: '⚔️ +10% Daño Extra.', type: 'duckpass_level', level: 50, buff: { damage: 1.10 } },
     { id: 'recolor_shadow', name: 'Edición Sombra', desc: 'Sigilo y oscuridad total.', type: 'duckpass_level', level: 55, filter: 'grayscale(1) brightness(0.4)' },
     { id: 'recolor_void', name: 'Edición Vacío', desc: 'Poder oscuro del abismo.', type: 'duckpass_level', level: 70, filter: 'brightness(0.6) hue-rotate(250deg) saturate(2)' },
     { id: 'recolor_gold', name: 'Edición Oro', desc: 'Puro lujo para tus torres.', type: 'duckpass_level', level: 85, filter: 'brightness(1.2) sepia(1) saturate(10) hue-rotate(-10deg)' },
@@ -609,8 +613,9 @@ function loadProgress(username) {
       gameState.unlockedAntiNormal = progress.unlockedAntiNormal || false;
       gameState.claimedRewards = progress.claimedRewards || [];
       gameState.muted = progress.muted || false;
-      updateMuteButton();
       if (gameState.unlockedAntiNormal) BADGES.antiNormal.unlocked = true;
+      updateBuffs();
+      updateMuteButton();
       // Ajustar salud según el nivel cargado
       gameState.health = 100 + (gameState.baseHealthLevel * 20);
     }
@@ -1216,11 +1221,23 @@ function applyScale() {
   wrapper.style.height = scaledH + 'px';
 }
 
+function updateBuffs() {
+  gameState.towerBuffs = { damage: 1, range: 0, speed: 1 };
+  SKINS_DATA['Global'].forEach(m => {
+    if (m.buff && gameState.duckPassLevel >= m.level) {
+      if (m.buff.damage) gameState.towerBuffs.damage *= m.buff.damage;
+      if (m.buff.range_flat) gameState.towerBuffs.range += m.buff.range_flat;
+      if (m.buff.speed) gameState.towerBuffs.speed *= m.buff.speed;
+    }
+  });
+}
+
 function addXP(amount) {
   gameState.duckPassXP += amount;
   while (gameState.duckPassXP >= 100) {
     gameState.duckPassLevel++;
     gameState.duckPassXP -= 100;
+    updateBuffs();
 
     // Recompensa por nivel
     if (gameState.duckPassLevel <= 100) {
@@ -1458,11 +1475,11 @@ function drawPass() {
     }
 
     el.innerHTML = `
-      <div class="milestone-tag">HITO</div>
+      <div class="milestone-tag">${skin.buff ? 'MEJORA' : 'HITO'}</div>
       <h3>${skin.name}</h3>
       <p>${skin.desc}</p>
-      <div class="skin-preview ${skin.class || ''}" style="width: 40px; height: 40px; ${skin.filter ? 'filter:' + skin.filter : ''}; background-image: url('img/Glob_DEF.png')"></div>
-      ${btnHTML}
+      <div class="skin-preview ${skin.class || ''}" style="width: 40px; height: 40px; ${skin.filter ? 'filter:' + skin.filter : ''}; background-image: url('img/Glob_DEF.png'); display: ${skin.buff ? 'none' : 'block'}"></div>
+      ${skin.buff && isUnlocked ? '<b style="color: #4facfe">¡ACTIVO!</b>' : (skin.buff ? `<button class="skin-buy-btn" disabled>Nivel ${skin.level}</button>` : btnHTML)}
     `;
     container.appendChild(el);
   });
@@ -1510,6 +1527,11 @@ function placeTower(spotId, type) {
     cooldown: 0, spotId, level: 1,
     stunned: 0, moneyTimer: 0
   };
+
+  // Aplicar buffs globales
+  towerObj.damage *= gameState.towerBuffs.damage;
+  towerObj.range += gameState.towerBuffs.range;
+  towerObj.speed *= gameState.towerBuffs.speed;
 
   el.onclick = (e) => {
     e.stopPropagation();
@@ -1566,6 +1588,12 @@ function evolveTower(tower, nextType) {
 
     tower.type = nextType;
     Object.assign(tower, nextCfg);
+    
+    // Aplicar buffs a la nueva fase
+    tower.damage *= gameState.towerBuffs.damage;
+    tower.range += gameState.towerBuffs.range;
+    tower.speed *= gameState.towerBuffs.speed;
+
     tower.el.style.backgroundImage = `url('${getTowerImage(nextType)}')`;
     applyTowerEffects(tower.el, nextType);
     tower.level++;
@@ -1783,7 +1811,8 @@ function spawnEnemy(type, isBoss = false) {
     maxHealth: t.health * (1 + gameState.wave * 0.15),
     stunTimer: 0, burnTimer: 0, slowAmount: 1,
     boss: isBoss,
-    shield: t.shield || ((isBoss && gameState.corrupt && gameState.wave === 45) ? 0.4 : 1),
+    shield: (t.shield || (isBoss && gameState.corrupt && gameState.wave === 45 ? 1 : 0)) * (t.health * (1 + gameState.wave * 0.15)),
+    maxShield: (t.shield || (isBoss && gameState.corrupt && gameState.wave === 45 ? 1 : 0)) * (t.health * (1 + gameState.wave * 0.15)),
     type: type,
     laps: 0,
     hpFill: hpFill
@@ -1821,6 +1850,16 @@ function gameLoop() {
         e.el.style.top  = `${e.y}px`;
       } else {
         // Llegó al final
+        if (e.instakill) {
+          gameState.health = 0;
+          endGame();
+          return;
+        }
+        if (e.doubleLap && !e.lapped) {
+           e.pathIndex = 0;
+           e.lapped = true;
+           continue;
+        }
         e.el.remove();
         gameState.enemies.splice(i, 1);
         gameState.health -= e.boss ? 10 : 1;
@@ -1841,8 +1880,15 @@ function gameLoop() {
 
       // HP bar
       if (e.hpFill) {
-        const pct = Math.max(0, e.health / e.maxHealth) * 100;
+        const totalMax = e.maxHealth + (e.maxShield || 0);
+        const totalCurrent = e.health + (e.shield || 0);
+        const pct = Math.max(0, totalCurrent / totalMax) * 100;
         e.hpFill.style.width = `${pct}%`;
+        if (e.shield > 0) {
+          e.hpFill.style.background = '#ffd700'; // Amarillo escudo
+        } else {
+          e.hpFill.style.background = '#ff4444'; // Rojo vida
+        }
       }
 
       e.slowAmount = 1; // Reset slow each frame
@@ -1899,9 +1945,14 @@ function gameLoop() {
       for (let j = gameState.enemies.length - 1; j >= 0; j--) {
         const e = gameState.enemies[j];
         if (Math.hypot(e.x - p.x, e.y - p.y) < 40 && !p.hitEnemies.has(e)) {
-          const damage = p.damage * (e.shield || 1);
-          e.health -= damage;
-          showEffect(e.x, e.y - 20, `-${Math.floor(damage)}`);
+          let damage = p.damage;
+          if (e.shield > 0) {
+            const absorbed = Math.min(e.shield, damage);
+            e.shield -= absorbed;
+            damage -= absorbed;
+          }
+          if (damage > 0) e.health -= damage;
+          showEffect(e.x, e.y - 20, `-${Math.floor(p.damage)}`);
           p.hitEnemies.add(e);
           if (p.burn) e.burnTimer = 3;
           if (e.health <= 0) die(e, j);
@@ -1925,8 +1976,13 @@ function gameLoop() {
 
       if (dist < 10 || !gameState.enemies.includes(p.target)) {
         if (gameState.enemies.includes(p.target)) {
-          const damage = p.damage * (p.target.shield || 1);
-          p.target.health -= damage;
+          let damage = p.damage;
+          if (p.target.shield > 0) {
+            const absorbed = Math.min(p.target.shield, damage);
+            p.target.shield -= absorbed;
+            damage -= absorbed;
+          }
+          if (damage > 0) p.target.health -= damage;
           if (p.slow) p.target.slowAmount = p.slow;
 
           // AOE Damage (Bombas)
@@ -1934,9 +1990,14 @@ function gameLoop() {
             for (let j = gameState.enemies.length - 1; j >= 0; j--) {
               const e2 = gameState.enemies[j];
               if (e2 !== p.target && Math.hypot(e2.x - p.x, e2.y - p.y) < p.aoe) {
-                const aoeDmg = damage * 0.5;
-                e2.health -= aoeDmg;
-                showEffect(e2.x, e2.y - 20, `-${Math.floor(aoeDmg)}`);
+                let aoeDmg = damage * 0.5;
+                if (e2.shield > 0) {
+                  const absorbed = Math.min(e2.shield, aoeDmg);
+                  e2.shield -= absorbed;
+                  aoeDmg -= absorbed;
+                }
+                if (aoeDmg > 0) e2.health -= aoeDmg;
+                showEffect(e2.x, e2.y - 20, `-${Math.floor(damage * 0.5)}`);
                 if (e2.health <= 0) die(e2, j);
               }
             }
