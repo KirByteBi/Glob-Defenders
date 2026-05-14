@@ -882,13 +882,25 @@ function drawTowerShop() {
     const el = document.createElement('div');
     el.className = 'tower-item';
     el.dataset.type = type;
+    
+    const currentCount = gameState.towerCounts[type] || 0;
+    const limit = gameState.towerLimits[type] || 3;
+    const isFull = currentCount >= limit;
+
     // Mostrar la imagen con la skin equipada si existe
     const displayImg = getTowerImage(type);
     el.innerHTML = `
       <div class="tower-icon-shop" style="background-image: url('${displayImg}')"></div>
-      <div class="tower-name">${t.name}</div>
-      <div class="tower-cost">💰 ${t.cost}</div>
+      <div class="tower-info-shop">
+        <div class="tower-name">${t.name}</div>
+        <div class="tower-desc-shop">${t.desc || ""}</div>
+        <div class="tower-stats-shop">
+          <span class="tower-cost">💰 ${t.cost}</span>
+          <span class="tower-limit ${isFull ? 'limit-full' : ''}">${currentCount}/${limit}</span>
+        </div>
+      </div>
     `;
+    if (isFull) el.classList.add('disabled-shop');
     shop.appendChild(el);
   });
 }
@@ -1482,6 +1494,7 @@ function placeTower(spotId, type) {
   gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
   spot.occupied = true;
   updateUI();
+  drawTowerShop(); // Actualizar contadores en la tienda
   showMessage(translate('towerPlaced', { name: tCfg.name }), 'success');
 }
 
@@ -1532,6 +1545,7 @@ function evolveTower(tower, nextType) {
     if (!nextCfg.evolution) BADGES.evolution.unlocked = true;
     selectTower(tower);
     updateUI();
+    drawTowerShop();
     drawBadges();
     showMessage(translate('towerEvolved', { name: nextCfg.name }), 'success');
   }
@@ -1547,6 +1561,7 @@ function sellTower(tower) {
     gameState.towers.splice(idx, 1);
     deselectTower();
     updateUI();
+    drawTowerShop();
     showMessage(translate('towerSold', { price: Math.floor(tower.cost * 0.7) }), 'info');
   }
 }
