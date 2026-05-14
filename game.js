@@ -532,6 +532,7 @@ function saveProgress() {
     unlockedPyceGlob: TOWER_TYPES['Pyce_Glob'] ? TOWER_TYPES['Pyce_Glob'].unlocked : false,
 
     // Meta data
+    globetines: gameState.globetines,
     pycoins: gameState.pycoins,
     duckPassXP: gameState.duckPassXP,
     duckPassLevel: gameState.duckPassLevel,
@@ -578,6 +579,7 @@ function loadProgress(username) {
       if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = progress.unlockedPyceGlob || false;
 
       // Meta data
+      gameState.globetines = progress.globetines != null ? progress.globetines : 500;
       gameState.pycoins = progress.pycoins || 0;
       gameState.duckPassXP = progress.duckPassXP || 0;
       gameState.duckPassLevel = progress.duckPassLevel || 1;
@@ -1068,6 +1070,17 @@ function closeModal(id) {
   if (el) el.style.display = 'none';
 }
 
+// Cierre inteligente: vuelve al juego si estás en partida, sino a selección de modo
+function smartClose(modalId) {
+  closeModal(modalId);
+  const loginScreen = document.getElementById('login-screen');
+  const modeScreen = document.getElementById('mode-selection');
+  const inGame = loginScreen.style.display === 'none' && modeScreen.style.display === 'none';
+  if (!inGame) {
+    modeScreen.style.display = 'flex';
+  }
+}
+
 function backToModes() {
   closeModal('shop-modal');
   closeModal('pass-modal');
@@ -1233,7 +1246,9 @@ function drawShop() {
 
         el.innerHTML = `
           ${isEquipped ? '<div class="equipped-tag">ACTUAL</div>' : ''}
-          <div class="skin-preview ${skin.class || ''}" style="background-image: url('${previewImg}'); ${skin.filter ? 'filter:' + skin.filter : ''}"></div>
+          <div class="skin-preview ${skin.class || ''}">
+            <img src="${previewImg}" style="width:100%; height:100%; object-fit:contain; ${skin.filter ? 'filter:' + skin.filter : ''}" alt="${skin.name}">
+          </div>
           <h3>${skin.name}</h3>
           <p>${skin.desc}</p>
           <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${btnDisabled ? 'disabled' : ''} onclick="${btnAction}">${btnText}</button>
@@ -1773,7 +1788,7 @@ function gameLoop() {
 
       if (p.x < 0 || p.x > 1000 || p.y < 0 || p.y > 600) {
         p.el.remove();
-        gameState.projectiles.splice(idx, 1);
+        gameState.projectiles.splice(i, 1);
       }
     } else {
       const dx = p.target.x - p.x;
