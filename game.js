@@ -443,7 +443,7 @@ const SKINS_DATA = {
 generateSpots();
 
 let gameState = {
-  health: 100, money: 350, wave: 0,
+  health: 100, wave: 0,
   towers: [], enemies: [], projectiles: [],
   selectedTowerType: null, waveActive: false,
   gameOver: false, adminMode: false, autoWave: false,
@@ -579,8 +579,8 @@ function loadProgress(username) {
       if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = progress.unlockedPyceGlob || false;
 
       // Meta data
-      gameState.globetines = progress.globetines != null ? progress.globetines : 500;
-      gameState.pycoins = progress.pycoins || 0;
+      gameState.globetines = Number(progress.globetines != null ? progress.globetines : 500);
+      gameState.pycoins = Number(progress.pycoins || 0);
       gameState.duckPassXP = progress.duckPassXP || 0;
       gameState.duckPassLevel = progress.duckPassLevel || 1;
       gameState.duckPassCurrency = progress.duckPassCurrency || 0;
@@ -1449,7 +1449,7 @@ function updateEvolveButtons(t) {
     const next = TOWER_TYPES[towerData.evolution];
     const btn = document.createElement('button');
     btn.className = 'evolve-btn';
-    btn.disabled = gameState.money < next.cost;
+    btn.disabled = Number(gameState.globetines) < Number(next.cost);
     btn.innerHTML = `${currentLanguage === 'es' ? 'Evolucionar' : 'Evolve'} a ${next.name} <br> (💰 ${next.cost})`;
     btn.onclick = () => evolveTower(t, towerData.evolution);
     container.appendChild(btn);
@@ -1466,7 +1466,7 @@ function evolveTower(tower, nextType) {
   // Verificar límites para la evolución (solo si cambia el tipo base significativamente)
   // En este juego las evoluciones suelen mantener el tipo base pero si cambiara se chequearía aquí.
 
-  if (gameState.globetines >= nextCfg.cost) {
+  if (Number(gameState.globetines) >= Number(nextCfg.cost)) {
     gameState.globetines -= nextCfg.cost;
 
     // Si el tipo cambia, actualizar conteos
@@ -1975,6 +1975,11 @@ function updateUI() {
   document.getElementById('money').textContent = Math.floor(gameState.globetines);
   document.getElementById('wave-count').textContent = Math.min(999, gameState.wave);
   
+  // Si hay un panel de evolución abierto, actualizar sus botones (por si cambió el dinero)
+  if (gameState.selectedTower) {
+    updateEvolveButtons(gameState.selectedTower);
+  }
+
   updateMetaUI(); // Asegurar que PyCoins y Duck Pass estén siempre actualizados
 
   // Bloquear botones durante la oleada
