@@ -680,7 +680,7 @@ function handleLogin() {
   } else {
     // NUEVO: Registro automático de usuario
     USERS[name] = password;
-    saveUsers(); // Guardar la lista de usuarios actualizada
+    saveUsers(); 
     showMessage("¡Nuevo usuario registrado!", 'success');
   }
 
@@ -692,42 +692,37 @@ function handleLogin() {
     drawTowerShop();
   } catch (e) { }
 
-    document.getElementById('login-screen').style.display = 'none';
-    const modeScreen = document.getElementById('mode-selection');
-    modeScreen.style.display = 'flex';
+  document.getElementById('login-screen').style.display = 'none';
+  const modeScreen = document.getElementById('mode-selection');
+  modeScreen.style.display = 'flex';
 
-    // Mostrar controles de tienda y pase
-    const metaControls = document.getElementById('meta-controls');
-    if (metaControls) metaControls.style.display = 'flex';
+  const metaControls = document.getElementById('meta-controls');
+  if (metaControls) metaControls.style.display = 'flex';
 
-    // Si es Admin, activar modo admin visual
-    if (name === "Admin" || name === "KirByteBi") {
-      gameState.adminMode = true;
-      document.getElementById('admin-indicator').style.display = 'block';
+  // Si es Admin, activar modo admin visual
+  if (name === "Admin" || name === "KirByteBi") {
+    gameState.adminMode = true;
+    document.getElementById('admin-indicator').style.display = 'block';
+  }
+
+  // Activar estado Glitch / Anti-Normal (solo si no se ha pasado ya)
+  if (!gameState.unlockedAntiNormal) {
+    gameState.antiNormalActive = true;
+    modeScreen.classList.add('glitch-state');
+    showMessage("S1S73M4 1N574BL3...", 'error');
+  }
+
+  // Bloquear modo infinito si no está desbloqueado
+  const infBtn = document.querySelector('.mode-btn[data-mode="infinito"]');
+  if (infBtn) {
+    if (!gameState.unlockedInfinite && name !== "Admin" && name !== "KirByteBi") {
+      infBtn.disabled = true;
+      infBtn.title = "Gana en modo Difícil o superior para desbloquear";
+      infBtn.style.opacity = "0.5";
+    } else {
+      infBtn.disabled = false;
+      infBtn.style.opacity = "1";
     }
-
-    // Activar estado Glitch / Anti-Normal (solo si no se ha pasado ya)
-    if (!gameState.unlockedAntiNormal) {
-      gameState.antiNormalActive = true;
-      modeScreen.classList.add('glitch-state');
-      showMessage("S1S73M4 1N574BL3...", 'error');
-    }
-
-    // Bloquear modo infinito si no está desbloqueado
-    const infBtn = document.querySelector('.mode-btn[data-mode="infinito"]');
-    if (infBtn) {
-      if (!gameState.unlockedInfinite && name !== "Admin" && name !== "KirByteBi") {
-        infBtn.disabled = true;
-        infBtn.title = "Gana en modo Difícil o superior para desbloquear";
-        infBtn.style.opacity = "0.5";
-      } else {
-        infBtn.disabled = false;
-        infBtn.style.opacity = "1";
-      }
-    }
-  } else {
-    const msgEl = document.getElementById('login-msg');
-    if (msgEl) msgEl.textContent = translate('loginError');
   }
 }
 
@@ -1126,13 +1121,21 @@ function unlockBadge(key) {
 }
 
 function updateMetaUI() {
-  document.getElementById('pycoins-value').textContent = Math.floor(gameState.pycoins);
-  document.getElementById('duckpass-currency').textContent = gameState.duckPassCurrency;
+  const pycoinsEl = document.getElementById('pycoins-value');
+  const duckpassEl = document.getElementById('duckpass-currency');
+  
+  if (pycoinsEl) pycoinsEl.textContent = Math.floor(gameState.pycoins);
+  if (duckpassEl) duckpassEl.textContent = gameState.duckPassCurrency;
 
-  if (document.getElementById('pass-modal').style.display === 'flex') {
-    document.getElementById('pass-level').textContent = gameState.duckPassLevel;
-    document.getElementById('pass-xp').textContent = gameState.duckPassXP;
-    document.getElementById('xp-fill').style.width = `${gameState.duckPassXP}%`;
+  const passModal = document.getElementById('pass-modal');
+  if (passModal && passModal.style.display === 'flex') {
+    const levelEl = document.getElementById('pass-level');
+    const xpEl = document.getElementById('pass-xp');
+    const fillEl = document.getElementById('xp-fill');
+    
+    if (levelEl) levelEl.textContent = gameState.duckPassLevel;
+    if (xpEl) xpEl.textContent = gameState.duckPassXP;
+    if (fillEl) fillEl.style.width = `${gameState.duckPassXP}%`;
   }
 }
 
