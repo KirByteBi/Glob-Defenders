@@ -465,7 +465,27 @@ function hideTooltip() {
   if (tooltip) tooltip.style.display = 'none';
 }
 
+let resetCounter = 0;
+function confirmReset() {
+  resetCounter++;
+  const btn = document.getElementById('reset-btn');
+  if (resetCounter === 1) {
+    btn.textContent = translate('reset_confirm_1');
+  } else if (resetCounter === 2) {
+    btn.textContent = translate('reset_confirm_2');
+  } else if (resetCounter === 3) {
+    btn.textContent = translate('reset_confirm_3');
+  } else if (resetCounter >= 4) {
+    localStorage.removeItem('glob_defenders_save');
+    alert(translate('reset_done'));
+    location.reload();
+  }
+}
+
 function openOptions() {
+  resetCounter = 0;
+  const btn = document.getElementById('reset-btn');
+  if (btn) btn.textContent = translate('reset_progress_btn');
   document.getElementById('options-modal').style.display = 'flex';
   document.getElementById('opt-show-desc').checked = gameState.settings.showShopDesc;
   document.getElementById('opt-show-damage').checked = gameState.settings.showTotalDamage;

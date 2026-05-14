@@ -104,7 +104,7 @@ const TRANSLATIONS = {
     limit_reached: "Límite alcanzado para {name} (Máx: {limit})",
     next_upgrade: "Próxima Mejora: {name}",
     evolution_label: "Evolución",
-    evolve_btn_text: "Evolucionar (💰 {cost})",
+    evolve_btn_text: "Evolucionar a {name}",
     prestige_duckpass: "¡Prestigio Duck Pass! +2 Ducky Pass",
     level_duckpass: "¡Nivel {level} del Duck Pass! +1 Ducky Pass",
     look_defender: "¿Qué miras, Defensor? 👀",
@@ -140,6 +140,11 @@ const TRANSLATIONS = {
     pycoins_title: "PyCoins",
     duckpass_title: "Duck Pass",
     equip_btn: "Equipar",
+    reset_progress_btn: "🚨 Resetear Todo el Progreso 🚨",
+    reset_confirm_1: "¡CUIDADO! Esto borrará todas tus skins, mejoras y logros. ¿Estás seguro?",
+    reset_confirm_2: "¡Último aviso! No hay vuelta atrás. ¿SEGURO?",
+    reset_confirm_3: "Vale... si pulsas una vez más, se acabó todo. ¿DE VERDAD?",
+    reset_done: "Progreso reseteado. El juego se reiniciará.",
     
     // Mejoras de Tienda
     upgrade_hp_name: "Salud de Base",
