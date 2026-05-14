@@ -136,7 +136,10 @@ const TRANSLATIONS = {
     sell: "Vender",
     back_to_modes: "Volver a Modos",
     rotate_device: "Gira el dispositivo",
-    landscape_msg: "Glob Defenders se juega en modo horizontal"
+    landscape_msg: "Glob Defenders se juega en modo horizontal",
+    pycoins_title: "PyCoins",
+    duckpass_title: "Duck Pass",
+    equip_btn: "Equipar"
   },
   en: {
     health: "Health", money: "Money", wave: "Wave",
@@ -273,7 +276,10 @@ const TRANSLATIONS = {
     sell: "Sell",
     back_to_modes: "Back to Modes",
     rotate_device: "Rotate your device",
-    landscape_msg: "Glob Defenders is played in landscape mode"
+    landscape_msg: "Glob Defenders is played in landscape mode",
+    pycoins_title: "PyCoins",
+    duckpass_title: "Duck Pass",
+    equip_btn: "Equip"
   }
 };
 

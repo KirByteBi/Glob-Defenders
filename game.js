@@ -342,7 +342,7 @@ function handleLogin() {
       if (!BADGES[req].unlocked) {
         btn.disabled = true;
         btn.style.opacity = "0.4";
-        btn.title = translate('win_diff_required', { diff: translate('badge_win' + modes[modes.indexOf(m)-1].charAt(0).toUpperCase() + modes[modes.indexOf(m)-1].slice(1) + '_name') });
+        btn.title = translate('win_diff_required', { diff: translate('badge_' + req + '_name') });
       } else {
         btn.disabled = false;
         btn.style.opacity = "1";
@@ -823,7 +823,7 @@ function drawShop() {
         const isEquipped = gameState.equippedSkins[family] === skin.id;
         const el = document.createElement('div');
         el.className = `skin-item ${isEquipped ? 'equipped' : ''}`;
-        let btnText = isUnlocked ? (isEquipped ? translate('actual') : translate('equipped')) : `${translate('buy')} (${skin.cost})`;
+        let btnText = isUnlocked ? (isEquipped ? translate('actual') : translate('equip_btn')) : `${translate('buy')} (${skin.cost})`;
         el.innerHTML = `<div class="skin-preview ${skin.class || ''}"><img src="${skin.skins ? skin.skins[family] || Object.values(skin.skins)[0] : 'img/Glob_DEF.png'}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
           <h3>${skin.name}</h3><p>${skin.desc}</p>
           <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${!isUnlocked && gameState.pycoins < skin.cost ? 'disabled' : ''} onclick="${isUnlocked ? `equipSkin('${family}', '${skin.id}')` : `buySkin('${family}', '${skin.id}', ${skin.cost})`}">${btnText}</button>`;
@@ -880,7 +880,7 @@ function drawPass() {
     el.className = `meta-item ${unlocked ? 'unlocked' : 'locked'}`;
     let btnHTML = "";
     if (unlocked) {
-      btnHTML = equipped ? `<button disabled>${translate('equipped')}</button>` : `<button onclick="equipSkin('Global', '${skin.id}')">${translate('cancel').replace('Cancelar', 'Equipar').replace('Cancel', 'Equip')}</button>`;
+      btnHTML = equipped ? `<button disabled>${translate('equipped')}</button>` : `<button onclick="equipSkin('Global', '${skin.id}')">${translate('equip_btn')}</button>`;
     } else {
       btnHTML = `<button disabled>${translate('req_level', { level: skin.level })}</button>`;
     }
@@ -965,7 +965,7 @@ function deselectTower() { gameState.selectedTower = null; document.getElementBy
 
 function startWave() {
   if (gameState.waveActive || gameState.gameOver) return;
-  if (gameState.mode !== 'infinito' && gameState.wave >= gameState.maxWaves) return backToModes();
+  if (gameState.mode !== 'infinito' && gameState.wave >= gameState.maxWaves) return endGame(true);
 
   gameState.waveActive = true; gameState.wave++;
   updateUI(); showMessage(translate('waveStarted', { wave: gameState.wave }), 'info');
@@ -1120,12 +1120,8 @@ function updateLanguage() {
   t('health-label', 'health'); 
   t('money-label', 'money'); 
   t('wave-label', 'wave');
-  t('pycoins-label', 'plus_pycoins'); // plus_pycoins tiene {amount}, translate lo manejará
-  const pyLabel = document.getElementById('pycoins-label');
-  if (pyLabel) pyLabel.textContent = pyLabel.textContent.replace('+{amount}', '').replace('+', '').trim() || "PyCoins";
-  t('duckpass-label', 'pass_title');
-  const dpLabel = document.getElementById('duckpass-label');
-  if (dpLabel) dpLabel.textContent = dpLabel.textContent.replace('🦆 ', '').trim();
+  t('pycoins-label', 'pycoins_title');
+  t('duckpass-label', 'duckpass_title');
   t('total-damage-label', 'show_total_damage');
 
   // Botones de acción
@@ -1219,14 +1215,28 @@ function drawRangePreview(x, y, range) {
   document.getElementById('map').appendChild(p);
 }
 
-function endGame() {
+function endGame(victory = false) {
   gameState.gameOver = true;
   const modal = document.getElementById('game-over');
+  if (!modal) return;
   modal.style.display = 'flex';
-  modal.querySelector('h2').textContent = translate('victory_title');
-  modal.querySelector('p').innerHTML = translate('victory_msg', { mode: gameState.mode.toUpperCase() });
-  modal.querySelector('button').textContent = translate('backToModes');
-  document.getElementById('final-wave').textContent = gameState.wave;
+  
+  const title = modal.querySelector('h2');
+  const msg = modal.querySelector('p');
+  const btn = modal.querySelector('button');
+
+  if (victory) {
+    if (title) title.textContent = translate('victory_title');
+    if (msg) msg.innerHTML = translate('victory_msg', { mode: gameState.mode.toUpperCase() });
+  } else {
+    if (title) title.textContent = translate('gameOver');
+    if (msg) msg.innerHTML = translate('waveStarted', { wave: gameState.wave }).replace('Oleada', 'Llegaste a la oleada').replace('Wave', 'You reached wave');
+  }
+
+  if (btn) {
+    btn.textContent = translate('backToModes');
+    btn.onclick = () => location.reload(); // Por ahora recargar es más seguro
+  }
 }
 
 window.onload = init;
