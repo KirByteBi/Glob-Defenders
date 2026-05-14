@@ -437,13 +437,13 @@ const SKINS_DATA = {
     }
   ],
   'Global': [
-    { id: 'recolor_emerald', name: 'Edición Esmeralda', desc: 'Poder de la naturaleza.', type: 'duckpass_level', level: 5, filter: 'hue-rotate(60deg) saturate(2) brightness(1.1)' },
+    { id: 'recolor_emerald', name: 'Edición Esmeralda', desc: 'Poder de la naturaleza.', type: 'duckpass_level', level: 5, filter: 'hue-rotate(100deg) saturate(2.5) brightness(0.9)' },
     { id: 'buff_damage_1', name: 'Entrenamiento Básico', desc: '⚔️ +5% Daño Permanente.', type: 'duckpass_level', level: 10, buff: { damage: 1.05 } },
-    { id: 'recolor_ruby', name: 'Edición Rubí', desc: 'Pasión ardiente en cada disparo.', type: 'duckpass_level', level: 15, filter: 'hue-rotate(-60deg) saturate(2) brightness(1.1)' },
+    { id: 'recolor_ruby', name: 'Edición Rubí', desc: 'Pasión ardiente en cada disparo.', type: 'duckpass_level', level: 15, filter: 'hue-rotate(-20deg) saturate(3) brightness(1)' },
     { id: 'buff_range_1', name: 'Visión de Águila', desc: '🔭 +10 Alcance Permanente.', type: 'duckpass_level', level: 20, buff: { range_flat: 10 } },
-    { id: 'recolor_cyan', name: 'Edición Cian', desc: 'Frío como el hielo de Bitlands.', type: 'duckpass_level', level: 25, filter: 'hue-rotate(140deg) saturate(1.5) brightness(1.2)' },
+    { id: 'recolor_cyan', name: 'Edición Cian', desc: 'Frío como el hielo de Bitlands.', type: 'duckpass_level', level: 25, filter: 'hue-rotate(180deg) saturate(2) brightness(1.2)' },
     { id: 'buff_speed_1', name: 'Cadencia Mejorada', desc: '⚡ +5% Velocidad de Ataque.', type: 'duckpass_level', level: 30, buff: { speed: 1.05 } },
-    { id: 'recolor_neon', name: 'Edición Neón', desc: 'Brillo cibernético futurista.', type: 'duckpass_level', level: 40, filter: 'brightness(1.5) saturate(3) hue-rotate(150deg)' },
+    { id: 'recolor_neon', name: 'Edición Neón', desc: 'Brillo cibernético futurista.', type: 'duckpass_level', level: 40, filter: 'brightness(1.5) saturate(4) hue-rotate(280deg)' },
     { id: 'buff_damage_2', name: 'Ingeniería de Bitlands', desc: '⚔️ +10% Daño Extra.', type: 'duckpass_level', level: 50, buff: { damage: 1.10 } },
     { id: 'recolor_shadow', name: 'Edición Sombra', desc: 'Sigilo y oscuridad total.', type: 'duckpass_level', level: 55, filter: 'grayscale(1) brightness(0.4)' },
     { id: 'recolor_void', name: 'Edición Vacío', desc: 'Poder oscuro del abismo.', type: 'duckpass_level', level: 70, filter: 'brightness(0.6) hue-rotate(250deg) saturate(2)' },
@@ -513,7 +513,12 @@ let gameState = {
   antiNormalActive: false,
   unlockedAntiNormal: false,
   claimedRewards: [],
-  muted: false
+  muted: false,
+  totalDamage: 0,
+  settings: {
+    showShopDesc: true,
+    showTotalDamage: false
+  }
 };
 
 // ===================== MOTOR DEL JUEGO =====================
@@ -563,7 +568,9 @@ function saveProgress() {
     equippedSkins: gameState.equippedSkins,
     unlockedAntiNormal: gameState.unlockedAntiNormal,
     claimedRewards: gameState.claimedRewards,
-    muted: gameState.muted
+    muted: gameState.muted,
+    totalDamage: gameState.totalDamage,
+    settings: gameState.settings
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
 }
@@ -600,6 +607,8 @@ function loadProgress(username) {
       // Meta data
       gameState.globetines = Number(progress.globetines != null ? progress.globetines : 500);
       gameState.pycoins = Number(progress.pycoins || 0);
+      gameState.totalDamage = Number(progress.totalDamage || 0);
+      gameState.settings = { ...gameState.settings, ...progress.settings };
       gameState.duckPassXP = progress.duckPassXP || 0;
       gameState.duckPassLevel = progress.duckPassLevel || 1;
       gameState.duckPassCurrency = progress.duckPassCurrency || 0;
@@ -615,6 +624,7 @@ function loadProgress(username) {
       gameState.muted = progress.muted || false;
       if (gameState.unlockedAntiNormal) BADGES.antiNormal.unlocked = true;
       updateBuffs();
+      document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
       updateMuteButton();
       // Ajustar salud según el nivel cargado
       gameState.health = 100 + (gameState.baseHealthLevel * 20);
@@ -874,6 +884,27 @@ function createMap() {
   });
 }
 
+function openOptions() {
+  document.getElementById('options-modal').style.display = 'flex';
+  document.getElementById('opt-show-desc').checked = gameState.settings.showShopDesc;
+  document.getElementById('opt-show-damage').checked = gameState.settings.showTotalDamage;
+}
+
+function closeOptions() {
+  document.getElementById('options-modal').style.display = 'none';
+  saveProgress();
+}
+
+function updateSettings() {
+  gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
+  gameState.settings.showTotalDamage = document.getElementById('opt-show-damage').checked;
+  
+  // Aplicar cambios inmediatos
+  document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
+  drawTowerShop();
+  saveProgress();
+}
+
 function drawTowerShop() {
   const shop = document.getElementById('tower-shop');
   shop.innerHTML = '';
@@ -898,7 +929,7 @@ function drawTowerShop() {
       <div class="tower-icon-shop" style="background-image: url('${displayImg}')"></div>
       <div class="tower-info-shop">
         <div class="tower-name">${t.name}</div>
-        <div class="tower-desc-shop">${t.desc || ""}</div>
+        ${gameState.settings.showShopDesc ? `<div class="tower-desc-shop">${t.desc || ""}</div>` : ''}
         <div class="tower-stats-shop">
           <span class="tower-cost">💰 ${t.cost}</span>
           <span class="tower-limit ${isFull ? 'limit-full' : ''}">${currentCount}/${limit}</span>
@@ -1167,9 +1198,10 @@ function openShop() {
 }
 
 function openPass() {
-  closeModal('shop-modal'); // Cerrar la tienda si está abierta
+  closeModal('shop-modal');
   document.getElementById('pass-modal').style.display = 'flex';
   drawPass();
+  updateMetaUI();
 }
 
 function closeModal(id) {
@@ -1527,6 +1559,12 @@ function placeTower(spotId, type) {
     cooldown: 0, spotId, level: 1,
     stunned: 0, moneyTimer: 0
   };
+
+  // Tooltip
+  el.onmouseenter = () => {
+    if (gameState.settings.showShopDesc) showTooltip(tCfg, el);
+  };
+  el.onmouseleave = hideTooltip;
 
   // Aplicar buffs globales
   towerObj.damage *= gameState.towerBuffs.damage;
@@ -1952,6 +1990,7 @@ function gameLoop() {
             damage -= absorbed;
           }
           if (damage > 0) e.health -= damage;
+          gameState.totalDamage += p.damage;
           showEffect(e.x, e.y - 20, `-${Math.floor(p.damage)}`);
           p.hitEnemies.add(e);
           if (p.burn) e.burnTimer = 3;
@@ -1983,6 +2022,7 @@ function gameLoop() {
             damage -= absorbed;
           }
           if (damage > 0) p.target.health -= damage;
+          gameState.totalDamage += p.damage;
           if (p.slow) p.target.slowAmount = p.slow;
 
           // AOE Damage (Bombas)
@@ -2139,6 +2179,9 @@ function updateUI() {
   document.getElementById('health').textContent = Math.max(0, gameState.health);
   document.getElementById('money').textContent = Math.floor(gameState.globetines);
   document.getElementById('wave-count').textContent = Math.min(999, gameState.wave);
+  if (gameState.settings.showTotalDamage) {
+    document.getElementById('total-damage').textContent = Math.floor(gameState.totalDamage);
+  }
   
   // Si hay un panel de evolución abierto, actualizar sus botones (por si cambió el dinero)
   if (gameState.selectedTower) {

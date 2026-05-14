@@ -24,6 +24,7 @@
 
     <button id="language-toggle" onclick="toggleLanguage()">🌐 ES / EN</button>
     <button id="mute-toggle" onclick="toggleMute()">🔊</button>
+    <button id="options-toggle" onclick="openOptions()" class="meta-btn-round">⚙️</button>
 
     <!-- Meta Controls (Visible after login) -->
     <div id="meta-controls" style="display: none;">
@@ -92,6 +93,10 @@
                     <span class="stat-value" id="wave-count">0</span>
                     <span class="stat-label">Oleada</span>
                 </div>
+                <div class="stat" id="total-damage-stat" style="display: none;" title="Daño total infligido">
+                    <span class="stat-value" id="total-damage">0</span>
+                    <span class="stat-label">Daño Total</span>
+                </div>
             </div>
 
             <div class="controls">
@@ -149,6 +154,28 @@
     </div>
 
     <button id="debug-toggle" style="position: fixed; bottom: 10px; right: 10px; opacity: 0.1;">🐛</button>
+
+    <!-- Modal de Opciones -->
+    <div id="options-modal" class="modal">
+        <div class="modal-content options-content">
+            <h2>⚙️ Ajustes</h2>
+            <div class="option-row">
+                <span>Mostrar descripción en tienda</span>
+                <label class="switch">
+                    <input type="checkbox" id="opt-show-desc" checked onchange="updateSettings()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="option-row">
+                <span>Ver Daño Total de torres</span>
+                <label class="switch">
+                    <input type="checkbox" id="opt-show-damage" onchange="updateSettings()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <button onclick="closeOptions()" class="close-btn" style="margin-top: 20px;">Guardar y Cerrar</button>
+        </div>
+    </div>
 
     <!-- Modales Meta-Juego -->
     <div id="shop-modal" class="modal">
