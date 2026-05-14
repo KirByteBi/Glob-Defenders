@@ -1,399 +1,6 @@
-// ===================== CONFIGURACIÓN Y TRADUCCIONES =====================
-const TRANSLATIONS = {
-  es: {
-    health: "Salud", money: "Dinero", wave: "Oleada",
-    startWave: "Iniciar Oleada", autoWave: "Auto-Oleada",
-    autoWaveActive: "Auto-ON", cancel: "Cancelar",
-    gameOver: "💀 GAME OVER 💀", playAgain: "Reintentar",
-    achievements: "Logros", notEnoughMoney: "💸 Sin fondos",
-    towerPlaced: "✅ {name} colocada",
-    towerEvolved: "🎉 ¡Evolución a {name}!",
-    towerSold: "💵 Vendida por {price}",
-    waveStarted: "🌊 Oleada {wave}!",
-    waveCompleted: "✅ Oleada {wave} superada!",
-    enemyReachedEnd: "💔 ¡Daño a la base!",
-    pyceGlobUnlocked: "🔓 ¡Pyce Glob desbloqueado!",
-    adminMode: "👑 MODO ADMIN",
-    codeInvalid: "❌ Código inválido",
-    loginError: "❌ Usuario o contraseña incorrectos",
-    codeSuccess: "✨ Código aceptado: {name} desbloqueado",
-    badge_survivor_name: "Superviviente", badge_survivor_desc: "Llega a la oleada 10",
-    badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Ten más de 20.000 de dinero",
-    badge_evolution_name: "Biotecnólogo", badge_evolution_desc: "Evoluciona una torre al máximo",
-    badge_bossKiller_name: "Matarreyes", badge_bossKiller_desc: "Derrota al primer jefe",
-    badge_secret_name: "Hacker", badge_secret_desc: "Usa un código secreto",
-    badge_inf100_name: "Centenario", badge_inf100_desc: "Llega a la oleada 100",
-    badge_inf500_name: "Veterano", badge_inf500_desc: "Llega a la oleada 500",
-    badge_inf999_name: "Dios Glob", badge_inf999_desc: "Llega a la oleada 999",
-    badge_corrupt1_name: "Corrupto I", badge_corrupt1_desc: "Gana 1 vez en modo corrupto",
-    badge_corrupt2_name: "Corrupto II", badge_corrupt2_desc: "Gana 2 veces en modo corrupto",
-    badge_corrupt3_name: "Corrupto III", badge_corrupt3_desc: "Gana 3 veces en modo corrupto",
-    badge_corrupt4_name: "Corrupto IV", badge_corrupt4_desc: "Gana 4 veces en modo corrupto",
-    badge_corrupt5_name: "Corrupto V", badge_corrupt5_desc: "Gana 5 veces en modo corrupto",
-    badge_mimic1_name: "Cazatesoros I", badge_mimic1_desc: "Encuentra 1 Mimic",
-    badge_mimic2_name: "Cazatesoros II", badge_mimic2_desc: "Encuentra 2 Mimics seguidos",
-    badge_mimic3_name: "Cazatesoros III", badge_mimic3_desc: "Encuentra 3 Mimics seguidos",
-    badge_mimic4_name: "Cazatesoros IV", badge_mimic4_desc: "Encuentra 4 Mimics seguidos",
-    badge_corruptMimic_name: "Oro Maldito", badge_corruptMimic_desc: "Encuentra un Mimic corrupto",
-    badge_mimicRevenge_name: "Venganza Dorada", badge_mimicRevenge_desc: "Derrota a un Mimic que ha resucitado",
-    badge_antiNormal_name: "Maestro del Vacío", badge_antiNormal_desc: "Purifica el modo Anti-Normal",
-    badge_winFacil_name: "Iniciado", badge_winFacil_desc: "Vence en modo Fácil",
-    badge_winNormal_name: "Defensor", badge_winNormal_desc: "Vence en modo Normal",
-    badge_winDificil_name: "Guerrero", badge_winDificil_desc: "Vence en modo Difícil",
-    badge_winExtremo_name: "Leyenda", badge_winExtremo_desc: "Vence en modo Extremo",
-    badge_winCorrupto_name: "Purificador", badge_winCorrupto_desc: "Vence en modo Corrupto",
-    login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla",
-    select_mode: "Seleccionar Modo",
-    backToModes: "Selección de Modo",
-    shop_title: "🛒 Tienda Meta",
-    pass_title: "🦆 Duck Pass",
-    code_placeholder: "Código Secreto...",
-    apply_btn: "Aplicar"
-  },
-  en: {
-    health: "Health", money: "Money", wave: "Wave",
-    startWave: "Start Wave", autoWave: "Auto-Wave",
-    autoWaveActive: "Auto-ON", cancel: "Cancel",
-    gameOver: "💀 GAME OVER 💀", playAgain: "Retry",
-    achievements: "Achievements", notEnoughMoney: "💸 No money",
-    towerPlaced: "✅ {name} placed",
-    towerEvolved: "🎉 Evolved to {name}!",
-    towerSold: "💵 Sold for {price}",
-    waveStarted: "Wave {wave} started!",
-    waveCompleted: "Wave {wave} completed!",
-    enemyReachedEnd: "💔 Base took damage!",
-    pyceGlobUnlocked: "🔓 Pyce Glob unlocked!",
-    adminMode: "ADMIN MODE",
-    codeSuccess: "✨ Code accepted: {name} unlocked",
-    codeInvalid: "❌ Invalid code",
-    loginError: "❌ Invalid username or password",
-    badge_survivor_name: "Survivor", badge_survivor_desc: "Reach wave 10",
-    badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Have over 20,000 money",
-    badge_evolution_name: "Biotechnologist", badge_evolution_desc: "Evolve a tower to the max",
-    badge_bossKiller_name: "Kingslayer", badge_bossKiller_desc: "Defeat the first boss",
-    badge_secret_name: "Hacker", badge_secret_desc: "Use a secret code",
-    badge_inf100_name: "Centenarian", badge_inf100_desc: "Reach wave 100",
-    badge_inf500_name: "Veteran", badge_inf500_desc: "Reach wave 500",
-    badge_inf999_name: "Glob God", badge_inf999_desc: "Reach wave 999",
-    badge_corrupt1_name: "Corrupt I", badge_corrupt1_desc: "Win 1 time in corrupt mode",
-    badge_corrupt2_name: "Corrupt II", badge_corrupt2_desc: "Win 2 times in corrupt mode",
-    badge_corrupt3_name: "Corrupt III", badge_corrupt3_desc: "Win 3 times in corrupt mode",
-    badge_corrupt4_name: "Corrupt IV", badge_corrupt4_desc: "Win 4 times in corrupt mode",
-    badge_corrupt5_name: "Corrupt V", badge_corrupt5_desc: "Win 5 times in corrupt mode",
-    badge_mimic1_name: "Treasure Hunter I", badge_mimic1_desc: "Find 1 Mimic",
-    badge_mimic2_name: "Treasure Hunter II", badge_mimic2_desc: "Find 2 Mimics in a row",
-    badge_mimic3_name: "Treasure Hunter III", badge_mimic3_desc: "Find 3 Mimics in a row",
-    badge_mimic4_name: "Treasure Hunter IV", badge_mimic4_desc: "Find 4 Mimics in a row",
-    badge_corruptMimic_name: "Cursed Gold", badge_corruptMimic_desc: "Find a corrupt Mimic",
-    badge_mimicRevenge_name: "Golden Revenge", badge_mimicRevenge_desc: "Defeat a resurrected Mimic",
-    badge_antiNormal_name: "Void Master", badge_antiNormal_desc: "Purify the Anti-Normal mode",
-    badge_winFacil_name: "Beginner", badge_winFacil_desc: "Win in Easy mode",
-    badge_winNormal_name: "Defender", badge_winNormal_desc: "Win in Normal mode",
-    badge_winDificil_name: "Warrior", badge_winDificil_desc: "Win in Hard mode",
-    badge_winExtremo_name: "Legend", badge_winExtremo_desc: "Win in Extreme mode",
-    badge_winCorrupto_name: "Purifier", badge_winCorrupto_desc: "Win in Corrupt mode",
-    login_user: "Username", login_pass: "Password", login_btn: "Join the battle",
-    select_mode: "Select Mode",
-    backToModes: "Mode Selection",
-    shop_title: "🛒 Meta Shop",
-    pass_title: "🦆 Duck Pass",
-    code_placeholder: "Secret Code...",
-    apply_btn: "Apply"
-  }
-};
-
-let USERS = {
-  "KirByteBi": "FTPY2",
-  "Admin": "ADgod",
-  "AirRider": "PYCE",
-  "Player": "1234"
-};
-
-function saveUsers() {
-  localStorage.setItem('glob_users', JSON.stringify(USERS));
-}
-
-function loadUsers() {
-  const saved = localStorage.getItem('glob_users');
-  if (saved) {
-    USERS = { ...USERS, ...JSON.parse(saved) };
-  }
-}
-loadUsers(); // Cargar al inicio
+// ===================== ESTADO DEL JUEGO =====================
 
 let currentLanguage = 'es';
-
-const IMAGE_PATHS = {
-  'Glob': 'img/Glob_DEF.png',
-  'Poop_Glob': 'img/Poop_Glob.png',
-  'Golden_Glob': 'img/Golden_Glob.png',
-  'Rainbow_Glob': 'img/Rainbow_Glob.png',
-  'Red_Glob': 'img/Red_Glob.png',
-  'Molten_Glob': 'img/Molten_Glob.png',
-  'Robotic_Glob': 'img/Robotic_Glob.png',
-  'Soap_Glob': 'img/Soap_Glob.png',
-  'Cotton_Glob': 'img/Cotton_Glob.png',
-  'Ducky_Glob': 'img/Ducky_Glob.png',
-  'Golden_Ducky_Glob': 'img/Golden_Ducky_Glob.png',
-  'Comet_Glob': 'img/Comet_Glob.png',
-  'Dark_Glob': 'img/Dark_Glob.png',
-  'Demglob': 'img/Demglob.png',
-  'Pyce_Glob': 'img/Pyce_Glob.png',
-  'Old_Glob': 'img/Old_Glob.png',
-  'Stupid_Pyce': 'img/Stupid_Pyce.png',
-  'Guest_Pyce': 'img/Guest_Pyce.png',
-  'Noob_Pyce': 'img/Noob_Pyce.png',
-  '4motions_Pyce': 'img/4motions_Pyce.png',
-  '1x1x1x1_Pyce': 'img/1x1x1x1_Pyce.png',
-  'Stupid_GoldPyce': 'img/Stupid_GoldPyce.png',
-  'Pyce2': 'img/Pyce2.png',
-  'Symbol_Pyce': 'img/Symbol_Pyce.png',
-  'SO_Pyce': 'img/SO_Pyce.png',
-  'NOeye_Pyce': 'img/NOeye_Pyce.png',
-  'MoonStar_Pyce': 'img/MoonStar_Pyce.png',
-  'Work_Bombot': 'img/Work-Bombot.png',
-  'Globetin': 'img/Tokens/Globetin.png',
-  'PyCoin': 'img/Tokens/PyCoin.png',
-  'DuckyPass': 'img/Tokens/DuckPass.png'
-};
-
-const NARRATOR_DATA = {
-  bombot: {
-    img: IMAGE_PATHS.Work_Bombot, es: {
-      name: "Work Bombot", msgs: [
-        "Detección de enemigos optimizada. Procediendo al bombardeo.",
-        "Los siguientes enemigos atacan con una espada. ¡Cuidado!",
-        "A veces me pregunto por qué no me uní a los Pyces.",
-        "NOeye es una personificación de Materia Negra, tened mucho cuidado.",
-        "¿Un símbolo? Ah no, es un enemigo más.",
-        "Dicen que los magos Pyces suelen acabar mal parados.",
-        "¡Brrzzzttt! Mecachis, un resfriado."
-      ]
-    }, en: {
-      name: "Work Bombot", msgs: [
-        "Enemy detection optimized. Proceeding with bombardment.",
-        "The following enemies attack with a sword. Watch out!",
-        "Sometimes I wonder why I didn't join the Pyces.",
-        "NOeye is a personification of Dark Matter, be very careful.",
-        "A symbol? Oh no, it's just another enemy.",
-        "They say Pyce magicians usually end up badly.",
-        "¡Brrzzzttt! Damn it, a cold."
-      ]
-    }
-  },
-  glob: {
-    img: IMAGE_PATHS.Glob, es: {
-      name: "Glob (DEF)", msgs: [
-        "Me pregunto por qué atacamos a los Pyces. ¿No son amigos?",
-        "¿No viven los Pyces 2.0 en Bitlands? ¡Si este es mi hogar!",
-        "Ojalá pudiera darles su merecido a esos corruptos...",
-        "¡Oh no... Aquí vienen los disparadores!",
-        "¡AYUDA! ¡Vienen demasiados! 😱",
-        "¿Alguien tiene un paraguas? Creo que va a llover... Pyces."
-      ]
-    }, en: {
-      name: "Glob (DEF)", msgs: [
-        "I wonder why we attack the Pyces. Aren't they friends?",
-        "Don't the Pyces 2.0 live in Bitlands? This is my home!",
-        "I wish I could give those corrupt ones what they deserve...",
-        "Oh no... Here come the shooters!",
-        "HELP! Too many are coming! 😱",
-        "Anyone got an umbrella? I think it's gonna rain... Pyces."
-      ]
-    }
-  },
-  stupid: {
-    img: IMAGE_PATHS.Stupid_Pyce, es: {
-      name: "Stupid Pyce", msgs: [
-        "Eh, estamos entrando. No nos pegues muy fuerte.",
-        "Caminar por este mapa cansa un poco.",
-        "¿Habéis visto mi sombrero? Ah, no llevo."
-      ]
-    }, en: {
-      name: "Stupid Pyce", msgs: [
-        "Hey, we're coming in. Don't hit us too hard.",
-        "Walking this map is a bit tiring.",
-        "Have you seen my hat? Oh, I'm not wearing one."
-      ]
-    }
-  },
-  pyce2: {
-    img: IMAGE_PATHS.Pyce2, es: {
-      name: "Pyce2", msgs: [
-        "Hola, solo estamos pasando por aquí.",
-        "Tenéis un lugar muy bonito, me gusta la decoración.",
-        "Buen disparo, casi me das.",
-        "Espero que no os moleste nuestra visita.",
-        "Parece que hoy hace un buen día para dar un paseo.",
-        "Interesante defensa, se nota el esfuerzo."
-      ]
-    }, en: {
-      name: "Pyce2", msgs: [
-        "Hello, we're just passing through.",
-        "You have a very nice place, I like the decoration.",
-        "Good shot, you almost hit me.",
-        "I hope our visit doesn't bother you.",
-        "Looks like a good day for a walk.",
-        "Interesting defense, the effort is noticeable."
-      ]
-    }
-  },
-  noeye: {
-    img: IMAGE_PATHS.NOeye_Pyce, es: {
-      name: "NOeye", msgs: [
-        "3S70Y H4R70 D3 QU3 M3 73N64N C0N7R0L4D0.",
-        "3L P0D3R 3S 1NU71L CU4ND0 713N3S UN4 M4S4 D3 4L14D0S C0N7R0L4D0S.",
-        "M3 4B4ND0N4R0N... ¡Y 4H0R4 3LL0S P464R4N!",
-        "M4LD170S K3RB0S... S13MPR3 4RRU1N4N M1S PL4N3S."
-      ], defeat: [
-        "C0M0 PU3D3N UN4S 63L471N4S D3RR074R 4 L4 M473R14 N3-",
-        "¡1 7H0U6H7 Y0U W3R3 SM4R73R, 1'LL B3 B4CK S00N!",
-        "7H3 6L0BS S3R4N 3SCL4V0S D3 L4 M473R14 N36R4 4L6UN D14."
-      ]
-    }, en: {
-      name: "NOeye", msgs: [
-        "1 4M 71R3D 0F B31N6 C0N7R0LL3D.",
-        "P0W3R 1S US3L3SS W17H 4 M4SS 0F C0N7R0LL3D 4LL13S.",
-        "7H3Y 4B4ND0N3D M3... N0W 7H3Y W1LL P4Y!",
-        "CURS3D K3RB0S... 4LW4YS RU1N1N6 MY PL4NS."
-      ], defeat: [
-        "H0W C4N J3LL13S D3F347 D4RK M4773R-",
-        "¡1 7H0U6H7 Y0U W3R3 SM4R73R, 1'LL B3 B4CK S00N!",
-        "7H3 6L0BS W1LL B3 SL4V3S 0F D4RK M4773R 0N3 D4Y."
-      ]
-    }
-  },
-  moonstar: {
-    img: IMAGE_PATHS.MoonStar_Pyce, es: {
-      name: "MoonStar", msgs: [
-        "Es un honor contemplar vuestra inevitable caída, pequeños Globs.",
-        "Vuestro esfuerzo es loable, pero el destino ya ha sido escrito por las estrellas.",
-        "Dos vueltas al escenario para saborear vuestro miedo. Qué delicia.",
-        "Vuestra resistencia es fútil ante el ciclo eterno de los astros."
-      ], defeat: [
-        "Imposible... el brillo de las estrellas... se apaga...",
-        "Esto es solo un eclipse temporal. Volveré pronto.",
-        "Disfrutad vuestro triunfo... mientras dure la luz."
-      ]
-    }, en: {
-      name: "MoonStar", msgs: [
-        "It is an honor to behold your inevitable fall, little Globs.",
-        "Your effort is laudable, but fate has already been written by the stars.",
-        "Two laps around the stage to savor your fear. What a delight.",
-        "Your resistance is futile before the eternal cycle of the stars."
-      ], defeat: [
-        "Impossible... the starlight... fades...",
-        "This is only a temporary eclipse. I shall return.",
-        "Enjoy your triumph... while the light lasts."
-      ]
-    }
-  },
-  mimic: {
-    img: IMAGE_PATHS.Stupid_GoldPyce, es: {
-      name: "Stupid GoldPyce", msgs: [
-        "¡Soy rico! Bueno, lo era hasta que me disparaste.",
-        "¿Brillo mucho? Es por el oro, ¿sabes?",
-        "¡No me mates, solo quiero ser tu amigo (y darte dinero)!"
-      ]
-    }, en: {
-      name: "Stupid GoldPyce", msgs: [
-        "I'm rich! Well, I was until you shot me.",
-        "Do I shine a lot? It's the gold, you know?",
-        "Don't kill me, I just want to be your friend (and give you money)!"
-      ]
-    }
-  }
-};
-
-const TOWER_TYPES = {
-  'Glob': { name: 'Glob', damage: 10, range: 150, speed: 1.0, cost: 50, evolution: 'Poop_Glob', image: IMAGE_PATHS.Glob, projectile: 'green', desc: "Glob básico. Ataca con orbes verdes.", evolveDesc: "Evoluciona a Poop Glob.", family: 'Glob' },
-  'Poop_Glob': { name: 'Poop Glob', damage: 25, range: 150, speed: 0.6, cost: 100, evolution: 'Golden_Glob', image: IMAGE_PATHS.Poop_Glob, projectile: 'brown', desc: "Más fuerte pero más lento. Lanza orbes pegajosos.", evolveDesc: "Evoluciona a Golden Glob.", family: 'Glob' },
-  'Golden_Glob': { name: 'Golden Glob', damage: 45, range: 170, speed: 1.5, cost: 200, evolution: 'Rainbow_Glob', image: IMAGE_PATHS.Golden_Glob, projectile: 'gold', desc: "Muy rápido y potente. Dispara balas de oro.", evolveDesc: "Evoluciona a Rainbow Glob.", family: 'Glob' },
-  'Rainbow_Glob': { name: 'Rainbow Glob', damage: 30, range: 180, speed: 1.2, cost: 400, image: IMAGE_PATHS.Rainbow_Glob, projectile: 'laser_rainbow', piercing: true, desc: "El Glob definitivo. Dispara láseres arcoíris penetrantes.", family: 'Glob' },
-
-  'Red_Glob': { name: 'Red Glob', damage: 20, range: 60, speed: 1.5, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "Atacante cuerpo a cuerpo muy rápido.", evolveDesc: "Evoluciona a Molten Glob.", family: 'Red_Glob' },
-  'Molten_Glob': { name: 'Molten Glob', damage: 15, range: 70, speed: 1.0, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "Cuerpo a cuerpo que quema a los enemigos.", evolveDesc: "Evoluciona a Robotic Glob.", family: 'Red_Glob' },
-  'Robotic_Glob': { name: 'Robotic Glob', damage: 40, range: 200, speed: 0.3, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "Francotirador de largo alcance con láseres penetrantes.", family: 'Red_Glob' },
-
-  'Soap_Glob': { name: 'Soap Glob', damage: 0, range: 120, speed: 0.8, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "Lanza burbujas que ralentizan a los enemigos.", evolveDesc: "Evoluciona a Cotton Glob.", family: 'Soap_Glob' },
-  'Cotton_Glob': { name: 'Cotton Glob', damage: 5, range: 140, speed: 1.0, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "Glob suave que ralentiza y hace poco daño.", family: 'Soap_Glob' },
-
-  'Ducky_Glob': { name: 'Ducky Glob', damage: 0, range: 0, speed: 0, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, moneyGen: 30, desc: "Genera dinero cada 5 segundos.", evolveDesc: "Evoluciona a Golden Ducky.", family: 'Ducky_Glob' },
-  'Golden_Ducky_Glob': { name: 'Golden Ducky Glob', damage: 0, range: 0, speed: 0, cost: 200, image: IMAGE_PATHS.Golden_Ducky_Glob, moneyGen: 80, desc: "Genera grandes cantidades de dinero.", family: 'Ducky_Glob' },
-
-  'Comet_Glob': { name: 'Comet Glob', damage: 40, range: 160, speed: 0.8, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'star', boomerang: true, desc: "Lanza estrellas fugaces que vuelven como boomerangs.", evolveDesc: "Evoluciona a Dark Glob.", family: 'Comet_Glob' },
-  'Dark_Glob': { name: 'Dark Glob', damage: 80, range: 180, speed: 1.0, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'star_dark', boomerang: true, desc: "Lanza estrellas oscuras muy potentes.", evolveDesc: "Evoluciona a Demglob.", family: 'Comet_Glob' },
-  'Demglob': { name: 'Demglob', damage: 200, range: 220, speed: 2.0, cost: 800, image: IMAGE_PATHS.Demglob, projectile: 'laser_purple', piercing: true, desc: "Fuego purpúreo devastador que atraviesa todo.", family: 'Comet_Glob' },
-
-  'Pyce_Glob': { name: 'Pyce Glob', damage: 15, range: 180, speed: 4.0, cost: 250, image: IMAGE_PATHS.Pyce_Glob, projectile: 'laser_blue', unlocked: false, desc: "Ataque rápido con láseres azules.", family: 'Pyce_Glob' },
-  'Old_Glob': { name: 'Old Glob', damage: 20, range: 150, speed: 1.2, cost: 150, image: IMAGE_PATHS.Old_Glob, projectile: 'split', unlocked: false, desc: "Lanza proyectiles que se dividen al impactar.", family: 'Old_Glob' },
-  'Work_Bombot': { name: 'Work-Bombot', damage: 100, range: 250, speed: 0.5, cost: 1500, image: IMAGE_PATHS.Work_Bombot, projectile: 'bomb', aoe: 100, unlocked: false, desc: "Artillería pesada con gran daño en área.", family: 'Work_Bombot' }
-};
-
-const ENEMY_TYPES = {
-  'Stupid_Pyce': { name: 'Stupid Pyce', health: 50, speed: 1.5, reward: 15, image: IMAGE_PATHS.Stupid_Pyce },
-  'Pyce2': { name: 'Pyce2', health: 70, speed: 1.4, reward: 20, image: IMAGE_PATHS.Pyce2 },
-  'Guest_Pyce': { name: 'Guest Pyce', health: 100, speed: 1.2, reward: 25, image: IMAGE_PATHS.Guest_Pyce },
-  'Symbol_Pyce': { name: 'Symbol Pyce', health: 80, speed: 2.5, reward: 30, image: IMAGE_PATHS.Symbol_Pyce },
-  'Noob_Pyce': { name: 'Noob Pyce', health: 120, speed: 1.0, reward: 35, image: IMAGE_PATHS.Noob_Pyce, stunAbility: true, stunCooldown: 8 },
-  '4motions_Pyce': { name: '4motions Pyce', health: 200, speed: 0.8, reward: 50, image: IMAGE_PATHS['4motions_Pyce'] },
-  'SO_Pyce': { name: 'Serious Outline Pyce', health: 450, speed: 0.6, reward: 80, image: IMAGE_PATHS.SO_Pyce },
-
-  '1x1x1x1_Pyce': { name: '1x1x1x1 Pyce', health: 500, speed: 0.5, reward: 500, image: IMAGE_PATHS['1x1x1x1_Pyce'], boss: true, bossStun: true, stunCooldown: 10 },
-  'NOeye_Pyce': { name: 'NOeye Pyce', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12 },
-  'MoonStar_Pyce': { name: 'MoonStar Pyce', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true },
-
-  'Stupid_GoldPyce': { name: 'Stupid GoldPyce', health: 80, speed: 2.0, reward: 150, image: IMAGE_PATHS.Stupid_GoldPyce, mimic: true }
-};
-
-const BADGES = {
-  survivor: { key: 'survivor', icon: '🛡️', unlocked: false, reward: { pycoins: 100, xp: 50 } },
-  millionaire: { key: 'millionaire', icon: '💰', unlocked: false, reward: { pycoins: 500, xp: 100 } },
-  evolution: { key: 'evolution', icon: '🧬', unlocked: false, reward: { pycoins: 200, xp: 80 } },
-  bossKiller: { key: 'bossKiller', icon: '👑', unlocked: false, reward: { duckpass: 5, xp: 150 } },
-  secret: { key: 'secret', icon: '🔑', unlocked: false, reward: { pycoins: 50, xp: 30 } },
-  inf100: { key: 'inf100', icon: '💯', unlocked: false, reward: { duckpass: 10, xp: 200 } },
-  inf500: { key: 'inf500', icon: '🎖️', unlocked: false, reward: { duckpass: 25, xp: 500 } },
-  inf999: { key: 'inf999', icon: '🌌', unlocked: false, reward: { duckpass: 50, xp: 1000 } },
-  corrupt1: { key: 'corrupt1', icon: '👾', unlocked: false, reward: { pycoins: 300, xp: 150 } },
-  corrupt2: { key: 'corrupt2', icon: '👾', unlocked: false, reward: { pycoins: 400, xp: 200 } },
-  corrupt3: { key: 'corrupt3', icon: '👾', unlocked: false, reward: { pycoins: 500, xp: 250 } },
-  corrupt4: { key: 'corrupt4', icon: '👾', unlocked: false, reward: { pycoins: 600, xp: 300 } },
-  corrupt5: { key: 'corrupt5', icon: '👾', unlocked: false, reward: { duckpass: 20, xp: 500 } },
-  mimic1: { key: 'mimic1', icon: '🎁', unlocked: false, reward: { pycoins: 150, xp: 50 } },
-  mimic2: { key: 'mimic2', icon: '🎁', unlocked: false, reward: { pycoins: 300, xp: 100 } },
-  mimic3: { key: 'mimic3', icon: '🎁', unlocked: false, reward: { pycoins: 450, xp: 150 } },
-  mimic4: { key: 'mimic4', icon: '🎁', unlocked: false, reward: { duckpass: 15, xp: 300 } },
-  corruptMimic: { key: 'corruptMimic', icon: '💀', unlocked: false, reward: { pycoins: 1000, xp: 500 } },
-  mimicRevenge: { key: 'mimicRevenge', icon: '🔥', unlocked: false, reward: { pycoins: 500, xp: 200 } },
-  antiNormal: { key: 'antiNormal', icon: '🌑', unlocked: false, reward: { duckpass: 100, xp: 2000 } },
-  winFacil: { key: 'winFacil', icon: '🌱', unlocked: false, reward: { pycoins: 50, xp: 50 } },
-  winNormal: { key: 'winNormal', icon: '⚔️', unlocked: false, reward: { pycoins: 100, xp: 100 } },
-  winDificil: { key: 'winDificil', icon: '🔥', unlocked: false, reward: { pycoins: 200, xp: 200 } },
-  winExtremo: { key: 'winExtremo', icon: '💀', unlocked: false, reward: { pycoins: 500, xp: 500 } },
-  winCorrupto: { key: 'winCorrupto', icon: '👾', unlocked: false, reward: { pycoins: 1000, xp: 1000 } }
-};
-
-const RIVER_ZONES = [
-  { x: 300, y: 0, w: 60, h: 600 }, // Río vertical
-  { x: 300, y: 200, w: 200, h: 60 } // Brazo de río
-];
-
-const PATH_SEGMENTS = [
-  { x: 0, y: 170, w: 200, h: 60 },
-  { x: 170, y: 170, w: 60, h: 200 },
-  { x: 170, y: 330, w: 300, h: 60 },
-  { x: 430, y: 150, w: 60, h: 240 },
-  { x: 430, y: 150, w: 300, h: 60 },
-  { x: 700, y: 150, w: 60, h: 200 },
-  { x: 700, y: 330, w: 300, h: 60 }
-];
-
-const ENEMY_PATH = [
-  { x: -30, y: 200 }, { x: 200, y: 200 }, { x: 200, y: 360 },
-  { x: 460, y: 360 }, { x: 460, y: 180 }, { x: 730, y: 180 },
-  { x: 730, y: 360 }, { x: 1030, y: 360 }
-];
 
 // Generamos spots automáticamente evitando el río y el camino
 const TOWER_SPOTS = [];
@@ -408,57 +15,6 @@ function generateSpots() {
     }
   }
 }
-const SKINS_DATA = {
-  'Glob': [
-    { id: 'military_set', name: 'Set Militar', desc: 'Equipamiento táctico para la línea verde.', cost: 350, type: 'pycoin', 
-      skins: {
-        'Glob': 'img/Skins/Verde Base/Untrained Glob (SK-EVO1).png',
-        'Poop_Glob': 'img/Skins/Verde Base/Militar Glob (SK-EVO2).png',
-        'Golden_Glob': 'img/Skins/Verde Base/Armed Glob (SK-EVO3).png',
-        'Rainbow_Glob': 'img/Skins/Verde Base/Impostor Glob (SK-EVO4).png'
-      }
-    }
-  ],
-  'Red_Glob': [
-    { id: 'music_set', name: 'Set Musical', desc: '¡Ritmo y fiesta para la línea roja!', cost: 300, type: 'pycoin',
-      skins: {
-        'Red_Glob': 'img/Skins/Rojo Melee/Music Glob (SK-EVO1).png',
-        'Molten_Glob': 'img/Skins/Rojo Melee/Funky Glob (SK-EVO2).png',
-        'Robotic_Glob': 'img/Skins/Rojo Melee/Party Glob (SK-EVO3).png'
-      }
-    }
-  ],
-  'Soap_Glob': [
-    { id: 'abyssal_set', name: 'Set Abismal', desc: '¡Poder de las profundidades marinas!', cost: 400, type: 'pycoin',
-      skins: {
-        'Soap_Glob': 'img/Skins/Azul Ralentizador/Beachy Glob (SK-EVO1).png',
-        'Cotton_Glob': 'img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png'
-      }
-    }
-  ],
-  'Global': [
-    { id: 'recolor_emerald', name: 'Edición Esmeralda', desc: 'Poder de la naturaleza.', type: 'duckpass_level', level: 5, filter: 'hue-rotate(100deg) saturate(2.5) brightness(0.9)' },
-    { id: 'buff_damage_1', name: 'Entrenamiento Básico', desc: '⚔️ +5% Daño Permanente.', type: 'duckpass_level', level: 10, buff: { damage: 1.05 } },
-    { id: 'recolor_ruby', name: 'Edición Rubí', desc: 'Pasión ardiente en cada disparo.', type: 'duckpass_level', level: 15, filter: 'hue-rotate(-20deg) saturate(3) brightness(1)' },
-    { id: 'buff_range_1', name: 'Visión de Águila', desc: '🔭 +10 Alcance Permanente.', type: 'duckpass_level', level: 20, buff: { range_flat: 10 } },
-    { id: 'recolor_cyan', name: 'Edición Cian', desc: 'Frío como el hielo de Bitlands.', type: 'duckpass_level', level: 25, filter: 'hue-rotate(180deg) saturate(2) brightness(1.2)' },
-    { id: 'buff_speed_1', name: 'Cadencia Mejorada', desc: '⚡ +5% Velocidad de Ataque.', type: 'duckpass_level', level: 30, buff: { speed: 1.05 } },
-    { id: 'recolor_neon', name: 'Edición Neón', desc: 'Brillo cibernético futurista.', type: 'duckpass_level', level: 40, filter: 'brightness(1.5) saturate(4) hue-rotate(280deg)' },
-    { id: 'buff_damage_2', name: 'Ingeniería de Bitlands', desc: '⚔️ +10% Daño Extra.', type: 'duckpass_level', level: 50, buff: { damage: 1.10 } },
-    { id: 'recolor_shadow', name: 'Edición Sombra', desc: 'Sigilo y oscuridad total.', type: 'duckpass_level', level: 55, filter: 'grayscale(1) brightness(0.4)' },
-    { id: 'recolor_void', name: 'Edición Vacío', desc: 'Poder oscuro del abismo.', type: 'duckpass_level', level: 70, filter: 'brightness(0.6) hue-rotate(250deg) saturate(2)' },
-    { id: 'recolor_gold', name: 'Edición Oro', desc: 'Puro lujo para tus torres.', type: 'duckpass_level', level: 85, filter: 'brightness(1.2) sepia(1) saturate(10) hue-rotate(-10deg)' },
-    { id: 'pack_negative', name: 'Pack Negativo', desc: 'Invierte la realidad de tus torres.', type: 'duckpass_level', level: 95, class: 'skin-negative' },
-    { id: 'pack_rainbow', name: 'Pack Arcoíris', desc: '¡Fiesta de colores definitiva!', type: 'duckpass_level', level: 100, class: 'skin-rainbow' }
-  ],
-  'Recolors': [
-    { id: 'recolor_galactic', name: 'Edición Galáctica', desc: 'Brillo cósmico de Bitlands.', cost: 250, type: 'pycoin', filter: 'hue-rotate(280deg) saturate(2.5) brightness(1.1) drop-shadow(0 0 5px #9c27b0)' },
-    { id: 'recolor_fire', name: 'Edición Ígnea', desc: 'Calor volcánico en tus manos.', cost: 200, type: 'pycoin', filter: 'hue-rotate(-30deg) saturate(4) contrast(1.2) brightness(0.9)' },
-    { id: 'recolor_diamond', name: 'Edición Diamante', desc: 'Resistencia y brillo cristalino.', cost: 300, type: 'pycoin', filter: 'brightness(1.8) saturate(0.2) contrast(1.5) opacity(0.9)' },
-    { id: 'recolor_toxic', name: 'Edición Tóxica', desc: 'Peligro radiactivo inminente.', cost: 180, type: 'pycoin', filter: 'hue-rotate(80deg) saturate(5) brightness(1.2) contrast(1.1)' }
-  ]
-};
-
 generateSpots();
 
 let gameState = {
@@ -520,6 +76,18 @@ let gameState = {
     showTotalDamage: false
   }
 };
+
+function saveUsers() {
+  localStorage.setItem('glob_users', JSON.stringify(USERS));
+}
+
+function loadUsers() {
+  const saved = localStorage.getItem('glob_users');
+  if (saved) {
+    USERS = { ...USERS, ...JSON.parse(saved) };
+  }
+}
+loadUsers(); // Cargar al inicio
 
 // ===================== MOTOR DEL JUEGO =====================
 
@@ -588,7 +156,6 @@ function loadProgress(username) {
       if (data) {
         console.log("Migrando progreso global al usuario:", user);
         localStorage.setItem('glob_progress_' + user, data);
-        // Opcional: localStorage.removeItem('glob_progress'); // Mantener por seguridad de momento
       }
     }
 
@@ -657,7 +224,6 @@ function spawnDecorations(containerId) {
       img.style.setProperty('--ty', `${ty}px`);
       img.style.animationDelay = `${Math.random() * 10}s`;
 
-      // Interactividad con sonidos
       img.onclick = () => {
         const isGlob = imgPath.toLowerCase().includes('glob');
         playSound(isGlob ? 'sounds/Slurp.mp3' : 'sounds/Bipbip.mp3');
@@ -676,9 +242,7 @@ function toggleMute() {
 
 function updateMuteButton() {
   const btn = document.getElementById('mute-toggle');
-  if (btn) {
-    btn.textContent = gameState.muted ? '🔇' : '🔊';
-  }
+  if (btn) btn.textContent = gameState.muted ? '🔇' : '🔊';
 }
 
 function playSound(file) {
@@ -692,20 +256,17 @@ function checkLogin() {
     const savedName = localStorage.getItem('glob_username');
     if (savedName) {
       document.getElementById('username-input').value = savedName;
-      loadProgress(savedName); // Carga previa para saber si es "Maestro del Vacío"
+      loadProgress(savedName);
     }
   } catch (e) { console.warn("LocalStorage no disponible"); }
 }
 
 function handleLogin() {
-  console.log("Intentando login...");
   const nameInput = document.getElementById('username-input');
   const passInput = document.getElementById('password-input');
-
   const name = nameInput ? nameInput.value.trim() : "";
   const password = passInput ? passInput.value : "";
 
-  // Intentar cargar progreso si el nombre cambia antes de dar a login
   if (name) loadProgress(name);
 
   if (!name || !password) {
@@ -715,14 +276,12 @@ function handleLogin() {
   }
 
   if (USERS[name]) {
-    // Usuario existente, verificar contraseña
     if (USERS[name] !== password) {
       const msgEl = document.getElementById('login-msg');
       if (msgEl) msgEl.textContent = translate('loginError');
       return;
     }
   } else {
-    // NUEVO: Registro automático de usuario
     USERS[name] = password;
     saveUsers(); 
     showMessage("¡Nuevo usuario registrado!", 'success');
@@ -743,18 +302,15 @@ function handleLogin() {
   const metaControls = document.getElementById('meta-controls');
   if (metaControls) metaControls.style.display = 'flex';
 
-  // Si es Admin, activar modo admin visual
   if (name === "Admin" || name === "KirByteBi") {
     gameState.adminMode = true;
     document.getElementById('admin-indicator').style.display = 'block';
-    // Reset especial para KirByteBi: quitar glitch si está atascado
     if (name === "KirByteBi") {
       gameState.antiNormalActive = false;
-      gameState.unlockedAntiNormal = true; // Considerarlo pasado por defecto para él
+      gameState.unlockedAntiNormal = true;
     }
   }
 
-  // Activar estado Glitch / Anti-Normal (solo si no se ha pasado ya)
   if (!gameState.unlockedAntiNormal) {
     gameState.antiNormalActive = true;
     modeScreen.classList.add('glitch-state');
@@ -763,12 +319,10 @@ function handleLogin() {
     showMessage("S1S73M4 1N574BL3...", 'error');
   }
 
-  // Bloquear modo infinito si no está desbloqueado
   const infBtn = document.querySelector('.mode-btn[data-mode="infinito"]');
   if (infBtn) {
     if (!gameState.unlockedInfinite && name !== "Admin" && name !== "KirByteBi") {
       infBtn.disabled = true;
-      infBtn.title = "Gana en modo Difícil o superior para desbloquear";
       infBtn.style.opacity = "0.5";
     } else {
       infBtn.disabled = false;
@@ -776,14 +330,8 @@ function handleLogin() {
     }
   }
 
-  // Bloquear modos según progresión
   const modes = ['normal', 'dificil', 'extremo', 'corrupto'];
-  const requirements = {
-    'normal': 'winFacil',
-    'dificil': 'winNormal',
-    'extremo': 'winDificil',
-    'corrupto': 'winExtremo'
-  };
+  const requirements = { 'normal': 'winFacil', 'dificil': 'winNormal', 'extremo': 'winDificil', 'corrupto': 'winExtremo' };
 
   modes.forEach(m => {
     const btn = document.querySelector(`.mode-btn[data-mode="${m}"]`);
@@ -792,11 +340,9 @@ function handleLogin() {
       if (!BADGES[req].unlocked) {
         btn.disabled = true;
         btn.style.opacity = "0.4";
-        btn.title = `Vence en modo ${modes[modes.indexOf(m)-1]} para desbloquear`;
       } else {
         btn.disabled = false;
         btn.style.opacity = "1";
-        btn.title = "";
       }
     }
   });
@@ -846,7 +392,7 @@ function triggerCorrupt() {
     gameState.mode = 'corrupto';
     document.getElementById('game-area').classList.add('corrupt');
     showMessage("¡SISTEMA CORRUPTO ACTIVADO!", 'error');
-    drawBadges(); // Para mostrar logros corruptos
+    drawBadges();
   }
 }
 
@@ -854,7 +400,6 @@ function createMap() {
   const map = document.getElementById('map');
   map.innerHTML = '';
 
-  // Ríos
   RIVER_ZONES.forEach(r => {
     const el = document.createElement('div');
     el.className = 'river';
@@ -863,7 +408,6 @@ function createMap() {
     map.appendChild(el);
   });
 
-  // Caminos
   PATH_SEGMENTS.forEach(p => {
     const el = document.createElement('div');
     el.className = 'path-segment';
@@ -872,7 +416,6 @@ function createMap() {
     map.appendChild(el);
   });
 
-  // Spots
   TOWER_SPOTS.forEach((s, i) => {
     const el = document.createElement('div');
     el.className = 'tower-spot';
@@ -882,6 +425,28 @@ function createMap() {
     map.appendChild(el);
     gameState.towerSpots.push({ occupied: false, x: s.x + 40, y: s.y + 40 });
   });
+}
+
+function showTooltip(t, el) {
+  const tooltip = document.getElementById('tooltip');
+  if (!tooltip) return;
+  
+  const rect = el.getBoundingClientRect();
+  tooltip.innerHTML = `
+    <b>${t.name}</b>
+    <p>${t.desc || ""}</p>
+    <div style="margin-top: 5px; font-size: 0.75rem; color: #aaa;">
+      ⚔️ ${t.damage || 0} | 🔭 ${t.range || 0}
+    </div>
+  `;
+  tooltip.style.display = 'block';
+  tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+  tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+}
+
+function hideTooltip() {
+  const tooltip = document.getElementById('tooltip');
+  if (tooltip) tooltip.style.display = 'none';
 }
 
 function openOptions() {
@@ -898,8 +463,6 @@ function closeOptions() {
 function updateSettings() {
   gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
   gameState.settings.showTotalDamage = document.getElementById('opt-show-damage').checked;
-  
-  // Aplicar cambios inmediatos
   document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
   drawTowerShop();
   saveProgress();
@@ -923,7 +486,6 @@ function drawTowerShop() {
     const limit = gameState.towerLimits[type] || 3;
     const isFull = currentCount >= limit;
 
-    // Mostrar la imagen con la skin equipada si existe
     const displayImg = getTowerImage(type);
     el.innerHTML = `
       <div class="tower-icon-shop" style="background-image: url('${displayImg}')"></div>
@@ -936,6 +498,10 @@ function drawTowerShop() {
         </div>
       </div>
     `;
+
+    el.onmouseenter = () => showTooltip(t, el);
+    el.onmouseleave = hideTooltip;
+
     if (isFull) el.classList.add('disabled-shop');
     shop.appendChild(el);
   });
@@ -946,7 +512,6 @@ function drawBadges() {
   if (!list) return;
   list.innerHTML = '';
   Object.values(BADGES).filter(b => b.unlocked).forEach(b => {
-    // Si está desbloqueado pero no se ha cobrado el premio, cobrarlo ahora
     if (b.unlocked && !gameState.claimedRewards.includes(b.key)) {
       grantBadgeReward(b);
     }
@@ -986,7 +551,6 @@ function showBadgePopup(badge) {
   const icon = document.getElementById('badge-popup-icon');
   const title = document.getElementById('badge-popup-title');
   const desc = document.getElementById('badge-popup-desc');
-
   if (!popup) return;
 
   icon.textContent = badge.icon;
@@ -994,43 +558,37 @@ function showBadgePopup(badge) {
   desc.textContent = translate(`badge_${badge.key}_desc`);
 
   popup.classList.add('show');
-  setTimeout(() => {
-    popup.classList.remove('show');
-  }, 4000);
+  setTimeout(() => popup.classList.remove('show'), 4000);
 }
 
 function grantBadgeReward(badge) {
-  if (gameState.claimedRewards.includes(badge.key)) return; // No cobrar dos veces
+  if (gameState.claimedRewards.includes(badge.key)) return;
   
   if (badge.reward.pycoins) gameState.pycoins += badge.reward.pycoins;
   if (badge.reward.duckpass) gameState.duckPassCurrency += badge.reward.duckpass;
   addXP(badge.reward.xp);
   
-  gameState.claimedRewards.push(badge.key); // Registrar como cobrado
+  gameState.claimedRewards.push(badge.key);
   updateMetaUI();
   saveProgress();
   showMessage(`¡Logro: ${translate('badge_'+badge.key+'_name')}! Recompensa recibida.`, 'success');
 }
+
 function toggleLanguage() {
   currentLanguage = currentLanguage === 'es' ? 'en' : 'es';
-  try {
-    updateLanguage();
-    drawTowerShop();
-    drawBadges();
-  } catch (e) {
-    console.error("Error in toggleLanguage:", e);
-  }
+  updateLanguage();
+  drawTowerShop();
+  drawBadges();
 }
 
 function bindEvents() {
   document.getElementById('login-btn').onclick = handleLogin;
-
   const nameInput = document.getElementById('username-input');
   if (nameInput) {
     nameInput.addEventListener('input', () => {
       const name = nameInput.value.trim();
       if (name) loadProgress(name);
-      updateMetaUI(); // Para reflejar monedas si el logo da dinero
+      updateMetaUI();
     });
   }
 
@@ -1038,8 +596,6 @@ function bindEvents() {
   if (logo) {
     logo.onclick = () => {
       gameState.logoClicks++;
-
-      // Animación de bounce siempre
       logo.style.transform = `scale(1.15) rotate(${Math.random()*12 - 6}deg)`;
       setTimeout(() => logo.style.transform = `scale(1) rotate(0deg)`, 120);
 
@@ -1048,25 +604,13 @@ function bindEvents() {
         updateMetaUI();
         showEffect(window.innerWidth/2, window.innerHeight/2, "+1 PyCoin");
         saveProgress();
-      } else {
-        if (gameState.logoClicks === 3)  showMessage("¿Qué miras, Defensor? 👀", 'info');
-        if (gameState.logoClicks === 5)  showMessage("¿Por qué pulsas el logo?", 'info');
-        if (gameState.logoClicks === 10) showMessage("¡¡¡DEJA DE PULSAR EL DICHOSO LOGO!!!", 'error');
-        if (gameState.logoClicks === 15) showMessage("Esto no va a desbloquear nada... ¿O sí? 🤔", 'info');
-        if (gameState.logoClicks > 15)   logo.style.transform = `scale(${1 + (gameState.logoClicks - 15) * 0.08}) rotate(${gameState.logoClicks * 3}deg)`;
       }
     };
   }
 
-
-  document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.onclick = () => selectMode(btn.dataset.mode);
-  });
-
+  document.querySelectorAll('.mode-btn').forEach(btn => btn.onclick = () => selectMode(btn.dataset.mode));
   document.getElementById('health-stat').onclick = triggerCorrupt;
-
   document.getElementById('start-wave').onclick = () => startWave();
-
   document.getElementById('auto-wave').onclick = () => {
     gameState.autoWave = !gameState.autoWave;
     document.getElementById('auto-wave').classList.toggle('active', gameState.autoWave);
@@ -1091,9 +635,7 @@ function bindEvents() {
     const spotEl = e.target.closest('.tower-spot');
     if (spotEl && gameState.selectedTowerType) {
       const id = spotEl.dataset.id;
-      if (!gameState.towerSpots[id].occupied) {
-        placeTower(id, gameState.selectedTowerType);
-      }
+      if (!gameState.towerSpots[id].occupied) placeTower(id, gameState.selectedTowerType);
     }
   };
 
@@ -1109,40 +651,23 @@ function bindEvents() {
     }
 
     let valid = false;
-    if (code === 'GL0B_CL1CKER') {
-      gameState.pycoins += 100;
-      unlockBadge('secret');
-      showMessage(translate('codeSuccess', { name: '100 PyCoins' }), 'success');
-      valid = true;
-    } else if (code === 'B1TL4NDS') {
-      gameState.pycoins += 50;
-      addXP(150);
-      showMessage(translate('codeSuccess', { name: '50 PyCoins + 150 XP' }), 'success');
-      valid = true;
-    } else if (code === 'GLOBFNF') {
-      gameState.pycoins += 76;
-      addXP(150);
-      showMessage(translate('codeSuccess', { name: '76 PyCoins + 150 XP' }), 'success');
-      valid = true;
-    } else if (code === 'PINKWAVE') {
-      gameState.pycoins += 30;
-      gameState.duckPassCurrency += 30;
-      showMessage(translate('codeSuccess', { name: '30 PyCoins + 30 DuckPass' }), 'success');
-      valid = true;
-    } else if (code === 'B4D_P1GG13S') {
-      gameState.pycoins += 50;
-      gameState.duckPassCurrency += 5;
-      showMessage(translate('codeSuccess', { name: '50 PyCoins + 5 DuckPass' }), 'success');
-      valid = true;
-    } else if (code === 'MUSICFAN') {
-      gameState.pycoins += 50;
-      addXP(10);
-      showMessage(translate('codeSuccess', { name: '50 PyCoins + 10 XP' }), 'success');
-      valid = true;
-    } else if (code === 'T3CHSP4WN') {
-      gameState.pycoins += 50;
-      addXP(150);
-      showMessage(translate('codeSuccess', { name: '50 PyCoins + 150 XP' }), 'success');
+    const rewards = {
+      'GL0B_CL1CKER': { py: 100, msg: '100 PyCoins', badge: 'secret' },
+      'B1TL4NDS': { py: 50, xp: 150, msg: '50 PyCoins + 150 XP' },
+      'GLOBFNF': { py: 76, xp: 150, msg: '76 PyCoins + 150 XP' },
+      'PINKWAVE': { py: 30, dp: 30, msg: '30 PyCoins + 30 DuckPass' },
+      'B4D_P1GG13S': { py: 50, dp: 5, msg: '50 PyCoins + 5 DuckPass' },
+      'MUSICFAN': { py: 50, xp: 10, msg: '50 PyCoins + 10 XP' },
+      'T3CHSP4WN': { py: 50, xp: 150, msg: '50 PyCoins + 150 XP' }
+    };
+
+    if (rewards[code]) {
+      const r = rewards[code];
+      if (r.py) gameState.pycoins += r.py;
+      if (r.xp) addXP(r.xp);
+      if (r.dp) gameState.duckPassCurrency += r.dp;
+      if (r.badge) unlockBadge(r.badge);
+      showMessage(translate('codeSuccess', { name: r.msg }), 'success');
       valid = true;
     }
 
@@ -1154,11 +679,7 @@ function bindEvents() {
       saveProgress();
     } else {
       gameState.failedCodeAttempts++;
-      if (gameState.failedCodeAttempts >= 3) {
-        showMessage("¿Estás perdido? Prueba con B4D_P1GG13S", 'info');
-      } else {
-        showMessage(translate('codeInvalid'), 'error');
-      }
+      showMessage(gameState.failedCodeAttempts >= 3 ? "Prueba con B4D_P1GG13S" : translate('codeInvalid'), 'error');
     }
     input.value = '';
   };
@@ -1172,27 +693,11 @@ function bindEvents() {
 
   document.getElementById('open-shop').onclick = () => openShop();
   document.getElementById('open-pass').onclick = () => openPass();
-
-  // Touch support para móvil
-  document.getElementById('map').addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const spotEl = document.elementFromPoint(touch.clientX, touch.clientY)?.closest?.('.tower-spot');
-    if (spotEl && gameState.selectedTowerType) {
-      const id = spotEl.dataset.id;
-      if (!gameState.towerSpots[id].occupied) {
-        placeTower(id, gameState.selectedTowerType);
-      }
-    }
-  }, { passive: false });
-
-  // Recalcular escala al cambiar tamaño de ventana
   window.addEventListener('resize', applyScale);
-  window.addEventListener('orientationchange', applyScale);
 }
 
 function openShop() {
-  closeModal('pass-modal'); // Cerrar el pase si está abierto
+  closeModal('pass-modal');
   document.getElementById('shop-modal').style.display = 'flex';
   drawShop();
 }
@@ -1209,13 +714,10 @@ function closeModal(id) {
   if (el) el.style.display = 'none';
 }
 
-// Cierre inteligente: vuelve al juego si estás en partida, sino a selección de modo
 function smartClose(modalId) {
   closeModal(modalId);
-  const loginScreen = document.getElementById('login-screen');
   const modeScreen = document.getElementById('mode-selection');
-  const inGame = loginScreen.style.display === 'none' && modeScreen.style.display === 'none';
-  if (!inGame) {
+  if (document.getElementById('login-screen').style.display === 'none') {
     modeScreen.style.display = 'flex';
   }
 }
@@ -1226,31 +728,17 @@ function backToModes() {
   document.getElementById('mode-selection').style.display = 'flex';
 }
 
-// ===================== SISTEMA DE ESCALA RESPONSIVA =====================
-
 const GAME_DESIGN_W = 1000;
 const GAME_DESIGN_H = 600;
-
-function getGameScale() {
-  const bodyPad = parseInt(getComputedStyle(document.body).paddingLeft) * 2 || 40;
-  const availW = Math.min(window.innerWidth - bodyPad, GAME_DESIGN_W);
-  const scale = availW / GAME_DESIGN_W;
-  return Math.min(scale, 1.0); // Nunca más del 100%
-}
 
 function applyScale() {
   const area = document.getElementById('game-area');
   const wrapper = document.querySelector('.game-scale-wrapper');
   if (!area || !wrapper) return;
-
-  const scale = getGameScale();
+  const availW = Math.min(window.innerWidth - 40, GAME_DESIGN_W);
+  const scale = Math.min(availW / GAME_DESIGN_W, 1.0);
   area.style.transform = `scale(${scale})`;
-  area.style.transformOrigin = 'top left';
-
-  // Ajustar la altura del wrapper para que el contenido de abajo no quede con espacio de más
-  const scaledH = Math.round(GAME_DESIGN_H * scale);
-  wrapper.style.setProperty('--scaled-game-h', scaledH + 'px');
-  wrapper.style.height = scaledH + 'px';
+  wrapper.style.height = (GAME_DESIGN_H * scale) + 'px';
 }
 
 function updateBuffs() {
@@ -1270,140 +758,65 @@ function addXP(amount) {
     gameState.duckPassLevel++;
     gameState.duckPassXP -= 100;
     updateBuffs();
-
-    // Recompensa por nivel
     if (gameState.duckPassLevel <= 100) {
       gameState.duckPassCurrency++;
       showMessage(`¡Nivel ${gameState.duckPassLevel} del Duck Pass! +1 Ducky Pass`, 'success');
-    } else {
-      // Recompensas infinitas cada 5 niveles después del 100
-      if (gameState.duckPassLevel % 5 === 0) {
-        gameState.duckPassCurrency += 2;
-        showMessage(`¡Prestigio Duck Pass! +2 Ducky Pass`, 'success');
-      }
     }
     saveProgress();
   }
   updateMetaUI();
 }
 
-function unlockBadge(key) {
-  if (BADGES[key] && !BADGES[key].unlocked) {
-    unlockBadge(key);
-    drawBadges(); // Esto disparará grantBadgeReward automáticamente
-    saveProgress();
-    showMessage(`¡Logro Desbloqueado: ${translate('badge_' + key + '_name')}!`, 'success');
-  }
-}
-
 function updateMetaUI() {
   const pycoinsEl = document.getElementById('pycoins-value');
   const duckpassEl = document.getElementById('duckpass-currency');
-  
   if (pycoinsEl) pycoinsEl.textContent = Math.floor(gameState.pycoins);
   if (duckpassEl) duckpassEl.textContent = gameState.duckPassCurrency;
-
-  const passModal = document.getElementById('pass-modal');
-  if (passModal && passModal.style.display === 'flex') {
-    const levelEl = document.getElementById('pass-level');
-    const xpEl = document.getElementById('pass-xp');
-    const fillEl = document.getElementById('xp-fill');
-    
-    if (levelEl) levelEl.textContent = gameState.duckPassLevel;
-    if (xpEl) xpEl.textContent = gameState.duckPassXP;
-    if (fillEl) fillEl.style.width = `${gameState.duckPassXP}%`;
+  if (document.getElementById('pass-modal').style.display === 'flex') {
+    document.getElementById('pass-level').textContent = gameState.duckPassLevel;
+    document.getElementById('pass-xp').textContent = gameState.duckPassXP;
+    document.getElementById('xp-fill').style.width = `${gameState.duckPassXP}%`;
   }
 }
 
 function drawShop() {
   const container = document.getElementById('shop-items');
   if (!container) return;
-  container.innerHTML = '';
-
-  // Mostrar Saldo Actual en la tienda (Uso Ducky_Glob.png como fallback si Duckpass no existe)
-  const balanceHTML = `
+  container.innerHTML = `
     <div class="shop-balance">
-      <div class="balance-item">
-        <img src="img/Tokens/PyCoin.png" width="20"> <span>${Math.floor(gameState.pycoins)} PyCoins</span>
-      </div>
-      <div class="balance-item">
-        <img src="img/Tokens/DuckPass.png" width="20"> <span>${gameState.duckPassCurrency} Duck Pass</span>
-      </div>
+      <div class="balance-item"><img src="img/Tokens/PyCoin.png" width="20"> <span>${Math.floor(gameState.pycoins)} PyCoins</span></div>
+      <div class="balance-item"><img src="img/Tokens/DuckPass.png" width="20"> <span>${gameState.duckPassCurrency} Duck Pass</span></div>
     </div>
   `;
-  container.innerHTML = balanceHTML;
 
   if (currentShopTab === 'upgrades') {
     const upgrades = [
-      { id: 'hp', name: 'Salud de Base', desc: '+20 Salud Máxima', cost: 50, type: 'pycoin' }
+      { id: 'hp', name: 'Salud de Base', desc: '+20 Salud Máxima', cost: 50, type: 'pycoin' },
+      { id: 'unlock_Pyce_Glob', name: 'Desbloquear Pyce Glob', desc: 'Permite comprar Pyce Globs', cost: 100, type: 'pycoin', hideIfUnlocked: true }
     ];
-
-    if (gameState.towerLimits['Glob'] < 7) {
-      upgrades.push({ id: 'limit_Glob', name: 'Límite: Glob Verde', desc: 'Aumenta límite a ' + (gameState.towerLimits['Glob'] + 1), cost: 30, type: 'pycoin' });
-    }
-    if (gameState.towerLimits['Red_Glob'] < 10) {
-      upgrades.push({ id: 'limit_Red_Glob', name: 'Límite: Glob Rojo', desc: 'Aumenta límite a ' + (gameState.towerLimits['Red_Glob'] + 1), cost: 40, type: 'pycoin' });
-    }
-    if (gameState.towerLimits['Ducky_Glob'] < 5) {
-      upgrades.push({ id: 'limit_Ducky_Glob', name: 'Límite: Ducky Glob', desc: 'Aumenta límite a ' + (gameState.towerLimits['Ducky_Glob'] + 1), cost: 60, type: 'pycoin' });
-    }
-
-    upgrades.push({ id: 'unlock_Pyce_Glob', name: 'Desbloquear Pyce Glob', desc: 'Permite comprar Pyce Globs', cost: 100, type: 'pycoin', hideIfUnlocked: true });
+    ['Glob', 'Red_Glob', 'Ducky_Glob'].forEach(t => {
+      if (gameState.towerLimits[t] < 10) upgrades.push({ id: 'limit_'+t, name: 'Límite: '+t, desc: 'Aumenta límite', cost: 30, type: 'pycoin' });
+    });
 
     upgrades.forEach(u => {
       if (u.hideIfUnlocked && TOWER_TYPES['Pyce_Glob'].unlocked) return;
-
       const el = document.createElement('div');
       el.className = 'meta-item';
-      el.innerHTML = `
-        <h3>${u.name}</h3>
-        <p>${u.desc}</p>
-        <div class="cost"><img src="${u.type === 'pycoin' ? 'img/Tokens/PyCoin.png' : 'img/Tokens/Globetin.png'}" width="15"> ${u.cost}</div>
-        <button class="meta-buy-btn" ${canAfford(u) ? '' : 'disabled'} onclick="buyUpgrade('${u.id}', ${u.cost}, '${u.type}')">Comprar</button>
-      `;
+      el.innerHTML = `<h3>${u.name}</h3><p>${u.desc}</p><div class="cost">💰 ${u.cost}</div>
+        <button class="meta-buy-btn" ${canAfford(u) ? '' : 'disabled'} onclick="buyUpgrade('${u.id}', ${u.cost}, '${u.type}')">Comprar</button>`;
       container.appendChild(el);
     });
   } else {
-    // Pestaña de Skins
     Object.keys(SKINS_DATA).forEach(family => {
-      // Ocultar la categoría 'Global' (Skins del Pase) de la tienda normal
       if (family === 'Global') return;
-
       SKINS_DATA[family].forEach(skin => {
-        const isUnlocked = gameState.unlockedSkins.includes(skin.id) || 
-                          (skin.type === 'duckpass_level' && gameState.duckPassLevel >= skin.level);
+        const isUnlocked = gameState.unlockedSkins.includes(skin.id);
         const isEquipped = gameState.equippedSkins[family] === skin.id;
-
         const el = document.createElement('div');
         el.className = `skin-item ${isEquipped ? 'equipped' : ''}`;
-        
-        let btnText = "Equipar";
-        let btnAction = `equipSkin('${family}', '${skin.id}')`;
-        let btnDisabled = !isUnlocked;
-
-        if (!isUnlocked) {
-          btnText = `Comprar (${skin.cost} PyCoins)`;
-          btnAction = `buySkin('${family}', '${skin.id}', ${skin.cost})`;
-          btnDisabled = gameState.pycoins < skin.cost;
-        } else if (isEquipped) {
-          btnText = "Seleccionada";
-          btnAction = "";
-          btnDisabled = true; // No hace falta desequipar si es la única de su familia
-        }
-
-        let previewImg = 'img/Glob_DEF.png';
-        if (skin.skins) previewImg = skin.skins[family] || Object.values(skin.skins)[0];
-        else if (family === 'Recolors' || family === 'Global') previewImg = 'img/Glob_DEF.png';
-
-        el.innerHTML = `
-          ${isEquipped ? '<div class="equipped-tag">ACTUAL</div>' : ''}
-          <div class="skin-preview ${skin.class || ''}">
-            <img src="${previewImg}" style="width:100%; height:100%; object-fit:contain; ${skin.filter ? 'filter:' + skin.filter : ''}" alt="${skin.name}">
-          </div>
-          <h3>${skin.name}</h3>
-          <p>${skin.desc}</p>
-          <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${btnDisabled ? 'disabled' : ''} onclick="${btnAction}">${btnText}</button>
-        `;
+        el.innerHTML = `<div class="skin-preview ${skin.class || ''}"><img src="${skin.skins ? skin.skins[family] || Object.values(skin.skins)[0] : 'img/Glob_DEF.png'}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
+          <h3>${skin.name}</h3><p>${skin.desc}</p>
+          <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${!isUnlocked && gameState.pycoins < skin.cost ? 'disabled' : ''} onclick="${isUnlocked ? `equipSkin('${family}', '${skin.id}')` : `buySkin('${family}', '${skin.id}', ${skin.cost})`}">${isUnlocked ? (isEquipped ? 'Actual' : 'Equipar') : `Comprar (${skin.cost})`}</button>`;
         container.appendChild(el);
       });
     });
@@ -1411,766 +824,218 @@ function drawShop() {
 }
 
 let currentShopTab = 'upgrades';
-function switchShopTab(tab) {
-  currentShopTab = tab;
-  // Actualizar clases de pestañas
-  const tabs = document.querySelectorAll('.shop-tab');
-  tabs.forEach(btn => {
-    const isThisTab = (tab === 'upgrades' && btn.textContent.includes('Mejoras')) || 
-                      (tab === 'skins' && btn.textContent.includes('Skins'));
-    btn.classList.toggle('active', isThisTab);
-  });
-  drawShop();
-}
+function switchShopTab(tab) { currentShopTab = tab; drawShop(); }
 
 function buySkin(family, skinId, cost) {
   if (gameState.pycoins >= cost) {
     gameState.pycoins -= cost;
     gameState.unlockedSkins.push(skinId);
-    updateMetaUI();
     drawShop();
     saveProgress();
     showMessage("¡Skin desbloqueada!", 'success');
-  } else {
-    showMessage("No tienes suficientes PyCoins", 'error');
   }
 }
 
 function equipSkin(family, skinId) {
   gameState.equippedSkins[family] = skinId;
-  gameState.towers.forEach(t => {
-    if (t.family === family || family === 'Global') {
-      t.el.style.backgroundImage = `url('${getTowerImage(t.type)}')`;
-      applyTowerEffects(t.el, t.type);
-    }
-  });
-  showMessage("Apariencia actualizada", 'success');
+  gameState.towers.forEach(t => { if (t.family === family || family === 'Global') { t.el.style.backgroundImage = `url('${getTowerImage(t.type)}')`; applyTowerEffects(t.el, t.type); } });
   if (currentShopTab === 'skins') drawShop();
   if (document.getElementById('pass-modal').style.display === 'flex') drawPass();
   saveProgress();
 }
 
-function canAfford(u) {
-  if (u.type === 'pycoin') return gameState.pycoins >= u.cost;
-  return gameState.duckPassCurrency >= u.cost;
-}
+function canAfford(u) { return u.type === 'pycoin' ? gameState.pycoins >= u.cost : gameState.duckPassCurrency >= u.cost; }
 
 function buyUpgrade(id, cost, type) {
-  if (type === 'pycoin') {
-    if (gameState.pycoins < cost) return;
-    gameState.pycoins -= cost;
-  } else {
-    if (gameState.duckPassCurrency < cost) return;
-    gameState.duckPassCurrency -= cost;
-  }
+  if (type === 'pycoin' ? gameState.pycoins < cost : gameState.duckPassCurrency < cost) return;
+  if (type === 'pycoin') gameState.pycoins -= cost; else gameState.duckPassCurrency -= cost;
 
-  if (id === 'hp') {
-    gameState.baseHealthLevel++;
-    gameState.health += 20;
-    showMessage("¡Salud de base mejorada!", 'success');
-  } else if (id.startsWith('limit_')) {
-    const tType = id.replace('limit_', '');
-    gameState.towerLimits[tType]++;
-    showMessage(`¡Límite de ${tType} aumentado!`, 'success');
-  } else if (id === 'unlock_Pyce_Glob') {
-    TOWER_TYPES['Pyce_Glob'].unlocked = true;
-    showMessage("¡Pyce Glob desbloqueado!", 'success');
-  }
+  if (id === 'hp') { gameState.baseHealthLevel++; gameState.health += 20; }
+  else if (id.startsWith('limit_')) gameState.towerLimits[id.replace('limit_', '')]++;
+  else if (id === 'unlock_Pyce_Glob') TOWER_TYPES['Pyce_Glob'].unlocked = true;
 
-  updateMetaUI();
-  drawShop();
-  drawTowerShop();
-  saveProgress();
+  updateMetaUI(); drawShop(); drawTowerShop(); saveProgress();
 }
 
 function drawPass() {
   const container = document.getElementById('pass-rewards');
-  if (!container) return;
-  container.innerHTML = '';
-
-  // Hitos importantes (Skins del Pase) ordenados por nivel
-  const milestones = [...SKINS_DATA['Global']].sort((a, b) => a.level - b.level);
-
-  milestones.forEach(skin => {
-    const isUnlocked = gameState.duckPassLevel >= skin.level;
-    const isEquipped = gameState.equippedSkins['Global'] === skin.id;
-
+  if (!container) return; container.innerHTML = '';
+  [...SKINS_DATA['Global']].sort((a,b)=>a.level-b.level).forEach(skin => {
+    const unlocked = gameState.duckPassLevel >= skin.level;
+    const equipped = gameState.equippedSkins['Global'] === skin.id;
     const el = document.createElement('div');
-    el.className = `meta-item ${isUnlocked ? 'unlocked' : 'locked'}`;
-    
-    let btnHTML = '';
-    if (isUnlocked) {
-      if (isEquipped) btnHTML = `<button class="skin-buy-btn" disabled>Equipado</button>`;
-      else btnHTML = `<button class="skin-buy-btn equip" onclick="equipSkin('Global', '${skin.id}')">Equipar</button>`;
-    } else {
-      btnHTML = `<button class="skin-buy-btn" disabled>Nivel ${skin.level} Requerido</button>`;
-    }
-
-    el.innerHTML = `
-      <div class="milestone-tag">${skin.buff ? 'MEJORA' : 'HITO'}</div>
-      <h3>${skin.name}</h3>
-      <p>${skin.desc}</p>
-      <div class="skin-preview ${skin.class || ''}" style="width: 40px; height: 40px; ${skin.filter ? 'filter:' + skin.filter : ''}; background-image: url('img/Glob_DEF.png'); display: ${skin.buff ? 'none' : 'block'}"></div>
-      ${skin.buff && isUnlocked ? '<b style="color: #4facfe">¡ACTIVO!</b>' : (skin.buff ? `<button class="skin-buy-btn" disabled>Nivel ${skin.level}</button>` : btnHTML)}
-    `;
+    el.className = `meta-item ${unlocked ? 'unlocked' : 'locked'}`;
+    el.innerHTML = `<div class="milestone-tag">${skin.buff ? 'MEJORA' : 'HITO'}</div><h3>${skin.name}</h3><p>${skin.desc}</p>
+      ${unlocked ? (equipped ? '<button disabled>Equipado</button>' : `<button onclick="equipSkin('Global', '${skin.id}')">Equipar</button>`) : `<button disabled>Nivel ${skin.level}</button>`}`;
     container.appendChild(el);
   });
-
-  // Mostrar solo el SIGUIENTE nivel genérico
-  const nextLevel = gameState.duckPassLevel + 1;
-  if (!milestones.some(m => m.level === nextLevel)) {
-    const el = document.createElement('div');
-    el.className = 'meta-item locked';
-    el.innerHTML = `
-      <h3>Siguiente: Nivel ${nextLevel}</h3>
-      <p>Recompensa: +1 Ducky Pass</p>
-      <div class="xp-bar-bg"><div style="width: 0%" class="xp-bar-fill"></div></div>
-    `;
-    container.appendChild(el);
-  }
 }
 
 function placeTower(spotId, type) {
   const tCfg = TOWER_TYPES[type];
-
-  // Verificar límites por tipo
-  const currentCount = gameState.towerCounts[type] || 0;
-  const limit = gameState.towerLimits[type] || 99;
-  if (currentCount >= limit) {
-    showMessage(`¡Límite alcanzado para ${tCfg.name}! (Máx: ${limit})`, 'error');
-    return;
-  }
-
-  if (gameState.globetines < tCfg.cost) {
-    showMessage(translate('notEnoughMoney'), 'error');
-    return;
-  }
+  if ((gameState.towerCounts[type]||0) >= (gameState.towerLimits[type]||3)) return showMessage(`Límite: ${tCfg.name}`, 'error');
+  if (gameState.globetines < tCfg.cost) return showMessage(translate('notEnoughMoney'), 'error');
 
   const spot = gameState.towerSpots[spotId];
   const el = document.createElement('div');
-  el.className = 'tower';
-  el.style.left = `${spot.x}px`; el.style.top = `${spot.y}px`;
+  el.className = 'tower'; el.style.left = `${spot.x}px`; el.style.top = `${spot.y}px`;
   el.style.backgroundImage = `url('${getTowerImage(type)}')`;
   applyTowerEffects(el, type);
   document.getElementById('map').appendChild(el);
 
-  const towerObj = {
-    ...tCfg, type: type, x: spot.x, y: spot.y, el,
-    cooldown: 0, spotId, level: 1,
-    stunned: 0, moneyTimer: 0
-  };
+  const tower = { ...tCfg, type, x: spot.x, y: spot.y, el, cooldown: 0, spotId, stunned: 0, moneyTimer: 0 };
+  tower.damage *= gameState.towerBuffs.damage;
+  tower.range += gameState.towerBuffs.range;
+  tower.speed *= gameState.towerBuffs.speed;
 
-  // Tooltip
-  el.onmouseenter = () => {
-    if (gameState.settings.showShopDesc) showTooltip(tCfg, el);
-  };
-  el.onmouseleave = hideTooltip;
-
-  // Aplicar buffs globales
-  towerObj.damage *= gameState.towerBuffs.damage;
-  towerObj.range += gameState.towerBuffs.range;
-  towerObj.speed *= gameState.towerBuffs.speed;
-
-  el.onclick = (e) => {
-    e.stopPropagation();
-    selectTower(towerObj);
-  };
-
-  gameState.towers.push(towerObj);
+  el.onclick = (e) => { e.stopPropagation(); selectTower(tower); };
+  gameState.towers.push(tower);
   gameState.globetines -= tCfg.cost;
-  gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
+  gameState.towerCounts[type] = (gameState.towerCounts[type]||0) + 1;
   spot.occupied = true;
-  updateUI();
-  drawTowerShop(); // Actualizar contadores en la tienda
-  showMessage(translate('towerPlaced', { name: tCfg.name }), 'success');
+  updateUI(); drawTowerShop();
+}
+
+function selectTower(t) {
+  gameState.selectedTower = t;
+  const panel = document.getElementById('evolve-panel');
+  panel.style.display = 'flex';
+  document.getElementById('tower-name').textContent = t.name;
+  document.getElementById('tower-desc').innerHTML = t.desc + (t.evolution ? `<br><br><b>Evolución:</b> ${TOWER_TYPES[t.evolution].name}` : '');
+  updateEvolveButtons(t);
+  drawRangePreview(t.x, t.y, t.range);
 }
 
 function updateEvolveButtons(t) {
-  const container = document.getElementById('evolve-options');
-  container.innerHTML = '';
-  const towerData = TOWER_TYPES[t.type];
-
-  if (towerData.evolution) {
-    const next = TOWER_TYPES[towerData.evolution];
+  const container = document.getElementById('evolve-options'); container.innerHTML = '';
+  if (t.evolution) {
+    const next = TOWER_TYPES[t.evolution];
     const btn = document.createElement('button');
-    btn.className = 'evolve-btn';
-    btn.disabled = Number(gameState.globetines) < Number(next.cost);
-    btn.innerHTML = `${currentLanguage === 'es' ? 'Evolucionar' : 'Evolve'} a ${next.name} <br> (💰 ${next.cost})`;
-    btn.onclick = () => evolveTower(t, towerData.evolution);
+    btn.className = 'evolve-btn'; btn.disabled = gameState.globetines < next.cost;
+    btn.innerHTML = `Evolucionar (💰 ${next.cost})`;
+    btn.onclick = () => evolveTower(t, t.evolution);
     container.appendChild(btn);
   }
-
-  const sellBtn = document.getElementById('sell-tower-btn');
-  sellBtn.onclick = () => sellTower(t);
-  sellBtn.innerHTML = `${currentLanguage === 'es' ? 'Vender' : 'Sell'} (💰 ${Math.floor(towerData.cost * 0.7)})`;
+  document.getElementById('sell-tower-btn').onclick = () => sellTower(t);
 }
 
 function evolveTower(tower, nextType) {
-  const nextCfg = TOWER_TYPES[nextType];
-
-  // Verificar límites para la evolución (solo si cambia el tipo base significativamente)
-  // En este juego las evoluciones suelen mantener el tipo base pero si cambiara se chequearía aquí.
-
-  if (Number(gameState.globetines) >= Number(nextCfg.cost)) {
-    gameState.globetines -= nextCfg.cost;
-
-    // Si el tipo cambia, actualizar conteos
-    if (tower.type !== nextType) {
-      gameState.towerCounts[tower.type]--;
-      gameState.towerCounts[nextType] = (gameState.towerCounts[nextType] || 0) + 1;
-    }
-
-    // Limpiar propiedades de la fase anterior para evitar "herencia" de evolución
-    const baseProps = ['evolution', 'evolveDesc', 'burn', 'slow', 'piercing', 'aoe', 'moneyGen', 'melee'];
-    baseProps.forEach(p => delete tower[p]);
-
-    tower.type = nextType;
-    Object.assign(tower, nextCfg);
-    
-    // Aplicar buffs a la nueva fase
-    tower.damage *= gameState.towerBuffs.damage;
-    tower.range += gameState.towerBuffs.range;
-    tower.speed *= gameState.towerBuffs.speed;
-
-    tower.el.style.backgroundImage = `url('${getTowerImage(nextType)}')`;
-    applyTowerEffects(tower.el, nextType);
-    tower.level++;
-    if (!nextCfg.evolution) unlockBadge('evolution');
-    selectTower(tower);
-    updateUI();
-    drawTowerShop();
-    drawBadges();
-    showMessage(translate('towerEvolved', { name: nextCfg.name }), 'success');
-  }
+  const next = TOWER_TYPES[nextType];
+  if (gameState.globetines < next.cost) return;
+  gameState.globetines -= next.cost;
+  if (tower.type !== nextType) { gameState.towerCounts[tower.type]--; gameState.towerCounts[nextType] = (gameState.towerCounts[nextType]||0)+1; }
+  tower.type = nextType; Object.assign(tower, next);
+  tower.damage *= gameState.towerBuffs.damage; tower.range += gameState.towerBuffs.range; tower.speed *= gameState.towerBuffs.speed;
+  tower.el.style.backgroundImage = `url('${getTowerImage(nextType)}')`; applyTowerEffects(tower.el, nextType);
+  if (!next.evolution) unlockBadge('evolution');
+  selectTower(tower); updateUI(); drawTowerShop();
 }
 
 function sellTower(tower) {
-  const idx = gameState.towers.indexOf(tower);
-  if (idx !== -1) {
-    gameState.globetines += Math.floor(tower.cost * 0.7);
-    tower.el.remove();
-    gameState.towerCounts[tower.type]--;
-    gameState.towerSpots[tower.spotId].occupied = false;
-    gameState.towers.splice(idx, 1);
-    deselectTower();
-    updateUI();
-    drawTowerShop();
-    showMessage(translate('towerSold', { price: Math.floor(tower.cost * 0.7) }), 'info');
-  }
+  gameState.globetines += Math.floor(tower.cost * 0.7);
+  tower.el.remove();
+  gameState.towerCounts[tower.type]--;
+  gameState.towerSpots[tower.spotId].occupied = false;
+  gameState.towers.splice(gameState.towers.indexOf(tower), 1);
+  deselectTower(); updateUI(); drawTowerShop();
 }
+
+function deselectTower() { gameState.selectedTower = null; document.getElementById('evolve-panel').style.display = 'none'; const p = document.getElementById('range-preview'); if (p) p.remove(); }
 
 function startWave() {
   if (gameState.waveActive || gameState.gameOver) return;
+  if (gameState.mode !== 'infinito' && gameState.wave >= gameState.maxWaves) return backToModes();
 
-  // Final de partida por oleada (excepto infinito)
-  if (gameState.mode !== 'infinito' && gameState.wave >= gameState.maxWaves) {
-    if (gameState.mode === 'antiNormal') {
-      gameState.pycoins += 250;
-      gameState.duckPassCurrency += 45;
-      addXP(300);
-      gameState.unlockedAntiNormal = true;
-      unlockBadge('antiNormal');
-      showMessage("¡S1S73M4 PURI4F1C4D0! +250 PyCoins +45 DuckPass", 'success');
-      gameState.antiNormalActive = false;
-    }
-
-    // Badge por dificultad vencida
-    const difficultyBadges = { facil: 'winFacil', normal: 'winNormal', dificil: 'winDificil', extremo: 'winExtremo', corrupto: 'winCorrupto' };
-    const badgeKey = difficultyBadges[gameState.mode];
-    if (badgeKey && BADGES[badgeKey]) unlockBadge(badgeKey);
-
-    if (gameState.mode === 'dificil' || gameState.mode === 'extremo' || gameState.mode === 'corrupto') {
-      gameState.unlockedInfinite = true;
-    }
-
-    if (gameState.corrupt) {
-      gameState.corruptWins++;
-      if (gameState.corruptWins >= 1) unlockBadge('corrupt1');
-      if (gameState.corruptWins >= 2) unlockBadge('corrupt2');
-      if (gameState.corruptWins >= 3) unlockBadge('corrupt3');
-      if (gameState.corruptWins >= 4) unlockBadge('corrupt4');
-      if (gameState.corruptWins >= 5) unlockBadge('corrupt5');
-    }
-    saveProgress();
-    drawBadges();
-    
-    // Victoria Modal
-    gameState.autoWave = false; // Desactivar auto-wave al ganar
-    const modal = document.getElementById('game-over');
-    modal.classList.add('show');
-    modal.style.display = 'flex';
-    modal.querySelector('h2').innerHTML = "🏆 ¡VICTORIA MAGISTRAL! 🏆";
-    modal.querySelector('p').innerHTML = `Has completado el modo <b>${gameState.mode.toUpperCase()}</b>.<br>¡Regresa para probar nuevos desafíos!`;
-    modal.querySelector('button').textContent = "Selección de Modos";
-    modal.querySelector('button').onclick = () => {
-      modal.style.display = 'none';
-      backToModes();
-    };
-    return;
-  }
-
-  gameState.waveActive = true;
-  gameState.wave++;
-
-  // Badge infinito
-  if (gameState.mode === 'infinito') {
-    if (gameState.wave >= 100) unlockBadge('inf100');
-    if (gameState.wave >= 500) unlockBadge('inf500');
-    if (gameState.wave >= 999) unlockBadge('inf999');
-    drawBadges();
-  }
-
-  updateUI();
-  showMessage(translate('waveStarted', { wave: Math.min(999, gameState.wave) }), 'info');
+  gameState.waveActive = true; gameState.wave++;
+  updateUI(); showMessage(translate('waveStarted', { wave: gameState.wave }), 'info');
 
   let count = 5 + gameState.wave * 2;
   let spawned = 0;
-  gameState.bossSpawnedInWave = false;
-
   const interval = setInterval(() => {
-    let type = null;
-    let isBoss = false;
-
-    // Jefes especiales por modo
-    if (gameState.mode === 'extremo') {
-      if (gameState.wave === 40 && !gameState.bossSpawnedInWave) {
-        type = 'NOeye_Pyce'; isBoss = true; gameState.bossSpawnedInWave = true;
-        const msg = currentLanguage === 'es' ? "3L F1N H4 LL3G4D0." : "7H3 3ND 1S H3R3.";
-        showNarrator('noeye', msg);
-      } else if (gameState.wave % 10 === 0 && !gameState.bossSpawnedInWave) {
-        type = '1x1x1x1_Pyce'; isBoss = true; gameState.bossSpawnedInWave = true;
-      }
-    } else if (gameState.mode === 'corrupto') {
-      if (gameState.wave === 45 && !gameState.bossSpawnedInWave) {
-        type = 'MoonStar_Pyce'; isBoss = true; gameState.bossSpawnedInWave = true;
-        const msgB = currentLanguage === 'es' ? "Dicen que los magos Pyces suelen acabar mal parados." : "They say Pyce magicians usually end up badly.";
-        const msgM = currentLanguage === 'es' ? "Vuestro esfuerzo es loable, pero el destino ya ha sido escrito por las estrellas." : "Your effort is laudable, but fate has already been written by the stars.";
-        showNarrator('bombot', msgB);
-        setTimeout(() => showNarrator('moonstar', msgM), 4500);
-      } else if (gameState.wave === 15 && !gameState.bossSpawnedInWave) {
-        type = '1x1x1x1_Pyce'; isBoss = true; gameState.bossSpawnedInWave = true;
-      } else if (gameState.wave === 30 && !gameState.bossSpawnedInWave) {
-        type = 'NOeye_Pyce'; isBoss = true; gameState.bossSpawnedInWave = true;
-        const msg = currentLanguage === 'es' ? "L4 C0RRUPC10N 3S 1N3V1T4BL3." : "C0RRUP710N 1S 1N3V174BL3.";
-        showNarrator('noeye', msg);
-      }
-    } else if (gameState.mode === 'antiNormal') {
-      if (gameState.wave === 20 && !gameState.bossSpawnedInWave) {
-        type = 'NOeye_Pyce'; isBoss = true; gameState.bossSpawnedInWave = true;
-        showNarrator('noeye', "3S73 3S 3L F1N D3 7U R34L1D4D.");
-      } else if (gameState.wave === 10 && !gameState.bossSpawnedInWave) {
-        type = '1x1x1x1_Pyce'; isBoss = true; gameState.bossSpawnedInWave = true;
-      }
-    } else {
-      const bossInterval = (gameState.mode === 'infinito') ? 15 : 10;
-      if (gameState.wave % bossInterval === 0 && !gameState.bossSpawnedInWave) {
-        type = '1x1x1x1_Pyce'; isBoss = true; gameState.bossSpawnedInWave = true;
-      }
-    }
-
-    if (spawned === 0) {
-      if (gameState.wave === 5) showNarrator('bombot', "Los siguientes enemigos atacan con una espada. ¡Cuidado!");
-      if (gameState.wave === 8) showNarrator('glob', "¡Oh no... Aquí vienen los disparadores!");
-      if (gameState.wave === 12) showNarrator('bombot', "¿Un símbolo? Ah no, es un enemigo más.");
-
-      if (gameState.wave % 5 === 0 && gameState.wave > 12) {
-        const char = ['bombot', 'glob', 'pyce2'][Math.floor(Math.random() * 3)];
-        showNarrator(char);
-      } else if (Math.random() < 0.2) {
-        showNarrator('stupid');
-      }
-    }
-
-    spawnEnemy(type, isBoss);
-    spawned++;
+    let type = null, boss = false;
+    if (gameState.wave % 10 === 0 && spawned === 0) { type = '1x1x1x1_Pyce'; boss = true; }
+    spawnEnemy(type, boss); spawned++;
     if (spawned >= count) clearInterval(interval);
   }, 1000);
 }
 
-function spawnEnemy(type, isBoss = false) {
+function spawnEnemy(type, boss) {
   if (!type) {
-    const types = Object.keys(ENEMY_TYPES).filter(t => t !== 'Stupid_GoldPyce');
-    if (gameState.wave > 15) type = types[Math.floor(Math.random() * types.length)];
-    else if (gameState.wave > 8) type = types[Math.floor(Math.random() * 4)];
-    else if (gameState.wave > 3) type = types[Math.floor(Math.random() * 2)];
-    else type = 'Stupid_Pyce';
-
-    // Mimic Raro (1% - Reducido drásticamente)
-    if (Math.random() < 0.01) {
-      type = 'Stupid_GoldPyce';
-      showNarrator('mimic');
-    }
+    const keys = Object.keys(ENEMY_TYPES).filter(k => k !== 'Stupid_GoldPyce');
+    type = keys[Math.floor(Math.random() * Math.min(keys.length, Math.floor(gameState.wave/3)+1))];
+    if (Math.random() < 0.01) type = 'Stupid_GoldPyce';
   }
-
   const t = ENEMY_TYPES[type];
-
-  // Racha de Mimics
-  if (t.mimic) {
-    unlockBadge('mimic1');
-    gameState.consecutiveMimics++;
-    if (gameState.consecutiveMimics >= 2) unlockBadge('mimic2');
-    if (gameState.consecutiveMimics >= 3) unlockBadge('mimic3');
-    if (gameState.consecutiveMimics >= 4) unlockBadge('mimic4');
-    saveProgress();
-    drawBadges();
-  } else {
-    gameState.consecutiveMimics = 0;
-  }
-
-  const el = document.createElement('div');
-  el.className = 'enemy';
-  if (t.boss) el.classList.add('boss');
+  const el = document.createElement('div'); el.className = 'enemy' + (boss ? ' boss' : '');
   el.style.backgroundImage = `url('${t.image}')`;
-
-  // Barra de vida
-  const hpBg = document.createElement('div');
-  hpBg.className = 'hp-bar-bg';
-  const hpFill = document.createElement('div');
-  hpFill.className = 'hp-bar-fill';
-  hpBg.appendChild(hpFill);
-  el.appendChild(hpBg);
-
-  if (gameState.corrupt) {
-    const isPink = Math.random() > 0.5;
-    el.classList.add(isPink ? 'corrupt-pink' : 'corrupt-green');
-    if (t.mimic) unlockBadge('corruptMimic');
-  }
-
-  if (isBoss && gameState.corrupt && gameState.wave === 45) {
-    el.classList.add('boss-rainbow', 'shielded');
-  }
-
+  const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
+  const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
+  hpBg.appendChild(hpFill); el.appendChild(hpBg);
   document.getElementById('game-area').appendChild(el);
 
-  const enemy = {
-    ...t, el, x: ENEMY_PATH[0].x, y: ENEMY_PATH[0].y,
-    pathIndex: 0,
-    health: t.health * (1 + gameState.wave * 0.15),
-    maxHealth: t.health * (1 + gameState.wave * 0.15),
-    stunTimer: 0, burnTimer: 0, slowAmount: 1,
-    boss: isBoss,
-    shield: (t.shield || (isBoss && gameState.corrupt && gameState.wave === 45 ? 1 : 0)) * (t.health * (1 + gameState.wave * 0.15)),
-    maxShield: (t.shield || (isBoss && gameState.corrupt && gameState.wave === 45 ? 1 : 0)) * (t.health * (1 + gameState.wave * 0.15)),
-    type: type,
-    laps: 0,
-    hpFill: hpFill
-  };
-
-  gameState.enemies.push(enemy);
+  gameState.enemies.push({ ...t, el, x: ENEMY_PATH[0].x, y: ENEMY_PATH[0].y, pathIndex: 0, health: t.health * (1+gameState.wave*0.15), maxHealth: t.health * (1+gameState.wave*0.15), hpFill, shield: (t.shield||0)*t.health, type });
 }
 
 function gameLoop() {
   if (gameState.gameOver) return;
-
-  const deltaTime = 1 / 60;
-
-  // Efecto visual Anti-Normal (Parpadeo Negativo)
-  if (gameState.mode === 'antiNormal' && Math.random() < 0.02) {
-    document.getElementById('game-area').classList.toggle('skin-negative');
-    setTimeout(() => document.getElementById('game-area').classList.remove('skin-negative'), 50);
+  const dt = 1/60;
+  for (let i = gameState.enemies.length-1; i >= 0; i--) {
+    const e = gameState.enemies[i];
+    const next = ENEMY_PATH[e.pathIndex+1];
+    if (next) {
+      const dx = next.x - e.x, dy = next.y - e.y, dist = Math.hypot(dx, dy);
+      if (dist < e.speed) e.pathIndex++;
+      else { e.x += (dx/dist)*e.speed; e.y += (dy/dist)*e.speed; }
+      e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
+    } else {
+      e.el.remove(); gameState.enemies.splice(i, 1);
+      gameState.health -= e.boss ? 10 : 1;
+      if (gameState.health <= 0) endGame();
+      updateUI(); continue;
+    }
+    const pct = (e.health / e.maxHealth) * 100;
+    e.hpFill.style.width = pct + '%';
+    if (e.health <= 0) die(e, i);
   }
 
-  try {
-    // Actualizar Enemigos (Bucle invertido para splice seguro)
-    for (let i = gameState.enemies.length - 1; i >= 0; i--) {
-      const e = gameState.enemies[i];
-
-      // Movimiento
-      const nextPt = ENEMY_PATH[e.pathIndex + 1];
-      if (nextPt) {
-        const dx = nextPt.x - e.x;
-        const dy = nextPt.y - e.y;
-        const dist = Math.hypot(dx, dy);
-        const spd = e.speed * (e.slowAmount || 1);
-        if (dist < spd) { e.pathIndex++; }
-        else { e.x += (dx / dist) * spd; e.y += (dy / dist) * spd; }
-        e.el.style.left = `${e.x}px`;
-        e.el.style.top  = `${e.y}px`;
-      } else {
-        // Llegó al final
-        if (e.instakill) {
-          gameState.health = 0;
-          endGame();
-          return;
-        }
-        if (e.doubleLap && !e.lapped) {
-           e.pathIndex = 0;
-           e.lapped = true;
-           continue;
-        }
-        e.el.remove();
-        gameState.enemies.splice(i, 1);
-        gameState.health -= e.boss ? 10 : 1;
-        if (gameState.health <= 0) { gameState.health = 0; endGame(); }
-        updateUI();
-        showMessage(translate('enemyReachedEnd'), 'error');
-        continue;
-      }
-
-      // Quemadura
-      if (e.burnTimer > 0) {
-        e.burnTimer -= deltaTime;
-        e.health -= 5 * deltaTime;
-        e.el.classList.add('burning');
-      } else {
-        e.el.classList.remove('burning');
-      }
-
-      // HP bar
-      if (e.hpFill) {
-        const totalMax = e.maxHealth + (e.maxShield || 0);
-        const totalCurrent = e.health + (e.shield || 0);
-        const pct = Math.max(0, totalCurrent / totalMax) * 100;
-        e.hpFill.style.width = `${pct}%`;
-        if (e.shield > 0) {
-          e.hpFill.style.background = '#ffd700'; // Amarillo escudo
-        } else {
-          e.hpFill.style.background = '#ff4444'; // Rojo vida
-        }
-      }
-
-      e.slowAmount = 1; // Reset slow each frame
-
-      if (e.health <= 0) die(e, i);
-    } // fin for enemigos
-
-    // Actualizar Torres
-    gameState.towers.forEach(t => {
-    if (t.stunned > 0) {
-      t.stunned -= deltaTime;
-      t.el.classList.add('stunned');
-      return;
-    }
-    t.el.classList.remove('stunned');
-
-    if (t.moneyGen) {
-      if (gameState.waveActive) {
-        t.moneyTimer += deltaTime;
-        if (t.moneyTimer >= 5) { // Genera cada 5s
-          gameState.globetines += t.moneyGen;
-          t.moneyTimer = 0;
-          showEffect(t.x, t.y, `💰+${t.moneyGen}`);
-          updateUI();
-        }
-      }
-      return;
-    }
-
-    t.cooldown -= deltaTime;
+  gameState.towers.forEach(t => {
+    t.cooldown -= dt;
     if (t.cooldown <= 0) {
-      const targets = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= t.range);
-      if (targets.length > 0) {
-        if (t.melee) {
-          targets[0].health -= t.damage;
-          t.el.style.transform = `translate(-50%, -50%) scale(1.3)`;
-          setTimeout(() => t.el.style.transform = `translate(-50%, -50%) scale(1)`, 100);
-          if (t.burn) targets[0].burnTimer = 3;
-        } else {
-          shoot(t, targets[0]);
-        }
-        t.cooldown = 1 / t.speed;
-      }
+      const targets = gameState.enemies.filter(e => Math.hypot(e.x-t.x, e.y-t.y) <= t.range);
+      if (targets.length) { shoot(t, targets[0]); t.cooldown = 1/t.speed; }
     }
   });
 
-  // Actualizar Proyectiles (Bucle invertido para splice seguro)
-  for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
+  for (let i = gameState.projectiles.length-1; i >= 0; i--) {
     const p = gameState.projectiles[i];
-    if (p.piercing) {
-      p.x += p.vx; p.y += p.vy;
-      p.el.style.left = `${p.x}px`; p.el.style.top = `${p.y}px`;
-
-      for (let j = gameState.enemies.length - 1; j >= 0; j--) {
-        const e = gameState.enemies[j];
-        if (Math.hypot(e.x - p.x, e.y - p.y) < 40 && !p.hitEnemies.has(e)) {
-          let damage = p.damage;
-          if (e.shield > 0) {
-            const absorbed = Math.min(e.shield, damage);
-            e.shield -= absorbed;
-            damage -= absorbed;
-          }
-          if (damage > 0) e.health -= damage;
-          gameState.totalDamage += p.damage;
-          showEffect(e.x, e.y - 20, `-${Math.floor(p.damage)}`);
-          p.hitEnemies.add(e);
-          if (p.burn) e.burnTimer = 3;
-          if (e.health <= 0) die(e, j);
-        }
-      }
-
-      if (p.x < 0 || p.x > 1000 || p.y < 0 || p.y > 600) {
-        p.el.remove();
-        gameState.projectiles.splice(i, 1);
-      }
-    } else {
-      if (!p.target || !p.target.el) {
-        if (p.el) p.el.remove();
-        gameState.projectiles.splice(i, 1);
-        continue;
-      }
-
-      const dx = p.target.x - p.x;
-      const dy = p.target.y - p.y;
-      const dist = Math.hypot(dx, dy);
-
-      if (dist < 10 || !gameState.enemies.includes(p.target)) {
-        if (gameState.enemies.includes(p.target)) {
-          let damage = p.damage;
-          if (p.target.shield > 0) {
-            const absorbed = Math.min(p.target.shield, damage);
-            p.target.shield -= absorbed;
-            damage -= absorbed;
-          }
-          if (damage > 0) p.target.health -= damage;
-          gameState.totalDamage += p.damage;
-          if (p.slow) p.target.slowAmount = p.slow;
-
-          // AOE Damage (Bombas)
-          if (p.aoe) {
-            for (let j = gameState.enemies.length - 1; j >= 0; j--) {
-              const e2 = gameState.enemies[j];
-              if (e2 !== p.target && Math.hypot(e2.x - p.x, e2.y - p.y) < p.aoe) {
-                let aoeDmg = damage * 0.5;
-                if (e2.shield > 0) {
-                  const absorbed = Math.min(e2.shield, aoeDmg);
-                  e2.shield -= absorbed;
-                  aoeDmg -= absorbed;
-                }
-                if (aoeDmg > 0) e2.health -= aoeDmg;
-                showEffect(e2.x, e2.y - 20, `-${Math.floor(damage * 0.5)}`);
-                if (e2.health <= 0) die(e2, j);
-              }
-            }
-          }
-
-          if (p.target.health <= 0) die(p.target, gameState.enemies.indexOf(p.target));
-
-          if (p.type === 'split') {
-            for (let s = 0; s < 3; s++) shootSmall(p.x, p.y, p.damage / 2);
-          }
-        }
-        p.el.remove();
-        gameState.projectiles.splice(i, 1);
-      } else {
-        p.x += (dx / dist) * 10;
-        p.y += (dy / dist) * 10;
-        p.el.style.left = `${p.x}px`; p.el.style.top = `${p.y}px`;
-      }
-    }
+    if (!p.target || !gameState.enemies.includes(p.target)) { p.el.remove(); gameState.projectiles.splice(i,1); continue; }
+    const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
+    if (dist < 10) {
+      p.target.health -= p.damage; gameState.totalDamage += p.damage;
+      p.el.remove(); gameState.projectiles.splice(i,1);
+    } else { p.x += (dx/dist)*10; p.y += (dy/dist)*10; p.el.style.left = p.x+'px'; p.el.style.top = p.y+'px'; }
   }
 
-  if (gameState.waveActive && gameState.enemies.length === 0) {
-    gameState.waveActive = false;
-    gameState.bossSpawned = false;
-
-    // Globetines de bonus
-    const bonus = 50 + gameState.wave * 10;
-    gameState.globetines += bonus;
-
-    // PyCoins por dificultad
-    const difficultyRewards = { facil: 5, normal: 10, dificil: 20, extremo: 40, corrupto: 50, infinito: 5 + Math.floor(gameState.wave / 10) };
-    const pyReward = difficultyRewards[gameState.mode] || 10;
-    gameState.pycoins += pyReward;
-
-    // XP de Duck Pass
-    addXP(20);
-
-    updateUI();
-    updateMetaUI();
-
-    if (gameState.wave >= 10) unlockBadge('survivor');
-    if (gameState.globetines >= 20000) unlockBadge('millionaire');
-
-    drawBadges();
-    saveProgress();
-
+  if (gameState.waveActive && !gameState.enemies.length) {
+    gameState.waveActive = false; gameState.globetines += 50 + gameState.wave*10; gameState.pycoins += 10; addXP(20);
+    updateUI(); updateMetaUI(); saveProgress();
     if (gameState.autoWave) setTimeout(startWave, 2000);
-  }
-  } catch (e) {
-    console.error("Error en gameLoop:", e);
   }
   requestAnimationFrame(gameLoop);
 }
 
 function shoot(t, target) {
-  const el = document.createElement('div');
-  el.className = `projectile ${t.projectile}`;
-  const angle = Math.atan2(target.y - t.y, target.x - t.x);
-
-  if (t.projectile.startsWith('laser')) {
-    el.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
-    gameState.projectiles.push({
-      x: t.x, y: t.y, vx: Math.cos(angle) * 15, vy: Math.sin(angle) * 15,
-      damage: t.damage, el, piercing: true, hitEnemies: new Set(), burn: t.burn
-    });
-  } else {
-    // Para orbes, bombas, etc.
-    el.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
-    gameState.projectiles.push({
-      x: t.x, y: t.y, target, damage: t.damage, el, type: t.projectile,
-      slow: t.slow, aoe: t.aoe
-    });
-  }
+  const el = document.createElement('div'); el.className = `projectile ${t.projectile}`;
+  el.style.left = t.x+'px'; el.style.top = t.y+'px';
   document.getElementById('map').appendChild(el);
-}
-
-function shootSmall(x, y, dmg) {
-  const target = gameState.enemies[Math.floor(Math.random() * gameState.enemies.length)];
-  if (!target) return;
-  const el = document.createElement('div');
-  el.className = 'projectile green';
-  el.style.width = '8px'; el.style.height = '8px';
-  document.getElementById('map').appendChild(el);
-  gameState.projectiles.push({ x, y, target, damage: dmg, el });
+  gameState.projectiles.push({ x: t.x, y: t.y, target, damage: t.damage, el });
 }
 
 function die(e, idx) {
-  if (idx === -1) return;
-
-  // Probabilidad de revivir en modo Corrupto (30%)
-  if (gameState.corrupt && !e.revived && Math.random() < 0.3) {
-    e.revived = true;
-    e.health = e.maxHealth * 0.5;
-    e.el.classList.add('reviving');
-    setTimeout(() => e.el.classList.remove('reviving'), 1000);
-    showMessage("¡UN PYCE HA RESUCITADO!", 'warning');
-    return;
-  }
-
-  if (e.revived && e.mimic) {
-    unlockBadge('mimicRevenge');
-    saveProgress();
-    drawBadges();
-  }
-
-  if (e.mimic) {
-    gameState.pycoins += 5; // Golden Pyces dan PyCoins
-    showMessage("+5 PyCoins", 'success');
-  } else {
-    gameState.globetines += e.reward;
-  }
-
+  gameState.globetines += e.reward;
+  if (e.mimic) { gameState.pycoins += 5; showMessage("+5 PyCoins", 'success'); }
   e.el.remove();
-  if (e.boss) {
-    unlockBadge('bossKiller');
-    TOWER_TYPES['Old_Glob'].unlocked = true;
-
-    // Mensajes de derrota de jefes
-    if (e.type === 'NOeye_Pyce') {
-      const defMsgs = NARRATOR_DATA.noeye[currentLanguage].defeat;
-      showNarrator('noeye', defMsgs[Math.floor(Math.random() * defMsgs.length)]);
-      if (gameState.mode === 'extremo') {
-        TOWER_TYPES['Work_Bombot'].unlocked = true;
-        showMessage("¡HAS DESBLOQUEADO EL WORK-BOMBOT!", 'success');
-      }
-    } else if (e.type === 'MoonStar_Pyce') {
-      const defMsgs = NARRATOR_DATA.moonstar[currentLanguage].defeat;
-      showNarrator('moonstar', defMsgs[Math.floor(Math.random() * defMsgs.length)]);
-    }
-
-    drawTowerShop();
-    drawBadges();
-  }
+  if (e.boss) unlockBadge('bossKiller');
   gameState.enemies.splice(idx, 1);
   updateUI();
 }
@@ -2178,37 +1043,9 @@ function die(e, idx) {
 function updateUI() {
   document.getElementById('health').textContent = Math.max(0, gameState.health);
   document.getElementById('money').textContent = Math.floor(gameState.globetines);
-  document.getElementById('wave-count').textContent = Math.min(999, gameState.wave);
-  if (gameState.settings.showTotalDamage) {
-    document.getElementById('total-damage').textContent = Math.floor(gameState.totalDamage);
-  }
-  
-  // Si hay un panel de evolución abierto, actualizar sus botones (por si cambió el dinero)
-  if (gameState.selectedTower) {
-    updateEvolveButtons(gameState.selectedTower);
-  }
-
-  updateMetaUI(); // Asegurar que PyCoins y Duck Pass estén siempre actualizados
-
-  // Bloquear botones durante la oleada
-  const startBtn = document.getElementById('start-wave');
-  const autoBtn = document.getElementById('auto-wave');
-
-  if (gameState.waveActive) {
-    startBtn.disabled = true;
-    autoBtn.disabled = true;
-    startBtn.style.opacity = "0.5";
-    autoBtn.style.opacity = "0.5";
-    startBtn.style.cursor = "not-allowed";
-    autoBtn.style.cursor = "not-allowed";
-  } else {
-    startBtn.disabled = false;
-    autoBtn.disabled = false;
-    startBtn.style.opacity = "1";
-    autoBtn.style.opacity = "1";
-    startBtn.style.cursor = "pointer";
-    autoBtn.style.cursor = "pointer";
-  }
+  document.getElementById('wave-count').textContent = gameState.wave;
+  if (gameState.settings.showTotalDamage) document.getElementById('total-damage').textContent = Math.floor(gameState.totalDamage);
+  updateMetaUI();
 }
 
 function translate(key, params = {}) {
@@ -2218,256 +1055,49 @@ function translate(key, params = {}) {
 }
 
 function updateLanguage() {
-  try {
-    const labels = document.querySelectorAll('.stat-label');
-    if (labels.length >= 3) {
-      labels[0].textContent = translate('health');
-      labels[1].textContent = translate('money');
-      labels[2].textContent = translate('wave');
-    }
-
-    const startWaveBtn = document.getElementById('start-wave');
-    if (startWaveBtn) startWaveBtn.querySelector('.btn-text').textContent = translate('startWave');
-
-    const autoWaveBtn = document.getElementById('auto-wave');
-    if (autoWaveBtn) autoWaveBtn.querySelector('.btn-text').textContent = translate('autoWave');
-
-    const deselectBtn = document.getElementById('deselect-tower');
-    if (deselectBtn) deselectBtn.querySelector('.btn-text').textContent = translate('cancel');
-
-    const badgeTitle = document.querySelector('#badges-panel h4');
-    if (badgeTitle) badgeTitle.textContent = translate('achievements');
-
-    // Traducción de botones Meta
-    const shopBtn = document.querySelector('#open-shop .btn-text');
-    if (shopBtn) shopBtn.textContent = currentLanguage === 'es' ? 'Tienda' : 'Shop';
-
-    const passBtn = document.querySelector('#open-pass .btn-text');
-    if (passBtn) passBtn.textContent = currentLanguage === 'es' ? 'Pass' : 'Pass';
-
-    document.getElementById('shop-title').textContent = translate('shop_title');
-    document.getElementById('pass-title').textContent = translate('pass_title');
-
-    document.querySelectorAll('.back-btn .btn-text').forEach(el => {
-      el.textContent = translate('backToModes');
-    });
-
-    const codeInput = document.getElementById('game-code');
-    if (codeInput) codeInput.placeholder = translate('code_placeholder');
-
-    const applyBtn = document.getElementById('apply-code');
-    if (applyBtn) applyBtn.textContent = translate('apply_btn');
-
-    // Traducción de Login y Modos
-    const userInput = document.getElementById('username-input');
-    if (userInput) userInput.placeholder = translate('login_user');
-
-    const passInput = document.getElementById('password-input');
-    if (passInput) passInput.placeholder = translate('login_pass');
-
-    const loginBtn = document.getElementById('login-btn');
-    if (loginBtn) loginBtn.textContent = translate('login_btn');
-
-    const modeTitle = document.querySelector('#mode-selection h2');
-    if (modeTitle) modeTitle.textContent = translate('select_mode');
-
-    // Actualizar el texto del botón
-    const langBtn = document.getElementById('language-toggle');
-    if (langBtn) langBtn.textContent = currentLanguage === 'es' ? '🌐 ES / EN' : '🌐 EN / ES';
-  } catch (e) {
-    console.error("Error en updateLanguage:", e);
-  }
+  const t = (id, key) => { const el = document.getElementById(id); if (el) el.textContent = translate(key); };
+  t('health-label', 'health'); t('money-label', 'money'); t('wave-label', 'wave');
+  document.querySelectorAll('.btn-text').forEach(el => {
+    if (el.textContent.includes('Oleada')) el.textContent = translate('startWave');
+  });
 }
 
 function showMessage(text, type) {
-  const el = document.createElement('div');
-  el.className = `game-message ${type}`;
-  el.textContent = text;
-  document.getElementById('game-messages').appendChild(el);
-  setTimeout(() => el.remove(), 3000);
+  const el = document.createElement('div'); el.className = `game-message ${type}`; el.textContent = text;
+  document.getElementById('game-messages').appendChild(el); setTimeout(() => el.remove(), 3000);
 }
 
 function showEffect(x, y, text) {
-  const el = document.createElement('div');
-  el.className = 'money-popup';
-  el.style.left = `${x}px`; el.style.top = `${y}px`;
-  el.textContent = text;
-  document.getElementById('map').appendChild(el);
-  setTimeout(() => el.remove(), 1000);
+  const el = document.createElement('div'); el.className = 'money-popup'; el.style.left = x+'px'; el.style.top = y+'px'; el.textContent = text;
+  document.getElementById('map').appendChild(el); setTimeout(() => el.remove(), 1000);
 }
 
 function getTowerImage(type) {
   const cfg = TOWER_TYPES[type];
-  if (!cfg) return '';
-  
   const family = cfg.family || type;
   const equipped = gameState.equippedSkins[family];
-  
   if (equipped && equipped !== 'default') {
-    // Buscar en SKINS_DATA
-    const familySkins = SKINS_DATA[family];
-    if (familySkins) {
-      const skinSet = familySkins.find(s => s.id === equipped);
-      if (skinSet && skinSet.skins && skinSet.skins[type]) {
-        return skinSet.skins[type];
-      }
-    }
+    const skinSet = SKINS_DATA[family]?.find(s => s.id === equipped);
+    if (skinSet?.skins?.[type]) return skinSet.skins[type];
   }
   return cfg.image;
 }
 
 function applyTowerEffects(el, type) {
   const cfg = TOWER_TYPES[type];
-  if (!cfg) return;
-  
-  // Limpiar clases y filtros previos
   el.className = 'tower';
-  el.style.filter = '';
-  
-  // 1. Skin Global (Negativo, Arcoiris)
   const globalSkin = gameState.equippedSkins['Global'];
   if (globalSkin !== 'default') {
-    const globalData = SKINS_DATA['Global'].find(s => s.id === globalSkin);
-    if (globalData && globalData.class) el.classList.add(globalData.class);
+    const data = SKINS_DATA['Global'].find(s => s.id === globalSkin);
+    if (data?.class) el.classList.add(data.class);
   }
-  
-  // 2. Recolores y Skins de Set
-  const family = cfg.family || type;
-  const equipped = gameState.equippedSkins[family];
-  
-  if (equipped && equipped.startsWith('recolor_')) {
-    const recolor = SKINS_DATA['Recolors'].find(s => s.id === equipped);
-    if (recolor && recolor.filter) el.style.filter = recolor.filter;
-  }
-}
-
-function shootParalyzeLaser(e) {
-  if (gameState.towers.length === 0) return;
-  const t = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
-  const laser = document.createElement('div');
-  laser.className = 'projectile laser';
-  laser.style.background = '#00ffff';
-  laser.style.width = '1000px';
-  laser.style.height = '4px';
-  laser.style.left = `${e.x}px`;
-  laser.style.top = `${e.y}px`;
-  laser.style.transform = `rotate(${Math.random() * 360}deg)`;
-  document.getElementById('game-area').appendChild(laser);
-
-  t.stunned = 5;
-  t.el.classList.add('stunned');
-  showMessage("¡TORRE PARALIZADA POR NOEYE!", 'error');
-
-  setTimeout(() => laser.remove(), 500);
-}
-
-function showNarrator(charId, specificMsgKey) {
-  const char = NARRATOR_DATA[charId];
-  if (!char) return;
-
-  const localized = char[currentLanguage];
-  let text = "";
-
-  if (specificMsgKey) {
-    text = specificMsgKey;
-  } else {
-    text = localized.msgs[Math.floor(Math.random() * localized.msgs.length)];
-  }
-
-  const el = document.createElement('div');
-  el.className = 'narrator-msg';
-  el.style.display = 'flex';
-  el.style.alignItems = 'center';
-  el.style.gap = '15px';
-
-  const img = document.createElement('img');
-  img.src = char.img;
-  img.style.width = '40px';
-  img.style.height = '40px';
-  img.style.borderRadius = '5px';
-  img.style.border = '2px solid #555';
-
-  const content = document.createElement('div');
-  const styles = {
-    bombot: "color: #ffd700",
-    glob: "color: #38ef7d",
-    stupid: "color: #fff",
-    pyce2: "color: #3498db",
-    noeye: "color: #00ffff; text-transform: uppercase; font-family: monospace",
-    moonstar: "color: #ff00ff; font-style: italic",
-    mimic: "color: #f1c40f"
-  };
-
-  content.innerHTML = `<span style="${styles[charId]}">[${localized.name}]</span>: ${text}`;
-
-  el.appendChild(img);
-  el.appendChild(content);
-
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 4000);
-}
-
-function selectTower(t) {
-  gameState.selectedTower = t;
-  const panel = document.getElementById('evolve-panel');
-  panel.style.display = 'flex';
-
-  // Posicionamiento dinámico relativo al mapa
-  const panelWidth = 240;
-  const panelHeight = 220;
-  const mapRect = document.getElementById('map').getBoundingClientRect();
-  const containerRect = document.getElementById('game-container').getBoundingClientRect();
-
-  // Convertir coordenadas del mapa a coordenadas del contenedor
-  const absoluteX = mapRect.left - containerRect.left + t.x;
-  const absoluteY = mapRect.top - containerRect.top + t.y;
-
-  let top = absoluteY - panelHeight - 20;
-  if (top < 10) top = absoluteY + 40;
-
-  let left = absoluteX - panelWidth / 2;
-  if (left < 10) left = 10;
-  if (left + panelWidth > 990) left = 990 - panelWidth;
-
-  panel.style.top = `${top}px`;
-  panel.style.left = `${left}px`;
-
-  document.getElementById('tower-name').textContent = t.name;
-
-  // Descripción de la torre
-  const towerData = TOWER_TYPES[t.type];
-  let descText = towerData.desc || "";
-  if (towerData.evolution) {
-    const nextTower = TOWER_TYPES[towerData.evolution];
-    descText += `<br><br><b style="color: #ffd700">Próxima Mejora:</b> ${nextTower.name}<br><i style="font-size: 0.8rem; color: #aaa;">${nextTower.desc}</i>`;
-  }
-
-  const descEl = document.getElementById('tower-desc');
-  descEl.innerHTML = descText;
-
-  updateEvolveButtons(t);
-  drawRangePreview(t.x, t.y, t.range);
-}
-
-function deselectTower() {
-  gameState.selectedTower = null;
-  document.getElementById('evolve-panel').style.display = 'none';
-  const preview = document.getElementById('range-preview');
-  if (preview) preview.remove();
 }
 
 function drawRangePreview(x, y, range) {
-  let preview = document.getElementById('range-preview');
-  if (!preview) {
-    preview = document.createElement('div');
-    preview.id = 'range-preview';
-    preview.className = 'range-preview';
-    document.getElementById('map').appendChild(preview);
-  }
-  preview.style.left = `${x}px`;
-  preview.style.top = `${y}px`;
-  preview.style.width = `${range * 2}px`;
-  preview.style.height = `${range * 2}px`;
+  let p = document.getElementById('range-preview') || document.createElement('div');
+  p.id = 'range-preview'; p.className = 'range-preview';
+  p.style.left = x+'px'; p.style.top = y+'px'; p.style.width = p.style.height = (range*2)+'px';
+  document.getElementById('map').appendChild(p);
 }
 
 function endGame() {
@@ -2477,7 +1107,3 @@ function endGame() {
 }
 
 window.onload = init;
-
-// =================================================================
-// GLOB DEFENDERS v2.0 - SKINS & JUICE UPDATE (Final Stable Version)
-// =================================================================

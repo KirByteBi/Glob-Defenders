@@ -1605,3 +1605,30 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(26px);
 }
+
+.tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #4facfe;
+    font-size: 0.9rem;
+    pointer-events: none;
+    z-index: 10000;
+    max-width: 250px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.tooltip b {
+    color: #4facfe;
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1rem;
+}
+
+.tooltip p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}

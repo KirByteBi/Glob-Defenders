@@ -1,0 +1,434 @@
+// ===================== CONFIGURACIÓN Y DATOS DEL JUEGO =====================
+
+const TRANSLATIONS = {
+  es: {
+    health: "Salud", money: "Dinero", wave: "Oleada",
+    startWave: "Iniciar Oleada", autoWave: "Auto-Oleada",
+    autoWaveActive: "Auto-ON", cancel: "Cancelar",
+    gameOver: "💀 GAME OVER 💀", playAgain: "Reintentar",
+    achievements: "Logros", notEnoughMoney: "💸 Sin fondos",
+    towerPlaced: "✅ {name} colocada",
+    towerEvolved: "🎉 ¡Evolución a {name}!",
+    towerSold: "💵 Vendida por {price}",
+    waveStarted: "🌊 Oleada {wave}!",
+    waveCompleted: "✅ Oleada {wave} superada!",
+    enemyReachedEnd: "💔 ¡Daño a la base!",
+    pyceGlobUnlocked: "🔓 ¡Pyce Glob desbloqueado!",
+    adminMode: "👑 MODO ADMIN",
+    codeInvalid: "❌ Código inválido",
+    loginError: "❌ Usuario o contraseña incorrectos",
+    codeSuccess: "✨ Código aceptado: {name} desbloqueado",
+    badge_survivor_name: "Superviviente", badge_survivor_desc: "Llega a la oleada 10",
+    badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Ten más de 20.000 de dinero",
+    badge_evolution_name: "Biotecnólogo", badge_evolution_desc: "Evoluciona una torre al máximo",
+    badge_bossKiller_name: "Matarreyes", badge_bossKiller_desc: "Derrota al primer jefe",
+    badge_secret_name: "Hacker", badge_secret_desc: "Usa un código secreto",
+    badge_inf100_name: "Centenario", badge_inf100_desc: "Llega a la oleada 100",
+    badge_inf500_name: "Veterano", badge_inf500_desc: "Llega a la oleada 500",
+    badge_inf999_name: "Dios Glob", badge_inf999_desc: "Llega a la oleada 999",
+    badge_corrupt1_name: "Corrupto I", badge_corrupt1_desc: "Gana 1 vez en modo corrupto",
+    badge_corrupt2_name: "Corrupto II", badge_corrupt2_desc: "Gana 2 veces en modo corrupto",
+    badge_corrupt3_name: "Corrupto III", badge_corrupt3_desc: "Gana 3 veces en modo corrupto",
+    badge_corrupt4_name: "Corrupto IV", badge_corrupt4_desc: "Gana 4 veces en modo corrupto",
+    badge_corrupt5_name: "Corrupto V", badge_corrupt5_desc: "Gana 5 veces en modo corrupto",
+    badge_mimic1_name: "Cazatesoros I", badge_mimic1_desc: "Encuentra 1 Mimic",
+    badge_mimic2_name: "Cazatesoros II", badge_mimic2_desc: "Encuentra 2 Mimics seguidos",
+    badge_mimic3_name: "Cazatesoros III", badge_mimic3_desc: "Encuentra 3 Mimics seguidos",
+    badge_mimic4_name: "Cazatesoros IV", badge_mimic4_desc: "Encuentra 4 Mimics seguidos",
+    badge_corruptMimic_name: "Oro Maldito", badge_corruptMimic_desc: "Encuentra un Mimic corrupto",
+    badge_mimicRevenge_name: "Venganza Dorada", badge_mimicRevenge_desc: "Derrota a un Mimic que ha resucitado",
+    badge_antiNormal_name: "Maestro del Vacío", badge_antiNormal_desc: "Purifica el modo Anti-Normal",
+    badge_winFacil_name: "Iniciado", badge_winFacil_desc: "Vence en modo Fácil",
+    badge_winNormal_name: "Defensor", badge_winNormal_desc: "Vence en modo Normal",
+    badge_winDificil_name: "Guerrero", badge_winDificil_desc: "Vence en modo Difícil",
+    badge_winExtremo_name: "Leyenda", badge_winExtremo_desc: "Vence en modo Extremo",
+    badge_winCorrupto_name: "Purificador", badge_winCorrupto_desc: "Vence en modo Corrupto",
+    login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla",
+    select_mode: "Seleccionar Modo",
+    backToModes: "Selección de Modo",
+    shop_title: "🛒 Tienda Meta",
+    pass_title: "🦆 Duck Pass",
+    code_placeholder: "Código Secreto...",
+    apply_btn: "Aplicar"
+  },
+  en: {
+    health: "Health", money: "Money", wave: "Wave",
+    startWave: "Start Wave", autoWave: "Auto-Wave",
+    autoWaveActive: "Auto-ON", cancel: "Cancel",
+    gameOver: "💀 GAME OVER 💀", playAgain: "Retry",
+    achievements: "Achievements", notEnoughMoney: "💸 No money",
+    towerPlaced: "✅ {name} placed",
+    towerEvolved: "🎉 Evolved to {name}!",
+    towerSold: "💵 Sold for {price}",
+    waveStarted: "Wave {wave} started!",
+    waveCompleted: "Wave {wave} completed!",
+    enemyReachedEnd: "💔 Base took damage!",
+    pyceGlobUnlocked: "🔓 Pyce Glob unlocked!",
+    adminMode: "ADMIN MODE",
+    codeSuccess: "✨ Code accepted: {name} unlocked",
+    codeInvalid: "❌ Invalid code",
+    loginError: "❌ Invalid username or password",
+    badge_survivor_name: "Survivor", badge_survivor_desc: "Reach wave 10",
+    badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Have over 20,000 money",
+    badge_evolution_name: "Biotechnologist", badge_evolution_desc: "Evolve a tower to the max",
+    badge_bossKiller_name: "Kingslayer", badge_bossKiller_desc: "Defeat the first boss",
+    badge_secret_name: "Hacker", badge_secret_desc: "Use a secret code",
+    badge_inf100_name: "Centenarian", badge_inf100_desc: "Reach wave 100",
+    badge_inf500_name: "Veteran", badge_inf500_desc: "Reach wave 500",
+    badge_inf999_name: "Glob God", badge_inf999_desc: "Reach wave 999",
+    badge_corrupt1_name: "Corrupt I", badge_corrupt1_desc: "Win 1 time in corrupt mode",
+    badge_corrupt2_name: "Corrupt II", badge_corrupt2_desc: "Win 2 times in corrupt mode",
+    badge_corrupt3_name: "Corrupt III", badge_corrupt3_desc: "Win 3 times in corrupt mode",
+    badge_corrupt4_name: "Corrupt IV", badge_corrupt4_desc: "Win 4 times in corrupt mode",
+    badge_corrupt5_name: "Corrupt V", badge_corrupt5_desc: "Win 5 times in corrupt mode",
+    badge_mimic1_name: "Treasure Hunter I", badge_mimic1_desc: "Find 1 Mimic",
+    badge_mimic2_name: "Treasure Hunter II", badge_mimic2_desc: "Find 2 Mimics in a row",
+    badge_mimic3_name: "Treasure Hunter III", badge_mimic3_desc: "Find 3 Mimics in a row",
+    badge_mimic4_name: "Treasure Hunter IV", badge_mimic4_desc: "Find 4 Mimics in a row",
+    badge_corruptMimic_name: "Cursed Gold", badge_corruptMimic_desc: "Find a corrupt Mimic",
+    badge_mimicRevenge_name: "Golden Revenge", badge_mimicRevenge_desc: "Defeat a resurrected Mimic",
+    badge_antiNormal_name: "Void Master", badge_antiNormal_desc: "Purify the Anti-Normal mode",
+    badge_winFacil_name: "Beginner", badge_winFacil_desc: "Win in Easy mode",
+    badge_winNormal_name: "Defender", badge_winNormal_desc: "Win in Normal mode",
+    badge_winDificil_name: "Warrior", badge_winDificil_desc: "Win in Hard mode",
+    badge_winExtremo_name: "Legend", badge_winExtremo_desc: "Win in Extreme mode",
+    badge_winCorrupto_name: "Purifier", badge_winCorrupto_desc: "Win in Corrupt mode",
+    login_user: "Username", login_pass: "Password", login_btn: "Join the battle",
+    select_mode: "Select Mode",
+    backToModes: "Mode Selection",
+    shop_title: "🛒 Meta Shop",
+    pass_title: "🦆 Duck Pass",
+    code_placeholder: "Secret Code...",
+    apply_btn: "Apply"
+  }
+};
+
+let USERS = {
+  "KirByteBi": "FTPY2",
+  "Admin": "ADgod",
+  "AirRider": "PYCE",
+  "Player": "1234"
+};
+
+const IMAGE_PATHS = {
+  'Glob': 'img/Glob_DEF.png',
+  'Poop_Glob': 'img/Poop_Glob.png',
+  'Golden_Glob': 'img/Golden_Glob.png',
+  'Rainbow_Glob': 'img/Rainbow_Glob.png',
+  'Red_Glob': 'img/Red_Glob.png',
+  'Molten_Glob': 'img/Molten_Glob.png',
+  'Robotic_Glob': 'img/Robotic_Glob.png',
+  'Soap_Glob': 'img/Soap_Glob.png',
+  'Cotton_Glob': 'img/Cotton_Glob.png',
+  'Ducky_Glob': 'img/Ducky_Glob.png',
+  'Golden_Ducky_Glob': 'img/Golden_Ducky_Glob.png',
+  'Comet_Glob': 'img/Comet_Glob.png',
+  'Dark_Glob': 'img/Dark_Glob.png',
+  'Demglob': 'img/Demglob.png',
+  'Pyce_Glob': 'img/Pyce_Glob.png',
+  'Old_Glob': 'img/Old_Glob.png',
+  'Stupid_Pyce': 'img/Stupid_Pyce.png',
+  'Guest_Pyce': 'img/Guest_Pyce.png',
+  'Noob_Pyce': 'img/Noob_Pyce.png',
+  '4motions_Pyce': 'img/4motions_Pyce.png',
+  '1x1x1x1_Pyce': 'img/1x1x1x1_Pyce.png',
+  'Stupid_GoldPyce': 'img/Stupid_GoldPyce.png',
+  'Pyce2': 'img/Pyce2.png',
+  'Symbol_Pyce': 'img/Symbol_Pyce.png',
+  'SO_Pyce': 'img/SO_Pyce.png',
+  'NOeye_Pyce': 'img/NOeye_Pyce.png',
+  'MoonStar_Pyce': 'img/MoonStar_Pyce.png',
+  'Work_Bombot': 'img/Work-Bombot.png',
+  'Globetin': 'img/Tokens/Globetin.png',
+  'PyCoin': 'img/Tokens/PyCoin.png',
+  'DuckyPass': 'img/Tokens/DuckPass.png'
+};
+
+const NARRATOR_DATA = {
+  bombot: {
+    img: IMAGE_PATHS.Work_Bombot, es: {
+      name: "Bombot de Trabajo", msgs: [
+        "Detección de enemigos optimizada. Procediendo al bombardeo.",
+        "Los siguientes enemigos atacan con una espada. ¡Cuidado!",
+        "A veces me pregunto por qué no me uní a los Pyces.",
+        "NOeye es una personificación de Materia Negra, tened mucho cuidado.",
+        "¿Un símbolo? Ah no, es un enemigo más.",
+        "Dicen que los magos Pyces suelen acabar mal parados.",
+        "¡Brrzzzttt! Mecachis, un resfriado."
+      ]
+    }, en: {
+      name: "Work Bombot", msgs: [
+        "Enemy detection optimized. Proceeding with bombardment.",
+        "The following enemies attack with a sword. Watch out!",
+        "Sometimes I wonder why I didn't join the Pyces.",
+        "NOeye is a personification of Dark Matter, be very careful.",
+        "A symbol? Oh no, it's just another enemy.",
+        "They say Pyce magicians usually end up badly.",
+        "¡Brrzzzttt! Damn it, a cold."
+      ]
+    }
+  },
+  glob: {
+    img: IMAGE_PATHS.Glob, es: {
+      name: "Glob (DEF)", msgs: [
+        "Me pregunto por qué atacamos a los Pyces. ¿No son amigos?",
+        "¿No viven los Pyces 2.0 en Bitlands? ¡Si este es mi hogar!",
+        "Ojalá pudiera darles su merecido a esos corruptos...",
+        "¡Oh no... Aquí vienen los disparadores!",
+        "¡AYUDA! ¡Vienen demasiados! 😱",
+        "¿Alguien tiene un paraguas? Creo que va a llover... Pyces."
+      ]
+    }, en: {
+      name: "Glob (DEF)", msgs: [
+        "I wonder why we attack the Pyces. Aren't they friends?",
+        "Don't the Pyces 2.0 live in Bitlands? This is my home!",
+        "I wish I could give those corrupt ones what they deserve...",
+        "Oh no... Here come the shooters!",
+        "HELP! Too many are coming! 😱",
+        "Anyone got an umbrella? I think it's gonna rain... Pyces."
+      ]
+    }
+  },
+  stupid: {
+    img: IMAGE_PATHS.Stupid_Pyce, es: {
+      name: "Pyce Torpe", msgs: [
+        "Eh, estamos entrando. No nos pegues muy fuerte.",
+        "Caminar por este mapa cansa un poco.",
+        "¿Habéis visto mi sombrero? Ah, no llevo."
+      ]
+    }, en: {
+      name: "Stupid Pyce", msgs: [
+        "Hey, we're coming in. Don't hit us too hard.",
+        "Walking this map is a bit tiring.",
+        "Have you seen my hat? Oh, I'm not wearing one."
+      ]
+    }
+  },
+  pyce2: {
+    img: IMAGE_PATHS.Pyce2, es: {
+      name: "Pyce2", msgs: [
+        "Hola, solo estamos pasando por aquí.",
+        "Tenéis un lugar muy bonito, me gusta la decoración.",
+        "Buen disparo, casi me das.",
+        "Espero que no os moleste nuestra visita.",
+        "Parece que hoy hace un buen día para dar un paseo.",
+        "Interesante defensa, se nota el esfuerzo."
+      ]
+    }, en: {
+      name: "Pyce2", msgs: [
+        "Hello, we're just passing through.",
+        "You have a very nice place, I like the decoration.",
+        "Good shot, you almost hit me.",
+        "I hope our visit doesn't bother you.",
+        "Looks like a good day for a walk.",
+        "Interesting defense, the effort is noticeable."
+      ]
+    }
+  },
+  noeye: {
+    img: IMAGE_PATHS.NOeye_Pyce, es: {
+      name: "NOeye", msgs: [
+        "3S70Y H4R70 D3 QU3 M3 73N64N C0N7R0L4D0.",
+        "3L P0D3R 3S 1NU71L CU4ND0 713N3S UN4 M4S4 D3 4L14D0S C0N7R0L4D0S.",
+        "M3 4B4ND0N4R0N... ¡Y 4H0R4 3LL0S P464R4N!",
+        "M4LD170S K3RB0S... S13MPR3 4RRU1N4N M1S PL4N3S."
+      ], defeat: [
+        "C0M0 PU3D3N UN4S 63L471N4S D3RR074R 4 L4 M473R14 N3-",
+        "¡1 7H0U6H7 Y0U W3R3 SM4R73R, 1'LL B3 B4CK S00N!",
+        "7H3 6L0BS S3R4N 3SCL4V0S D3 L4 M473R14 N36R4 4L6UN D14."
+      ]
+    }, en: {
+      name: "NOeye", msgs: [
+        "1 4M 71R3D 0F B31N6 C0N7R0LL3D.",
+        "P0W3R 1S US3L3SS W17H 4 M4SS 0F C0N7R0LL3D 4LL13S.",
+        "7H3Y 4B4ND0N3D M3... N0W 7H3Y W1LL P4Y!",
+        "CURS3D K3RB0S... 4LW4YS RU1N1N6 MY PL4NS."
+      ], defeat: [
+        "H0W C4N J3LL13S D3F347 D4RK M4773R-",
+        "¡1 7H0U6H7 Y0U W3R3 SM4R73R, 1'LL B3 B4CK S00N!",
+        "7H3 6L0BS W1LL B3 SL4V3S 0F D4RK M4773R 0N3 D4Y."
+      ]
+    }
+  },
+  moonstar: {
+    img: IMAGE_PATHS.MoonStar_Pyce, es: {
+      name: "MoonStar", msgs: [
+        "Es un honor contemplar vuestra inevitable caída, pequeños Globs.",
+        "Vuestro esfuerzo es loable, pero el destino ya ha sido escrito por las estrellas.",
+        "Dos vueltas al escenario para saborear vuestro miedo. Qué delicia.",
+        "Vuestra resistencia es fútil ante el ciclo eterno de los astros."
+      ], defeat: [
+        "Imposible... el brillo de las estrellas... se apaga...",
+        "Esto es solo un eclipse temporal. Volveré pronto.",
+        "Disfrutad vuestro triunfo... mientras dure la luz."
+      ]
+    }, en: {
+      name: "MoonStar", msgs: [
+        "It is an honor to behold your inevitable fall, little Globs.",
+        "Your effort is laudable, but fate has already been written by the stars.",
+        "Two laps around the stage to savor your fear. What a delight.",
+        "Your resistance is futile before the eternal cycle of the stars."
+      ], defeat: [
+        "Impossible... the starlight... fades...",
+        "This is only a temporary eclipse. I shall return.",
+        "Enjoy your triumph... while the light lasts."
+      ]
+    }
+  },
+  mimic: {
+    img: IMAGE_PATHS.Stupid_GoldPyce, es: {
+      name: "Pyce de Oro Torpe", msgs: [
+        "¡Soy rico! Bueno, lo era hasta que me disparaste.",
+        "¿Brillo mucho? Es por el oro, ¿sabes?",
+        "¡No me mates, solo quiero ser tu amigo (y darte dinero)!"
+      ]
+    }, en: {
+      name: "Stupid GoldPyce", msgs: [
+        "I'm rich! Well, I was until you shot me.",
+        "Do I shine a lot? It's the gold, you know?",
+        "Don't kill me, I just want to be your friend (and give you money)!"
+      ]
+    }
+  }
+};
+
+const TOWER_TYPES = {
+  'Glob': { name: 'Glob Verde', damage: 10, range: 150, speed: 1.0, cost: 50, evolution: 'Poop_Glob', image: IMAGE_PATHS.Glob, projectile: 'green', desc: "Glob básico. Ataca con orbes verdes.", evolveDesc: "Evoluciona a Poop Glob.", family: 'Glob' },
+  'Poop_Glob': { name: 'Poop Glob', damage: 25, range: 150, speed: 0.6, cost: 100, evolution: 'Golden_Glob', image: IMAGE_PATHS.Poop_Glob, projectile: 'brown', desc: "Más fuerte pero más lento. Lanza orbes pegajosos.", evolveDesc: "Evoluciona a Glob de Oro.", family: 'Glob' },
+  'Golden_Glob': { name: 'Glob de Oro', damage: 45, range: 170, speed: 1.5, cost: 200, evolution: 'Rainbow_Glob', image: IMAGE_PATHS.Golden_Glob, projectile: 'gold', desc: "Muy rápido y potente. Dispara balas de oro.", evolveDesc: "Evoluciona a Glob Arcoíris.", family: 'Glob' },
+  'Rainbow_Glob': { name: 'Glob Arcoíris', damage: 30, range: 180, speed: 1.2, cost: 400, image: IMAGE_PATHS.Rainbow_Glob, projectile: 'laser_rainbow', piercing: true, desc: "El Glob definitivo. Dispara láseres arcoíris penetrantes.", family: 'Glob' },
+
+  'Red_Glob': { name: 'Glob Rojo', damage: 20, range: 60, speed: 1.5, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "Atacante cuerpo a cuerpo muy rápido.", evolveDesc: "Evoluciona a Glob de Lava.", family: 'Red_Glob' },
+  'Molten_Glob': { name: 'Glob de Lava', damage: 15, range: 70, speed: 1.0, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "Cuerpo a cuerpo que quema a los enemigos.", evolveDesc: "Evoluciona a Glob Robótico.", family: 'Red_Glob' },
+  'Robotic_Glob': { name: 'Glob Robótico', damage: 40, range: 200, speed: 0.3, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "Francotirador de largo alcance con láseres penetrantes.", family: 'Red_Glob' },
+
+  'Soap_Glob': { name: 'Glob de Jabón', damage: 0, range: 120, speed: 0.8, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "Lanza burbujas que ralentizan a los enemigos.", evolveDesc: "Evoluciona a Glob de Algodón.", family: 'Soap_Glob' },
+  'Cotton_Glob': { name: 'Glob de Algodón', damage: 5, range: 140, speed: 1.0, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "Glob suave que ralentiza y hace poco daño.", family: 'Soap_Glob' },
+
+  'Ducky_Glob': { name: 'Pato Glob', damage: 15, range: 140, speed: 1.2, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'yellow', desc: "Lanza huevos rápidos.", evolveDesc: "Evoluciona a Pato de Oro.", family: 'Ducky_Glob' },
+  'Golden_Ducky_Glob': { name: 'Pato de Oro', damage: 35, range: 160, speed: 1.0, cost: 180, image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'gold', desc: "Pato potente que lanza huevos de oro.", family: 'Ducky_Glob' },
+
+  'Comet_Glob': { name: 'Glob Cometa', damage: 50, range: 250, speed: 0.2, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'blue_comet', desc: "Dispara cometas lentos pero devastadores.", evolveDesc: "Evoluciona a Glob Oscuro.", family: 'Comet_Glob' },
+  'Dark_Glob': { name: 'Glob Oscuro', damage: 80, range: 280, speed: 1.0, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'void', piercing: true, desc: "Poder del vacío. Atraviesa enemigos.", evolveDesc: "Evoluciona a Demglob.", family: 'Comet_Glob' },
+  'Demglob': { name: 'Demglob', damage: 200, range: 300, speed: 2.0, cost: 1000, image: IMAGE_PATHS.Demglob, projectile: 'hellfire', piercing: true, burn: true, desc: "El demonio de Bitlands. Destrucción total.", family: 'Comet_Glob' },
+
+  'Pyce_Glob': { name: 'Pyce Glob', damage: 30, range: 180, speed: 0.8, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "Un Glob con errores de sistema (Glitch).", family: 'Special' },
+  'Old_Glob': { name: 'Glob Anciano', damage: 40, range: 200, speed: 0.5, cost: 200, image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "Sabiduría antigua en forma de rocas.", family: 'Special' },
+  'Work_Bombot': { name: 'Bombot de Trabajo', damage: 100, range: 150, speed: 0.2, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "Robot bomba. Hace daño de área masivo.", family: 'Special' }
+};
+
+const ENEMY_TYPES = {
+  'Stupid_Pyce': { name: 'Pyce Torpe', health: 50, speed: 1.5, reward: 15, image: IMAGE_PATHS.Stupid_Pyce },
+  'Pyce2': { name: 'Pyce Común', health: 70, speed: 1.4, reward: 20, image: IMAGE_PATHS.Pyce2 },
+  'Guest_Pyce': { name: 'Pyce Invitado', health: 100, speed: 1.2, reward: 25, image: IMAGE_PATHS.Guest_Pyce },
+  'Symbol_Pyce': { name: 'Pyce Veloz', health: 80, speed: 2.5, reward: 30, image: IMAGE_PATHS.Symbol_Pyce },
+  'Noob_Pyce': { name: 'Pyce Novato', health: 120, speed: 1.0, reward: 35, image: IMAGE_PATHS.Noob_Pyce, stunAbility: true, stunCooldown: 8 },
+  '4motions_Pyce': { name: '4motions Pyce', health: 200, speed: 0.8, reward: 50, image: IMAGE_PATHS['4motions_Pyce'] },
+  'SO_Pyce': { name: 'Pyce Serio', health: 450, speed: 0.6, reward: 80, image: IMAGE_PATHS.SO_Pyce },
+
+  '1x1x1x1_Pyce': { name: 'Corruptor 1x1', health: 500, speed: 0.5, reward: 500, image: IMAGE_PATHS['1x1x1x1_Pyce'], boss: true, bossStun: true, stunCooldown: 10 },
+  'NOeye_Pyce': { name: 'Ojo Ciego Pyce', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12 },
+  'MoonStar_Pyce': { name: 'MoonStar Pyce', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true },
+
+  'Stupid_GoldPyce': { name: 'Pyce de Oro Torpe', health: 80, speed: 2.0, reward: 150, image: IMAGE_PATHS.Stupid_GoldPyce, mimic: true }
+};
+
+const BADGES = {
+  survivor: { key: 'survivor', icon: '🛡️', unlocked: false, reward: { pycoins: 100, xp: 50 } },
+  millionaire: { key: 'millionaire', icon: '💰', unlocked: false, reward: { pycoins: 500, xp: 100 } },
+  evolution: { key: 'evolution', icon: '🧬', unlocked: false, reward: { pycoins: 200, xp: 80 } },
+  bossKiller: { key: 'bossKiller', icon: '👑', unlocked: false, reward: { duckpass: 5, xp: 150 } },
+  secret: { key: 'secret', icon: '🔑', unlocked: false, reward: { pycoins: 50, xp: 30 } },
+  inf100: { key: 'inf100', icon: '💯', unlocked: false, reward: { duckpass: 10, xp: 200 } },
+  inf500: { key: 'inf500', icon: '🎖️', unlocked: false, reward: { duckpass: 25, xp: 500 } },
+  inf999: { key: 'inf999', icon: '🌌', unlocked: false, reward: { duckpass: 50, xp: 1000 } },
+  corrupt1: { key: 'corrupt1', icon: '👾', unlocked: false, reward: { pycoins: 300, xp: 150 } },
+  corrupt2: { key: 'corrupt2', icon: '👾', unlocked: false, reward: { pycoins: 400, xp: 200 } },
+  corrupt3: { key: 'corrupt3', icon: '👾', unlocked: false, reward: { pycoins: 500, xp: 250 } },
+  corrupt4: { key: 'corrupt4', icon: '👾', unlocked: false, reward: { pycoins: 600, xp: 300 } },
+  corrupt5: { key: 'corrupt5', icon: '👾', unlocked: false, reward: { duckpass: 20, xp: 500 } },
+  mimic1: { key: 'mimic1', icon: '🎁', unlocked: false, reward: { pycoins: 150, xp: 50 } },
+  mimic2: { key: 'mimic2', icon: '🎁', unlocked: false, reward: { pycoins: 300, xp: 100 } },
+  mimic3: { key: 'mimic3', icon: '🎁', unlocked: false, reward: { pycoins: 450, xp: 150 } },
+  mimic4: { key: 'mimic4', icon: '🎁', unlocked: false, reward: { duckpass: 15, xp: 300 } },
+  corruptMimic: { key: 'corruptMimic', icon: '💀', unlocked: false, reward: { pycoins: 1000, xp: 500 } },
+  mimicRevenge: { key: 'mimicRevenge', icon: '🔥', unlocked: false, reward: { pycoins: 500, xp: 200 } },
+  antiNormal: { key: 'antiNormal', icon: '🌑', unlocked: false, reward: { duckpass: 100, xp: 2000 } },
+  winFacil: { key: 'winFacil', icon: '🌱', unlocked: false, reward: { pycoins: 50, xp: 50 } },
+  winNormal: { key: 'winNormal', icon: '⚔️', unlocked: false, reward: { pycoins: 100, xp: 100 } },
+  winDificil: { key: 'winDificil', icon: '🔥', unlocked: false, reward: { pycoins: 200, xp: 200 } },
+  winExtremo: { key: 'winExtremo', icon: '💀', unlocked: false, reward: { pycoins: 500, xp: 500 } },
+  winCorrupto: { key: 'winCorrupto', icon: '👾', unlocked: false, reward: { pycoins: 1000, xp: 1000 } }
+};
+
+const RIVER_ZONES = [
+  { x: 300, y: 0, w: 60, h: 600 }, // Río vertical
+  { x: 300, y: 200, w: 200, h: 60 } // Brazo de río
+];
+
+const PATH_SEGMENTS = [
+  { x: 0, y: 170, w: 200, h: 60 },
+  { x: 170, y: 170, w: 60, h: 200 },
+  { x: 170, y: 330, w: 300, h: 60 },
+  { x: 430, y: 150, w: 60, h: 240 },
+  { x: 430, y: 150, w: 300, h: 60 },
+  { x: 700, y: 150, w: 60, h: 200 },
+  { x: 700, y: 330, w: 300, h: 60 }
+];
+
+const ENEMY_PATH = [
+  { x: -30, y: 200 }, { x: 200, y: 200 }, { x: 200, y: 360 },
+  { x: 460, y: 360 }, { x: 460, y: 180 }, { x: 730, y: 180 },
+  { x: 730, y: 360 }, { x: 1030, y: 360 }
+];
+
+const SKINS_DATA = {
+  'Glob': [
+    { id: 'military_set', name: 'Set Militar', desc: 'Equipamiento táctico para la línea verde.', cost: 350, type: 'pycoin', 
+      skins: {
+        'Glob': 'img/Skins/Verde Base/Untrained Glob (SK-EVO1).png',
+        'Poop_Glob': 'img/Skins/Verde Base/Militar Glob (SK-EVO2).png',
+        'Golden_Glob': 'img/Skins/Verde Base/Armed Glob (SK-EVO3).png',
+        'Rainbow_Glob': 'img/Skins/Verde Base/Impostor Glob (SK-EVO4).png'
+      }
+    }
+  ],
+  'Red_Glob': [
+    { id: 'music_set', name: 'Set Musical', desc: '¡Ritmo y fiesta para la línea roja!', cost: 300, type: 'pycoin',
+      skins: {
+        'Red_Glob': 'img/Skins/Rojo Melee/Music Glob (SK-EVO1).png',
+        'Molten_Glob': 'img/Skins/Rojo Melee/Funky Glob (SK-EVO2).png',
+        'Robotic_Glob': 'img/Skins/Rojo Melee/Party Glob (SK-EVO3).png'
+      }
+    }
+  ],
+  'Soap_Glob': [
+    { id: 'abyssal_set', name: 'Set Abismal', desc: '¡Poder de las profundidades marinas!', cost: 400, type: 'pycoin',
+      skins: {
+        'Soap_Glob': 'img/Skins/Azul Ralentizador/Beachy Glob (SK-EVO1).png',
+        'Cotton_Glob': 'img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png'
+      }
+    }
+  ],
+  'Global': [
+    { id: 'recolor_emerald', name: 'Edición Esmeralda', desc: 'Poder de la naturaleza.', type: 'duckpass_level', level: 5, filter: 'hue-rotate(100deg) saturate(2.5) brightness(0.9)' },
+    { id: 'buff_damage_1', name: 'Entrenamiento Básico', desc: '⚔️ +5% Daño Permanente.', type: 'duckpass_level', level: 10, buff: { damage: 1.05 } },
+    { id: 'recolor_ruby', name: 'Edición Rubí', desc: 'Pasión ardiente en cada disparo.', type: 'duckpass_level', level: 15, filter: 'hue-rotate(-20deg) saturate(3) brightness(1)' },
+    { id: 'buff_range_1', name: 'Visión de Águila', desc: '🔭 +10 Alcance Permanente.', type: 'duckpass_level', level: 20, buff: { range_flat: 10 } },
+    { id: 'recolor_cyan', name: 'Edición Cian', desc: 'Frío como el hielo de Bitlands.', type: 'duckpass_level', level: 25, filter: 'hue-rotate(180deg) saturate(2) brightness(1.2)' },
+    { id: 'buff_speed_1', name: 'Cadencia Mejorada', desc: '⚡ +5% Velocidad de Ataque.', type: 'duckpass_level', level: 30, buff: { speed: 1.05 } },
+    { id: 'recolor_neon', name: 'Edición Neón', desc: 'Brillo cibernético futurista.', type: 'duckpass_level', level: 40, filter: 'brightness(1.5) saturate(4) hue-rotate(280deg)' },
+    { id: 'buff_damage_2', name: 'Ingeniería de Bitlands', desc: '⚔️ +10% Daño Extra.', type: 'duckpass_level', level: 50, buff: { damage: 1.10 } },
+    { id: 'recolor_shadow', name: 'Edición Sombra', desc: 'Sigilo y oscuridad total.', type: 'duckpass_level', level: 55, filter: 'grayscale(1) brightness(0.4)' },
+    { id: 'recolor_void', name: 'Edición Vacío', desc: 'Poder oscuro del abismo.', type: 'duckpass_level', level: 70, filter: 'brightness(0.6) hue-rotate(250deg) saturate(2)' },
+    { id: 'recolor_gold', name: 'Edición Oro', desc: 'Puro lujo para tus torres.', type: 'duckpass_level', level: 85, filter: 'brightness(1.2) sepia(1) saturate(10) hue-rotate(-10deg)' },
+    { id: 'pack_negative', name: 'Pack Negativo', desc: 'Invierte la realidad de tus torres.', type: 'duckpass_level', level: 95, class: 'skin-negative' },
+    { id: 'pack_rainbow', name: 'Pack Arcoíris', desc: '¡Fiesta de colores definitiva!', type: 'duckpass_level', level: 100, class: 'skin-rainbow' }
+  ],
+  'Recolors': [
+    { id: 'recolor_galactic', name: 'Edición Galáctica', desc: 'Brillo cósmico de Bitlands.', cost: 250, type: 'pycoin', filter: 'hue-rotate(280deg) saturate(2.5) brightness(1.1) drop-shadow(0 0 5px #9c27b0)' },
+    { id: 'recolor_fire', name: 'Edición Ígnea', desc: 'Calor volcánico en tus manos.', cost: 200, type: 'pycoin', filter: 'hue-rotate(-30deg) saturate(4) contrast(1.2) brightness(0.9)' },
+    { id: 'recolor_diamond', name: 'Edición Diamante', desc: 'Resistencia y brillo cristalino.', cost: 300, type: 'pycoin', filter: 'brightness(1.8) saturate(0.2) contrast(1.5) opacity(0.9)' },
+    { id: 'recolor_toxic', name: 'Edición Tóxica', desc: 'Peligro radiactivo inminente.', cost: 180, type: 'pycoin', filter: 'hue-rotate(80deg) saturate(5) brightness(1.2) contrast(1.1)' }
+  ]
+};
