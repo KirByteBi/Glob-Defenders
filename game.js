@@ -2186,3 +2186,7 @@ function endGame() {
 }
 
 window.onload = init;
+
+// =================================================================
+// GLOB DEFENDERS v2.0 - SKINS & JUICE UPDATE (Final Stable Version)
+// =================================================================
