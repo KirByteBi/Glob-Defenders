@@ -723,6 +723,8 @@ function handleLogin() {
   if (!gameState.unlockedAntiNormal) {
     gameState.antiNormalActive = true;
     modeScreen.classList.add('glitch-state');
+    const disableBtn = document.getElementById('disable-antinormal-btn');
+    if (disableBtn) disableBtn.style.display = 'block';
     showMessage("S1S73M4 1N574BL3...", 'error');
   }
 
@@ -738,6 +740,17 @@ function handleLogin() {
       infBtn.style.opacity = "1";
     }
   }
+}
+
+function disableAntiNormal() {
+  gameState.antiNormalActive = false;
+  const modeScreen = document.getElementById('mode-selection');
+  if (modeScreen) modeScreen.classList.remove('glitch-state');
+  const disableBtn = document.getElementById('disable-antinormal-btn');
+  if (disableBtn) disableBtn.style.display = 'none';
+  const gameArea = document.getElementById('game-area');
+  if (gameArea) gameArea.classList.remove('anti-normal');
+  showMessage("SISTEMA RESTAURADO", 'success');
 }
 
 function selectMode(mode) {
@@ -905,17 +918,22 @@ function bindEvents() {
   if (logo) {
     logo.onclick = () => {
       gameState.logoClicks++;
+
+      // Animación de bounce siempre
+      logo.style.transform = `scale(1.15) rotate(${Math.random()*12 - 6}deg)`;
+      setTimeout(() => logo.style.transform = `scale(1) rotate(0deg)`, 120);
+
       if (gameState.unlockedAntiNormal) {
         gameState.pycoins += 1;
         updateMetaUI();
         showEffect(window.innerWidth/2, window.innerHeight/2, "+1 PyCoin");
-        logo.style.transform = `scale(1.1) rotate(${Math.random()*10 - 5}deg)`;
-        setTimeout(() => logo.style.transform = `scale(1) rotate(0deg)`, 100);
-        saveProgress(); // Guardar cada clic
+        saveProgress();
       } else {
-        if (gameState.logoClicks === 5) showMessage("¿Por qué pulsas el logo?", 'info');
+        if (gameState.logoClicks === 3)  showMessage("¿Qué miras, Defensor? 👀", 'info');
+        if (gameState.logoClicks === 5)  showMessage("¿Por qué pulsas el logo?", 'info');
         if (gameState.logoClicks === 10) showMessage("¡¡¡DEJA DE PULSAR EL DICHOSO LOGO!!!", 'error');
-        if (gameState.logoClicks > 15) logo.style.transform = `scale(${1 + (gameState.logoClicks-15)*0.1}) rotate(${gameState.logoClicks}deg)`;
+        if (gameState.logoClicks === 15) showMessage("Esto no va a desbloquear nada... ¿O sí? 🤔", 'info');
+        if (gameState.logoClicks > 15)   logo.style.transform = `scale(${1 + (gameState.logoClicks - 15) * 0.08}) rotate(${gameState.logoClicks * 3}deg)`;
       }
     };
   }
@@ -1791,6 +1809,12 @@ function gameLoop() {
         gameState.projectiles.splice(i, 1);
       }
     } else {
+      if (!p.target || !p.target.el) {
+        if (p.el) p.el.remove();
+        gameState.projectiles.splice(i, 1);
+        continue;
+      }
+
       const dx = p.target.x - p.x;
       const dy = p.target.y - p.y;
       const dist = Math.hypot(dx, dy);

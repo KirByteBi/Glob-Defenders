@@ -119,6 +119,8 @@ body {
     margin-bottom: 25px;
     filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
     animation: pulseLogo 3s ease-in-out infinite;
+    transition: transform 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
 }
 
 @keyframes pulseLogo {
