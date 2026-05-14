@@ -2,7 +2,7 @@
       GLOB DEFENDERS - GUÍA OFICIAL
 =========================================
 
-¡Bienvenido, Defensor! Los Pyces están atacando Bitlands y solo tú puedes detenerlos con el poder de los Globs.
+¡Bienvenido, Defensor! Los Pyces están atacando Gelatin Lake y solo tú puedes detenerlos con el poder de los Globs.
 
 -----------------------------------------
 1. ¿CÓMO SE JUEGA?

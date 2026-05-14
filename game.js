@@ -141,7 +141,7 @@ const IMAGE_PATHS = {
   'SO_Pyce': 'img/SO_Pyce.png',
   'NOeye_Pyce': 'img/NOeye_Pyce.png',
   'MoonStar_Pyce': 'img/MoonStar_Pyce.png',
-  'Work_Bombot': 'img/Work_Bombot.png',
+  'Work_Bombot': 'img/Work-Bombot.png',
   'Globetin': 'img/Currencies/Globetin.png',
   'PyCoin': 'img/Currencies/PyCoin.png',
   'DuckyPass': 'img/Currencies/DuckPass.png'
@@ -1160,10 +1160,10 @@ function drawShop() {
   const balanceHTML = `
     <div class="shop-balance">
       <div class="balance-item">
-        <img src="img/PyCoin.png" width="20"> <span>${Math.floor(gameState.pycoins)} PyCoins</span>
+        <img src="img/Currencies/PyCoin.png" width="20"> <span>${Math.floor(gameState.pycoins)} PyCoins</span>
       </div>
       <div class="balance-item">
-        <img src="img/Ducky_Glob.png" width="20"> <span>${gameState.duckPassCurrency} Duck Pass</span>
+        <img src="img/Currencies/DuckPass.png" width="20"> <span>${gameState.duckPassCurrency} Duck Pass</span>
       </div>
     </div>
   `;
@@ -1194,7 +1194,7 @@ function drawShop() {
       el.innerHTML = `
         <h3>${u.name}</h3>
         <p>${u.desc}</p>
-        <div class="cost"><img src="${u.type === 'pycoin' ? 'img/PyCoin.png' : 'img/Globetin.png'}" width="15"> ${u.cost}</div>
+        <div class="cost"><img src="${u.type === 'pycoin' ? 'img/Currencies/PyCoin.png' : 'img/Currencies/Globetin.png'}" width="15"> ${u.cost}</div>
         <button class="meta-buy-btn" ${canAfford(u) ? '' : 'disabled'} onclick="buyUpgrade('${u.id}', ${u.cost}, '${u.type}')">Comprar</button>
       `;
       container.appendChild(el);
