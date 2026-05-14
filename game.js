@@ -94,6 +94,7 @@ loadUsers(); // Cargar al inicio
 function init() {
   console.log("Iniciando Glob Defenders...");
   try {
+    updateLanguage(); // Aplicar idioma al inicio
     bindEvents();
     spawnDecorations('login-decorations');
     spawnDecorations('mode-decorations');
@@ -284,7 +285,7 @@ function handleLogin() {
   } else {
     USERS[name] = password;
     saveUsers(); 
-    showMessage("¡Nuevo usuario registrado!", 'success');
+    showMessage(translate('new_user_registered'), 'success');
   }
 
   try {
@@ -316,7 +317,7 @@ function handleLogin() {
     modeScreen.classList.add('glitch-state');
     const disableBtn = document.getElementById('disable-antinormal-btn');
     if (disableBtn) disableBtn.style.display = 'block';
-    showMessage("S1S73M4 1N574BL3...", 'error');
+    showMessage(translate('system_unstable'), 'error');
   }
 
   const infBtn = document.querySelector('.mode-btn[data-mode="infinito"]');
@@ -324,6 +325,7 @@ function handleLogin() {
     if (!gameState.unlockedInfinite && name !== "Admin" && name !== "KirByteBi") {
       infBtn.disabled = true;
       infBtn.style.opacity = "0.5";
+      infBtn.title = translate('win_diff_required', { diff: translate('badge_winDificil_name') });
     } else {
       infBtn.disabled = false;
       infBtn.style.opacity = "1";
@@ -340,9 +342,11 @@ function handleLogin() {
       if (!BADGES[req].unlocked) {
         btn.disabled = true;
         btn.style.opacity = "0.4";
+        btn.title = translate('win_diff_required', { diff: translate('badge_win' + modes[modes.indexOf(m)-1].charAt(0).toUpperCase() + modes[modes.indexOf(m)-1].slice(1) + '_name') });
       } else {
         btn.disabled = false;
         btn.style.opacity = "1";
+        btn.title = "";
       }
     }
   });
@@ -356,7 +360,7 @@ function disableAntiNormal() {
   if (disableBtn) disableBtn.style.display = 'none';
   const gameArea = document.getElementById('game-area');
   if (gameArea) gameArea.classList.remove('anti-normal');
-  showMessage("SISTEMA RESTAURADO", 'success');
+  showMessage(translate('system_restored'), 'success');
 }
 
 function selectMode(mode) {
@@ -376,12 +380,12 @@ function selectMode(mode) {
     gameState.mode = 'antiNormal';
     gameState.maxWaves = 20;
     document.getElementById('game-area').classList.add('anti-normal');
-    showMessage("M0D0 4N71-N0RM4L 4C71V4D0", 'error');
+    showMessage(translate('anti_normal_active'), 'error');
   }
 
   document.getElementById('mode-selection').style.display = 'none';
   document.getElementById('mode-selection').classList.remove('glitch-state');
-  showMessage(`Modo ${mode.toUpperCase()} seleccionado`, 'info');
+  showMessage(translate('mode_selected', { mode: mode.toUpperCase() }), 'info');
 }
 
 function triggerCorrupt() {
@@ -391,7 +395,7 @@ function triggerCorrupt() {
     gameState.maxWaves = 45;
     gameState.mode = 'corrupto';
     document.getElementById('game-area').classList.add('corrupt');
-    showMessage("¡SISTEMA CORRUPTO ACTIVADO!", 'error');
+    showMessage(translate('corrupt_active'), 'error');
     drawBadges();
   }
 }
@@ -432,8 +436,9 @@ function showTooltip(t, el) {
   if (!tooltip) return;
   
   const rect = el.getBoundingClientRect();
+  const name = translate('tower_' + (t.family || t.type) + '_name');
   tooltip.innerHTML = `
-    <b>${t.name}</b>
+    <b>${name}</b>
     <p>${t.desc || ""}</p>
     <div style="margin-top: 5px; font-size: 0.75rem; color: #aaa;">
       ⚔️ ${t.damage || 0} | 🔭 ${t.range || 0}
@@ -487,10 +492,11 @@ function drawTowerShop() {
     const isFull = currentCount >= limit;
 
     const displayImg = getTowerImage(type);
+    const name = translate('tower_' + type + '_name');
     el.innerHTML = `
       <div class="tower-icon-shop" style="background-image: url('${displayImg}')"></div>
       <div class="tower-info-shop">
-        <div class="tower-name">${t.name}</div>
+        <div class="tower-name">${name}</div>
         ${gameState.settings.showShopDesc ? `<div class="tower-desc-shop">${t.desc || ""}</div>` : ''}
         <div class="tower-stats-shop">
           <span class="tower-cost">💰 ${t.cost}</span>
@@ -645,7 +651,7 @@ function bindEvents() {
     if (!code) return;
 
     if (gameState.usedCodes[code]) {
-      showMessage("¡Código ya usado!", 'warning');
+      showMessage(translate('code_already_used'), 'warning');
       input.value = '';
       return;
     }
@@ -679,7 +685,7 @@ function bindEvents() {
       saveProgress();
     } else {
       gameState.failedCodeAttempts++;
-      showMessage(gameState.failedCodeAttempts >= 3 ? "Prueba con B4D_P1GG13S" : translate('codeInvalid'), 'error');
+      showMessage(gameState.failedCodeAttempts >= 3 ? translate('look_defender') + " " + "B4D_P1GG13S" : translate('codeInvalid'), 'error');
     }
     input.value = '';
   };
@@ -760,7 +766,10 @@ function addXP(amount) {
     updateBuffs();
     if (gameState.duckPassLevel <= 100) {
       gameState.duckPassCurrency++;
-      showMessage(`¡Nivel ${gameState.duckPassLevel} del Duck Pass! +1 Ducky Pass`, 'success');
+      showMessage(translate('level_duckpass', { level: gameState.duckPassLevel }), 'success');
+    } else if (gameState.duckPassLevel % 5 === 0) {
+      gameState.duckPassCurrency += 2;
+      showMessage(translate('prestige_duckpass'), 'success');
     }
     saveProgress();
   }
@@ -803,7 +812,7 @@ function drawShop() {
       const el = document.createElement('div');
       el.className = 'meta-item';
       el.innerHTML = `<h3>${u.name}</h3><p>${u.desc}</p><div class="cost">💰 ${u.cost}</div>
-        <button class="meta-buy-btn" ${canAfford(u) ? '' : 'disabled'} onclick="buyUpgrade('${u.id}', ${u.cost}, '${u.type}')">Comprar</button>`;
+        <button class="meta-buy-btn" ${canAfford(u) ? '' : 'disabled'} onclick="buyUpgrade('${u.id}', ${u.cost}, '${u.type}')">${translate('buy')}</button>`;
       container.appendChild(el);
     });
   } else {
@@ -814,9 +823,10 @@ function drawShop() {
         const isEquipped = gameState.equippedSkins[family] === skin.id;
         const el = document.createElement('div');
         el.className = `skin-item ${isEquipped ? 'equipped' : ''}`;
+        let btnText = isUnlocked ? (isEquipped ? translate('actual') : translate('equipped')) : `${translate('buy')} (${skin.cost})`;
         el.innerHTML = `<div class="skin-preview ${skin.class || ''}"><img src="${skin.skins ? skin.skins[family] || Object.values(skin.skins)[0] : 'img/Glob_DEF.png'}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
           <h3>${skin.name}</h3><p>${skin.desc}</p>
-          <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${!isUnlocked && gameState.pycoins < skin.cost ? 'disabled' : ''} onclick="${isUnlocked ? `equipSkin('${family}', '${skin.id}')` : `buySkin('${family}', '${skin.id}', ${skin.cost})`}">${isUnlocked ? (isEquipped ? 'Actual' : 'Equipar') : `Comprar (${skin.cost})`}</button>`;
+          <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${!isUnlocked && gameState.pycoins < skin.cost ? 'disabled' : ''} onclick="${isUnlocked ? `equipSkin('${family}', '${skin.id}')` : `buySkin('${family}', '${skin.id}', ${skin.cost})`}">${btnText}</button>`;
         container.appendChild(el);
       });
     });
@@ -832,7 +842,9 @@ function buySkin(family, skinId, cost) {
     gameState.unlockedSkins.push(skinId);
     drawShop();
     saveProgress();
-    showMessage("¡Skin desbloqueada!", 'success');
+    showMessage(translate('skin_unlocked'), 'success');
+  } else {
+    showMessage(translate('no_pycoins'), 'error');
   }
 }
 
@@ -842,6 +854,7 @@ function equipSkin(family, skinId) {
   if (currentShopTab === 'skins') drawShop();
   if (document.getElementById('pass-modal').style.display === 'flex') drawPass();
   saveProgress();
+  showMessage(translate('appearance_updated'), 'success');
 }
 
 function canAfford(u) { return u.type === 'pycoin' ? gameState.pycoins >= u.cost : gameState.duckPassCurrency >= u.cost; }
@@ -850,9 +863,9 @@ function buyUpgrade(id, cost, type) {
   if (type === 'pycoin' ? gameState.pycoins < cost : gameState.duckPassCurrency < cost) return;
   if (type === 'pycoin') gameState.pycoins -= cost; else gameState.duckPassCurrency -= cost;
 
-  if (id === 'hp') { gameState.baseHealthLevel++; gameState.health += 20; }
-  else if (id.startsWith('limit_')) gameState.towerLimits[id.replace('limit_', '')]++;
-  else if (id === 'unlock_Pyce_Glob') TOWER_TYPES['Pyce_Glob'].unlocked = true;
+  if (id === 'hp') { gameState.baseHealthLevel++; gameState.health += 20; showMessage(translate('base_hp_improved'), 'success'); }
+  else if (id.startsWith('limit_')) { gameState.towerLimits[id.replace('limit_', '')]++; showMessage(translate('tower_limit_increased', {name: id.replace('limit_', '')}), 'success'); }
+  else if (id === 'unlock_Pyce_Glob') { TOWER_TYPES['Pyce_Glob'].unlocked = true; showMessage(translate('pyceGlobUnlocked'), 'success'); }
 
   updateMetaUI(); drawShop(); drawTowerShop(); saveProgress();
 }
@@ -865,15 +878,22 @@ function drawPass() {
     const equipped = gameState.equippedSkins['Global'] === skin.id;
     const el = document.createElement('div');
     el.className = `meta-item ${unlocked ? 'unlocked' : 'locked'}`;
-    el.innerHTML = `<div class="milestone-tag">${skin.buff ? 'MEJORA' : 'HITO'}</div><h3>${skin.name}</h3><p>${skin.desc}</p>
-      ${unlocked ? (equipped ? '<button disabled>Equipado</button>' : `<button onclick="equipSkin('Global', '${skin.id}')">Equipar</button>`) : `<button disabled>Nivel ${skin.level}</button>`}`;
+    let btnHTML = "";
+    if (unlocked) {
+      btnHTML = equipped ? `<button disabled>${translate('equipped')}</button>` : `<button onclick="equipSkin('Global', '${skin.id}')">${translate('cancel').replace('Cancelar', 'Equipar').replace('Cancel', 'Equip')}</button>`;
+    } else {
+      btnHTML = `<button disabled>${translate('req_level', { level: skin.level })}</button>`;
+    }
+
+    el.innerHTML = `<div class="milestone-tag">${skin.buff ? translate('upgrade') : translate('milestone')}</div><h3>${skin.name}</h3><p>${skin.desc}</p>
+      ${skin.buff && unlocked ? `<b>${translate('active')}</b>` : btnHTML}`;
     container.appendChild(el);
   });
 }
 
 function placeTower(spotId, type) {
   const tCfg = TOWER_TYPES[type];
-  if ((gameState.towerCounts[type]||0) >= (gameState.towerLimits[type]||3)) return showMessage(`Límite: ${tCfg.name}`, 'error');
+  if ((gameState.towerCounts[type]||0) >= (gameState.towerLimits[type]||3)) return showMessage(translate('limit_reached', { name: tCfg.name, limit: gameState.towerLimits[type] || 3 }), 'error');
   if (gameState.globetines < tCfg.cost) return showMessage(translate('notEnoughMoney'), 'error');
 
   const spot = gameState.towerSpots[spotId];
@@ -900,8 +920,8 @@ function selectTower(t) {
   gameState.selectedTower = t;
   const panel = document.getElementById('evolve-panel');
   panel.style.display = 'flex';
-  document.getElementById('tower-name').textContent = t.name;
-  document.getElementById('tower-desc').innerHTML = t.desc + (t.evolution ? `<br><br><b>Evolución:</b> ${TOWER_TYPES[t.evolution].name}` : '');
+  document.getElementById('tower-name').textContent = translate('tower_' + t.type + '_name');
+  document.getElementById('tower-desc').innerHTML = t.desc + (t.evolution ? `<br><br><b>${translate('evolution_label')}:</b> ${translate('tower_' + t.evolution + '_name')}` : '');
   updateEvolveButtons(t);
   drawRangePreview(t.x, t.y, t.range);
 }
@@ -912,11 +932,12 @@ function updateEvolveButtons(t) {
     const next = TOWER_TYPES[t.evolution];
     const btn = document.createElement('button');
     btn.className = 'evolve-btn'; btn.disabled = gameState.globetines < next.cost;
-    btn.innerHTML = `Evolucionar (💰 ${next.cost})`;
+    btn.innerHTML = translate('evolve_to', { name: next.name, cost: next.cost });
     btn.onclick = () => evolveTower(t, t.evolution);
     container.appendChild(btn);
   }
   document.getElementById('sell-tower-btn').onclick = () => sellTower(t);
+  document.getElementById('sell-tower-btn').innerHTML = translate('sell_tower', { cost: Math.floor(t.cost * 0.7) });
 }
 
 function evolveTower(tower, nextType) {
@@ -973,7 +994,8 @@ function spawnEnemy(type, boss) {
   hpBg.appendChild(hpFill); el.appendChild(hpBg);
   document.getElementById('game-area').appendChild(el);
 
-  gameState.enemies.push({ ...t, el, x: ENEMY_PATH[0].x, y: ENEMY_PATH[0].y, pathIndex: 0, health: t.health * (1+gameState.wave*0.15), maxHealth: t.health * (1+gameState.wave*0.15), hpFill, shield: (t.shield||0)*t.health, type });
+  const name = translate('enemy_' + type + '_name');
+  gameState.enemies.push({ ...t, name, el, x: ENEMY_PATH[0].x, y: ENEMY_PATH[0].y, pathIndex: 0, health: t.health * (1+gameState.wave*0.15), maxHealth: t.health * (1+gameState.wave*0.15), hpFill, shield: (t.shield||0)*t.health, type });
 }
 
 function gameLoop() {
@@ -1055,7 +1077,7 @@ function shoot(t, target) {
 
 function die(e, idx) {
   gameState.globetines += e.reward;
-  if (e.mimic) { gameState.pycoins += 5; showMessage("+5 PyCoins", 'success'); }
+  if (e.mimic) { gameState.pycoins += 5; showMessage(translate('plus_pycoins', { amount: 5 }), 'success'); }
   e.el.remove();
   if (e.boss) unlockBadge('bossKiller');
   gameState.enemies.splice(idx, 1);
@@ -1077,11 +1099,86 @@ function translate(key, params = {}) {
 }
 
 function updateLanguage() {
-  const t = (id, key) => { const el = document.getElementById(id); if (el) el.textContent = translate(key); };
-  t('health-label', 'health'); t('money-label', 'money'); t('wave-label', 'wave');
+  const t = (id, key, attr) => { 
+    const el = document.getElementById(id); 
+    if (el) {
+      if (attr) el.setAttribute(attr, translate(key));
+      else el.textContent = translate(key);
+    }
+  };
+
+  // Login
+  t('username-input', 'login_user', 'placeholder');
+  t('password-input', 'login_pass', 'placeholder');
+  t('login-btn', 'login_btn');
+  
+  // Modos
+  const modeHeader = document.querySelector('#mode-selection h2');
+  if (modeHeader) modeHeader.textContent = translate('select_mode');
+  
+  // UI Principal
+  t('health-label', 'health'); 
+  t('money-label', 'money'); 
+  t('wave-label', 'wave');
+  t('pycoins-label', 'plus_pycoins'); // plus_pycoins tiene {amount}, translate lo manejará
+  const pyLabel = document.getElementById('pycoins-label');
+  if (pyLabel) pyLabel.textContent = pyLabel.textContent.replace('+{amount}', '').replace('+', '').trim() || "PyCoins";
+  t('duckpass-label', 'pass_title');
+  const dpLabel = document.getElementById('duckpass-label');
+  if (dpLabel) dpLabel.textContent = dpLabel.textContent.replace('🦆 ', '').trim();
+  t('total-damage-label', 'show_total_damage');
+
+  // Botones de acción
   document.querySelectorAll('.btn-text').forEach(el => {
-    if (el.textContent.includes('Oleada')) el.textContent = translate('startWave');
+    const txt = el.textContent;
+    if (txt.includes('Oleada') || txt.includes('Wave')) el.textContent = translate('startWave');
+    if (txt.includes('Auto-')) el.textContent = translate('autoWave');
+    if (txt.includes('Cancelar') || txt.includes('Cancel')) el.textContent = translate('cancel');
+    if (txt.includes('Tienda') || txt.includes('Shop')) el.textContent = translate('shop_title').replace('🛒 ', '');
+    if (txt.includes('Pass')) el.textContent = translate('pass_title').replace('🦆 ', '');
+    if (txt.includes('Volver') || txt.includes('Back')) el.textContent = translate('back_to_modes');
   });
+
+  // Ajustes
+  const optHeader = document.querySelector('#options-modal h2');
+  if (optHeader) optHeader.textContent = translate('settings_title');
+  const optRows = document.querySelectorAll('.option-row span');
+  if (optRows[0]) optRows[0].textContent = translate('show_shop_desc');
+  if (optRows[1]) optRows[1].textContent = translate('show_total_damage');
+  const optClose = document.querySelector('#options-modal .close-btn');
+  if (optClose) optClose.textContent = translate('save_close');
+
+  // Modales Meta
+  t('shop-title', 'shop_title');
+  t('pass-title', 'pass_title');
+  t('game-code', 'code_placeholder', 'placeholder');
+  t('apply-code', 'apply_btn');
+  
+  const tabs = document.querySelectorAll('.shop-tab');
+  if (tabs[0]) tabs[0].textContent = translate('shop_upgrades');
+  if (tabs[1]) tabs[1].textContent = translate('shop_skins');
+
+  const passLevelLabel = document.querySelector('.pass-level-container span');
+  if (passLevelLabel) passLevelLabel.firstChild.textContent = translate('level_label') + " ";
+
+  // Evolución
+  const evolveTitle = document.querySelector('#evolve-panel h2');
+  if (evolveTitle) evolveTitle.textContent = translate('evolve_title');
+  t('sell-tower-btn', 'sell');
+  const evolveClose = document.querySelector('#evolve-panel .close-btn');
+  if (evolveClose) evolveClose.textContent = translate('close');
+
+  // Portrait overlay
+  const portTitle = document.querySelector('#portrait-overlay h2');
+  if (portTitle) portTitle.textContent = translate('rotate_device');
+  const portMsg = document.querySelector('#portrait-overlay p');
+  if (portMsg) portMsg.textContent = translate('landscape_msg');
+
+  // Game Over
+  const goHeader = document.querySelector('#game-over h2');
+  if (goHeader) goHeader.textContent = translate('gameOver');
+  const goBtn = document.querySelector('#game-over .retry-btn');
+  if (goBtn) goBtn.textContent = translate('playAgain');
 }
 
 function showMessage(text, type) {
@@ -1124,7 +1221,11 @@ function drawRangePreview(x, y, range) {
 
 function endGame() {
   gameState.gameOver = true;
-  document.getElementById('game-over').style.display = 'flex';
+  const modal = document.getElementById('game-over');
+  modal.style.display = 'flex';
+  modal.querySelector('h2').textContent = translate('victory_title');
+  modal.querySelector('p').innerHTML = translate('victory_msg', { mode: gameState.mode.toUpperCase() });
+  modal.querySelector('button').textContent = translate('backToModes');
   document.getElementById('final-wave').textContent = gameState.wave;
 }
 
