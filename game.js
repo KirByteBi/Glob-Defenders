@@ -413,18 +413,30 @@ const SKINS_DATA = {
       }
     }
   ],
+  'Soap_Glob': [
+    { id: 'abyssal_set', name: 'Set Abismal', desc: '¡Poder de las profundidades marinas!', cost: 400, type: 'pycoin',
+      skins: {
+        'Soap_Glob': 'img/Skins/Azul Ralentizador/Beachy Glob (SK-EVO1).png',
+        'Cotton_Glob': 'img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png'
+      }
+    }
+  ],
   'Global': [
-    { id: 'pack_negative', name: 'Pack Negativo', desc: 'Invierte la realidad de tus torres.', type: 'duckpass_level', level: 90, class: 'skin-negative' },
+    { id: 'recolor_emerald', name: 'Edición Esmeralda', desc: 'Poder de la naturaleza.', type: 'duckpass_level', level: 5, filter: 'hue-rotate(60deg) saturate(2) brightness(1.1)' },
+    { id: 'recolor_ruby', name: 'Edición Rubí', desc: 'Pasión ardiente en cada disparo.', type: 'duckpass_level', level: 15, filter: 'hue-rotate(-60deg) saturate(2) brightness(1.1)' },
+    { id: 'recolor_cyan', name: 'Edición Cian', desc: 'Frío como el hielo de Bitlands.', type: 'duckpass_level', level: 25, filter: 'hue-rotate(140deg) saturate(1.5) brightness(1.2)' },
+    { id: 'recolor_neon', name: 'Edición Neón', desc: 'Brillo cibernético futurista.', type: 'duckpass_level', level: 40, filter: 'brightness(1.5) saturate(3) hue-rotate(150deg)' },
+    { id: 'recolor_shadow', name: 'Edición Sombra', desc: 'Sigilo y oscuridad total.', type: 'duckpass_level', level: 55, filter: 'grayscale(1) brightness(0.4)' },
+    { id: 'recolor_void', name: 'Edición Vacío', desc: 'Poder oscuro del abismo.', type: 'duckpass_level', level: 70, filter: 'brightness(0.6) hue-rotate(250deg) saturate(2)' },
+    { id: 'recolor_gold', name: 'Edición Oro', desc: 'Puro lujo para tus torres.', type: 'duckpass_level', level: 85, filter: 'brightness(1.2) sepia(1) saturate(10) hue-rotate(-10deg)' },
+    { id: 'pack_negative', name: 'Pack Negativo', desc: 'Invierte la realidad de tus torres.', type: 'duckpass_level', level: 95, class: 'skin-negative' },
     { id: 'pack_rainbow', name: 'Pack Arcoíris', desc: '¡Fiesta de colores definitiva!', type: 'duckpass_level', level: 100, class: 'skin-rainbow' }
   ],
   'Recolors': [
-    { id: 'recolor_gold', name: 'Edición Oro', desc: 'Puro lujo para tus torres.', cost: 100, type: 'pycoin', filter: 'brightness(1.2) sepia(1) saturate(10) hue-rotate(-10deg)' },
-    { id: 'recolor_void', name: 'Edición Vacío', desc: 'Poder oscuro del abismo.', cost: 100, type: 'pycoin', filter: 'brightness(0.6) hue-rotate(250deg) saturate(2)' },
-    { id: 'recolor_neon', name: 'Edición Neón', desc: 'Brillo cibernético futurista.', cost: 100, type: 'pycoin', filter: 'brightness(1.5) saturate(3) hue-rotate(150deg)' },
-    { id: 'recolor_emerald', name: 'Edición Esmeralda', desc: 'Poder de la naturaleza.', cost: 80, type: 'pycoin', filter: 'hue-rotate(60deg) saturate(2) brightness(1.1)' },
-    { id: 'recolor_ruby', name: 'Edición Rubí', desc: 'Pasión ardiente en cada disparo.', cost: 80, type: 'pycoin', filter: 'hue-rotate(-60deg) saturate(2) brightness(1.1)' },
-    { id: 'recolor_cyan', name: 'Edición Cian', desc: 'Frío como el hielo de Bitlands.', cost: 80, type: 'pycoin', filter: 'hue-rotate(140deg) saturate(1.5) brightness(1.2)' },
-    { id: 'recolor_shadow', name: 'Edición Sombra', desc: 'Sigilo y oscuridad total.', cost: 120, type: 'pycoin', filter: 'grayscale(1) brightness(0.4)' }
+    { id: 'recolor_galactic', name: 'Edición Galáctica', desc: 'Brillo cósmico de Bitlands.', cost: 250, type: 'pycoin', filter: 'hue-rotate(280deg) saturate(2.5) brightness(1.1) drop-shadow(0 0 5px #9c27b0)' },
+    { id: 'recolor_fire', name: 'Edición Ígnea', desc: 'Calor volcánico en tus manos.', cost: 200, type: 'pycoin', filter: 'hue-rotate(-30deg) saturate(4) contrast(1.2) brightness(0.9)' },
+    { id: 'recolor_diamond', name: 'Edición Diamante', desc: 'Resistencia y brillo cristalino.', cost: 300, type: 'pycoin', filter: 'brightness(1.8) saturate(0.2) contrast(1.5) opacity(0.9)' },
+    { id: 'recolor_toxic', name: 'Edición Tóxica', desc: 'Peligro radiactivo inminente.', cost: 180, type: 'pycoin', filter: 'hue-rotate(80deg) saturate(5) brightness(1.2) contrast(1.1)' }
   ]
 };
 
@@ -1310,8 +1322,8 @@ function drawPass() {
   if (!container) return;
   container.innerHTML = '';
 
-  // Hitos importantes (Skins del Pase)
-  const milestones = SKINS_DATA['Global'];
+  // Hitos importantes (Skins del Pase) ordenados por nivel
+  const milestones = [...SKINS_DATA['Global']].sort((a, b) => a.level - b.level);
 
   milestones.forEach(skin => {
     const isUnlocked = gameState.duckPassLevel >= skin.level;
