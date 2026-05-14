@@ -62,6 +62,7 @@ const TRANSLATIONS = {
     tower_Pyce_Glob_name: "Pyce Glob",
     tower_Old_Glob_name: "Glob Anciano",
     tower_Work_Bombot_name: "Bombot de Trabajo",
+    tower_limit_increased: "Límite de {name} aumentado",
 
     // Nombres de Enemigos
     enemy_Stupid_Pyce_name: "Pyce Torpe",
@@ -124,7 +125,6 @@ const TRANSLATIONS = {
     upgrade: "MEJORA",
     shop_upgrades: "Mejoras",
     shop_skins: "Skins",
-    tower_limit_increased: "Límite de {name} aumentado",
     mode_selected: "Modo {mode} seleccionado",
     settings_title: "⚙️ Ajustes",
     show_shop_desc: "Mostrar descripción en tienda",
@@ -139,7 +139,84 @@ const TRANSLATIONS = {
     landscape_msg: "Glob Defenders se juega en modo horizontal",
     pycoins_title: "PyCoins",
     duckpass_title: "Duck Pass",
-    equip_btn: "Equipar"
+    equip_btn: "Equipar",
+    
+    // Mejoras de Tienda
+    upgrade_hp_name: "Salud de Base",
+    upgrade_hp_desc: "+20 Salud Máxima",
+    upgrade_unlock_pyce_name: "Desbloquear Pyce Glob",
+    upgrade_unlock_pyce_desc: "Permite comprar Pyce Globs",
+    upgrade_limit_name: "Límite: {name}",
+    upgrade_limit_desc: "Aumenta límite de {name}",
+
+    // Sets de Skins
+    skin_military_name: "Set Militar",
+    skin_military_desc: "Equipamiento táctico para la línea verde.",
+    skin_music_name: "Set Musical",
+    skin_music_desc: "¡Ritmo y fiesta para la línea roja!",
+    skin_abyssal_name: "Set Abismal",
+    skin_abyssal_desc: "¡Poder de las profundidades marinas!",
+    skin_business_name: "Set Empresarial",
+    skin_business_desc: "De un puesto de gelatina a una gran fábrica.",
+    skin_universolar_name: "Set Universolar",
+    skin_universolar_desc: "¡Poder estelar y elegancia espacial!",
+    
+    // Skins Globales (Recolores y Buffs)
+    skin_emerald_name: "Edición Esmeralda",
+    skin_emerald_desc: "Poder de la naturaleza.",
+    skin_ruby_name: "Edición Rubí",
+    skin_ruby_desc: "Pasión ardiente en cada disparo.",
+    skin_cyan_name: "Edición Cian",
+    skin_cyan_desc: "Frío como el hielo de Bitlands.",
+    skin_neon_name: "Edición Neón",
+    skin_neon_desc: "Brillo cibernético futurista.",
+    skin_shadow_name: "Edición Sombra",
+    skin_shadow_desc: "Sigilo y oscuridad total.",
+    skin_void_name: "Edición Vacío",
+    skin_void_desc: "Poder oscuro del abismo.",
+    skin_gold_name: "Edición Oro",
+    skin_gold_desc: "Puro lujo para tus torres.",
+    skin_negative_name: "Pack Negativo",
+    skin_negative_desc: "Invierte la realidad de tus torres.",
+    skin_rainbow_name: "Pack Arcoíris",
+    skin_rainbow_desc: "¡Fiesta de colores definitiva!",
+    
+    skin_galactic_name: "Edición Galáctica",
+    skin_galactic_desc: "Brillo cósmico de Bitlands.",
+    skin_fire_name: "Edición Ígnea",
+    skin_fire_desc: "Calor volcánico en tus manos.",
+    skin_diamond_name: "Edición Diamante",
+    skin_diamond_desc: "Resistencia y brillo cristalino.",
+    skin_toxic_name: "Edición Tóxica",
+    skin_toxic_desc: "Peligro radiactivo inminente.",
+
+    skin_buff_damage1_name: "Entrenamiento Básico",
+    skin_buff_damage1_desc: "⚔️ +5% Daño Permanente.",
+    skin_buff_range1_name: "Visión de Águila",
+    skin_buff_range1_desc: "🔭 +10 Alcance Permanente.",
+    skin_buff_speed1_name: "Cadencia Mejorada",
+    skin_buff_speed1_desc: "⚡ +5% Velocidad de Ataque.",
+    skin_buff_damage2_name: "Ingeniería de Bitlands",
+    skin_buff_damage2_desc: "⚔️ +10% Daño Extra.",
+
+    // Descripciones de Torres
+    tower_Glob_desc: "Glob básico. Ataca con orbes verdes.",
+    tower_Poop_Glob_desc: "Más fuerte pero más lento. Lanza orbes pegajosos.",
+    tower_Golden_Glob_desc: "Muy rápido y potente. Dispara balas de oro.",
+    tower_Rainbow_Glob_desc: "El Glob definitivo. Dispara láseres arcoíris penetrantes.",
+    tower_Red_Glob_desc: "Atacante cuerpo a cuerpo muy rápido.",
+    tower_Molten_Glob_desc: "Cuerpo a cuerpo que quema a los enemigos.",
+    tower_Robotic_Glob_desc: "Francotirador de largo alcance con láseres penetrantes.",
+    tower_Soap_Glob_desc: "Lanza burbujas que ralentizan a los enemigos.",
+    tower_Cotton_Glob_desc: "Glob suave que ralentiza y hace poco daño.",
+    tower_Ducky_Glob_desc: "Lanza huevos rápidos.",
+    tower_Golden_Ducky_Glob_desc: "Pato potente que lanza huevos de oro.",
+    tower_Comet_Glob_desc: "Dispara cometas lentos pero devastadores.",
+    tower_Dark_Glob_desc: "Poder del vacío. Atraviesa enemigos.",
+    tower_Demglob_desc: "El demonio de Bitlands. Destrucción total.",
+    tower_Pyce_Glob_desc: "Un Glob con errores de sistema (Glitch).",
+    tower_Old_Glob_desc: "Sabiduría antigua en forma de rocas.",
+    tower_Work_Bombot_desc: "Robot bomba. Hace daño de área masivo."
   },
   en: {
     health: "Health", money: "Money", wave: "Wave",
@@ -202,6 +279,7 @@ const TRANSLATIONS = {
     tower_Pyce_Glob_name: "Pyce Glob",
     tower_Old_Glob_name: "Elder Glob",
     tower_Work_Bombot_name: "Work Bombot",
+    tower_limit_increased: "{name} limit increased",
 
     // Enemy Names
     enemy_Stupid_Pyce_name: "Stupid Pyce",
@@ -264,7 +342,6 @@ const TRANSLATIONS = {
     upgrade: "UPGRADE",
     shop_upgrades: "Upgrades",
     shop_skins: "Skins",
-    tower_limit_increased: "{name} limit increased",
     mode_selected: "{mode} mode selected",
     settings_title: "⚙️ Settings",
     show_shop_desc: "Show description in shop",
@@ -279,7 +356,84 @@ const TRANSLATIONS = {
     landscape_msg: "Glob Defenders is played in landscape mode",
     pycoins_title: "PyCoins",
     duckpass_title: "Duck Pass",
-    equip_btn: "Equip"
+    equip_btn: "Equip",
+
+    // Shop Upgrades
+    upgrade_hp_name: "Base Health",
+    upgrade_hp_desc: "+20 Max Health",
+    upgrade_unlock_pyce_name: "Unlock Pyce Glob",
+    upgrade_unlock_pyce_desc: "Allows buying Pyce Globs",
+    upgrade_limit_name: "Limit: {name}",
+    upgrade_limit_desc: "Increase limit for {name}",
+
+    // Skin Sets
+    skin_military_name: "Military Set",
+    skin_military_desc: "Tactical equipment for the green line.",
+    skin_music_name: "Music Set",
+    skin_music_desc: "Rhythm and party for the red line!",
+    skin_abyssal_name: "Abyssal Set",
+    skin_abyssal_desc: "Power from the deep sea!",
+    skin_business_name: "Business Set",
+    skin_business_desc: "From a jelly stand to a giant factory.",
+    skin_universolar_name: "Universolar Set",
+    skin_universolar_desc: "Stellar power and spatial elegance!",
+    
+    // Global Skins
+    skin_emerald_name: "Emerald Edition",
+    skin_emerald_desc: "Power of nature.",
+    skin_ruby_name: "Ruby Edition",
+    skin_ruby_desc: "Burning passion in every shot.",
+    skin_cyan_name: "Cyan Edition",
+    skin_cyan_desc: "Cold as Bitlands ice.",
+    skin_neon_name: "Neon Edition",
+    skin_neon_desc: "Futuristic cybernetic glow.",
+    skin_shadow_name: "Shadow Edition",
+    skin_shadow_desc: "Total stealth and darkness.",
+    skin_void_name: "Void Edition",
+    skin_void_desc: "Dark power from the abyss.",
+    skin_gold_name: "Gold Edition",
+    skin_gold_desc: "Pure luxury for your towers.",
+    skin_negative_name: "Negative Pack",
+    skin_negative_desc: "Invert your towers' reality.",
+    skin_rainbow_name: "Rainbow Pack",
+    skin_rainbow_desc: "The ultimate color party!",
+    
+    skin_galactic_name: "Galactic Edition",
+    skin_galactic_desc: "Cosmic glow from Bitlands.",
+    skin_fire_name: "Fire Edition",
+    skin_fire_desc: "Volcanic heat in your hands.",
+    skin_diamond_name: "Diamond Edition",
+    skin_diamond_desc: "Resilience and crystalline shine.",
+    skin_toxic_name: "Toxic Edition",
+    skin_toxic_desc: "Imminent radioactive danger.",
+
+    skin_buff_damage1_name: "Basic Training",
+    skin_buff_damage1_desc: "⚔️ +5% Permanent Damage.",
+    skin_buff_range1_name: "Eagle Vision",
+    skin_buff_range1_desc: "🔭 +10 Permanent Range.",
+    skin_buff_speed1_name: "Improved Fire-rate",
+    skin_buff_speed1_desc: "⚡ +5% Attack Speed.",
+    skin_buff_damage2_name: "Bitlands Engineering",
+    skin_buff_damage2_desc: "⚔️ +10% Extra Damage.",
+
+    // Tower Descriptions
+    tower_Glob_desc: "Basic Glob. Attacks with green orbs.",
+    tower_Poop_Glob_desc: "Stronger but slower. Throws sticky orbs.",
+    tower_Golden_Glob_desc: "Very fast and powerful. Shoots gold bullets.",
+    tower_Rainbow_Glob_desc: "The ultimate Glob. Shoots piercing rainbow lasers.",
+    tower_Red_Glob_desc: "Very fast melee attacker.",
+    tower_Molten_Glob_desc: "Melee that burns enemies.",
+    tower_Robotic_Glob_desc: "Long-range sniper with piercing lasers.",
+    tower_Soap_Glob_desc: "Throws bubbles that slow down enemies.",
+    tower_Cotton_Glob_desc: "Soft Glob that slows and does little damage.",
+    tower_Ducky_Glob_desc: "Throws fast eggs.",
+    tower_Golden_Ducky_Glob_desc: "Powerful duck that throws gold eggs.",
+    tower_Comet_Glob_desc: "Shoots slow but devastating comets.",
+    tower_Dark_Glob_desc: "Void power. Pierces through enemies.",
+    tower_Demglob_desc: "The demon of Bitlands. Total destruction.",
+    tower_Pyce_Glob_desc: "A Glob with system errors (Glitch).",
+    tower_Old_Glob_desc: "Ancient wisdom in the form of rocks.",
+    tower_Work_Bombot_desc: "Bomb robot. Deals massive area damage."
   }
 };
 
@@ -473,28 +627,28 @@ const NARRATOR_DATA = {
 };
 
 const TOWER_TYPES = {
-  'Glob': { name: 'Glob Verde', damage: 10, range: 150, speed: 1.0, cost: 50, evolution: 'Poop_Glob', image: IMAGE_PATHS.Glob, projectile: 'green', desc: "Glob básico. Ataca con orbes verdes.", evolveDesc: "Evoluciona a Poop Glob.", family: 'Glob' },
-  'Poop_Glob': { name: 'Poop Glob', damage: 25, range: 150, speed: 0.6, cost: 100, evolution: 'Golden_Glob', image: IMAGE_PATHS.Poop_Glob, projectile: 'brown', desc: "Más fuerte pero más lento. Lanza orbes pegajosos.", evolveDesc: "Evoluciona a Glob de Oro.", family: 'Glob' },
-  'Golden_Glob': { name: 'Glob de Oro', damage: 45, range: 170, speed: 1.5, cost: 200, evolution: 'Rainbow_Glob', image: IMAGE_PATHS.Golden_Glob, projectile: 'gold', desc: "Muy rápido y potente. Dispara balas de oro.", evolveDesc: "Evoluciona a Glob Arcoíris.", family: 'Glob' },
-  'Rainbow_Glob': { name: 'Glob Arcoíris', damage: 30, range: 180, speed: 1.2, cost: 400, image: IMAGE_PATHS.Rainbow_Glob, projectile: 'laser_rainbow', piercing: true, desc: "El Glob definitivo. Dispara láseres arcoíris penetrantes.", family: 'Glob' },
+  'Glob': { name: 'Glob Verde', damage: 10, range: 150, speed: 1.0, cost: 50, evolution: 'Poop_Glob', image: IMAGE_PATHS.Glob, projectile: 'green', desc: "tower_Glob_desc", family: 'Glob' },
+  'Poop_Glob': { name: 'Poop Glob', damage: 25, range: 150, speed: 0.6, cost: 100, evolution: 'Golden_Glob', image: IMAGE_PATHS.Poop_Glob, projectile: 'brown', desc: "tower_Poop_Glob_desc", family: 'Glob' },
+  'Golden_Glob': { name: 'Glob de Oro', damage: 45, range: 170, speed: 1.5, cost: 200, evolution: 'Rainbow_Glob', image: IMAGE_PATHS.Golden_Glob, projectile: 'gold', desc: "tower_Golden_Glob_desc", family: 'Glob' },
+  'Rainbow_Glob': { name: 'Glob Arcoíris', damage: 30, range: 180, speed: 1.2, cost: 400, image: IMAGE_PATHS.Rainbow_Glob, projectile: 'laser_rainbow', piercing: true, desc: "tower_Rainbow_Glob_desc", family: 'Glob' },
 
-  'Red_Glob': { name: 'Glob Rojo', damage: 20, range: 60, speed: 1.5, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "Atacante cuerpo a cuerpo muy rápido.", evolveDesc: "Evoluciona a Glob de Lava.", family: 'Red_Glob' },
-  'Molten_Glob': { name: 'Glob de Lava', damage: 15, range: 70, speed: 1.0, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "Cuerpo a cuerpo que quema a los enemigos.", evolveDesc: "Evoluciona a Glob Robótico.", family: 'Red_Glob' },
-  'Robotic_Glob': { name: 'Glob Robótico', damage: 40, range: 200, speed: 0.3, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "Francotirador de largo alcance con láseres penetrantes.", family: 'Red_Glob' },
+  'Red_Glob': { name: 'Glob Rojo', damage: 20, range: 60, speed: 1.5, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "tower_Red_Glob_desc", family: 'Red_Glob' },
+  'Molten_Glob': { name: 'Glob de Lava', damage: 15, range: 70, speed: 1.0, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "tower_Molten_Glob_desc", family: 'Red_Glob' },
+  'Robotic_Glob': { name: 'Glob Robótico', damage: 40, range: 200, speed: 0.3, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
 
-  'Soap_Glob': { name: 'Glob de Jabón', damage: 0, range: 120, speed: 0.8, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "Lanza burbujas que ralentizan a los enemigos.", evolveDesc: "Evoluciona a Glob de Algodón.", family: 'Soap_Glob' },
-  'Cotton_Glob': { name: 'Glob de Algodón', damage: 5, range: 140, speed: 1.0, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "Glob suave que ralentiza y hace poco daño.", family: 'Soap_Glob' },
+  'Soap_Glob': { name: 'Glob de Jabón', damage: 0, range: 120, speed: 0.8, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "tower_Soap_Glob_desc", family: 'Soap_Glob' },
+  'Cotton_Glob': { name: 'Glob de Algodón', damage: 5, range: 140, speed: 1.0, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "tower_Cotton_Glob_desc", family: 'Soap_Glob' },
 
-  'Ducky_Glob': { name: 'Pato Glob', damage: 15, range: 140, speed: 1.2, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'yellow', desc: "Lanza huevos rápidos.", evolveDesc: "Evoluciona a Pato de Oro.", family: 'Ducky_Glob' },
-  'Golden_Ducky_Glob': { name: 'Pato de Oro', damage: 35, range: 160, speed: 1.0, cost: 180, image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'gold', desc: "Pato potente que lanza huevos de oro.", family: 'Ducky_Glob' },
+  'Ducky_Glob': { name: 'Pato Glob', damage: 15, range: 140, speed: 1.2, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'yellow', desc: "tower_Ducky_Glob_desc", family: 'Ducky_Glob' },
+  'Golden_Ducky_Glob': { name: 'Pato de Oro', damage: 35, range: 160, speed: 1.0, cost: 180, image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'gold', desc: "tower_Golden_Ducky_Glob_desc", family: 'Ducky_Glob' },
 
-  'Comet_Glob': { name: 'Glob Cometa', damage: 50, range: 250, speed: 0.2, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'blue_comet', desc: "Dispara cometas lentos pero devastadores.", evolveDesc: "Evoluciona a Glob Oscuro.", family: 'Comet_Glob' },
-  'Dark_Glob': { name: 'Glob Oscuro', damage: 80, range: 280, speed: 1.0, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'void', piercing: true, desc: "Poder del vacío. Atraviesa enemigos.", evolveDesc: "Evoluciona a Demglob.", family: 'Comet_Glob' },
-  'Demglob': { name: 'Demglob', damage: 200, range: 300, speed: 2.0, cost: 1000, image: IMAGE_PATHS.Demglob, projectile: 'hellfire', piercing: true, burn: true, desc: "El demonio de Bitlands. Destrucción total.", family: 'Comet_Glob' },
+  'Comet_Glob': { name: 'Glob Cometa', damage: 50, range: 250, speed: 0.2, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'blue_comet', desc: "tower_Comet_Glob_desc", family: 'Comet_Glob' },
+  'Dark_Glob': { name: 'Glob Oscuro', damage: 80, range: 280, speed: 1.0, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'void', piercing: true, desc: "tower_Dark_Glob_desc", family: 'Comet_Glob' },
+  'Demglob': { name: 'Demglob', damage: 200, range: 300, speed: 2.0, cost: 1000, image: IMAGE_PATHS.Demglob, projectile: 'hellfire', piercing: true, burn: true, desc: "tower_Demglob_desc", family: 'Comet_Glob' },
 
-  'Pyce_Glob': { name: 'Pyce Glob', damage: 30, range: 180, speed: 0.8, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "Un Glob con errores de sistema (Glitch).", family: 'Special' },
-  'Old_Glob': { name: 'Glob Anciano', damage: 40, range: 200, speed: 0.5, cost: 200, image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "Sabiduría antigua en forma de rocas.", family: 'Special' },
-  'Work_Bombot': { name: 'Bombot de Trabajo', damage: 100, range: 150, speed: 0.2, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "Robot bomba. Hace daño de área masivo.", family: 'Special' }
+  'Pyce_Glob': { name: 'Pyce Glob', damage: 30, range: 180, speed: 0.8, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Special' },
+  'Old_Glob': { name: 'Glob Anciano', damage: 40, range: 200, speed: 0.5, cost: 200, image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "tower_Old_Glob_desc", family: 'Special' },
+  'Work_Bombot': { name: 'Bombot de Trabajo', damage: 100, range: 150, speed: 0.2, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "tower_Work_Bombot_desc", family: 'Special' }
 };
 
 const ENEMY_TYPES = {
@@ -564,7 +718,7 @@ const ENEMY_PATH = [
 
 const SKINS_DATA = {
   'Glob': [
-    { id: 'military_set', name: 'Set Militar', desc: 'Equipamiento táctico para la línea verde.', cost: 350, type: 'pycoin', 
+    { id: 'military_set', name: 'skin_military_name', desc: 'skin_military_desc', cost: 350, type: 'pycoin', 
       skins: {
         'Glob': 'img/Skins/Verde Base/Untrained Glob (SK-EVO1).png',
         'Poop_Glob': 'img/Skins/Verde Base/Militar Glob (SK-EVO2).png',
@@ -574,7 +728,7 @@ const SKINS_DATA = {
     }
   ],
   'Red_Glob': [
-    { id: 'music_set', name: 'Set Musical', desc: '¡Ritmo y fiesta para la línea roja!', cost: 300, type: 'pycoin',
+    { id: 'music_set', name: 'skin_music_name', desc: 'skin_music_desc', cost: 300, type: 'pycoin',
       skins: {
         'Red_Glob': 'img/Skins/Rojo Melee/Music Glob (SK-EVO1).png',
         'Molten_Glob': 'img/Skins/Rojo Melee/Funky Glob (SK-EVO2).png',
@@ -583,32 +737,49 @@ const SKINS_DATA = {
     }
   ],
   'Soap_Glob': [
-    { id: 'abyssal_set', name: 'Set Abismal', desc: '¡Poder de las profundidades marinas!', cost: 400, type: 'pycoin',
+    { id: 'abyssal_set', name: 'skin_abyssal_name', desc: 'skin_abyssal_desc', cost: 400, type: 'pycoin',
       skins: {
         'Soap_Glob': 'img/Skins/Azul Ralentizador/Beachy Glob (SK-EVO1).png',
         'Cotton_Glob': 'img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png'
       }
     }
   ],
+  'Ducky_Glob': [
+    { id: 'business_duck_set', name: 'skin_business_name', desc: 'skin_business_desc', cost: 150, type: 'pycoin',
+      skins: {
+        'Ducky_Glob': 'img/Skins/Pato/Business Stand.png',
+        'Golden_Ducky_Glob': 'img/Skins/Pato/Business Factory.png'
+      }
+    }
+  ],
+  'Comet_Glob': [
+    { id: 'universolar_comet_set', name: 'skin_universolar_name', desc: 'skin_universolar_desc', cost: 450, type: 'pycoin',
+      skins: {
+        'Comet_Glob': 'img/Skins/Especial/Universolar Comet.png',
+        'Dark_Glob': 'img/Skins/Especial/Universolar Dark.png',
+        'Demglob': 'img/Skins/Especial/Universolar Demglob.png'
+      }
+    }
+  ],
   'Global': [
-    { id: 'recolor_emerald', name: 'Edición Esmeralda', desc: 'Poder de la naturaleza.', type: 'duckpass_level', level: 5, filter: 'hue-rotate(100deg) saturate(2.5) brightness(0.9)' },
-    { id: 'buff_damage_1', name: 'Entrenamiento Básico', desc: '⚔️ +5% Daño Permanente.', type: 'duckpass_level', level: 10, buff: { damage: 1.05 } },
-    { id: 'recolor_ruby', name: 'Edición Rubí', desc: 'Pasión ardiente en cada disparo.', type: 'duckpass_level', level: 15, filter: 'hue-rotate(-20deg) saturate(3) brightness(1)' },
-    { id: 'buff_range_1', name: 'Visión de Águila', desc: '🔭 +10 Alcance Permanente.', type: 'duckpass_level', level: 20, buff: { range_flat: 10 } },
-    { id: 'recolor_cyan', name: 'Edición Cian', desc: 'Frío como el hielo de Bitlands.', type: 'duckpass_level', level: 25, filter: 'hue-rotate(180deg) saturate(2) brightness(1.2)' },
-    { id: 'buff_speed_1', name: 'Cadencia Mejorada', desc: '⚡ +5% Velocidad de Ataque.', type: 'duckpass_level', level: 30, buff: { speed: 1.05 } },
-    { id: 'recolor_neon', name: 'Edición Neón', desc: 'Brillo cibernético futurista.', type: 'duckpass_level', level: 40, filter: 'brightness(1.5) saturate(4) hue-rotate(280deg)' },
-    { id: 'buff_damage_2', name: 'Ingeniería de Bitlands', desc: '⚔️ +10% Daño Extra.', type: 'duckpass_level', level: 50, buff: { damage: 1.10 } },
-    { id: 'recolor_shadow', name: 'Edición Sombra', desc: 'Sigilo y oscuridad total.', type: 'duckpass_level', level: 55, filter: 'grayscale(1) brightness(0.4)' },
-    { id: 'recolor_void', name: 'Edición Vacío', desc: 'Poder oscuro del abismo.', type: 'duckpass_level', level: 70, filter: 'brightness(0.6) hue-rotate(250deg) saturate(2)' },
-    { id: 'recolor_gold', name: 'Edición Oro', desc: 'Puro lujo para tus torres.', type: 'duckpass_level', level: 85, filter: 'brightness(1.2) sepia(1) saturate(10) hue-rotate(-10deg)' },
-    { id: 'pack_negative', name: 'Pack Negativo', desc: 'Invierte la realidad de tus torres.', type: 'duckpass_level', level: 95, class: 'skin-negative' },
-    { id: 'pack_rainbow', name: 'Pack Arcoíris', desc: '¡Fiesta de colores definitiva!', type: 'duckpass_level', level: 100, class: 'skin-rainbow' }
+    { id: 'recolor_emerald', name: 'skin_emerald_name', desc: 'skin_emerald_desc', type: 'duckpass_level', level: 5, filter: 'hue-rotate(100deg) saturate(2.5) brightness(0.9)' },
+    { id: 'buff_damage_1', name: 'skin_buff_damage1_name', desc: 'skin_buff_damage1_desc', type: 'duckpass_level', level: 10, buff: { damage: 1.05 } },
+    { id: 'recolor_ruby', name: 'skin_ruby_name', desc: 'skin_ruby_desc', type: 'duckpass_level', level: 15, filter: 'hue-rotate(-20deg) saturate(3) brightness(1)' },
+    { id: 'buff_range_1', name: 'skin_buff_range1_name', desc: 'skin_buff_range1_desc', type: 'duckpass_level', level: 20, buff: { range_flat: 10 } },
+    { id: 'recolor_cyan', name: 'skin_cyan_name', desc: 'skin_cyan_desc', type: 'duckpass_level', level: 25, filter: 'hue-rotate(180deg) saturate(2) brightness(1.2)' },
+    { id: 'buff_speed_1', name: 'skin_buff_speed1_name', desc: 'skin_buff_speed1_desc', type: 'duckpass_level', level: 30, buff: { speed: 1.05 } },
+    { id: 'recolor_neon', name: 'skin_neon_name', desc: 'skin_neon_desc', type: 'duckpass_level', level: 40, filter: 'brightness(1.5) saturate(4) hue-rotate(280deg)' },
+    { id: 'buff_damage_2', name: 'skin_buff_damage2_name', desc: 'skin_buff_damage2_desc', type: 'duckpass_level', level: 50, buff: { damage: 1.10 } },
+    { id: 'recolor_shadow', name: 'skin_shadow_name', desc: 'skin_shadow_desc', type: 'duckpass_level', level: 55, filter: 'grayscale(1) brightness(0.4)' },
+    { id: 'recolor_void', name: 'skin_void_name', desc: 'skin_void_desc', type: 'duckpass_level', level: 70, filter: 'brightness(0.6) hue-rotate(250deg) saturate(2)' },
+    { id: 'recolor_gold', name: 'skin_gold_name', desc: 'skin_gold_desc', type: 'duckpass_level', level: 85, filter: 'brightness(1.2) sepia(1) saturate(10) hue-rotate(-10deg)' },
+    { id: 'pack_negative', name: 'skin_negative_name', desc: 'skin_negative_desc', type: 'duckpass_level', level: 95, class: 'skin-negative' },
+    { id: 'pack_rainbow', name: 'skin_rainbow_name', desc: 'skin_rainbow_desc', type: 'duckpass_level', level: 100, class: 'skin-rainbow' }
   ],
   'Recolors': [
-    { id: 'recolor_galactic', name: 'Edición Galáctica', desc: 'Brillo cósmico de Bitlands.', cost: 250, type: 'pycoin', filter: 'hue-rotate(280deg) saturate(2.5) brightness(1.1) drop-shadow(0 0 5px #9c27b0)' },
-    { id: 'recolor_fire', name: 'Edición Ígnea', desc: 'Calor volcánico en tus manos.', cost: 200, type: 'pycoin', filter: 'hue-rotate(-30deg) saturate(4) contrast(1.2) brightness(0.9)' },
-    { id: 'recolor_diamond', name: 'Edición Diamante', desc: 'Resistencia y brillo cristalino.', cost: 300, type: 'pycoin', filter: 'brightness(1.8) saturate(0.2) contrast(1.5) opacity(0.9)' },
-    { id: 'recolor_toxic', name: 'Edición Tóxica', desc: 'Peligro radiactivo inminente.', cost: 180, type: 'pycoin', filter: 'hue-rotate(80deg) saturate(5) brightness(1.2) contrast(1.1)' }
+    { id: 'recolor_galactic', name: 'skin_galactic_name', desc: 'skin_galactic_desc', cost: 250, type: 'pycoin', filter: 'hue-rotate(280deg) saturate(2.5) brightness(1.1) drop-shadow(0 0 5px #9c27b0)' },
+    { id: 'recolor_fire', name: 'skin_fire_name', desc: 'skin_fire_desc', cost: 200, type: 'pycoin', filter: 'hue-rotate(-30deg) saturate(4) contrast(1.2) brightness(0.9)' },
+    { id: 'recolor_diamond', name: 'skin_diamond_name', desc: 'skin_diamond_desc', cost: 300, type: 'pycoin', filter: 'brightness(1.8) saturate(0.2) contrast(1.5) opacity(0.9)' },
+    { id: 'recolor_toxic', name: 'skin_toxic_name', desc: 'skin_toxic_desc', cost: 180, type: 'pycoin', filter: 'hue-rotate(80deg) saturate(5) brightness(1.2) contrast(1.1)' }
   ]
 };

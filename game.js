@@ -439,7 +439,7 @@ function showTooltip(t, el) {
   const name = translate('tower_' + (t.family || t.type) + '_name');
   tooltip.innerHTML = `
     <b>${name}</b>
-    <p>${t.desc || ""}</p>
+    <p>${translate(t.desc) || ""}</p>
     <div style="margin-top: 5px; font-size: 0.75rem; color: #aaa;">
       ⚔️ ${t.damage || 0} | 🔭 ${t.range || 0}
     </div>
@@ -497,7 +497,7 @@ function drawTowerShop() {
       <div class="tower-icon-shop" style="background-image: url('${displayImg}')"></div>
       <div class="tower-info-shop">
         <div class="tower-name">${name}</div>
-        ${gameState.settings.showShopDesc ? `<div class="tower-desc-shop">${t.desc || ""}</div>` : ''}
+        ${gameState.settings.showShopDesc ? `<div class="tower-desc-shop">${translate(t.desc) || ""}</div>` : ''}
         <div class="tower-stats-shop">
           <span class="tower-cost">💰 ${t.cost}</span>
           <span class="tower-limit ${isFull ? 'limit-full' : ''}">${currentCount}/${limit}</span>
@@ -577,7 +577,7 @@ function grantBadgeReward(badge) {
   gameState.claimedRewards.push(badge.key);
   updateMetaUI();
   saveProgress();
-  showMessage(`¡Logro: ${translate('badge_'+badge.key+'_name')}! Recompensa recibida.`, 'success');
+  showMessage(translate('badge_reward_received', { name: translate('badge_' + badge.key + '_name') }), 'success');
 }
 
 function toggleLanguage() {
@@ -800,18 +800,18 @@ function drawShop() {
 
   if (currentShopTab === 'upgrades') {
     const upgrades = [
-      { id: 'hp', name: 'Salud de Base', desc: '+20 Salud Máxima', cost: 50, type: 'pycoin' },
-      { id: 'unlock_Pyce_Glob', name: 'Desbloquear Pyce Glob', desc: 'Permite comprar Pyce Globs', cost: 100, type: 'pycoin', hideIfUnlocked: true }
+      { id: 'hp', name: 'upgrade_hp_name', desc: 'upgrade_hp_desc', cost: 50, type: 'pycoin' },
+      { id: 'unlock_Pyce_Glob', name: 'upgrade_unlock_pyce_name', desc: 'upgrade_unlock_pyce_desc', cost: 100, type: 'pycoin', hideIfUnlocked: true }
     ];
     ['Glob', 'Red_Glob', 'Ducky_Glob'].forEach(t => {
-      if (gameState.towerLimits[t] < 10) upgrades.push({ id: 'limit_'+t, name: 'Límite: '+t, desc: 'Aumenta límite', cost: 30, type: 'pycoin' });
+      if (gameState.towerLimits[t] < 10) upgrades.push({ id: 'limit_'+t, name: 'upgrade_limit_name', desc: 'upgrade_limit_desc', cost: 30, type: 'pycoin', params: {name: t} });
     });
 
     upgrades.forEach(u => {
       if (u.hideIfUnlocked && TOWER_TYPES['Pyce_Glob'].unlocked) return;
       const el = document.createElement('div');
       el.className = 'meta-item';
-      el.innerHTML = `<h3>${u.name}</h3><p>${u.desc}</p><div class="cost">💰 ${u.cost}</div>
+      el.innerHTML = `<h3>${translate(u.name, u.params)}</h3><p>${translate(u.desc, u.params)}</p><div class="cost">💰 ${u.cost}</div>
         <button class="meta-buy-btn" ${canAfford(u) ? '' : 'disabled'} onclick="buyUpgrade('${u.id}', ${u.cost}, '${u.type}')">${translate('buy')}</button>`;
       container.appendChild(el);
     });
@@ -825,7 +825,7 @@ function drawShop() {
         el.className = `skin-item ${isEquipped ? 'equipped' : ''}`;
         let btnText = isUnlocked ? (isEquipped ? translate('actual') : translate('equip_btn')) : `${translate('buy')} (${skin.cost})`;
         el.innerHTML = `<div class="skin-preview ${skin.class || ''}"><img src="${skin.skins ? skin.skins[family] || Object.values(skin.skins)[0] : 'img/Glob_DEF.png'}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
-          <h3>${skin.name}</h3><p>${skin.desc}</p>
+          <h3>${translate(skin.name)}</h3><p>${translate(skin.desc)}</p>
           <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${!isUnlocked && gameState.pycoins < skin.cost ? 'disabled' : ''} onclick="${isUnlocked ? `equipSkin('${family}', '${skin.id}')` : `buySkin('${family}', '${skin.id}', ${skin.cost})`}">${btnText}</button>`;
         container.appendChild(el);
       });
@@ -885,7 +885,7 @@ function drawPass() {
       btnHTML = `<button disabled>${translate('req_level', { level: skin.level })}</button>`;
     }
 
-    el.innerHTML = `<div class="milestone-tag">${skin.buff ? translate('upgrade') : translate('milestone')}</div><h3>${skin.name}</h3><p>${skin.desc}</p>
+    el.innerHTML = `<div class="milestone-tag">${skin.buff ? translate('upgrade') : translate('milestone')}</div><h3>${translate(skin.name)}</h3><p>${translate(skin.desc)}</p>
       ${skin.buff && unlocked ? `<b>${translate('active')}</b>` : btnHTML}`;
     container.appendChild(el);
   });
@@ -893,7 +893,7 @@ function drawPass() {
 
 function placeTower(spotId, type) {
   const tCfg = TOWER_TYPES[type];
-  if ((gameState.towerCounts[type]||0) >= (gameState.towerLimits[type]||3)) return showMessage(translate('limit_reached', { name: tCfg.name, limit: gameState.towerLimits[type] || 3 }), 'error');
+  if ((gameState.towerCounts[type]||0) >= (gameState.towerLimits[type]||3)) return showMessage(translate('limit_reached', { name: translate('tower_' + type + '_name'), limit: gameState.towerLimits[type] || 3 }), 'error');
   if (gameState.globetines < tCfg.cost) return showMessage(translate('notEnoughMoney'), 'error');
 
   const spot = gameState.towerSpots[spotId];
@@ -921,7 +921,7 @@ function selectTower(t) {
   const panel = document.getElementById('evolve-panel');
   panel.style.display = 'flex';
   document.getElementById('tower-name').textContent = translate('tower_' + t.type + '_name');
-  document.getElementById('tower-desc').innerHTML = t.desc + (t.evolution ? `<br><br><b>${translate('evolution_label')}:</b> ${translate('tower_' + t.evolution + '_name')}` : '');
+  document.getElementById('tower-desc').innerHTML = translate(t.desc) + (t.evolution ? `<br><br><b>${translate('evolution_label')}:</b> ${translate('tower_' + t.evolution + '_name')}` : '');
   updateEvolveButtons(t);
   drawRangePreview(t.x, t.y, t.range);
 }
@@ -932,7 +932,7 @@ function updateEvolveButtons(t) {
     const next = TOWER_TYPES[t.evolution];
     const btn = document.createElement('button');
     btn.className = 'evolve-btn'; btn.disabled = gameState.globetines < next.cost;
-    btn.innerHTML = translate('evolve_to', { name: next.name, cost: next.cost });
+    btn.innerHTML = translate('evolve_to', { name: translate('tower_' + t.evolution + '_name'), cost: next.cost });
     btn.onclick = () => evolveTower(t, t.evolution);
     container.appendChild(btn);
   }
@@ -1133,9 +1133,10 @@ function updateLanguage() {
 }
 
   // Evolución
-  const evolveTitle = document.querySelector('#evolve-panel h2');
+  const evolveTitle = document.querySelector('#evolve-panel h3');
   if (evolveTitle) evolveTitle.textContent = translate('evolve_title');
-  t('sell-tower-btn', 'sell');
+  const sellBtn = document.getElementById('sell-tower-btn');
+  if (sellBtn) sellBtn.textContent = translate('sell');
   const evolveClose = document.querySelector('#evolve-panel .close-btn');
   if (evolveClose) evolveClose.textContent = translate('close');
 
