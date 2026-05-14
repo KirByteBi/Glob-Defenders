@@ -60,6 +60,8 @@ let gameState = {
   },
   metaRange: 0,
   metaDamage: 1,
+  metaRangeLevel: 0,
+  metaDamageLevel: 0,
   unlockedSkins: ['default'],
   equippedSkins: {
     'Glob': 'default',
@@ -827,10 +829,10 @@ function drawShop() {
 
   if (currentShopTab === 'upgrades') {
     const upgrades = [
-      { id: 'hp', name: 'upgrade_hp_name', desc: 'upgrade_hp_desc', cost: 50, type: 'pycoin' },
+      { id: 'hp', name: 'upgrade_hp_name', desc: 'upgrade_hp_desc', cost: 50, type: 'pycoin', level: gameState.baseHealthLevel, max: 10 },
       { id: 'unlock_Pyce_Glob', name: 'upgrade_unlock_pyce_name', desc: 'upgrade_unlock_pyce_desc', cost: 100, type: 'pycoin', hideIfUnlocked: true },
-      { id: 'meta_range', name: 'upgrade_range_name', desc: 'upgrade_range_desc', cost: 10, type: 'duckpass' },
-      { id: 'meta_damage', name: 'upgrade_damage_name', desc: 'upgrade_damage_desc', cost: 15, type: 'duckpass' }
+      { id: 'meta_range', name: 'upgrade_range_name', desc: 'upgrade_range_desc', cost: 10, type: 'duckpass', level: gameState.metaRangeLevel, max: 5 },
+      { id: 'meta_damage', name: 'upgrade_damage_name', desc: 'upgrade_damage_desc', cost: 15, type: 'duckpass', level: gameState.metaDamageLevel, max: 5 }
     ];
     ['Glob', 'Red_Glob', 'Ducky_Glob'].forEach(t => {
       if (gameState.towerLimits[t] < 10) upgrades.push({ id: 'limit_'+t, name: 'upgrade_limit_name', desc: 'upgrade_limit_desc', cost: 30, type: 'pycoin', params: {name: t} });
@@ -839,10 +841,14 @@ function drawShop() {
     upgrades.forEach(u => {
       if (u.hideIfUnlocked && TOWER_TYPES['Pyce_Glob'].unlocked) return;
       const el = document.createElement('div');
-      el.className = 'meta-item';
+      const isMax = u.max && u.level >= u.max;
+      el.className = `meta-item ${isMax ? 'unlocked' : ''}`;
       const costIcon = u.type === 'pycoin' ? 'img/Tokens/PyCoin.png' : 'img/Tokens/DuckPass.png';
-      el.innerHTML = `<h3>${translate(u.name, u.params)}</h3><p>${translate(u.desc, u.params)}</p><div class="cost"><img src="${costIcon}" width="18"> ${u.cost}</div>
-        <button class="meta-buy-btn" ${canAfford(u) ? '' : 'disabled'} onclick="buyUpgrade('${u.id}', ${u.cost}, '${u.type}')">${translate('buy')}</button>`;
+      
+      const levelText = u.max ? ` [${u.level}/${u.max}]` : '';
+      el.innerHTML = `<h3>${translate(u.name, u.params)}${levelText}</h3><p>${translate(u.desc, u.params)}</p>
+        <div class="cost">${isMax ? translate('max_reached') : `<img src="${costIcon}" width="18"> ${u.cost}`}</div>
+        <button class="meta-buy-btn" ${isMax || !canAfford(u) ? 'disabled' : ''} onclick="buyUpgrade('${u.id}', ${u.cost}, '${u.type}')">${isMax ? '✅' : translate('buy')}</button>`;
       container.appendChild(el);
     });
   } else if (currentShopTab === 'duckgrades') {
@@ -853,7 +859,8 @@ function drawShop() {
       { id: 'dg_Comet_Glob', name: 'duckgrade_comet_name', desc: 'duckgrade_comet_desc', cost: 25, family: 'Comet_Glob' },
       { id: 'dg_Pyce_Glob', name: 'duckgrade_pyce_name', desc: 'duckgrade_pyce_desc', cost: 22, family: 'Special' },
       { id: 'dg_Old_Glob', name: 'duckgrade_old_name', desc: 'duckgrade_old_desc', cost: 20, family: 'Special' },
-      { id: 'dg_Work_Bombot', name: 'duckgrade_bombot_name', desc: 'duckgrade_bombot_desc', cost: 30, family: 'Special' }
+      { id: 'dg_Work_Bombot', name: 'duckgrade_bombot_name', desc: 'duckgrade_bombot_desc', cost: 30, family: 'Special' },
+      { id: 'dg_Ducky_Glob', name: 'duckgrade_duck_name', desc: 'duckgrade_duck_desc', cost: 15, family: 'Ducky_Glob' }
     ];
 
     dgs.forEach(u => {
@@ -914,10 +921,10 @@ function buyUpgrade(id, cost, type) {
   if (type === 'pycoin' ? gameState.pycoins < cost : gameState.duckPassCurrency < cost) return;
   if (type === 'pycoin') gameState.pycoins -= cost; else gameState.duckPassCurrency -= cost;
 
-  if (id === 'hp') { gameState.baseHealthLevel++; gameState.health += 20; showMessage(translate('base_hp_improved'), 'success'); }
+  if (id === 'hp') { if (gameState.baseHealthLevel >= 10) return; gameState.baseHealthLevel++; gameState.health += 20; showMessage(translate('base_hp_improved'), 'success'); }
   else if (id.startsWith('limit_')) { gameState.towerLimits[id.replace('limit_', '')]++; showMessage(translate('tower_limit_increased', {name: id.replace('limit_', '')}), 'success'); }
-  else if (id === 'meta_range') { gameState.metaRange = (gameState.metaRange||0) + 20; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
-  else if (id === 'meta_damage') { gameState.metaDamage = (gameState.metaDamage||1) + 0.15; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
+  else if (id === 'meta_range') { if (gameState.metaRangeLevel >= 5) return; gameState.metaRangeLevel++; gameState.metaRange = (gameState.metaRange||0) + 20; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
+  else if (id === 'meta_damage') { if (gameState.metaDamageLevel >= 5) return; gameState.metaDamageLevel++; gameState.metaDamage = (gameState.metaDamage||1) + 0.15; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
   else if (id.startsWith('dg_')) { gameState.duckgrades[id] = true; showMessage("🦆 DUCKGRADE UNLOCKED!", 'success'); }
 
   updateMetaUI(); drawShop(); drawTowerShop(); saveProgress();
@@ -1103,8 +1110,21 @@ function gameLoop() {
     t.el.classList.remove('stunned');
     // Ducky Glob Generation
     if (t.family === 'Ducky_Glob' || t.type === 'Ducky_Glob' || t.type === 'Golden_Ducky_Glob') {
+      let interval = t.type === 'Golden_Ducky_Glob' ? 5 : 8;
+      // DUCKGRADE: Defensive Duck
+      if (gameState.duckgrades.dg_Ducky_Glob) {
+        const enemiesInRange = gameState.enemies.filter(e => Math.hypot(e.x-t.x, e.y-t.y) <= (t.range || 100));
+        if (enemiesInRange.length > 0) {
+           interval *= 0.5; // Doble de rápido
+           // Daño de área pequeño
+           enemiesInRange.forEach(e => {
+             e.health -= 0.5 * dt * (gameState.wave+1);
+           });
+           if (Math.random() < 0.1) showEffect(t.x, t.y, "🦆💥", "#ffd700");
+        }
+      }
+
       t.moneyTimer += dt;
-      const interval = t.type === 'Golden_Ducky_Glob' ? 5 : 8;
       if (t.moneyTimer >= interval) {
         t.moneyTimer = 0;
         const amount = 10 + Math.floor(gameState.wave * 1.5);
@@ -1131,7 +1151,7 @@ function gameLoop() {
     }
 
     t.cooldown -= dt;
-    if (t.cooldown <= 0) {
+    if (t.cooldown <= 0 && t.family !== 'Ducky_Glob') {
       const targets = gameState.enemies.filter(e => Math.hypot(e.x-t.x, e.y-t.y) <= t.range);
       if (targets.length) { 
         let dmg = t.damage;
