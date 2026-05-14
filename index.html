@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glob Defenders - VS. Pyces</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="img/GlobDefendersLogo.png">
+</head>
+
+<body>
+    <!-- Portrait mode overlay -->
+    <div id="portrait-overlay">
+        <div class="portrait-content">
+            <div class="portrait-icon">📱🔄</div>
+            <h2>Gira el dispositivo</h2>
+            <p>Glob Defenders se juega en modo horizontal</p>
+        </div>
+    </div>
+
+    <button id="language-toggle" onclick="toggleLanguage()">🌐 ES / EN</button>
+    <button id="mute-toggle" onclick="toggleMute()">🔊</button>
+
+    <!-- Meta Controls (Visible after login) -->
+    <div id="meta-controls" style="display: none;">
+        <button id="open-shop" class="meta-btn">🛒 <span class="btn-text">Tienda</span></button>
+        <button id="open-pass" class="meta-btn">🦆 <span class="btn-text">Pass</span></button>
+    </div>
+
+    <div id="login-screen">
+        <div id="login-decorations"></div>
+        <div class="login-box">
+            <img src="img/GlobDefendersLogo.png" alt="Glob Defenders Logo" class="login-logo">
+            <div class="login-inputs">
+                <input type="text" id="username-input" placeholder="Nombre de Usuario">
+                <input type="password" id="password-input" placeholder="Contraseña">
+            </div>
+            <div id="login-msg" style="color: #ff4444; font-size: 0.9rem; margin-bottom: 15px; min-height: 20px;"></div>
+            <button id="login-btn">Unirse a la batalla</button>
+        </div>
+    </div>
+
+    <div id="mode-selection" style="display: none;">
+        <div id="mode-decorations"></div>
+        <div class="login-box">
+            <h2>Seleccionar Modo</h2>
+            <div class="modes-grid">
+                <button class="mode-btn" data-mode="facil">🌱 Fácil</button>
+                <button class="mode-btn" data-mode="normal">⚔️ Normal</button>
+                <button class="mode-btn" data-mode="dificil">🔥 Difícil</button>
+                <button class="mode-btn" data-mode="extremo">💀 Extremo</button>
+                <button class="mode-btn" data-mode="infinito">♾️ Infinito</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <div id="game-header">
+            <img src="img/GlobDefendersLogo.png" alt="Glob Defenders" class="game-logo">
+            <div id="admin-indicator" class="admin-indicator" style="display: none;">👑 ADMIN MODE</div>
+        </div>
+
+        <div id="game-ui">
+            <div id="game-stats">
+                <div class="stat" id="health-stat" title="Salud de la base">
+                    <span class="stat-value" id="health">100</span>
+                    <span class="stat-label">Salud</span>
+                </div>
+                <div class="stat" id="money-stat" title="Globetines">
+                    <img src="img/Globetin.png" width="20">
+                    <span class="stat-value" id="money">500</span>
+                    <span class="stat-label">Globetines</span>
+                </div>
+                <div class="stat" id="pycoins-stat" title="PyCoins">
+                    <img src="img/PyCoin.png" width="20">
+                    <span class="stat-value" id="pycoins-value">0</span>
+                    <span class="stat-label">PyCoins</span>
+                </div>
+                <div class="stat" id="duckpass-stat" title="Ducky Pass">
+                    <img src="img/Ducky_Glob.png" width="20">
+                    <span class="stat-value" id="duckpass-currency">0</span>
+                    <span class="stat-label">Duck Pass</span>
+                </div>
+                <div class="stat" title="Oleada actual">
+                    <span class="stat-value" id="wave-count">0</span>
+                    <span class="stat-label">Oleada</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="start-wave">▶️ <span class="btn-text">Iniciar Oleada</span></button>
+                <button id="auto-wave">🔁 <span class="btn-text">Auto-Oleada</span></button>
+                <button id="deselect-tower">❌ <span class="btn-text">Cancelar</span></button>
+            </div>
+        </div>
+
+        <div class="game-scale-wrapper">
+        <div id="game-area">
+            <!-- Bases -->
+            <div id="forest-base" title="Base enemiga: Bosque">🌲</div>
+            <div id="ally-base" title="Base aliada: Edificio Gris">
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+            </div>
+
+            <div id="map">
+                <!-- Segmentos de río, camino y spots generados por JS -->
+            </div>
+
+            <div id="game-messages"></div>
+
+            <div id="game-over" class="modal">
+                <div class="modal-content">
+                    <h2>💀 GAME OVER 💀</h2>
+                    <p>Llegaste a la oleada <span id="final-wave">0</span></p>
+                    <button onclick="location.reload()">🔄 Reintentar</button>
+                </div>
+            </div>
+        </div>
+        </div><!-- end .game-scale-wrapper -->
+
+        <div id="tower-shop">
+            <!-- Tienda generada por JS -->
+        </div>
+
+
+        <div id="badges-panel">
+            <h4>Logros</h4>
+            <div id="badges-list">
+                <!-- Logros generados por JS -->
+            </div>
+        </div>
+
+        <div id="evolve-panel" class="side-panel" style="display: none;">
+            <h3 id="tower-name">Torre</h3>
+            <div id="tower-desc"></div>
+            <div id="evolve-options"></div>
+            <button id="sell-tower-btn" class="sell-btn">Vender</button>
+            <button onclick="deselectTower()" class="close-btn">Cerrar</button>
+        </div>
+    </div>
+
+    <button id="debug-toggle" style="position: fixed; bottom: 10px; right: 10px; opacity: 0.1;">🐛</button>
+
+    <!-- Modales Meta-Juego -->
+    <div id="shop-modal" class="modal">
+        <div class="modal-content shop-content">
+            <div class="modal-header">
+                <h2 id="shop-title">🛒 Tienda Meta</h2>
+                <div class="shop-tabs">
+                    <button class="shop-tab active" onclick="switchShopTab('upgrades')">Mejoras</button>
+                    <button class="shop-tab" onclick="switchShopTab('skins')">Skins</button>
+                </div>
+                <div class="header-btns">
+                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a Modos</span></button>
+                    <button class="close-btn" onclick="closeModal('shop-modal')">✖</button>
+                </div>
+            </div>
+            <div id="shop-items" class="meta-grid"></div>
+            
+            <div id="code-area">
+                <input type="text" id="game-code" placeholder="Código Secreto...">
+                <button id="apply-code">Aplicar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pass-modal" class="modal">
+        <div class="modal-content pass-content">
+            <div class="modal-header">
+                <h2 id="pass-title">🦆 Duck Pass</h2>
+                <div class="header-btns">
+                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a Modos</span></button>
+                    <button class="close-btn" onclick="closeModal('pass-modal')">✖</button>
+                </div>
+            </div>
+            <div class="pass-info">
+                <div class="pass-level-container">
+                    <span>Nivel <span id="pass-level">1</span></span>
+                    <div class="xp-bar-bg"><div id="xp-fill" class="xp-bar-fill"></div></div>
+                    <span><span id="pass-xp">0</span> / 100 XP</span>
+                </div>
+            </div>
+            <div id="pass-rewards" class="meta-grid"></div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+
+</html>
