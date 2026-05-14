@@ -37,6 +37,11 @@ const TRANSLATIONS = {
     badge_corruptMimic_name: "Oro Maldito", badge_corruptMimic_desc: "Encuentra un Mimic corrupto",
     badge_mimicRevenge_name: "Venganza Dorada", badge_mimicRevenge_desc: "Derrota a un Mimic que ha resucitado",
     badge_antiNormal_name: "Maestro del Vacío", badge_antiNormal_desc: "Purifica el modo Anti-Normal",
+    badge_winFacil_name: "Iniciado", badge_winFacil_desc: "Vence en modo Fácil",
+    badge_winNormal_name: "Defensor", badge_winNormal_desc: "Vence en modo Normal",
+    badge_winDificil_name: "Guerrero", badge_winDificil_desc: "Vence en modo Difícil",
+    badge_winExtremo_name: "Leyenda", badge_winExtremo_desc: "Vence en modo Extremo",
+    badge_winCorrupto_name: "Purificador", badge_winCorrupto_desc: "Vence en modo Corrupto",
     login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla",
     select_mode: "Seleccionar Modo",
     backToModes: "Selección de Modo",
@@ -82,6 +87,11 @@ const TRANSLATIONS = {
     badge_corruptMimic_name: "Cursed Gold", badge_corruptMimic_desc: "Find a corrupt Mimic",
     badge_mimicRevenge_name: "Golden Revenge", badge_mimicRevenge_desc: "Defeat a resurrected Mimic",
     badge_antiNormal_name: "Void Master", badge_antiNormal_desc: "Purify the Anti-Normal mode",
+    badge_winFacil_name: "Beginner", badge_winFacil_desc: "Win in Easy mode",
+    badge_winNormal_name: "Defender", badge_winNormal_desc: "Win in Normal mode",
+    badge_winDificil_name: "Warrior", badge_winDificil_desc: "Win in Hard mode",
+    badge_winExtremo_name: "Legend", badge_winExtremo_desc: "Win in Extreme mode",
+    badge_winCorrupto_name: "Purifier", badge_winCorrupto_desc: "Win in Corrupt mode",
     login_user: "Username", login_pass: "Password", login_btn: "Join the battle",
     select_mode: "Select Mode",
     backToModes: "Mode Selection",
@@ -356,7 +366,12 @@ const BADGES = {
   mimic4: { key: 'mimic4', icon: '🎁', unlocked: false, reward: { duckpass: 15, xp: 300 } },
   corruptMimic: { key: 'corruptMimic', icon: '💀', unlocked: false, reward: { pycoins: 1000, xp: 500 } },
   mimicRevenge: { key: 'mimicRevenge', icon: '🔥', unlocked: false, reward: { pycoins: 500, xp: 200 } },
-  antiNormal: { key: 'antiNormal', icon: '🌑', unlocked: false, reward: { duckpass: 100, xp: 2000 } }
+  antiNormal: { key: 'antiNormal', icon: '🌑', unlocked: false, reward: { duckpass: 100, xp: 2000 } },
+  winFacil: { key: 'winFacil', icon: '🌱', unlocked: false, reward: { pycoins: 50, xp: 50 } },
+  winNormal: { key: 'winNormal', icon: '⚔️', unlocked: false, reward: { pycoins: 100, xp: 100 } },
+  winDificil: { key: 'winDificil', icon: '🔥', unlocked: false, reward: { pycoins: 200, xp: 200 } },
+  winExtremo: { key: 'winExtremo', icon: '💀', unlocked: false, reward: { pycoins: 500, xp: 500 } },
+  winCorrupto: { key: 'winCorrupto', icon: '👾', unlocked: false, reward: { pycoins: 1000, xp: 1000 } }
 };
 
 const RIVER_ZONES = [
@@ -717,6 +732,11 @@ function handleLogin() {
   if (name === "Admin" || name === "KirByteBi") {
     gameState.adminMode = true;
     document.getElementById('admin-indicator').style.display = 'block';
+    // Reset especial para KirByteBi: quitar glitch si está atascado
+    if (name === "KirByteBi") {
+      gameState.antiNormalActive = false;
+      gameState.unlockedAntiNormal = true; // Considerarlo pasado por defecto para él
+    }
   }
 
   // Activar estado Glitch / Anti-Normal (solo si no se ha pasado ya)
@@ -740,6 +760,31 @@ function handleLogin() {
       infBtn.style.opacity = "1";
     }
   }
+
+  // Bloquear modos según progresión
+  const modes = ['normal', 'dificil', 'extremo', 'corrupto'];
+  const requirements = {
+    'normal': 'winFacil',
+    'dificil': 'winNormal',
+    'extremo': 'winDificil',
+    'corrupto': 'winExtremo'
+  };
+
+  modes.forEach(m => {
+    const btn = document.querySelector(`.mode-btn[data-mode="${m}"]`);
+    if (btn && !gameState.adminMode) {
+      const req = requirements[m];
+      if (!BADGES[req].unlocked) {
+        btn.disabled = true;
+        btn.style.opacity = "0.4";
+        btn.title = `Vence en modo ${modes[modes.indexOf(m)-1]} para desbloquear`;
+      } else {
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.title = "";
+      }
+    }
+  });
 }
 
 function disableAntiNormal() {
@@ -852,7 +897,7 @@ function drawBadges() {
   const list = document.getElementById('badges-list');
   if (!list) return;
   list.innerHTML = '';
-  Object.values(BADGES).forEach(b => {
+  Object.values(BADGES).filter(b => b.unlocked).forEach(b => {
     // Si está desbloqueado pero no se ha cobrado el premio, cobrarlo ahora
     if (b.unlocked && !gameState.claimedRewards.includes(b.key)) {
       grantBadgeReward(b);
@@ -1520,6 +1565,11 @@ function startWave() {
       showMessage("¡S1S73M4 PURI4F1C4D0! +250 PyCoins +45 DuckPass", 'success');
       gameState.antiNormalActive = false;
     }
+
+    // Badge por dificultad vencida
+    const difficultyBadges = { facil: 'winFacil', normal: 'winNormal', dificil: 'winDificil', extremo: 'winExtremo', corrupto: 'winCorrupto' };
+    const badgeKey = difficultyBadges[gameState.mode];
+    if (badgeKey && BADGES[badgeKey]) BADGES[badgeKey].unlocked = true;
 
     if (gameState.mode === 'dificil' || gameState.mode === 'extremo' || gameState.mode === 'corrupto') {
       gameState.unlockedInfinite = true;
