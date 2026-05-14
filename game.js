@@ -423,8 +423,8 @@ const SKINS_DATA = {
     { id: 'music_set', name: 'Set Musical', desc: '¡Ritmo y fiesta para la línea roja!', cost: 300, type: 'pycoin',
       skins: {
         'Red_Glob': 'img/Skins/Rojo Melee/Music Glob (SK-EVO1).png',
-        'Molten_Glob': 'img/Skins/Rojo Melee/Party Glob (SK-EVO2).png',
-        'Robotic_Glob': 'img/Skins/Rojo Melee/Funky Glob (SK-EVO3).png'
+        'Molten_Glob': 'img/Skins/Rojo Melee/Funky Glob (SK-EVO2).png',
+        'Robotic_Glob': 'img/Skins/Rojo Melee/Party Glob (SK-EVO3).png'
       }
     }
   ],
@@ -936,6 +936,33 @@ function drawBadges() {
   });
 }
 
+function unlockBadge(key) {
+  if (BADGES[key] && !BADGES[key].unlocked) {
+    BADGES[key].unlocked = true;
+    saveProgress();
+    drawBadges();
+    showBadgePopup(BADGES[key]);
+  }
+}
+
+function showBadgePopup(badge) {
+  const popup = document.getElementById('badge-popup');
+  const icon = document.getElementById('badge-popup-icon');
+  const title = document.getElementById('badge-popup-title');
+  const desc = document.getElementById('badge-popup-desc');
+
+  if (!popup) return;
+
+  icon.textContent = badge.icon;
+  title.textContent = translate(`badge_${badge.key}_name`);
+  desc.textContent = translate(`badge_${badge.key}_desc`);
+
+  popup.classList.add('show');
+  setTimeout(() => {
+    popup.classList.remove('show');
+  }, 4000);
+}
+
 function grantBadgeReward(badge) {
   if (gameState.claimedRewards.includes(badge.key)) return; // No cobrar dos veces
   
@@ -1048,7 +1075,7 @@ function bindEvents() {
     let valid = false;
     if (code === 'GL0B_CL1CKER') {
       gameState.pycoins += 100;
-      BADGES.secret.unlocked = true;
+      unlockBadge('secret');
       showMessage(translate('codeSuccess', { name: '100 PyCoins' }), 'success');
       valid = true;
     } else if (code === 'B1TL4NDS') {
@@ -1213,7 +1240,7 @@ function addXP(amount) {
 
 function unlockBadge(key) {
   if (BADGES[key] && !BADGES[key].unlocked) {
-    BADGES[key].unlocked = true;
+    unlockBadge(key);
     drawBadges(); // Esto disparará grantBadgeReward automáticamente
     saveProgress();
     showMessage(`¡Logro Desbloqueado: ${translate('badge_' + key + '_name')}!`, 'success');
@@ -1542,7 +1569,7 @@ function evolveTower(tower, nextType) {
     tower.el.style.backgroundImage = `url('${getTowerImage(nextType)}')`;
     applyTowerEffects(tower.el, nextType);
     tower.level++;
-    if (!nextCfg.evolution) BADGES.evolution.unlocked = true;
+    if (!nextCfg.evolution) unlockBadge('evolution');
     selectTower(tower);
     updateUI();
     drawTowerShop();
@@ -1576,7 +1603,7 @@ function startWave() {
       gameState.duckPassCurrency += 45;
       addXP(300);
       gameState.unlockedAntiNormal = true;
-      BADGES.antiNormal.unlocked = true;
+      unlockBadge('antiNormal');
       showMessage("¡S1S73M4 PURI4F1C4D0! +250 PyCoins +45 DuckPass", 'success');
       gameState.antiNormalActive = false;
     }
@@ -1584,7 +1611,7 @@ function startWave() {
     // Badge por dificultad vencida
     const difficultyBadges = { facil: 'winFacil', normal: 'winNormal', dificil: 'winDificil', extremo: 'winExtremo', corrupto: 'winCorrupto' };
     const badgeKey = difficultyBadges[gameState.mode];
-    if (badgeKey && BADGES[badgeKey]) BADGES[badgeKey].unlocked = true;
+    if (badgeKey && BADGES[badgeKey]) unlockBadge(badgeKey);
 
     if (gameState.mode === 'dificil' || gameState.mode === 'extremo' || gameState.mode === 'corrupto') {
       gameState.unlockedInfinite = true;
@@ -1592,15 +1619,27 @@ function startWave() {
 
     if (gameState.corrupt) {
       gameState.corruptWins++;
-      if (gameState.corruptWins >= 1) BADGES.corrupt1.unlocked = true;
-      if (gameState.corruptWins >= 2) BADGES.corrupt2.unlocked = true;
-      if (gameState.corruptWins >= 3) BADGES.corrupt3.unlocked = true;
-      if (gameState.corruptWins >= 4) BADGES.corrupt4.unlocked = true;
-      if (gameState.corruptWins >= 5) BADGES.corrupt5.unlocked = true;
+      if (gameState.corruptWins >= 1) unlockBadge('corrupt1');
+      if (gameState.corruptWins >= 2) unlockBadge('corrupt2');
+      if (gameState.corruptWins >= 3) unlockBadge('corrupt3');
+      if (gameState.corruptWins >= 4) unlockBadge('corrupt4');
+      if (gameState.corruptWins >= 5) unlockBadge('corrupt5');
     }
     saveProgress();
     drawBadges();
-    showMessage("¡HAS GANADO LA GUERRA!", 'success');
+    
+    // Victoria Modal
+    gameState.autoWave = false; // Desactivar auto-wave al ganar
+    const modal = document.getElementById('game-over');
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+    modal.querySelector('h2').innerHTML = "🏆 ¡VICTORIA MAGISTRAL! 🏆";
+    modal.querySelector('p').innerHTML = `Has completado el modo <b>${gameState.mode.toUpperCase()}</b>.<br>¡Regresa para probar nuevos desafíos!`;
+    modal.querySelector('button').textContent = "Selección de Modos";
+    modal.querySelector('button').onclick = () => {
+      modal.style.display = 'none';
+      backToModes();
+    };
     return;
   }
 
@@ -1609,9 +1648,9 @@ function startWave() {
 
   // Badge infinito
   if (gameState.mode === 'infinito') {
-    if (gameState.wave >= 100) BADGES.inf100.unlocked = true;
-    if (gameState.wave >= 500) BADGES.inf500.unlocked = true;
-    if (gameState.wave >= 999) BADGES.inf999.unlocked = true;
+    if (gameState.wave >= 100) unlockBadge('inf100');
+    if (gameState.wave >= 500) unlockBadge('inf500');
+    if (gameState.wave >= 999) unlockBadge('inf999');
     drawBadges();
   }
 
@@ -1701,11 +1740,11 @@ function spawnEnemy(type, isBoss = false) {
 
   // Racha de Mimics
   if (t.mimic) {
-    BADGES.mimic1.unlocked = true;
+    unlockBadge('mimic1');
     gameState.consecutiveMimics++;
-    if (gameState.consecutiveMimics >= 2) BADGES.mimic2.unlocked = true;
-    if (gameState.consecutiveMimics >= 3) BADGES.mimic3.unlocked = true;
-    if (gameState.consecutiveMimics >= 4) BADGES.mimic4.unlocked = true;
+    if (gameState.consecutiveMimics >= 2) unlockBadge('mimic2');
+    if (gameState.consecutiveMimics >= 3) unlockBadge('mimic3');
+    if (gameState.consecutiveMimics >= 4) unlockBadge('mimic4');
     saveProgress();
     drawBadges();
   } else {
@@ -1728,7 +1767,7 @@ function spawnEnemy(type, isBoss = false) {
   if (gameState.corrupt) {
     const isPink = Math.random() > 0.5;
     el.classList.add(isPink ? 'corrupt-pink' : 'corrupt-green');
-    if (t.mimic) BADGES.corruptMimic.unlocked = true;
+    if (t.mimic) unlockBadge('corruptMimic');
   }
 
   if (isBoss && gameState.corrupt && gameState.wave === 45) {
@@ -1938,8 +1977,8 @@ function gameLoop() {
     updateUI();
     updateMetaUI();
 
-    if (gameState.wave >= 10) BADGES.survivor.unlocked = true;
-    if (gameState.globetines >= 20000) BADGES.millionaire.unlocked = true;
+    if (gameState.wave >= 10) unlockBadge('survivor');
+    if (gameState.globetines >= 20000) unlockBadge('millionaire');
 
     drawBadges();
     saveProgress();
@@ -1998,7 +2037,7 @@ function die(e, idx) {
   }
 
   if (e.revived && e.mimic) {
-    BADGES.mimicRevenge.unlocked = true;
+    unlockBadge('mimicRevenge');
     saveProgress();
     drawBadges();
   }
@@ -2012,7 +2051,7 @@ function die(e, idx) {
 
   e.el.remove();
   if (e.boss) {
-    BADGES.bossKiller.unlocked = true;
+    unlockBadge('bossKiller');
     TOWER_TYPES['Old_Glob'].unlocked = true;
 
     // Mensajes de derrota de jefes

@@ -55,7 +55,9 @@
                 <button class="mode-btn" data-mode="extremo">💀 Extremo</button>
                 <button class="mode-btn" data-mode="infinito">♾️ Infinito</button>
             </div>
-            <button id="disable-antinormal-btn" class="meta-btn" style="margin-top: 20px; width: 100%; display: none; background: #ff4444;" onclick="disableAntiNormal()">🛠️ Desactivar Glitch</button>
+            <button id="disable-antinormal-btn" class="meta-btn"
+                style="margin-top: 20px; width: 100%; display: none; background: #ff4444;"
+                onclick="disableAntiNormal()">🛠️ Desactivar Glitch</button>
         </div>
     </div>
 
@@ -100,29 +102,29 @@
         </div>
 
         <div class="game-scale-wrapper">
-        <div id="game-area">
-            <!-- Bases -->
-            <div id="forest-base" title="Base enemiga: Bosque">🌲</div>
-            <div id="ally-base" title="Base aliada: Edificio Gris">
-                <div class="window"></div>
-                <div class="window"></div>
-                <div class="window"></div>
-            </div>
+            <div id="game-area">
+                <!-- Bases -->
+                <div id="forest-base" title="Base enemiga: Bosque">🌲</div>
+                <div id="ally-base" title="Base aliada: Edificio Gris">
+                    <div class="window"></div>
+                    <div class="window"></div>
+                    <div class="window"></div>
+                </div>
 
-            <div id="map">
-                <!-- Segmentos de río, camino y spots generados por JS -->
-            </div>
+                <div id="map">
+                    <!-- Segmentos de río, camino y spots generados por JS -->
+                </div>
 
-            <div id="game-messages"></div>
+                <div id="game-messages"></div>
 
-            <div id="game-over" class="modal">
-                <div class="modal-content">
-                    <h2>💀 GAME OVER 💀</h2>
-                    <p>Llegaste a la oleada <span id="final-wave">0</span></p>
-                    <button onclick="location.reload()">🔄 Reintentar</button>
+                <div id="game-over" class="modal">
+                    <div class="modal-content">
+                        <h2>💀 GAME OVER 💀</h2>
+                        <p>Llegaste a la oleada <span id="final-wave">0</span></p>
+                        <button onclick="location.reload()">🔄 Reintentar</button>
+                    </div>
                 </div>
             </div>
-        </div>
         </div><!-- end .game-scale-wrapper -->
 
         <div id="tower-shop">
@@ -158,12 +160,13 @@
                     <button class="shop-tab" onclick="switchShopTab('skins')">Skins</button>
                 </div>
                 <div class="header-btns">
-                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a Modos</span></button>
+                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a
+                            Modos</span></button>
                     <button class="close-btn" onclick="smartClose('shop-modal')">✖</button>
                 </div>
             </div>
             <div id="shop-items" class="meta-grid"></div>
-            
+
             <div id="code-area">
                 <input type="text" id="game-code" placeholder="Código Secreto...">
                 <button id="apply-code">Aplicar</button>
@@ -176,14 +179,17 @@
             <div class="modal-header">
                 <h2 id="pass-title">🦆 Duck Pass</h2>
                 <div class="header-btns">
-                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a Modos</span></button>
+                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a
+                            Modos</span></button>
                     <button class="close-btn" onclick="smartClose('pass-modal')">✖</button>
                 </div>
             </div>
             <div class="pass-info">
                 <div class="pass-level-container">
                     <span>Nivel <span id="pass-level">1</span></span>
-                    <div class="xp-bar-bg"><div id="xp-fill" class="xp-bar-fill"></div></div>
+                    <div class="xp-bar-bg">
+                        <div id="xp-fill" class="xp-bar-fill"></div>
+                    </div>
                     <span><span id="pass-xp">0</span> / 100 XP</span>
                 </div>
             </div>
