@@ -387,7 +387,11 @@ function selectMode(mode) {
 
   document.getElementById('mode-selection').style.display = 'none';
   document.getElementById('mode-selection').classList.remove('glitch-state');
-  gameState.globetines = 500; // Reset globetines to 500 at start
+  
+  // Reset completo al seleccionar modo
+  retryGame(); 
+  
+  gameState.globetines = 500;
   updateUI();
   showMessage(translate('mode_selected', { mode: mode.toUpperCase() }), 'info');
 }
@@ -936,6 +940,12 @@ function selectTower(t) {
   gameState.selectedTower = t;
   const panel = document.getElementById('evolve-panel');
   panel.style.display = 'flex';
+  
+  // Posicionar el panel cerca de la torre (centrado arriba)
+  const mapRect = document.getElementById('map').getBoundingClientRect();
+  panel.style.left = `${t.x - 140}px`; // 140 es la mitad de 280 (ancho del panel)
+  panel.style.top = `${t.y - 180}px`;  // Un poco por encima de la torre
+  
   document.getElementById('tower-name').textContent = translate(t.name);
   document.getElementById('tower-desc').innerHTML = translate(t.desc);
   updateEvolveButtons(t);
