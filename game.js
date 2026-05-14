@@ -979,26 +979,38 @@ function spawnEnemy(type, boss) {
 function gameLoop() {
   if (gameState.gameOver) return;
   const dt = 1/60;
+
   for (let i = gameState.enemies.length-1; i >= 0; i--) {
     const e = gameState.enemies[i];
     const next = ENEMY_PATH[e.pathIndex+1];
+    
     if (next) {
       const dx = next.x - e.x, dy = next.y - e.y, dist = Math.hypot(dx, dy);
       if (dist < e.speed) e.pathIndex++;
       else { e.x += (dx/dist)*e.speed; e.y += (dy/dist)*e.speed; }
       e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
     } else {
+      if (e.instakill) { gameState.health = 0; endGame(); return; }
+      if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
       e.el.remove(); gameState.enemies.splice(i, 1);
       gameState.health -= e.boss ? 10 : 1;
-      if (gameState.health <= 0) endGame();
+      if (gameState.health <= 0) { gameState.health = 0; endGame(); }
       updateUI(); continue;
     }
-    const pct = (e.health / e.maxHealth) * 100;
+
+    // Visual de Vida/Escudo
+    const totalCurrent = e.health + (e.shield || 0);
+    const totalMax = e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0); // Estimación para barra
+    const pct = Math.max(0, (totalCurrent / (e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0))) * 100);
     e.hpFill.style.width = pct + '%';
+    e.hpFill.style.backgroundColor = (e.shield > 0) ? '#ffd700' : '#ff4444';
+
     if (e.health <= 0) die(e, i);
   }
 
   gameState.towers.forEach(t => {
+    if (t.stunned > 0) { t.stunned -= dt; t.el.classList.add('stunned'); return; }
+    t.el.classList.remove('stunned');
     t.cooldown -= dt;
     if (t.cooldown <= 0) {
       const targets = gameState.enemies.filter(e => Math.hypot(e.x-t.x, e.y-t.y) <= t.range);
@@ -1011,13 +1023,23 @@ function gameLoop() {
     if (!p.target || !gameState.enemies.includes(p.target)) { p.el.remove(); gameState.projectiles.splice(i,1); continue; }
     const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
     if (dist < 10) {
-      p.target.health -= p.damage; gameState.totalDamage += p.damage;
+      let dmg = p.damage;
+      if (p.target.shield > 0) {
+        const abs = Math.min(p.target.shield, dmg);
+        p.target.shield -= abs;
+        dmg -= abs;
+      }
+      if (dmg > 0) p.target.health -= dmg;
+      gameState.totalDamage += p.damage;
       p.el.remove(); gameState.projectiles.splice(i,1);
     } else { p.x += (dx/dist)*10; p.y += (dy/dist)*10; p.el.style.left = p.x+'px'; p.el.style.top = p.y+'px'; }
   }
 
   if (gameState.waveActive && !gameState.enemies.length) {
-    gameState.waveActive = false; gameState.globetines += 50 + gameState.wave*10; gameState.pycoins += 10; addXP(20);
+    gameState.waveActive = false;
+    gameState.globetines += 50 + gameState.wave*10;
+    gameState.pycoins += 10;
+    addXP(20);
     updateUI(); updateMetaUI(); saveProgress();
     if (gameState.autoWave) setTimeout(startWave, 2000);
   }
