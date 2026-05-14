@@ -1,0 +1,7 @@
+# Ignorar el archivo de códigos secretos
+codigos.txt
+
+# Ignorar archivos temporales de sistema
+Thumbs.db
+.DS_Store
+*.tmp
