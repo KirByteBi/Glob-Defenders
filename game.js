@@ -440,7 +440,7 @@ function showTooltip(t, el) {
   const rect = el.getBoundingClientRect();
   const name = translate('tower_' + (t.family || t.type) + '_name');
   tooltip.innerHTML = `
-    <b>${name}</b>
+    <b>${translate(t.name)}</b>
     <p>${translate(t.desc) || ""}</p>
     <div style="margin-top: 5px; font-size: 0.75rem; color: #aaa;">
       ⚔️ ${t.damage || 0} | 🔭 ${t.range || 0}
@@ -494,7 +494,7 @@ function drawTowerShop() {
     const isFull = currentCount >= limit;
 
     const displayImg = getTowerImage(type);
-    const name = translate('tower_' + type + '_name');
+    const name = translate(t.name);
     el.innerHTML = `
       <div class="tower-icon-shop" style="background-image: url('${displayImg}')"></div>
       <div class="tower-info-shop">
@@ -922,24 +922,31 @@ function selectTower(t) {
   gameState.selectedTower = t;
   const panel = document.getElementById('evolve-panel');
   panel.style.display = 'flex';
-  document.getElementById('tower-name').textContent = translate('tower_' + t.type + '_name');
-  document.getElementById('tower-desc').innerHTML = translate(t.desc) + (t.evolution ? `<br><br><b>${translate('evolution_label')}:</b> ${translate('tower_' + t.evolution + '_name')}` : '');
+  document.getElementById('tower-name').textContent = translate(t.name);
+  document.getElementById('tower-desc').innerHTML = translate(t.desc);
   updateEvolveButtons(t);
   drawRangePreview(t.x, t.y, t.range);
 }
 
 function updateEvolveButtons(t) {
-  const container = document.getElementById('evolve-options'); container.innerHTML = '';
-  if (t.evolution) {
-    const next = TOWER_TYPES[t.evolution];
-    const btn = document.createElement('button');
-    btn.className = 'evolve-btn'; btn.disabled = gameState.globetines < next.cost;
-    btn.innerHTML = translate('evolve_to', { name: translate('tower_' + t.evolution + '_name'), cost: next.cost });
-    btn.onclick = () => evolveTower(t, t.evolution);
-    container.appendChild(btn);
+  const container = document.getElementById('evolve-options'); 
+  if (container) {
+    container.innerHTML = '';
+    if (t.evolution) {
+      const next = TOWER_TYPES[t.evolution];
+      const btn = document.createElement('button');
+      btn.className = 'evolve-btn'; 
+      btn.disabled = gameState.globetines < next.cost;
+      btn.innerHTML = translate('evolve_to', { name: translate(next.name), cost: next.cost });
+      btn.onclick = () => evolveTower(t, t.evolution);
+      container.appendChild(btn);
+    }
   }
-  document.getElementById('sell-tower-btn').onclick = () => sellTower(t);
-  document.getElementById('sell-tower-btn').innerHTML = translate('sell_tower', { cost: Math.floor(t.cost * 0.7) });
+  const sellBtn = document.getElementById('sell-tower-btn');
+  if (sellBtn) {
+    sellBtn.onclick = () => sellTower(t);
+    sellBtn.innerHTML = translate('sell_tower', { cost: Math.floor(t.cost * 0.7) });
+  }
 }
 
 function evolveTower(tower, nextType) {
