@@ -1755,5 +1755,66 @@ input:checked + .slider:before {
     background: rgba(239, 68, 68, 0.3);
     color: white;
 }
- color: white;
+
+/* ===================== SHOP TABS ===================== */
+.shop-header-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 0 10px;
 }
+
+.shop-tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.shop-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.shop-tab-btn.active {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.meta-item.unlocked {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.cost-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    color: #ffd700;
+    margin-left: 8px;
+}
+
+.cost-tag img {
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+}
+
+.evolve-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+

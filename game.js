@@ -76,7 +76,8 @@ let gameState = {
   settings: {
     showShopDesc: true,
     showTotalDamage: false
-  }
+  },
+  duckgrades: {}
 };
 
 function saveUsers() {
@@ -796,6 +797,12 @@ function updateMetaUI() {
   const duckpassEl = document.getElementById('duckpass-currency');
   if (pycoinsEl) pycoinsEl.textContent = Math.floor(gameState.pycoins);
   if (duckpassEl) duckpassEl.textContent = gameState.duckPassCurrency;
+  
+  // Update shop tab buttons
+  document.querySelectorAll('.shop-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === currentShopTab);
+  });
+
   if (document.getElementById('pass-modal').style.display === 'flex') {
     document.getElementById('pass-level').textContent = gameState.duckPassLevel;
     document.getElementById('pass-xp').textContent = gameState.duckPassXP;
@@ -807,6 +814,11 @@ function drawShop() {
   const container = document.getElementById('shop-items');
   if (!container) return;
   container.innerHTML = `
+    <div class="shop-header-tabs">
+      <button class="shop-tab-btn ${currentShopTab==='upgrades'?'active':''}" onclick="switchShopTab('upgrades')">${translate('shop_upgrades')}</button>
+      <button class="shop-tab-btn ${currentShopTab==='duckgrades'?'active':''}" onclick="switchShopTab('duckgrades')">${translate('duckgrade_title')}</button>
+      <button class="shop-tab-btn ${currentShopTab==='skins'?'active':''}" onclick="switchShopTab('skins')">${translate('shop_skins')}</button>
+    </div>
     <div class="shop-balance">
       <div class="balance-item"><img src="img/Tokens/PyCoin.png" width="20"> <span>${Math.floor(gameState.pycoins)} PyCoins</span></div>
       <div class="balance-item"><img src="img/Tokens/DuckPass.png" width="20"> <span>${gameState.duckPassCurrency} Duck Pass</span></div>
@@ -828,9 +840,30 @@ function drawShop() {
       if (u.hideIfUnlocked && TOWER_TYPES['Pyce_Glob'].unlocked) return;
       const el = document.createElement('div');
       el.className = 'meta-item';
-      const costIcon = u.type === 'pycoin' ? '💰' : '🦆';
-      el.innerHTML = `<h3>${translate(u.name, u.params)}</h3><p>${translate(u.desc, u.params)}</p><div class="cost">${costIcon} ${u.cost}</div>
+      const costIcon = u.type === 'pycoin' ? 'img/Tokens/PyCoin.png' : 'img/Tokens/DuckPass.png';
+      el.innerHTML = `<h3>${translate(u.name, u.params)}</h3><p>${translate(u.desc, u.params)}</p><div class="cost"><img src="${costIcon}" width="18"> ${u.cost}</div>
         <button class="meta-buy-btn" ${canAfford(u) ? '' : 'disabled'} onclick="buyUpgrade('${u.id}', ${u.cost}, '${u.type}')">${translate('buy')}</button>`;
+      container.appendChild(el);
+    });
+  } else if (currentShopTab === 'duckgrades') {
+    const dgs = [
+      { id: 'dg_Glob', name: 'duckgrade_glob_name', desc: 'duckgrade_glob_desc', cost: 15, family: 'Glob' },
+      { id: 'dg_Red_Glob', name: 'duckgrade_red_name', desc: 'duckgrade_red_desc', cost: 20, family: 'Red_Glob' },
+      { id: 'dg_Soap_Glob', name: 'duckgrade_soap_name', desc: 'duckgrade_soap_desc', cost: 18, family: 'Soap_Glob' },
+      { id: 'dg_Comet_Glob', name: 'duckgrade_comet_name', desc: 'duckgrade_comet_desc', cost: 25, family: 'Comet_Glob' },
+      { id: 'dg_Pyce_Glob', name: 'duckgrade_pyce_name', desc: 'duckgrade_pyce_desc', cost: 22, family: 'Special' },
+      { id: 'dg_Old_Glob', name: 'duckgrade_old_name', desc: 'duckgrade_old_desc', cost: 20, family: 'Special' },
+      { id: 'dg_Work_Bombot', name: 'duckgrade_bombot_name', desc: 'duckgrade_bombot_desc', cost: 30, family: 'Special' }
+    ];
+
+    dgs.forEach(u => {
+      const isUnlocked = gameState.duckgrades[u.id];
+      const el = document.createElement('div');
+      el.className = `meta-item ${isUnlocked ? 'unlocked' : ''}`;
+      el.innerHTML = `<h3>${translate(u.name)}</h3><p>${translate(u.desc)}</p>
+        <div class="cost">${isUnlocked ? '✅' : `<img src="img/Tokens/DuckPass.png" width="18"> ${u.cost}`}</div>
+        <button class="meta-buy-btn" ${isUnlocked || gameState.duckPassCurrency < u.cost ? 'disabled' : ''} 
+          onclick="buyUpgrade('${u.id}', ${u.cost}, 'duckpass')">${isUnlocked ? translate('active') : translate('buy')}</button>`;
       container.appendChild(el);
     });
   } else {
@@ -883,9 +916,9 @@ function buyUpgrade(id, cost, type) {
 
   if (id === 'hp') { gameState.baseHealthLevel++; gameState.health += 20; showMessage(translate('base_hp_improved'), 'success'); }
   else if (id.startsWith('limit_')) { gameState.towerLimits[id.replace('limit_', '')]++; showMessage(translate('tower_limit_increased', {name: id.replace('limit_', '')}), 'success'); }
-  else if (id === 'unlock_Pyce_Glob') { TOWER_TYPES['Pyce_Glob'].unlocked = true; showMessage(translate('pyceGlobUnlocked'), 'success'); }
   else if (id === 'meta_range') { gameState.metaRange = (gameState.metaRange||0) + 20; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
   else if (id === 'meta_damage') { gameState.metaDamage = (gameState.metaDamage||1) + 0.15; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
+  else if (id.startsWith('dg_')) { gameState.duckgrades[id] = true; showMessage("🦆 DUCKGRADE UNLOCKED!", 'success'); }
 
   updateMetaUI(); drawShop(); drawTowerShop(); saveProgress();
 }
@@ -941,10 +974,13 @@ function selectTower(t) {
   const panel = document.getElementById('evolve-panel');
   panel.style.display = 'flex';
   
-  // Posicionar el panel cerca de la torre (centrado arriba)
-  const mapRect = document.getElementById('map').getBoundingClientRect();
-  panel.style.left = `${t.x - 140}px`; // 140 es la mitad de 280 (ancho del panel)
-  panel.style.top = `${t.y - 180}px`;  // Un poco por encima de la torre
+  // Posicionar el panel cerca de la torre (centrado, preferiblemente abajo)
+  panel.style.left = `${t.x - 140}px`;
+  if (t.y < 350) {
+    panel.style.top = `${t.y + 60}px`; // Debajo de la torre
+  } else {
+    panel.style.top = `${t.y - 200}px`; // Arriba de la torre (si está muy abajo)
+  }
   
   document.getElementById('tower-name').textContent = translate(t.name);
   document.getElementById('tower-desc').innerHTML = translate(t.desc);
@@ -956,20 +992,19 @@ function updateEvolveButtons(t) {
   const container = document.getElementById('evolve-options'); 
   if (container) {
     container.innerHTML = '';
-    if (t.evolution) {
       const next = TOWER_TYPES[t.evolution];
       const btn = document.createElement('button');
-      btn.className = 'evolve-btn'; 
-      btn.disabled = gameState.globetines < next.cost;
-      btn.innerHTML = translate('evolve_to', { name: translate(next.name), cost: next.cost });
+      btn.className = 'evolve-btn';
+      if (gameState.globetines < next.cost) btn.disabled = true;
+      btn.innerHTML = `${translate('evolve_to', { name: translate(next.name) })} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${next.cost}</div>`;
       btn.onclick = () => evolveTower(t, t.evolution);
       container.appendChild(btn);
-    }
   }
   const sellBtn = document.getElementById('sell-tower-btn');
   if (sellBtn) {
+    const cost = Math.floor(t.cost * 0.7);
+    sellBtn.innerHTML = `${translate('sell_tower')} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
     sellBtn.onclick = () => sellTower(t);
-    sellBtn.innerHTML = translate('sell_tower', { cost: Math.floor(t.cost * 0.7) });
   }
 }
 
@@ -1089,10 +1124,33 @@ function gameLoop() {
       }
     }
 
+    let currentSpeed = t.speed;
+    if (gameState.duckgrades.dg_Glob && (t.family === 'Glob' || t.type === 'Glob')) {
+      const nearDuck = gameState.towers.some(d => (d.family === 'Ducky_Glob' || d.type === 'Ducky_Glob') && Math.hypot(d.x-t.x, d.y-t.y) < 150);
+      if (nearDuck) currentSpeed *= 1.5;
+    }
+
     t.cooldown -= dt;
     if (t.cooldown <= 0) {
       const targets = gameState.enemies.filter(e => Math.hypot(e.x-t.x, e.y-t.y) <= t.range);
-      if (targets.length) { shoot(t, targets[0]); t.cooldown = 1/t.speed; }
+      if (targets.length) { 
+        let dmg = t.damage;
+        // DUCKGRADE: Red Glob - More damage per sibling
+        if (gameState.duckgrades.dg_Red_Glob && t.family === 'Red_Glob') {
+          const redCount = gameState.towers.filter(rt => rt.family === 'Red_Glob').length;
+          dmg *= (1 + (redCount * 0.1));
+        }
+
+        // DUCKGRADE: Pyce Glob - Spin
+        if (gameState.duckgrades.dg_Pyce_Glob && t.type === 'Pyce_Glob' && Math.random() < 0.2) {
+          for (let a=0; a<Math.PI*2; a+=Math.PI/4) {
+            shoot(t, { x: t.x + Math.cos(a)*100, y: t.y + Math.sin(a)*100, health: 999 }, true);
+          }
+        } else {
+          shoot(t, targets[0]);
+        }
+        t.cooldown = 1/currentSpeed; 
+      }
     }
   });
 
@@ -1102,6 +1160,16 @@ function gameLoop() {
     const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
     if (dist < 10) {
       let dmg = p.damage;
+      // DUCKGRADE: Comet Glob (Black) - Crit
+      if (gameState.duckgrades.dg_Comet_Glob && p.family === 'Comet_Glob') {
+        if (Math.random() < 0.15) { dmg *= 2; showEffect(p.target.x, p.target.y, "CRIT! 💥"); }
+      }
+
+      // DUCKGRADE: Soap Glob (Blue) - Paralyze
+      if (gameState.duckgrades.dg_Soap_Glob && p.family === 'Soap_Glob') {
+        if (Math.random() < 0.2) p.target.stunned = 1.0;
+      }
+
       if (p.target.shield > 0) {
         const abs = Math.min(p.target.shield, dmg);
         p.target.shield -= abs;
@@ -1109,6 +1177,22 @@ function gameLoop() {
       }
       if (dmg > 0) p.target.health -= dmg;
       gameState.totalDamage += p.damage;
+
+      // DUCKGRADE: Work-Bombot - Bouncing
+      if (gameState.duckgrades.dg_Work_Bombot && p.type === 'Work_Bombot' && !p.bounced) {
+        p.bounced = true;
+        p.x = p.target.x; p.y = p.target.y;
+        const nextTarget = gameState.enemies.find(e => e !== p.target && Math.hypot(e.x-p.x, e.y-p.y) < 100);
+        if (nextTarget) { p.target = nextTarget; return; }
+      }
+
+      // DUCKGRADE: Old Glob - Fragments
+      if (gameState.duckgrades.dg_Old_Glob && p.type === 'Old_Glob' && !p.isSpin) {
+        for (let a=0; a<Math.PI*2; a+=Math.PI/2) {
+          shoot({ ...p, projectile: 'stone_small', damage: p.damage*0.3 }, { x: p.x+Math.cos(a)*50, y: p.y+Math.sin(a)*50, health: 999 }, true);
+        }
+      }
+
       p.el.remove(); gameState.projectiles.splice(i,1);
     } else { p.x += (dx/dist)*10; p.y += (dy/dist)*10; p.el.style.left = p.x+'px'; p.el.style.top = p.y+'px'; }
   }
@@ -1124,11 +1208,11 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-function shoot(t, target) {
+function shoot(t, target, isSpin = false) {
   const el = document.createElement('div'); el.className = `projectile ${t.projectile}`;
   el.style.left = t.x+'px'; el.style.top = t.y+'px';
   document.getElementById('map').appendChild(el);
-  gameState.projectiles.push({ x: t.x, y: t.y, target, damage: t.damage, el });
+  gameState.projectiles.push({ x: t.x, y: t.y, target, damage: t.damage, el, family: t.family, type: t.type, isSpin });
 }
 
 function die(e, idx) {
