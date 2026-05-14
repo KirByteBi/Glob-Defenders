@@ -1130,7 +1130,6 @@ function updateLanguage() {
   if (shopTitle) shopTitle.innerHTML = `🛒 ${translate('shop_title').replace('🛒 ', '')}`;
   const passTitle = document.getElementById('pass-title');
   if (passTitle) passTitle.innerHTML = `🦆 ${translate('pass_title').replace('🦆 ', '')}`;
-}
 
   // Evolución
   const evolveTitle = document.querySelector('#evolve-panel h3');
