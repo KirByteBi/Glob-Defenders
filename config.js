@@ -789,7 +789,7 @@ const SKINS_DATA = {
       skins: {
         'Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO1).png',
         'Poop_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Brad Glob (SK-EVO2).png',
-        'Golden_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Emotionmal Glob (SK-EVO3).png',
+        'Golden_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Emotionnal Glob (SK-EVO3).png',
         'Rainbow_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Ancigon Glob (SK-EVO4).png'
       },
       names: {
