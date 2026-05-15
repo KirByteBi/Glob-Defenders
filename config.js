@@ -788,15 +788,15 @@ const SKINS_DATA = {
       id: 'corrupt_swords_set', name: 'Espadas Corrompidas', desc: 'Un set especial con ataques unicos por evolucion.', cost: 637, type: 'pycoin', duckpass_cost: 207, isSpecial: true,
       skins: {
         'Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO1).png',
-        'Poop_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO2).png',
-        'Golden_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO3).png',
-        'Rainbow_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO4).png'
+        'Poop_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Brad Glob (SK-EVO2).png',
+        'Golden_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Emotionmal Glob (SK-EVO3).png',
+        'Rainbow_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Ancigon Glob (SK-EVO4).png'
       },
       names: {
         'Glob': 'Blackrock',
         'Poop_Glob': 'Brad',
         'Golden_Glob': 'Emotional',
-        'Rainbow_Glob': 'Blackrock Dorado'
+        'Rainbow_Glob': 'Ancigon'
       }
     }
   ],
