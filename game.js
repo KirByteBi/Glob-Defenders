@@ -710,7 +710,13 @@ function bindEvents() {
       'PINKWAVE': { py: 30, dp: 30, msg: '30 PyCoins + 30 DuckPass' },
       'B4D_P1GG13S': { py: 50, dp: 5, msg: '50 PyCoins + 5 DuckPass' },
       'MUSICFAN': { py: 50, xp: 10, msg: '50 PyCoins + 10 XP' },
-      'T3CHSP4WN': { py: 50, xp: 150, msg: '50 PyCoins + 150 XP' }
+      'T3CHSP4WN': { py: 50, xp: 150, msg: '50 PyCoins + 150 XP' },
+      'ICEDAGGGER': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
+      'VENOMSHARK': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
+      'GHOSTWALKER': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
+      'FIREBRAND': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
+      'WINDFORCE': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
+      'THANIYEL': { dp: 150, xp: 500, msg: '150 DuckPass + 500 XP' }
     };
 
     if (rewards[code]) {
