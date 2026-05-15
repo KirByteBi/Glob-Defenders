@@ -100,6 +100,11 @@ loadUsers(); // Cargar al inicio
 function init() {
   console.log("Iniciando Glob Defenders...");
   try {
+    if (Math.random() < 0.15) {
+      document.querySelectorAll('.login-logo, .game-logo').forEach(img => {
+        img.src = 'img/GlobDefendersImage.png';
+      });
+    }
     updateLanguage(); // Aplicar idioma al inicio
     bindEvents();
     spawnDecorations('login-decorations');
@@ -635,8 +640,16 @@ function bindEvents() {
   if (logo) {
     logo.onclick = () => {
       gameState.logoClicks++;
-      logo.style.transform = `scale(1.15) rotate(${Math.random()*12 - 6}deg)`;
-      setTimeout(() => logo.style.transform = `scale(1) rotate(0deg)`, 120);
+      logo.style.transition = 'transform 0.5s ease, filter 0.2s ease';
+      const spins = Math.floor(Math.random() * 3) + 1;
+      logo.style.transform = `scale(1.2) rotate(${360 * spins}deg)`;
+      logo.style.filter = `hue-rotate(${Math.random()*360}deg) invert(${Math.random() > 0.5 ? 1 : 0})`;
+      
+      setTimeout(() => {
+        logo.style.transition = 'transform 0.3s ease, filter 0.3s ease';
+        logo.style.transform = `scale(1) rotate(0deg)`;
+        logo.style.filter = 'none';
+      }, 500);
 
       if (gameState.unlockedAntiNormal) {
         gameState.pycoins += 1;
