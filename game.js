@@ -1006,7 +1006,7 @@ function drawShop() {
         el.innerHTML = `
           ${specialBadge}
           <div class="skin-preview ${skin.class || ''}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
-          <h3>${skin.name}</h3><p>${skin.desc}</p>
+          <h3>${translate(skin.name)}</h3><p>${translate(skin.desc)}</p>
           ${!isUnlocked ? costDisplay : ''}
           <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${(!buyable && !isUnlocked) ? 'disabled' : ''} ${onclickAction ? `onclick="${onclickAction}"` : ''}>${btnText}</button>`;
         container.appendChild(el);
