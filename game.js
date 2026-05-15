@@ -778,7 +778,7 @@ function saveGameSnapshot() {
         duckPassXP: gameState.duckPassXP,
         duckPassLevel: gameState.duckPassLevel,
         towers: JSON.parse(JSON.stringify(gameState.towers || [])),
-        enemies: JSON.parse(JSON.stringify(gameState.enemies || []).map(e => ({ type: e.type, x: e.x, y: e.y, health: e.health, pathIndex: e.pathIndex, boss: e.boss }))),
+        enemies: (gameState.enemies || []).map(e => ({ type: e.type, x: e.x, y: e.y, health: e.health, pathIndex: e.pathIndex, boss: e.boss })),
         projectiles: []
     };
     try { localStorage.setItem('gd_snapshot', JSON.stringify(gameState._snapshot)); } catch(e){}
