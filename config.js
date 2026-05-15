@@ -1,28 +1,28 @@
-// ===================== CONFIGURACIÓN Y DATOS DEL JUEGO =====================
+// ===================== CONFIGURACIÃ“N Y DATOS DEL JUEGO =====================
 
 const TRANSLATIONS = {
   es: {
     health: "Salud", money: "Dinero", wave: "Oleada",
     startWave: "Iniciar Oleada", autoWave: "Auto-Oleada",
     autoWaveActive: "Auto-ON", cancel: "Cancelar",
-    gameOver: "💀 GAME OVER 💀", playAgain: "Reintentar",
-    achievements: "Logros", notEnoughMoney: "💸 Sin fondos",
-    towerPlaced: "✅ {name} colocada",
-    towerEvolved: "🎉 ¡Evolución a {name}!",
-    towerSold: "💵 Vendida por {price}",
-    waveStarted: "🌊 Oleada {wave}!",
-    waveCompleted: "✅ Oleada {wave} superada!",
-    enemyReachedEnd: "💔 ¡Daño a la base!",
-    pyceGlobUnlocked: "🔓 ¡Pyce Glob desbloqueado!",
-    adminMode: "👑 MODO ADMIN",
-    codeInvalid: "❌ Código inválido",
-    loginError: "❌ Usuario o contraseña incorrectos",
-    codeSuccess: "✨ Código aceptado: {name} desbloqueado",
+    gameOver: "ðŸ’€ GAME OVER ðŸ’€", playAgain: "Reintentar",
+    achievements: "Logros", notEnoughMoney: "ðŸ’¸ Sin fondos",
+    towerPlaced: "âœ… {name} colocada",
+    towerEvolved: "ðŸŽ‰ Â¡EvoluciÃ³n a {name}!",
+    towerSold: "ðŸ’µ Vendida por {price}",
+    waveStarted: "ðŸŒŠ Oleada {wave}!",
+    waveCompleted: "âœ… Oleada {wave} superada!",
+    enemyReachedEnd: "ðŸ’” Â¡DaÃ±o a la base!",
+    pyceGlobUnlocked: "ðŸ”“ Â¡Pyce Glob desbloqueado!",
+    adminMode: "ðŸ‘‘ MODO ADMIN",
+    codeInvalid: "âŒ CÃ³digo invÃ¡lido",
+    loginError: "âŒ Usuario o contraseÃ±a incorrectos",
+    codeSuccess: "âœ¨ CÃ³digo aceptado: {name} desbloqueado",
     badge_survivor_name: "Superviviente", badge_survivor_desc: "Llega a la oleada 10",
-    badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Ten más de 20.000 de dinero",
-    badge_evolution_name: "Biotecnólogo", badge_evolution_desc: "Evoluciona una torre al máximo",
+    badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Ten mÃ¡s de 20.000 de dinero",
+    badge_evolution_name: "BiotecnÃ³logo", badge_evolution_desc: "Evoluciona una torre al mÃ¡ximo",
     badge_bossKiller_name: "Matarreyes", badge_bossKiller_desc: "Derrota al primer jefe",
-    badge_secret_name: "Hacker", badge_secret_desc: "Usa un código secreto",
+    badge_secret_name: "Hacker", badge_secret_desc: "Usa un cÃ³digo secreto",
     badge_inf100_name: "Centenario", badge_inf100_desc: "Llega a la oleada 100",
     badge_inf500_name: "Veterano", badge_inf500_desc: "Llega a la oleada 500",
     badge_inf999_name: "Dios Glob", badge_inf999_desc: "Llega a la oleada 999",
@@ -37,23 +37,23 @@ const TRANSLATIONS = {
     badge_mimic4_name: "Cazatesoros IV", badge_mimic4_desc: "Encuentra 4 Mimics seguidos",
     badge_corruptMimic_name: "Oro Maldito", badge_corruptMimic_desc: "Encuentra un Mimic corrupto",
     badge_mimicRevenge_name: "Venganza Dorada", badge_mimicRevenge_desc: "Derrota a un Mimic que ha resucitado",
-    badge_antiNormal_name: "Maestro del Vacío", badge_antiNormal_desc: "Purifica el modo Anti-Normal",
-    badge_winFacil_name: "Iniciado", badge_winFacil_desc: "Vence en modo Fácil",
+    badge_antiNormal_name: "Maestro del VacÃ­o", badge_antiNormal_desc: "Purifica el modo Anti-Normal",
+    badge_winFacil_name: "Iniciado", badge_winFacil_desc: "Vence en modo FÃ¡cil",
     badge_winNormal_name: "Defensor", badge_winNormal_desc: "Vence en modo Normal",
-    badge_winDificil_name: "Guerrero", badge_winDificil_desc: "Vence en modo Difícil",
+    badge_winDificil_name: "Guerrero", badge_winDificil_desc: "Vence en modo DifÃ­cil",
     badge_winExtremo_name: "Leyenda", badge_winExtremo_desc: "Vence en modo Extremo",
     badge_winCorrupto_name: "Purificador", badge_winCorrupto_desc: "Vence en modo Corrupto",
-    
+
     // Nombres de Torres
     tower_Glob_name: "Glob Verde",
     tower_Poop_Glob_name: "Glob Pegajoso",
     tower_Golden_Glob_name: "Glob de Oro",
-    tower_Rainbow_Glob_name: "Glob Arcoíris",
+    tower_Rainbow_Glob_name: "Glob ArcoÃ­ris",
     tower_Red_Glob_name: "Glob Rojo",
     tower_Molten_Glob_name: "Glob de Lava",
-    tower_Robotic_Glob_name: "Glob Robótico",
-    tower_Soap_Glob_name: "Glob de Jabón",
-    tower_Cotton_Glob_name: "Glob de Algodón",
+    tower_Robotic_Glob_name: "Glob RobÃ³tico",
+    tower_Soap_Glob_name: "Glob de JabÃ³n",
+    tower_Cotton_Glob_name: "Glob de AlgodÃ³n",
     tower_Ducky_Glob_name: "Pato Glob",
     tower_Golden_Ducky_Glob_name: "Pato de Oro",
     tower_Comet_Glob_name: "Glob Cometa",
@@ -62,11 +62,11 @@ const TRANSLATIONS = {
     tower_Pyce_Glob_name: "Pyce Glob",
     tower_Old_Glob_name: "Glob Anciano",
     tower_Work_Bombot_name: "Bombot de Trabajo",
-    tower_limit_increased: "Límite de {name} aumentado",
+    tower_limit_increased: "LÃ­mite de {name} aumentado",
 
     // Nombres de Enemigos
     enemy_Stupid_Pyce_name: "Pyce Torpe",
-    enemy_Pyce2_name: "Pyce Común",
+    enemy_Pyce2_name: "Pyce ComÃºn",
     enemy_Guest_Pyce_name: "Pyce Invitado",
     enemy_Symbol_Pyce_name: "Pyce Veloz",
     enemy_Noob_Pyce_name: "Pyce Novato",
@@ -76,42 +76,44 @@ const TRANSLATIONS = {
     enemy_NOeye_Pyce_name: "Ojo Ciego Pyce",
     enemy_MoonStar_Pyce_name: "MoonStar Pyce",
     enemy_Stupid_GoldPyce_name: "Pyce de Oro Torpe",
+    enemy_Flower_Pyce_name: "Flower Pyce",
+    enemy_Mimic_Pyce_name: "Mimic Pyce",
 
-    login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla",
+    login_user: "Nombre de Usuario", login_pass: "ContraseÃ±a", login_btn: "Unirse a la batalla",
     select_mode: "Seleccionar Modo",
-    backToModes: "Selección de Modo",
-    shop_title: "🛒 Tienda Meta",
-    pass_title: "🦆 Duck Pass",
-    code_placeholder: "Código Secreto...",
+    backToModes: "SelecciÃ³n de Modo",
+    shop_title: "ðŸ›’ Tienda Meta",
+    pass_title: "ðŸ¦† Duck Pass",
+    code_placeholder: "CÃ³digo Secreto...",
     apply_btn: "Aplicar",
-    new_user_registered: "¡Nuevo usuario registrado!",
+    new_user_registered: "Â¡Nuevo usuario registrado!",
     system_unstable: "S1S73M4 1N574BL3...",
     win_diff_required: "Gana en modo {diff} o superior para desbloquear",
     system_restored: "SISTEMA RESTAURADO",
     anti_normal_active: "M0D0 4N71-N0RM4L 4C71V4D0",
-    corrupt_active: "¡SISTEMA CORRUPTO ACTIVADO!",
-    skin_unlocked: "¡Skin desbloqueada!",
+    corrupt_active: "Â¡SISTEMA CORRUPTO ACTIVADO!",
+    skin_unlocked: "Â¡Skin desbloqueada!",
     no_pycoins: "No tienes suficientes PyCoins",
     appearance_updated: "Apariencia actualizada",
-    base_hp_improved: "¡Salud de base mejorada!",
-    badge_reward_received: "¡Logro: {name}! Recompensa recibida.",
-    pyce_resurrected: "¡UN PYCE HA RESUCITADO!",
+    base_hp_improved: "Â¡Salud de base mejorada!",
+    badge_reward_received: "Â¡Logro: {name}! Recompensa recibida.",
+    pyce_resurrected: "Â¡UN PYCE HA RESUCITADO!",
     plus_pycoins: "+{amount} PyCoins",
-    bombot_unlocked: "¡HAS DESBLOQUEADO EL WORK-BOMBOT!",
-    victory_title: "🏆 ¡VICTORIA MAGISTRAL! 🏆",
-    victory_msg: "Has completado el modo <b>{mode}</b>.<br>¡Regresa para probar nuevos desafíos!",
-    back_to_selection: "Selección de Modos",
-    limit_reached: "Límite alcanzado para {name} (Máx: {limit})",
-    next_upgrade: "Próxima Mejora: {name}",
-    evolution_label: "Evolución",
+    bombot_unlocked: "Â¡HAS DESBLOQUEADO EL WORK-BOMBOT!",
+    victory_title: "ðŸ† Â¡VICTORIA MAGISTRAL! ðŸ†",
+    victory_msg: "Has completado el modo <b>{mode}</b>.<br>Â¡Regresa para probar nuevos desafÃ­os!",
+    back_to_selection: "SelecciÃ³n de Modos",
+    limit_reached: "LÃ­mite alcanzado para {name} (MÃ¡x: {limit})",
+    next_upgrade: "PrÃ³xima Mejora: {name}",
+    evolution_label: "EvoluciÃ³n",
     evolve_btn_text: "Evolucionar a {name}",
-    prestige_duckpass: "¡Prestigio Duck Pass! +2 Ducky Pass",
-    level_duckpass: "¡Nivel {level} del Duck Pass! +1 Ducky Pass",
-    look_defender: "¿Qué miras, Defensor? 👀",
-    logo_press: "¿Por qué pulsas el logo?",
-    stop_logo: "¡¡¡DEJA DE PULSAR EL DICHOSO LOGO!!!",
-    logo_secret: "Esto no va a desbloquear nada... ¿O sí? 🤔",
-    code_already_used: "¡Código ya usado!",
+    prestige_duckpass: "Â¡Prestigio Duck Pass! +2 Ducky Pass",
+    level_duckpass: "Â¡Nivel {level} del Duck Pass! +1 Ducky Pass",
+    look_defender: "Â¿QuÃ© miras, Defensor? ðŸ‘€",
+    logo_press: "Â¿Por quÃ© pulsas el logo?",
+    stop_logo: "Â¡Â¡Â¡DEJA DE PULSAR EL DICHOSO LOGO!!!",
+    logo_secret: "Esto no va a desbloquear nada... Â¿O sÃ­? ðŸ¤”",
+    code_already_used: "Â¡CÃ³digo ya usado!",
     evolve_to: "Evolucionar a {name}",
     sell_tower: "Vender",
     next_level: "Siguiente: Nivel {level}",
@@ -120,19 +122,19 @@ const TRANSLATIONS = {
     actual: "Actual",
     equipped: "Equipado",
     req_level: "Nivel {level} Requerido",
-    active: "¡ACTIVO!",
+    active: "Â¡ACTIVO!",
     milestone: "HITO",
     upgrade: "MEJORA",
     shop_upgrades: "Mejoras",
     shop_skins: "Skins",
     mode_selected: "Modo {mode} seleccionado",
-    settings_title: "⚙️ Ajustes",
-    show_shop_desc: "Mostrar descripción en tienda",
-    show_total_damage: "Ver Daño Total de torres",
+    settings_title: "âš™ï¸ Ajustes",
+    show_shop_desc: "Mostrar descripciÃ³n en tienda",
+    show_total_damage: "Ver DaÃ±o Total de torres",
     save_close: "Guardar y Cerrar",
     close: "Cerrar",
     level_label: "Nivel",
-    evolve_title: "Evolución de Torre",
+    evolve_title: "EvoluciÃ³n de Torre",
     sell: "Vender",
     back_to_modes: "Volver a Modos",
     rotate_device: "Gira el dispositivo",
@@ -140,128 +142,128 @@ const TRANSLATIONS = {
     pycoins_title: "PyCoins",
     duckpass_title: "Duck Pass",
     equip_btn: "Equipar",
-    reset_progress_btn: "🚨 Resetear Todo el Progreso 🚨",
-    reset_confirm_1: "¡CUIDADO! Esto borrará todas tus skins, mejoras y logros. ¿Estás seguro?",
-    reset_confirm_2: "¡Último aviso! No hay vuelta atrás. ¿SEGURO?",
-    reset_confirm_3: "Vale... si pulsas una vez más, se acabó todo. ¿DE VERDAD?",
-    reset_done: "Progreso reseteado. El juego se reiniciará.",
-    
+    reset_progress_btn: "ðŸš¨ Resetear Todo el Progreso ðŸš¨",
+    reset_confirm_1: "Â¡CUIDADO! Esto borrarÃ¡ todas tus skins, mejoras y logros. Â¿EstÃ¡s seguro?",
+    reset_confirm_2: "Â¡Ãšltimo aviso! No hay vuelta atrÃ¡s. Â¿SEGURO?",
+    reset_confirm_3: "Vale... si pulsas una vez mÃ¡s, se acabÃ³ todo. Â¿DE VERDAD?",
+    reset_done: "Progreso reseteado. El juego se reiniciarÃ¡.",
+
     // Mejoras de Tienda
     upgrade_hp_name: "Salud de Base",
-    upgrade_hp_desc: "+20 Salud Máxima",
+    upgrade_hp_desc: "+20 Salud MÃ¡xima",
     upgrade_unlock_pyce_name: "Desbloquear Pyce Glob",
     upgrade_unlock_pyce_desc: "Permite comprar Pyce Globs",
-    upgrade_limit_name: "Límite: {name}",
-    upgrade_limit_desc: "Aumenta límite de {name}",
+    upgrade_limit_name: "LÃ­mite: {name}",
+    upgrade_limit_desc: "Aumenta lÃ­mite de {name}",
 
     // Sets de Skins
     skin_military_name: "Set Militar",
-    skin_military_desc: "Equipamiento táctico para la línea verde.",
+    skin_military_desc: "Equipamiento tÃ¡ctico para la lÃ­nea verde.",
     skin_music_name: "Set Musical",
-    skin_music_desc: "¡Ritmo y fiesta para la línea roja!",
+    skin_music_desc: "Â¡Ritmo y fiesta para la lÃ­nea roja!",
     skin_abyssal_name: "Set Abismal",
-    skin_abyssal_desc: "¡Poder de las profundidades marinas!",
+    skin_abyssal_desc: "Â¡Poder de las profundidades marinas!",
     skin_business_name: "Set Empresarial",
-    skin_business_desc: "De un puesto de gelatina a una gran fábrica.",
+    skin_business_desc: "De un puesto de gelatina a una gran fÃ¡brica.",
     skin_universolar_name: "Set Universolar",
-    skin_universolar_desc: "¡Poder estelar y elegancia espacial!",
+    skin_universolar_desc: "Â¡Poder estelar y elegancia espacial!",
     upgrade_range_name: "Alcance Maestro",
     upgrade_range_desc: "+20 Alcance para todas las torres",
     upgrade_damage_name: "Poder del Pato",
-    upgrade_damage_desc: "+15% Daño para todas las torres",
+    upgrade_damage_desc: "+15% DaÃ±o para todas las torres",
     duckgrade_title: "Duckgrades",
-    duckgrade_glob_name: "Sincronía Pato",
-    duckgrade_glob_desc: "Globs Verdes disparan +50% rápido cerca de Patos.",
+    duckgrade_glob_name: "SincronÃ­a Pato",
+    duckgrade_glob_desc: "Globs Verdes disparan +50% rÃ¡pido cerca de Patos.",
     duckgrade_red_name: "Furia Roja",
-    duckgrade_red_desc: "+10% daño por cada Glob Rojo en el mapa.",
+    duckgrade_red_desc: "+10% daÃ±o por cada Glob Rojo en el mapa.",
     duckgrade_soap_name: "Burbuja Paralizante",
     duckgrade_soap_desc: "Probabilidad de paralizar enemigos al impactar.",
-    duckgrade_comet_name: "Impacto Crítico",
-    duckgrade_comet_desc: "15% prob. de hacer daño x2 (Crítico).",
+    duckgrade_comet_name: "Impacto CrÃ­tico",
+    duckgrade_comet_desc: "15% prob. de hacer daÃ±o x2 (CrÃ­tico).",
     duckgrade_pyce_name: "Error de Sistema",
     duckgrade_pyce_desc: "A veces dispara en todas direcciones (Spin).",
-    duckgrade_old_name: "Sabiduría Dividida",
-    duckgrade_old_desc: "Sus proyectiles se dividen en más fragmentos.",
-    duckgrade_bombot_name: "Bomba Saltarína",
+    duckgrade_old_name: "SabidurÃ­a Dividida",
+    duckgrade_old_desc: "Sus proyectiles se dividen en mÃ¡s fragmentos.",
+    duckgrade_bombot_name: "Bomba SaltarÃ­na",
     duckgrade_bombot_desc: "Las bombas rebotan y explotan dos veces.",
     duckgrade_duck_name: "Pato Defensivo",
-    duckgrade_duck_desc: "Genera dinero más rápido cerca de enemigos y hace daño de área.",
-    max_reached: "NIVEL MÁXIMO",
-    
+    duckgrade_duck_desc: "Genera dinero mÃ¡s rÃ¡pido cerca de enemigos y hace daÃ±o de Ã¡rea.",
+    max_reached: "NIVEL MÃXIMO",
+
     // Skins Globales (Recolores y Buffs)
-    skin_emerald_name: "Edición Esmeralda",
+    skin_emerald_name: "EdiciÃ³n Esmeralda",
     skin_emerald_desc: "Poder de la naturaleza.",
-    skin_ruby_name: "Edición Rubí",
-    skin_ruby_desc: "Pasión ardiente en cada disparo.",
-    skin_cyan_name: "Edición Cian",
-    skin_cyan_desc: "Frío como el hielo de Bitlands.",
-    skin_neon_name: "Edición Neón",
-    skin_neon_desc: "Brillo cibernético futurista.",
-    skin_shadow_name: "Edición Sombra",
+    skin_ruby_name: "EdiciÃ³n RubÃ­",
+    skin_ruby_desc: "PasiÃ³n ardiente en cada disparo.",
+    skin_cyan_name: "EdiciÃ³n Cian",
+    skin_cyan_desc: "FrÃ­o como el hielo de Bitlands.",
+    skin_neon_name: "EdiciÃ³n NeÃ³n",
+    skin_neon_desc: "Brillo cibernÃ©tico futurista.",
+    skin_shadow_name: "EdiciÃ³n Sombra",
     skin_shadow_desc: "Sigilo y oscuridad total.",
-    skin_void_name: "Edición Vacío",
+    skin_void_name: "EdiciÃ³n VacÃ­o",
     skin_void_desc: "Poder oscuro del abismo.",
-    skin_gold_name: "Edición Oro",
+    skin_gold_name: "EdiciÃ³n Oro",
     skin_gold_desc: "Puro lujo para tus torres.",
     skin_negative_name: "Pack Negativo",
     skin_negative_desc: "Invierte la realidad de tus torres.",
-    skin_rainbow_name: "Pack Arcoíris",
-    skin_rainbow_desc: "¡Fiesta de colores definitiva!",
-    
-    skin_galactic_name: "Edición Galáctica",
-    skin_galactic_desc: "Brillo cósmico de Bitlands.",
-    skin_fire_name: "Edición Ígnea",
-    skin_fire_desc: "Calor volcánico en tus manos.",
-    skin_diamond_name: "Edición Diamante",
+    skin_rainbow_name: "Pack ArcoÃ­ris",
+    skin_rainbow_desc: "Â¡Fiesta de colores definitiva!",
+
+    skin_galactic_name: "EdiciÃ³n GalÃ¡ctica",
+    skin_galactic_desc: "Brillo cÃ³smico de Bitlands.",
+    skin_fire_name: "EdiciÃ³n Ãgnea",
+    skin_fire_desc: "Calor volcÃ¡nico en tus manos.",
+    skin_diamond_name: "EdiciÃ³n Diamante",
     skin_diamond_desc: "Resistencia y brillo cristalino.",
-    skin_toxic_name: "Edición Tóxica",
+    skin_toxic_name: "EdiciÃ³n TÃ³xica",
     skin_toxic_desc: "Peligro radiactivo inminente.",
 
-    skin_buff_damage1_name: "Entrenamiento Básico",
-    skin_buff_damage1_desc: "⚔️ +5% Daño Permanente.",
-    skin_buff_range1_name: "Visión de Águila",
-    skin_buff_range1_desc: "🔭 +10 Alcance Permanente.",
+    skin_buff_damage1_name: "Entrenamiento BÃ¡sico",
+    skin_buff_damage1_desc: "âš”ï¸ +5% DaÃ±o Permanente.",
+    skin_buff_range1_name: "VisiÃ³n de Ãguila",
+    skin_buff_range1_desc: "ðŸ”­ +10 Alcance Permanente.",
     skin_buff_speed1_name: "Cadencia Mejorada",
-    skin_buff_speed1_desc: "⚡ +5% Velocidad de Ataque.",
-    skin_buff_damage2_name: "Ingeniería de Bitlands",
-    skin_buff_damage2_desc: "⚔️ +10% Daño Extra.",
+    skin_buff_speed1_desc: "âš¡ +5% Velocidad de Ataque.",
+    skin_buff_damage2_name: "IngenierÃ­a de Bitlands",
+    skin_buff_damage2_desc: "âš”ï¸ +10% DaÃ±o Extra.",
 
     // Descripciones de Torres
-    tower_Glob_desc: "Glob básico. Ataca con orbes verdes.",
-    tower_Poop_Glob_desc: "Más fuerte pero más lento. Lanza orbes pegajosos.",
-    tower_Golden_Glob_desc: "Muy rápido y potente. Dispara balas de oro.",
-    tower_Rainbow_Glob_desc: "El Glob definitivo. Dispara láseres arcoíris penetrantes.",
-    tower_Red_Glob_desc: "Atacante cuerpo a cuerpo muy rápido.",
+    tower_Glob_desc: "Glob bÃ¡sico. Ataca con orbes verdes.",
+    tower_Poop_Glob_desc: "MÃ¡s fuerte pero mÃ¡s lento. Lanza orbes pegajosos.",
+    tower_Golden_Glob_desc: "Muy rÃ¡pido y potente. Dispara balas de oro.",
+    tower_Rainbow_Glob_desc: "El Glob definitivo. Dispara lÃ¡seres arcoÃ­ris penetrantes.",
+    tower_Red_Glob_desc: "Atacante cuerpo a cuerpo muy rÃ¡pido.",
     tower_Molten_Glob_desc: "Cuerpo a cuerpo que quema a los enemigos.",
-    tower_Robotic_Glob_desc: "Francotirador de largo alcance con láseres penetrantes.",
+    tower_Robotic_Glob_desc: "Francotirador de largo alcance con lÃ¡seres penetrantes.",
     tower_Soap_Glob_desc: "Lanza burbujas que ralentizan a los enemigos.",
-    tower_Cotton_Glob_desc: "Glob suave que ralentiza y hace poco daño.",
+    tower_Cotton_Glob_desc: "Glob suave que ralentiza y hace poco daÃ±o.",
     tower_Ducky_Glob_desc: "Genera dinero constantemente mientras dure la ronda.",
-    tower_Golden_Ducky_Glob_desc: "Pato potente que genera dinero mucho más rápido.",
+    tower_Golden_Ducky_Glob_desc: "Pato potente que genera dinero mucho mÃ¡s rÃ¡pido.",
     tower_Comet_Glob_desc: "Dispara cometas lentos pero devastadores.",
-    tower_Dark_Glob_desc: "Poder del vacío. Atraviesa enemigos.",
-    tower_Demglob_desc: "El demonio de Bitlands. Destrucción total.",
+    tower_Dark_Glob_desc: "Poder del vacÃ­o. Atraviesa enemigos.",
+    tower_Demglob_desc: "El demonio de Bitlands. DestrucciÃ³n total.",
     tower_Pyce_Glob_desc: "Un Glob con errores de sistema (Glitch).",
-    tower_Old_Glob_desc: "Sabiduría antigua en forma de rocas.",
-    tower_Work_Bombot_desc: "Robot bomba. Hace daño de área masivo."
+    tower_Old_Glob_desc: "SabidurÃ­a antigua en forma de rocas.",
+    tower_Work_Bombot_desc: "Robot bomba. Hace daÃ±o de Ã¡rea masivo."
   },
   en: {
     health: "Health", money: "Money", wave: "Wave",
     startWave: "Start Wave", autoWave: "Auto-Wave",
     autoWaveActive: "Auto-ON", cancel: "Cancel",
-    gameOver: "💀 GAME OVER 💀", playAgain: "Retry",
-    achievements: "Achievements", notEnoughMoney: "💸 No money",
-    towerPlaced: "✅ {name} placed",
-    towerEvolved: "🎉 Evolved to {name}!",
-    towerSold: "💵 Sold for {price}",
+    gameOver: "ðŸ’€ GAME OVER ðŸ’€", playAgain: "Retry",
+    achievements: "Achievements", notEnoughMoney: "ðŸ’¸ No money",
+    towerPlaced: "âœ… {name} placed",
+    towerEvolved: "ðŸŽ‰ Evolved to {name}!",
+    towerSold: "ðŸ’µ Sold for {price}",
     waveStarted: "Wave {wave} started!",
     waveCompleted: "Wave {wave} completed!",
-    enemyReachedEnd: "💔 Base took damage!",
-    pyceGlobUnlocked: "🔓 Pyce Glob unlocked!",
+    enemyReachedEnd: "ðŸ’” Base took damage!",
+    pyceGlobUnlocked: "ðŸ”“ Pyce Glob unlocked!",
     adminMode: "ADMIN MODE",
-    codeSuccess: "✨ Code accepted: {name} unlocked",
-    codeInvalid: "❌ Invalid code",
-    loginError: "❌ Invalid username or password",
+    codeSuccess: "âœ¨ Code accepted: {name} unlocked",
+    codeInvalid: "âŒ Invalid code",
+    loginError: "âŒ Invalid username or password",
     badge_survivor_name: "Survivor", badge_survivor_desc: "Reach wave 10",
     badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Have over 20,000 money",
     badge_evolution_name: "Biotechnologist", badge_evolution_desc: "Evolve a tower to the max",
@@ -320,12 +322,14 @@ const TRANSLATIONS = {
     enemy_NOeye_Pyce_name: "Blind Eye Pyce",
     enemy_MoonStar_Pyce_name: "MoonStar Pyce",
     enemy_Stupid_GoldPyce_name: "Stupid GoldPyce",
+    enemy_Flower_Pyce_name: "Flower Pyce",
+    enemy_Mimic_Pyce_name: "Mimic Pyce",
 
     login_user: "Username", login_pass: "Password", login_btn: "Join the battle",
     select_mode: "Select Mode",
     backToModes: "Mode Selection",
-    shop_title: "🛒 Meta Shop",
-    pass_title: "🦆 Duck Pass",
+    shop_title: "ðŸ›’ Meta Shop",
+    pass_title: "ðŸ¦† Duck Pass",
     code_placeholder: "Secret Code...",
     apply_btn: "Apply",
     new_user_registered: "New user registered!",
@@ -342,19 +346,19 @@ const TRANSLATIONS = {
     pyce_resurrected: "A PYCE HAS RESURRECTED!",
     plus_pycoins: "+{amount} PyCoins",
     bombot_unlocked: "YOU UNLOCKED WORK-BOMBOT!",
-    victory_title: "🏆 MASTER VICTORY! 🏆",
+    victory_title: "ðŸ† MASTER VICTORY! ðŸ†",
     victory_msg: "You have completed <b>{mode}</b> mode.<br>Come back for new challenges!",
     back_to_selection: "Mode Selection",
     limit_reached: "Limit reached for {name} (Max: {limit})",
     next_upgrade: "Next Upgrade: {name}",
     evolution_label: "Evolution",
-    evolve_btn_text: "Evolve (💰 {cost})",
+    evolve_btn_text: "Evolve (ðŸ’° {cost})",
     prestige_duckpass: "Duck Pass Prestige! +2 Ducky Pass",
     level_duckpass: "Duck Pass Level {level}! +1 Ducky Pass",
-    look_defender: "What are you looking at, Defender? 👀",
+    look_defender: "What are you looking at, Defender? ðŸ‘€",
     logo_press: "Why are you pressing the logo?",
     stop_logo: "STOP PRESSING THE DAMN LOGO!!!",
-    logo_secret: "This won't unlock anything... Or will it? 🤔",
+    logo_secret: "This won't unlock anything... Or will it? ðŸ¤”",
     code_already_used: "Code already used!",
     evolve_to: "Evolve to {name}",
     sell_tower: "Sell",
@@ -370,7 +374,7 @@ const TRANSLATIONS = {
     shop_upgrades: "Upgrades",
     shop_skins: "Skins",
     mode_selected: "{mode} mode selected",
-    settings_title: "⚙️ Settings",
+    settings_title: "âš™ï¸ Settings",
     show_shop_desc: "Show description in shop",
     show_total_damage: "View total tower damage",
     save_close: "Save & Close",
@@ -426,7 +430,7 @@ const TRANSLATIONS = {
     duckgrade_duck_name: "Defensive Duck",
     duckgrade_duck_desc: "Generates money faster near enemies and deals area damage.",
     max_reached: "MAX LEVEL",
-    
+
     // Global Skins
     skin_emerald_name: "Emerald Edition",
     skin_emerald_desc: "Power of nature.",
@@ -446,7 +450,7 @@ const TRANSLATIONS = {
     skin_negative_desc: "Invert your towers' reality.",
     skin_rainbow_name: "Rainbow Pack",
     skin_rainbow_desc: "The ultimate color party!",
-    
+
     skin_galactic_name: "Galactic Edition",
     skin_galactic_desc: "Cosmic glow from Bitlands.",
     skin_fire_name: "Fire Edition",
@@ -457,13 +461,13 @@ const TRANSLATIONS = {
     skin_toxic_desc: "Imminent radioactive danger.",
 
     skin_buff_damage1_name: "Basic Training",
-    skin_buff_damage1_desc: "⚔️ +5% Permanent Damage.",
+    skin_buff_damage1_desc: "âš”ï¸ +5% Permanent Damage.",
     skin_buff_range1_name: "Eagle Vision",
-    skin_buff_range1_desc: "🔭 +10 Permanent Range.",
+    skin_buff_range1_desc: "ðŸ”­ +10 Permanent Range.",
     skin_buff_speed1_name: "Improved Fire-rate",
-    skin_buff_speed1_desc: "⚡ +5% Attack Speed.",
+    skin_buff_speed1_desc: "âš¡ +5% Attack Speed.",
     skin_buff_damage2_name: "Bitlands Engineering",
-    skin_buff_damage2_desc: "⚔️ +10% Extra Damage.",
+    skin_buff_damage2_desc: "âš”ï¸ +10% Extra Damage.",
 
     // Tower Descriptions
     tower_Glob_desc: "Basic Glob. Attacks with green orbs.",
@@ -524,7 +528,9 @@ const IMAGE_PATHS = {
   'Work_Bombot': 'img/Work-Bombot.png',
   'Globetin': 'img/Tokens/Globetin.png',
   'PyCoin': 'img/Tokens/PyCoin.png',
-  'DuckyPass': 'img/Tokens/DuckPass.png'
+  'DuckyPass': 'img/Tokens/DuckPass.png',
+  'Flower_Pyce': 'img/Flower_Pyce.png',
+  'Mimic_Pyce': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic_Pyce.png'
 };
 
 const NARRATOR_DATA = {
@@ -554,11 +560,11 @@ const NARRATOR_DATA = {
   glob: {
     img: IMAGE_PATHS.Glob, es: {
       name: "Glob (DEF)", msgs: [
-        "Me pregunto por qué atacamos a los Pyces. ¿No son amigos?",
+        "Me pregunto por que atacamos a los Pyces. ¿No son amigos?",
         "¿No viven los Pyces 2.0 en Bitlands? ¡Si este es mi hogar!",
-        "Ojalá pudiera darles su merecido a esos corruptos...",
+        "¡Ojala pudiera darles su merecido a esos corruptos...",
         "¡Oh no... Aquí vienen los disparadores!",
-        "¡AYUDA! ¡Vienen demasiados! 😱",
+        "¡AYUDA! ¡Vienen demasiados!",
         "¿Alguien tiene un paraguas? Creo que va a llover... Pyces."
       ]
     }, en: {
@@ -577,7 +583,7 @@ const NARRATOR_DATA = {
       name: "Pyce Torpe", msgs: [
         "Eh, estamos entrando. No nos pegues muy fuerte.",
         "Caminar por este mapa cansa un poco.",
-        "¿Habéis visto mi sombrero? Ah, no llevo."
+        "¿Habeis visto mi sombrero? Ah, no llevo."
       ]
     }, en: {
       name: "Stupid Pyce", msgs: [
@@ -638,7 +644,7 @@ const NARRATOR_DATA = {
       name: "MoonStar", msgs: [
         "Es un honor contemplar vuestra inevitable caída, pequeños Globs.",
         "Vuestro esfuerzo es loable, pero el destino ya ha sido escrito por las estrellas.",
-        "Dos vueltas al escenario para saborear vuestro miedo. Qué delicia.",
+        "Dos vueltas al escenario para saborear vuestro miedo. ¡Qué delicia.",
         "Vuestra resistencia es fútil ante el ciclo eterno de los astros."
       ], defeat: [
         "Imposible... el brillo de las estrellas... se apaga...",
@@ -702,7 +708,7 @@ const TOWER_TYPES = {
 
 const ENEMY_TYPES = {
   'Stupid_Pyce': { name: 'Pyce Torpe', health: 50, speed: 1.5, reward: 15, image: IMAGE_PATHS.Stupid_Pyce },
-  'Pyce2': { name: 'Pyce Común', health: 70, speed: 1.4, reward: 20, image: IMAGE_PATHS.Pyce2 },
+  'Pyce2': { name: 'Pyce ComÃºn', health: 70, speed: 1.4, reward: 20, image: IMAGE_PATHS.Pyce2 },
   'Guest_Pyce': { name: 'Pyce Invitado', health: 100, speed: 1.2, reward: 25, image: IMAGE_PATHS.Guest_Pyce },
   'Symbol_Pyce': { name: 'Pyce Veloz', health: 80, speed: 2.5, reward: 30, image: IMAGE_PATHS.Symbol_Pyce },
   'Noob_Pyce': { name: 'Pyce Novato', health: 120, speed: 1.0, reward: 35, image: IMAGE_PATHS.Noob_Pyce, stunAbility: true, stunCooldown: 8 },
@@ -713,40 +719,42 @@ const ENEMY_TYPES = {
   'NOeye_Pyce': { name: 'Ojo Ciego Pyce', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12 },
   'MoonStar_Pyce': { name: 'MoonStar Pyce', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true },
 
-  'Stupid_GoldPyce': { name: 'Pyce de Oro Torpe', health: 80, speed: 2.0, reward: 150, image: IMAGE_PATHS.Stupid_GoldPyce, mimic: true }
+  'Stupid_GoldPyce': { name: 'Pyce de Oro Torpe', health: 80, speed: 2.0, reward: 150, image: IMAGE_PATHS.Stupid_GoldPyce, mimic: true },
+  'Flower_Pyce': { name: 'Flower Pyce', health: 150, speed: 1.2, reward: 50, image: IMAGE_PATHS.Flower_Pyce, healer: true, healRange: 120, healAmount: 10, healCooldown: 2 },
+  'Mimic_Pyce': { name: 'Mimic Pyce', health: 500, speed: 1.8, reward: 1000, image: IMAGE_PATHS.Mimic_Pyce, mimic: true, isSpecialMimic: true }
 };
 
 const BADGES = {
-  survivor: { key: 'survivor', icon: '🛡️', unlocked: false, reward: { pycoins: 100, xp: 50 } },
-  millionaire: { key: 'millionaire', icon: '💰', unlocked: false, reward: { pycoins: 500, xp: 100 } },
-  evolution: { key: 'evolution', icon: '🧬', unlocked: false, reward: { pycoins: 200, xp: 80 } },
-  bossKiller: { key: 'bossKiller', icon: '👑', unlocked: false, reward: { duckpass: 5, xp: 150 } },
-  secret: { key: 'secret', icon: '🔑', unlocked: false, reward: { pycoins: 50, xp: 30 } },
-  inf100: { key: 'inf100', icon: '💯', unlocked: false, reward: { duckpass: 10, xp: 200 } },
-  inf500: { key: 'inf500', icon: '🎖️', unlocked: false, reward: { duckpass: 25, xp: 500 } },
-  inf999: { key: 'inf999', icon: '🌌', unlocked: false, reward: { duckpass: 50, xp: 1000 } },
-  corrupt1: { key: 'corrupt1', icon: '👾', unlocked: false, reward: { pycoins: 300, xp: 150 } },
-  corrupt2: { key: 'corrupt2', icon: '👾', unlocked: false, reward: { pycoins: 400, xp: 200 } },
-  corrupt3: { key: 'corrupt3', icon: '👾', unlocked: false, reward: { pycoins: 500, xp: 250 } },
-  corrupt4: { key: 'corrupt4', icon: '👾', unlocked: false, reward: { pycoins: 600, xp: 300 } },
-  corrupt5: { key: 'corrupt5', icon: '👾', unlocked: false, reward: { duckpass: 20, xp: 500 } },
-  mimic1: { key: 'mimic1', icon: '🎁', unlocked: false, reward: { pycoins: 150, xp: 50 } },
-  mimic2: { key: 'mimic2', icon: '🎁', unlocked: false, reward: { pycoins: 300, xp: 100 } },
-  mimic3: { key: 'mimic3', icon: '🎁', unlocked: false, reward: { pycoins: 450, xp: 150 } },
-  mimic4: { key: 'mimic4', icon: '🎁', unlocked: false, reward: { duckpass: 15, xp: 300 } },
-  corruptMimic: { key: 'corruptMimic', icon: '💀', unlocked: false, reward: { pycoins: 1000, xp: 500 } },
-  mimicRevenge: { key: 'mimicRevenge', icon: '🔥', unlocked: false, reward: { pycoins: 500, xp: 200 } },
-  antiNormal: { key: 'antiNormal', icon: '🌑', unlocked: false, reward: { duckpass: 100, xp: 2000 } },
-  winFacil: { key: 'winFacil', icon: '🌱', unlocked: false, reward: { pycoins: 50, xp: 50 } },
-  winNormal: { key: 'winNormal', icon: '⚔️', unlocked: false, reward: { pycoins: 100, xp: 100 } },
-  winDificil: { key: 'winDificil', icon: '🔥', unlocked: false, reward: { pycoins: 200, xp: 200 } },
-  winExtremo: { key: 'winExtremo', icon: '💀', unlocked: false, reward: { pycoins: 500, xp: 500 } },
-  winCorrupto: { key: 'winCorrupto', icon: '👾', unlocked: false, reward: { pycoins: 1000, xp: 1000 } }
+  survivor: { key: 'survivor', icon: 'ðŸ›¡ï¸', unlocked: false, reward: { pycoins: 100, xp: 50 } },
+  millionaire: { key: 'millionaire', icon: 'ðŸ’°', unlocked: false, reward: { pycoins: 500, xp: 100 } },
+  evolution: { key: 'evolution', icon: 'ðŸ§¬', unlocked: false, reward: { pycoins: 200, xp: 80 } },
+  bossKiller: { key: 'bossKiller', icon: 'ðŸ‘‘', unlocked: false, reward: { duckpass: 5, xp: 150 } },
+  secret: { key: 'secret', icon: 'ðŸ”‘', unlocked: false, reward: { pycoins: 50, xp: 30 } },
+  inf100: { key: 'inf100', icon: 'ðŸ’¯', unlocked: false, reward: { duckpass: 10, xp: 200 } },
+  inf500: { key: 'inf500', icon: 'ðŸŽ–ï¸', unlocked: false, reward: { duckpass: 25, xp: 500 } },
+  inf999: { key: 'inf999', icon: 'ðŸŒŒ', unlocked: false, reward: { duckpass: 50, xp: 1000 } },
+  corrupt1: { key: 'corrupt1', icon: 'ðŸ‘¾', unlocked: false, reward: { pycoins: 300, xp: 150 } },
+  corrupt2: { key: 'corrupt2', icon: 'ðŸ‘¾', unlocked: false, reward: { pycoins: 400, xp: 200 } },
+  corrupt3: { key: 'corrupt3', icon: 'ðŸ‘¾', unlocked: false, reward: { pycoins: 500, xp: 250 } },
+  corrupt4: { key: 'corrupt4', icon: 'ðŸ‘¾', unlocked: false, reward: { pycoins: 600, xp: 300 } },
+  corrupt5: { key: 'corrupt5', icon: 'ðŸ‘¾', unlocked: false, reward: { duckpass: 20, xp: 500 } },
+  mimic1: { key: 'mimic1', icon: 'ðŸŽ', unlocked: false, reward: { pycoins: 150, xp: 50 } },
+  mimic2: { key: 'mimic2', icon: 'ðŸŽ', unlocked: false, reward: { pycoins: 300, xp: 100 } },
+  mimic3: { key: 'mimic3', icon: 'ðŸŽ', unlocked: false, reward: { pycoins: 450, xp: 150 } },
+  mimic4: { key: 'mimic4', icon: 'ðŸŽ', unlocked: false, reward: { duckpass: 15, xp: 300 } },
+  corruptMimic: { key: 'corruptMimic', icon: 'ðŸ’€', unlocked: false, reward: { pycoins: 1000, xp: 500 } },
+  mimicRevenge: { key: 'mimicRevenge', icon: 'ðŸ”¥', unlocked: false, reward: { pycoins: 500, xp: 200 } },
+  antiNormal: { key: 'antiNormal', icon: 'ðŸŒ‘', unlocked: false, reward: { duckpass: 100, xp: 2000 } },
+  winFacil: { key: 'winFacil', icon: 'ðŸŒ±', unlocked: false, reward: { pycoins: 50, xp: 50 } },
+  winNormal: { key: 'winNormal', icon: 'âš”ï¸', unlocked: false, reward: { pycoins: 100, xp: 100 } },
+  winDificil: { key: 'winDificil', icon: 'ðŸ”¥', unlocked: false, reward: { pycoins: 200, xp: 200 } },
+  winExtremo: { key: 'winExtremo', icon: 'ðŸ’€', unlocked: false, reward: { pycoins: 500, xp: 500 } },
+  winCorrupto: { key: 'winCorrupto', icon: 'ðŸ‘¾', unlocked: false, reward: { pycoins: 1000, xp: 1000 } }
 };
 
 const RIVER_ZONES = [
-  { x: 300, y: 0, w: 60, h: 600 }, // Río vertical
-  { x: 300, y: 200, w: 200, h: 60 } // Brazo de río
+  { x: 300, y: 0, w: 60, h: 600 }, // RÃ­o vertical
+  { x: 300, y: 200, w: 200, h: 60 } // Brazo de rÃ­o
 ];
 
 const PATH_SEGMENTS = [
@@ -767,17 +775,34 @@ const ENEMY_PATH = [
 
 const SKINS_DATA = {
   'Glob': [
-    { id: 'military_set', name: 'skin_military_name', desc: 'skin_military_desc', cost: 350, type: 'pycoin', 
+    {
+      id: 'military_set', name: 'skin_military_name', desc: 'skin_military_desc', cost: 350, type: 'pycoin',
       skins: {
         'Glob': 'img/Skins/Verde Base/Untrained Glob (SK-EVO1).png',
         'Poop_Glob': 'img/Skins/Verde Base/Militar Glob (SK-EVO2).png',
         'Golden_Glob': 'img/Skins/Verde Base/Armed Glob (SK-EVO3).png',
         'Rainbow_Glob': 'img/Skins/Verde Base/Impostor Glob (SK-EVO4).png'
       }
+    },
+    {
+      id: 'corrupt_swords_set', name: 'Espadas Corrompidas', desc: 'Un set especial con ataques unicos por evolucion.', cost: 637, type: 'pycoin', duckpass_cost: 207, isSpecial: true,
+      skins: {
+        'Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO1).png',
+        'Poop_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO2).png',
+        'Golden_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO3).png',
+        'Rainbow_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO4).png'
+      },
+      names: {
+        'Glob': 'Blackrock',
+        'Poop_Glob': 'Brad',
+        'Golden_Glob': 'Emotional',
+        'Rainbow_Glob': 'Blackrock Dorado'
+      }
     }
   ],
   'Red_Glob': [
-    { id: 'music_set', name: 'skin_music_name', desc: 'skin_music_desc', cost: 300, type: 'pycoin',
+    {
+      id: 'music_set', name: 'skin_music_name', desc: 'skin_music_desc', cost: 300, type: 'pycoin',
       skins: {
         'Red_Glob': 'img/Skins/Rojo Melee/Music Glob (SK-EVO1).png',
         'Molten_Glob': 'img/Skins/Rojo Melee/Funky Glob (SK-EVO2).png',
@@ -786,7 +811,8 @@ const SKINS_DATA = {
     }
   ],
   'Soap_Glob': [
-    { id: 'abyssal_set', name: 'skin_abyssal_name', desc: 'skin_abyssal_desc', cost: 400, type: 'pycoin',
+    {
+      id: 'abyssal_set', name: 'skin_abyssal_name', desc: 'skin_abyssal_desc', cost: 400, type: 'pycoin',
       skins: {
         'Soap_Glob': 'img/Skins/Azul Ralentizador/Beachy Glob (SK-EVO1).png',
         'Cotton_Glob': 'img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png'
@@ -794,7 +820,8 @@ const SKINS_DATA = {
     }
   ],
   'Ducky_Glob': [
-    { id: 'business_duck_set', name: 'skin_business_name', desc: 'skin_business_desc', cost: 150, type: 'pycoin',
+    {
+      id: 'business_duck_set', name: 'skin_business_name', desc: 'skin_business_desc', cost: 150, type: 'pycoin',
       skins: {
         'Ducky_Glob': 'img/Skins/Amarillo Farmer/Jelly Post (SK-EVO1).png',
         'Golden_Ducky_Glob': 'img/Skins/Amarillo Farmer/Factory Glob (SK-EVO2).png'
@@ -802,11 +829,25 @@ const SKINS_DATA = {
     }
   ],
   'Comet_Glob': [
-    { id: 'universolar_comet_set', name: 'skin_universolar_name', desc: 'skin_universolar_desc', cost: 450, type: 'pycoin',
+    {
+      id: 'universolar_comet_set', name: 'skin_universolar_name', desc: 'skin_universolar_desc', cost: 450, type: 'pycoin',
       skins: {
         'Comet_Glob': 'img/Skins/Negro Supremo/Sunny Glob (SK-EVO1).png',
         'Dark_Glob': 'img/Skins/Negro Supremo/Sunlight Glob (SK-EVO2).png',
         'Demglob': 'img/Skins/Negro Supremo/Nova Glob (SK-EVO3).png'
+      }
+    },
+    {
+      id: 'mimic_set', name: 'Mimic set', desc: 'Skin especial obtenida al derrotar al Mimic Pyce.', cost: 0, type: 'free', isSpecial: true,
+      skins: {
+        'Comet_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Comet (SP-EVO1).png',
+        'Dark_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Dark (SP-EVO2).png',
+        'Demglob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Demglob (SP-EVO3).png'
+      },
+      names: {
+        'Comet_Glob': 'Mimic Comet',
+        'Dark_Glob': 'Mimic Oscuro',
+        'Demglob': 'Mimic Supremo'
       }
     }
   ],
