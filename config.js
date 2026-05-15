@@ -1,4 +1,4 @@
-// ===================== CONFIGURACIÃ“N Y DATOS DEL JUEGO =====================
+﻿// ===================== CONFIGURACIÃ“N Y DATOS DEL JUEGO =====================
 
 const TRANSLATIONS = {
   es: {
@@ -840,9 +840,9 @@ const SKINS_DATA = {
     {
       id: 'mimic_set', name: 'Mimic set', desc: 'Skin especial obtenida al derrotar al Mimic Pyce.', cost: 0, type: 'free', isSpecial: true,
       skins: {
-        'Comet_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Comet (SP-EVO1).png',
-        'Dark_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Dark (SP-EVO2).png',
-        'Demglob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Demglob (SP-EVO3).png'
+        'Comet_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png',
+        'Dark_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Didic Pyce (SK-EVO2).png',
+        'Demglob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/NOmic Pyce (SK-EVO3).png'
       },
       names: {
         'Comet_Glob': 'Mimic Comet',
