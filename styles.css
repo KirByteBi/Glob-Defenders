@@ -1308,6 +1308,7 @@ button.active {
 .projectile.gold { background: #ffd700; box-shadow: 0 0 5px #ffd700; width: 8px; height: 8px; }
 .projectile.brown { background: #8b4513; width: 10px; height: 10px; }
 .projectile.green { background: #2ecc71; width: 10px; height: 10px; box-shadow: 0 0 5px #2ecc71; }
+.projectile.blue_comet { background: linear-gradient(135deg, #5fc3ff, #0d6fff); width: 14px; height: 14px; box-shadow: 0 0 12px rgba(95, 195, 255, 0.8); border-radius: 50%; }
 /* Meta Game Modals */
 .meta-grid {
     display: grid;

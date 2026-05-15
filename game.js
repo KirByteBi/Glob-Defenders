@@ -25,6 +25,7 @@ let gameState = {
   towerSpots: [],
 
   mode: 'normal',
+  modeConfirmed: false,
   corrupt: false,
   healthClicks: 0,
   consecutiveMimics: 0,
@@ -378,6 +379,7 @@ function selectMode(mode) {
   }
 
   gameState.mode = mode;
+  gameState.modeConfirmed = true;
   const limits = { facil: 10, normal: 15, dificil: 25, extremo: 40, infinito: 999, corrupto: 45 };
   gameState.maxWaves = limits[mode] || 15;
 
@@ -728,9 +730,66 @@ function bindEvents() {
     updateUI();
   };
 
-  document.getElementById('open-shop').onclick = () => openShop();
-  document.getElementById('open-pass').onclick = () => openPass();
+  const shopBtn = document.getElementById('open-shop');
+  if (shopBtn) shopBtn.onclick = () => { saveGameSnapshot(); if (typeof openShop === 'function') openShop(); };
+
+  const passBtn = document.getElementById('open-pass');
+  if (passBtn) passBtn.onclick = () => { saveGameSnapshot(); if (typeof openPass === 'function') openPass(); };
+
+  document.querySelectorAll('.modal .modal-close, .modal .close-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      const modal = btn.closest('.modal');
+      if (!modal) return;
+      modal.style.display = 'none';
+      if (!gameState.modeConfirmed) {
+        const ms = document.getElementById('mode-selection');
+        if (ms) ms.style.display = 'flex';
+      } else {
+        restoreGameSnapshot();
+      }
+    };
+  });
+
   window.addEventListener('resize', applyScale);
+}
+
+function saveGameSnapshot() {
+    gameState._snapshot = {
+        mode: gameState.mode,
+        modeConfirmed: gameState.modeConfirmed,
+        wave: gameState.wave,
+        waveActive: gameState.waveActive,
+        health: gameState.health,
+        globetines: gameState.globetines,
+        pycoins: gameState.pycoins,
+        duckPassXP: gameState.duckPassXP,
+        duckPassLevel: gameState.duckPassLevel,
+        towers: JSON.parse(JSON.stringify(gameState.towers || [])),
+        enemies: JSON.parse(JSON.stringify(gameState.enemies || []).map(e => ({ type: e.type, x: e.x, y: e.y, health: e.health, pathIndex: e.pathIndex, boss: e.boss }))),
+        projectiles: []
+    };
+    try { localStorage.setItem('gd_snapshot', JSON.stringify(gameState._snapshot)); } catch(e){}
+}
+
+function restoreGameSnapshot() {
+    const snap = gameState._snapshot || (function(){ try { return JSON.parse(localStorage.getItem('gd_snapshot')); } catch(e){return null;} })();
+    if (!snap) return;
+    gameState.mode = snap.mode;
+    gameState.modeConfirmed = !!snap.modeConfirmed;
+    gameState.wave = snap.wave;
+    gameState.waveActive = !!snap.waveActive;
+    gameState.health = snap.health;
+    gameState.globetines = snap.globetines;
+    gameState.pycoins = snap.pycoins;
+    gameState.duckPassXP = snap.duckPassXP;
+    gameState.duckPassLevel = snap.duckPassLevel;
+    gameState.towers = snap.towers || [];
+    gameState.enemies = (snap.enemies || []).map(e => {
+        const t = ENEMY_TYPES[e.type] || {};
+        return { ...t, type: e.type, x: e.x, y: e.y, health: e.health, maxHealth: e.health, pathIndex: e.pathIndex, boss: !!e.boss };
+    });
+    delete gameState._snapshot;
+    try { localStorage.removeItem('gd_snapshot'); } catch(e){}
 }
 
 function openShop() {
@@ -754,7 +813,7 @@ function closeModal(id) {
 function smartClose(modalId) {
   closeModal(modalId);
   const modeScreen = document.getElementById('mode-selection');
-  if (document.getElementById('login-screen').style.display === 'none') {
+  if (!gameState.modeConfirmed && document.getElementById('login-screen').style.display === 'none') {
     modeScreen.style.display = 'flex';
   }
 }
@@ -1108,75 +1167,72 @@ function deselectTower() { gameState.selectedTower = null; document.getElementBy
 
 function startWave() {
   if (gameState.waveActive || gameState.gameOver) return;
-  if (gameState.mode !== 'infinito' && gameState.wave >= gameState.maxWaves) return endGame(true);
+  if (gameState.mode !== 'infinito' && gameState.wave >= gameState.maxWaves) return typeof endGame === 'function' && endGame(true);
 
-  gameState.waveActive = true; gameState.wave++;
-  updateUI(); showMessage(translate('waveStarted', { wave: gameState.wave }), 'info');
+  gameState.waveActive = true;
+  gameState.wave = (gameState.wave || 0) + 1;
+  if (typeof updateUI === 'function') updateUI();
+  if (typeof showMessage === 'function') showMessage((typeof translate === 'function') ? translate('waveStarted', { wave: gameState.wave }) : `¡Oleada ${gameState.wave}!`, 'info');
 
-  let count = 5 + gameState.wave * 2;
-  let spawned = 0;
+  const wave = gameState.wave;
+  const baseCount = Math.min(6 + Math.floor(wave * 1.5), 60);
+  const pool = ['Stupid_Pyce','Pyce2','Guest_Pyce','Symbol_Pyce','Noob_Pyce','4motions_Pyce','SO_Pyce'];
+  const spawnList = [];
 
-  // Narrador al inicio de oleada (Glob o Bombot, aleatoriamente)
-  const narratorKeys = ['glob', 'bombot'];
-  if (Math.random() < 0.45) {
-    const nKey = narratorKeys[Math.floor(Math.random() * narratorKeys.length)];
-    const nd = NARRATOR_DATA[nKey];
-    if (nd) {
-      const msgs = nd[currentLanguage]?.msgs;
-      if (msgs) {
-        const msg = msgs[Math.floor(Math.random() * msgs.length)];
-        setTimeout(() => showNarratorMsg(nd.img, nd[currentLanguage].name, msg), 1500);
-      }
-    }
+  const groups = 2 + Math.floor(Math.random() * 3);
+  for (let g = 0; g < groups; g++) {
+    const type = (Math.random() < 0.12 && wave > 6) ? 'Mimic_Pyce' : pool[Math.floor(Math.random() * pool.length)];
+    const cnt = Math.max(1, Math.round(baseCount / groups + (Math.random() - 0.5) * 3));
+    for (let i = 0; i < cnt; i++) spawnList.push(type);
   }
 
+  for (let i = 0; i < Math.floor(wave / 5); i++) {
+    if (Math.random() < 0.4) spawnList.push(['Stupid_GoldPyce','Flower_Pyce'][Math.floor(Math.random()*2)]);
+  }
+
+  for (let i = spawnList.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [spawnList[i], spawnList[j]] = [spawnList[j], spawnList[i]];
+  }
+
+  let spawned = 0;
   const interval = setInterval(() => {
-    let type = null, boss = false;
-    if (gameState.wave % 10 === 0 && spawned === 0) { type = '1x1x1x1_Pyce'; boss = true; }
-    spawnEnemy(type, boss); spawned++;
-    if (spawned >= count) clearInterval(interval);
-  }, 1000);
+    const type = spawnList[spawned] || null;
+    const boss = (spawned === 0 && (gameState.wave % 10 === 0));
+    spawnEnemy(type, boss);
+    spawned++;
+    if (spawned >= spawnList.length) clearInterval(interval);
+  }, Math.max(400, 800 - Math.min(400, wave * 20)));
 }
 
 function spawnEnemy(type, boss) {
   if (!type) {
-    const keys = Object.keys(ENEMY_TYPES).filter(k => k !== 'Stupid_GoldPyce' && k !== 'Mimic_Pyce' && k !== 'Flower_Pyce');
-    type = keys[Math.floor(Math.random() * Math.min(keys.length, Math.floor(gameState.wave/3)+1))];
-    
-    // Chance de reemplazo por Mimic o Flower Pyce
-    const roll = Math.random();
-    if (roll < 0.01) type = 'Mimic_Pyce';
-    else if (roll < 0.11) type = 'Stupid_GoldPyce'; // 10% aprox (0.01 a 0.11)
-    else if (roll < 0.21 && gameState.wave > 5) type = 'Flower_Pyce'; // Flower Pyce a partir de oleada 5
+    const wave = gameState.wave || 1;
+    const pool = ['Stupid_Pyce'];
+    if (wave >= 2) pool.push('Pyce2','Pyce2');
+    if (wave >= 3) pool.push('Guest_Pyce','Symbol_Pyce');
+    if (wave >= 5) pool.push('Noob_Pyce','Noob_Pyce');
+    if (wave >= 8) pool.push('4motions_Pyce');
+    if (wave >= 10) pool.push('Symbol_Pyce','Guest_Pyce','Noob_Pyce');
+    if (Math.random() < 0.01) type = 'Mimic_Pyce';
+    else type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
   }
+
   const t = ENEMY_TYPES[type];
+  if (!t) return console.warn("Enemy type missing:", type);
   const el = document.createElement('div'); el.className = 'enemy' + (boss ? ' boss' : '');
-  el.style.backgroundImage = `url('${t.image}')`;
+  el.style.left = `${ENEMY_PATH[0].x}px`; el.style.top = `${ENEMY_PATH[0].y}px`;
+  if (t.image) el.style.backgroundImage = `url('${t.image}')`;
   const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
   const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
   hpBg.appendChild(hpFill); el.appendChild(hpBg);
-  document.getElementById('game-area').appendChild(el);
+  const gameArea = document.getElementById('game-area') || document.getElementById('map') || document.body;
+  gameArea.appendChild(el);
 
-  const name = translate('enemy_' + type + '_name');
-  gameState.enemies.push({ ...t, name, el, x: ENEMY_PATH[0].x, y: ENEMY_PATH[0].y, pathIndex: 0, health: t.health * (1+gameState.wave*0.15), maxHealth: t.health * (1+gameState.wave*0.15), hpFill, shield: (t.shield||0)*t.health, type });
-
-  // Narrador: diálogo del enemigo especial al aparecer (una vez por oleada por tipo)
-  const narratorMap = {
-    'Stupid_Pyce': 'stupid', 'Pyce2': 'pyce2', 'NOeye_Pyce': 'noeye',
-    'MoonStar_Pyce': 'moonstar', 'Stupid_GoldPyce': 'mimic'
-  };
-  const nKey = narratorMap[type];
-  if (nKey && !gameState['narratorShown_' + type + '_' + gameState.wave]) {
-    gameState['narratorShown_' + type + '_' + gameState.wave] = true;
-    const nd = NARRATOR_DATA[nKey];
-    if (nd) {
-      const msgs = nd[currentLanguage]?.msgs;
-      if (msgs) {
-        const msg = msgs[Math.floor(Math.random() * msgs.length)];
-        setTimeout(() => showNarratorMsg(nd.img, nd[currentLanguage].name, msg), 800);
-      }
-    }
-  }
+  const name = (typeof translate === 'function' && translate('enemy_' + type + '_name')) || type;
+  const healthScaled = Math.max(1, (t.health || 10) * (1 + (gameState.wave || 1) * 0.15));
+  const enemyObj = { ...t, name, el, x: ENEMY_PATH[0].x, y: ENEMY_PATH[0].y, pathIndex: 0, health: healthScaled, maxHealth: healthScaled, hpFill, shield: (t.shield||0)*(t.health||10), type, boss };
+  gameState.enemies.push(enemyObj);
 }
 
 let narratorTimeout = null;
@@ -1377,11 +1433,26 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-function shoot(t, target, isSpin = false) {
-  const el = document.createElement('div'); el.className = `projectile ${t.projectile}`;
-  el.style.left = t.x+'px'; el.style.top = t.y+'px';
-  document.getElementById('map').appendChild(el);
-  gameState.projectiles.push({ x: t.x, y: t.y, target, damage: t.damage, el, family: t.family, type: t.type, isSpin });
+function shoot(shooter, target, opts = {}) {
+  const el = document.createElement('div');
+  el.className = `projectile`;
+  el.style.position = 'absolute';
+  el.style.left = shooter.x + 'px'; el.style.top = shooter.y + 'px';
+  el.style.width = el.style.height = (opts.size || 10) + 'px';
+  el.style.borderRadius = '50%';
+  if (opts.color === 'multicolor') {
+    el.style.backgroundImage = `conic-gradient(#FFEA00,#00B4FF,#C58ED3,#8B0000)`;
+  } else if (opts.color === 'gradient') {
+    el.style.background = `linear-gradient(45deg, ${opts.from || '#FF7F00'}, ${opts.to || '#001F5B'})`;
+  } else if (opts.color === 'blackwhite') {
+    el.style.background = 'radial-gradient(circle at 30% 30%, #fff 0%, #000 60%)';
+  } else {
+    el.style.backgroundColor = opts.color || (shooter.projectileColor || '#FFFFFF');
+  }
+
+  const mapEl = document.getElementById('map') || document.getElementById('game-area') || document.body;
+  mapEl.appendChild(el);
+  gameState.projectiles.push({ x: shooter.x, y: shooter.y, target, speed: opts.speed || 3, damage: shooter.damage || 1, el, meta: opts });
 }
 
 function die(e, idx) {
