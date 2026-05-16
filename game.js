@@ -1,19 +1,53 @@
 // ===================== ESTADO DEL JUEGO =====================
 
 let currentLanguage = 'es';
+let backgroundMusic = null;
+let musicEnabled = true;
+let showHitbox = false;
 
 // Generamos spots automáticamente evitando el río y el camino
 const TOWER_SPOTS = [];
 function generateSpots() {
-  for (let x = 40; x < 950; x += 100) {
-    for (let y = 40; y < 550; y += 100) {
-      let inRiver = RIVER_ZONES.some(r => x > r.x - 40 && x < r.x + r.w + 40 && y > r.y - 40 && y < r.y + r.h + 40);
-      let onPath = PATH_SEGMENTS.some(p => x > p.x - 40 && x < p.x + p.w + 40 && y > p.y - 40 && y < p.y + p.h + 40);
-      if (!inRiver && !onPath) {
-        TOWER_SPOTS.push({ x, y, w: 80, h: 80 });
+  // Limpiar array por si acaso
+  TOWER_SPOTS.length = 0;
+  
+  // Zonas prohibidas (río y camino)
+  const forbiddenZones = [
+    { x: 300, y: 0, w: 60, h: 600 },      // Río vertical
+    { x: 300, y: 200, w: 200, h: 60 },     // Brazo de río
+    { x: 0, y: 170, w: 200, h: 60 },       // Camino segmento 1
+    { x: 170, y: 170, w: 60, h: 200 },     // Camino segmento 2
+    { x: 170, y: 330, w: 300, h: 60 },     // Camino segmento 3
+    { x: 430, y: 150, w: 60, h: 240 },     // Camino segmento 4
+    { x: 430, y: 150, w: 300, h: 60 },     // Camino segmento 5
+    { x: 700, y: 150, w: 60, h: 200 },     // Camino segmento 6
+    { x: 700, y: 330, w: 300, h: 60 }      // Camino segmento 7
+  ];
+  
+  // Grid MÁS DENSO: 75px en lugar de 100px (más spots!)
+  for (let x = 35; x < 950; x += 75) {
+    for (let y = 35; y < 550; y += 75) {
+      let collides = false;
+      
+      // Verificar si colisiona con zona prohibida
+      for (let zone of forbiddenZones) {
+        if (x + 40 > zone.x && x - 40 < zone.x + zone.w &&
+            y + 40 > zone.y && y - 40 < zone.y + zone.h) {
+          collides = true;
+          break;
+        }
+      }
+      
+      // Evitar bordes del mapa
+      if (x < 20 || x > 960 || y < 20 || y > 560) collides = true;
+      
+      if (!collides) {
+        TOWER_SPOTS.push({ x: x - 40, y: y - 40, w: 80, h: 80 });
       }
     }
   }
+  
+  console.log(`✅ Generados ${TOWER_SPOTS.length} spots para torres (antes eran menos)`);
 }
 generateSpots();
 
@@ -150,7 +184,10 @@ function saveProgress() {
     claimedRewards: gameState.claimedRewards,
     muted: gameState.muted,
     totalDamage: gameState.totalDamage,
-    settings: gameState.settings
+    settings: gameState.settings,
+        // ========== AÑADE ESTAS DOS LÍNEAS ==========
+    musicEnabled: musicEnabled,
+    showHitbox: showHitbox,
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
 }
@@ -201,6 +238,12 @@ function loadProgress(username) {
       gameState.unlockedAntiNormal = progress.unlockedAntiNormal || false;
       gameState.claimedRewards = progress.claimedRewards || [];
       gameState.muted = progress.muted || false;
+      
+      // ========== AÑADE ESTAS DOS LÍNEAS AQUÍ (DENTRO DEL IF) ==========
+      musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
+      showHitbox = progress.showHitbox || false;
+      // ================================================================
+      
       if (gameState.unlockedAntiNormal) BADGES.antiNormal.unlocked = true;
       updateBuffs();
       document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
@@ -208,6 +251,11 @@ function loadProgress(username) {
       // Ajustar salud según el nivel cargado
       gameState.health = 100 + (gameState.baseHealthLevel * 20);
     }
+    
+    // ========== Y AÑADE initMusic() AQUÍ (FUERA DEL IF, PERO DESPUÉS) ==========
+    initMusic();
+    // ============================================================================
+    
   } catch (e) {
     console.error("Error al cargar el progreso (loadProgress):", e);
   }
@@ -490,12 +538,17 @@ function confirmReset() {
 }
 
 function openOptions() {
-  resetCounter = 0;
-  const btn = document.getElementById('reset-btn');
-  if (btn) btn.textContent = translate('reset_progress_btn');
-  document.getElementById('options-modal').style.display = 'flex';
-  document.getElementById('opt-show-desc').checked = gameState.settings.showShopDesc;
-  document.getElementById('opt-show-damage').checked = gameState.settings.showTotalDamage;
+    resetCounter = 0;
+    const btn = document.getElementById('reset-btn');
+    if (btn) btn.textContent = translate('reset_progress_btn');
+    
+    updateOptionsUI();
+    
+    document.getElementById('options-modal').style.display = 'flex';
+    document.getElementById('opt-show-desc').checked = gameState.settings.showShopDesc;
+    document.getElementById('opt-show-damage').checked = gameState.settings.showTotalDamage;
+    const hitboxCheck = document.getElementById('opt-show-hitbox');
+    if (hitboxCheck) hitboxCheck.checked = showHitbox;
 }
 
 function closeOptions() {
@@ -504,81 +557,103 @@ function closeOptions() {
 }
 
 function updateSettings() {
-  gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
-  gameState.settings.showTotalDamage = document.getElementById('opt-show-damage').checked;
-  document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
-  drawTowerShop();
-  saveProgress();
+    gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
+    gameState.settings.showTotalDamage = document.getElementById('opt-show-damage').checked;
+    
+    const hitboxCheck = document.getElementById('opt-show-hitbox');
+    if (hitboxCheck) showHitbox = hitboxCheck.checked;
+    updateHitboxesVisibility();
+    
+    document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
+    drawTowerShop();
+    saveProgress();
 }
 
 function drawTowerShop() {
-  const shop = document.getElementById('tower-shop');
-  shop.innerHTML = '';
-  const initial = ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob'];
-  if (TOWER_TYPES['Pyce_Glob'].unlocked) initial.push('Pyce_Glob');
-  if (TOWER_TYPES['Old_Glob'].unlocked) initial.push('Old_Glob');
-  if (TOWER_TYPES['Work_Bombot'].unlocked) initial.push('Work_Bombot');
-
-  initial.forEach(type => {
-    const t = TOWER_TYPES[type];
-    const el = document.createElement('div');
-    el.className = 'tower-item';
-    el.dataset.type = type;
+    // Eliminar tienda flotante existente
+    const existingShop = document.getElementById('floating-tower-shop');
+    if (existingShop) existingShop.remove();
     
-    const currentCount = gameState.towerCounts[type] || 0;
-    const limit = gameState.towerLimits[type] || 3;
-    const isFull = currentCount >= limit;
+    // Crear nuevo contenedor flotante
+    const shopContainer = document.createElement('div');
+    shopContainer.id = 'floating-tower-shop';
+    shopContainer.className = 'floating-tower-shop';
+    
+    const initial = ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob'];
+    if (TOWER_TYPES['Pyce_Glob'] && TOWER_TYPES['Pyce_Glob'].unlocked) initial.push('Pyce_Glob');
+    if (TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked) initial.push('Old_Glob');
+    if (TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked) initial.push('Work_Bombot');
 
-    const displayImg = getTowerImage(type);
-    const name = translate(t.name);
-    el.innerHTML = `
-      <div class="tower-icon-shop" style="background-image: url('${displayImg}')"></div>
-      <div class="tower-info-shop">
-        <div class="tower-name">${name}</div>
-        ${gameState.settings.showShopDesc ? `<div class="tower-desc-shop">${translate(t.desc) || ""}</div>` : ''}
-        <div class="tower-stats-shop">
-          <span class="tower-cost">💰 ${t.cost}</span>
-          <span class="tower-limit ${isFull ? 'limit-full' : ''}">${currentCount}/${limit}</span>
-        </div>
-      </div>
-    `;
-
-    el.onmouseenter = () => showTooltip(t, el);
-    el.onmouseleave = hideTooltip;
-
-    if (isFull) el.classList.add('disabled-shop');
-    shop.appendChild(el);
-  });
+    initial.forEach(type => {
+        const t = TOWER_TYPES[type];
+        if (!t) return;
+        
+        const currentCount = gameState.towerCounts[type] || 0;
+        const limit = gameState.towerLimits[type] || 3;
+        const isFull = currentCount >= limit;
+        const displayImg = getTowerImage(type);
+        const name = translate(t.name);
+        
+        const btn = document.createElement('button');
+        btn.className = 'floating-tower-btn';
+        if (isFull) btn.classList.add('disabled');
+        if (gameState.selectedTowerType === type) btn.classList.add('selected');
+        
+        btn.innerHTML = `
+            <img src="${displayImg}" alt="${name}">
+            <span style="font-size:0.65rem;">💰${t.cost}</span>
+        `;
+        
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            if (isFull) {
+                showMessage(translate('limit_reached', { name: name, limit: limit }), 'error');
+                return;
+            }
+            if (gameState.selectedTowerType === type) {
+                gameState.selectedTowerType = null;
+                btn.classList.remove('selected');
+            } else {
+                document.querySelectorAll('.floating-tower-btn').forEach(b => b.classList.remove('selected'));
+                gameState.selectedTowerType = type;
+                btn.classList.add('selected');
+            }
+        };
+        
+        shopContainer.appendChild(btn);
+    });
+    
+    document.body.appendChild(shopContainer);
 }
 
 function drawBadges() {
-  const list = document.getElementById('badges-list');
-  if (!list) return;
-  list.innerHTML = '';
-  Object.values(BADGES).filter(b => b.unlocked).forEach(b => {
-    if (b.unlocked && !gameState.claimedRewards.includes(b.key)) {
-      grantBadgeReward(b);
-    }
-    const el = document.createElement('div');
-    el.className = `badge ${b.unlocked ? '' : 'locked'}`;
-    const name = translate(`badge_${b.key}_name`);
-    const desc = translate(`badge_${b.key}_desc`);
-    
-    let rewardText = "";
-    if (b.reward.pycoins) rewardText = `💰+${b.reward.pycoins}`;
-    if (b.reward.duckpass) rewardText = `🦆+${b.reward.duckpass}`;
-    rewardText += ` ✨+${b.reward.xp}xp`;
+    const list = document.getElementById('badges-list');
+    if (!list) return;
+    list.innerHTML = '';
+    Object.values(BADGES).forEach(b => {
+        if (b.unlocked && !gameState.claimedRewards.includes(b.key)) {
+            grantBadgeReward(b);
+        }
+        const el = document.createElement('div');
+        el.className = `badge ${b.unlocked ? '' : 'locked'}`;
+        const name = translate(`badge_${b.key}_name`);
+        const desc = translate(`badge_${b.key}_desc`);
+        
+        let rewardText = "";
+        if (b.reward.pycoins) rewardText = `💰+${b.reward.pycoins}`;
+        if (b.reward.duckpass) rewardText = `🦆+${b.reward.duckpass}`;
+        rewardText += ` ✨+${b.reward.xp}xp`;
 
-    el.innerHTML = `
-      <span class="badge-icon">${b.icon}</span>
-      <div class="badge-info">
-        <b>${name}</b><br>
-        <small>${desc}</small><br>
-        <b style="color:#ffd700; font-size:0.7rem">${rewardText}</b>
-      </div>
-    `;
-    list.appendChild(el);
-  });
+        el.innerHTML = `
+            <span class="badge-icon">${b.icon}</span>
+            <div class="badge-info">
+                <b>${name}</b><br>
+                <small>${desc}</small><br>
+                <b style="color:#ffd700; font-size:0.7rem">${rewardText}</b>
+            </div>
+        `;
+        list.appendChild(el);
+    });
 }
 
 function unlockBadge(key) {
@@ -633,6 +708,27 @@ function bindEvents() {
       const name = nameInput.value.trim();
       if (name) loadProgress(name);
       updateMetaUI();
+    });
+        // Botón de logros
+    const badgesBtn = document.getElementById('badges-toggle-btn');
+    if (badgesBtn) badgesBtn.onclick = toggleBadgesPanel;
+    
+    // Controles de música y efectos
+    const musicToggle = document.getElementById('music-toggle-btn');
+    if (musicToggle) musicToggle.onclick = toggleMusic;
+    
+    const effectsToggle = document.getElementById('effects-toggle-btn');
+    if (effectsToggle) effectsToggle.onclick = toggleMute;
+    
+    // Cerrar panel de logros al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('badges-panel');
+        const btn = document.getElementById('badges-toggle-btn');
+        if (panel && panel.classList.contains('show')) {
+            if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+                panel.classList.remove('show');
+            }
+        }
     });
   }
 

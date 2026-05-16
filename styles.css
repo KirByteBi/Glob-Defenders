@@ -1945,3 +1945,143 @@ input:checked + .slider:before {
     align-items: center;
 }
 
+/* ===================== NUEVO: BOTONES FLOTANTES DE TORRES (MÓVIL) ===================== */
+.floating-tower-shop {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 12px;
+    border-radius: 60px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 90vw;
+    overflow-x: auto;
+}
+
+.floating-tower-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 35px;
+    background: rgba(30, 30, 50, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: white;
+}
+
+.floating-tower-btn img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.floating-tower-btn.selected {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.3);
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.floating-tower-btn.disabled {
+    opacity: 0.4;
+    filter: grayscale(0.5);
+    cursor: not-allowed;
+}
+
+/* ===================== HITBOX VISIBLE (OPCIÓN) ===================== */
+.tower-spot.show-hitbox {
+    border: 2px solid rgba(0, 255, 0, 0.6) !important;
+    background: rgba(0, 255, 0, 0.1) !important;
+}
+
+.tower-spot.show-hitbox.invalid {
+    border-color: rgba(255, 0, 0, 0.8) !important;
+    background: rgba(255, 0, 0, 0.15) !important;
+}
+
+/* ===================== PANEL DE LOGROS DESPLEGABLE ===================== */
+#badges-panel {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    width: 280px;
+    max-height: 55vh;
+    background: rgba(0, 0, 0, 0.95);
+    border-radius: 15px;
+    padding: 15px;
+    border: 2px solid #ffd700;
+    backdrop-filter: blur(15px);
+    z-index: 9001;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#badges-panel.show {
+    display: flex;
+}
+
+#badges-panel h4 {
+    margin: 0 0 10px 0;
+    text-align: center;
+    color: #ffd700;
+}
+
+/* ===================== OPCIONES DE AUDIO ===================== */
+.option-row.audio-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.audio-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.audio-controls button {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+}
+
+/* ===================== MEJORAS MÓVIL ===================== */
+@media (max-width: 900px) and (orientation: landscape) {
+    .floating-tower-btn {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .floating-tower-btn img {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .floating-tower-shop {
+        padding: 8px;
+        gap: 8px;
+    }
+    
+    #badges-panel {
+        width: 240px;
+        max-height: 50vh;
+    }
+}

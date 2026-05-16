@@ -23,28 +23,30 @@
     </div>
 
     <button id="language-toggle" onclick="toggleLanguage()">🌐 ES / EN</button>
-    <button id="mute-toggle" onclick="toggleMute()">🔊</button>
     <button id="options-toggle" onclick="openOptions()" class="meta-btn-round">⚙️</button>
 
     <!-- Meta Controls (Visible after login) -->
     <div id="meta-controls" style="display: none;">
-        <button id="open-shop" class="meta-btn">🛒 <span class="btn-text">Tienda</span></button>
-        <button id="open-pass" class="meta-btn">🦆 <span class="btn-text">Pass</span></button>
+        <button id="open-shop" class="meta-btn">🛒 Tienda</button>
+        <button id="open-pass" class="meta-btn">🦆 Pass</button>
+        <button id="badges-toggle-btn" class="meta-btn" title="Logros">🏆</button>
     </div>
 
+    <!-- Login Screen -->
     <div id="login-screen">
         <div id="login-decorations"></div>
         <div class="login-box">
             <img src="img/GlobDefendersLogo.png" alt="Glob Defenders Logo" class="login-logo">
             <div class="login-inputs">
-                <input type="text" id="username-input" data-i18n="login_user" data-i18n-attr="placeholder" placeholder="Nombre de Usuario">
-                <input type="password" id="password-input" data-i18n="login_pass" data-i18n-attr="placeholder" placeholder="Contraseña">
+                <input type="text" id="username-input" placeholder="Nombre de Usuario">
+                <input type="password" id="password-input" placeholder="Contraseña">
             </div>
-            <div id="login-msg" style="color: #ff4444; font-size: 0.9rem; margin-bottom: 15px; min-height: 20px;"></div>
-            <button id="login-btn" data-i18n="login_btn">Unirse a la batalla</button>
+            <div id="login-msg"></div>
+            <button id="login-btn">Unirse a la batalla</button>
         </div>
     </div>
 
+    <!-- Mode Selection -->
     <div id="mode-selection" style="display: none;">
         <div id="mode-decorations"></div>
         <div class="login-box">
@@ -56,12 +58,11 @@
                 <button class="mode-btn" data-mode="extremo">💀 Extremo</button>
                 <button class="mode-btn" data-mode="infinito">♾️ Infinito</button>
             </div>
-            <button id="disable-antinormal-btn" class="meta-btn"
-                style="margin-top: 20px; width: 100%; display: none; background: #ff4444;"
-                onclick="disableAntiNormal()">🛠️ Desactivar Glitch</button>
+            <button id="disable-antinormal-btn" class="meta-btn" style="margin-top: 20px; width: 100%; display: none;">🛠️ Desactivar Glitch</button>
         </div>
     </div>
 
+    <!-- GAME CONTAINER -->
     <div id="game-container">
         <div id="game-header">
             <img src="img/GlobDefendersLogo.png" alt="Glob Defenders" class="game-logo">
@@ -108,20 +109,14 @@
 
         <div class="game-scale-wrapper">
             <div id="game-area">
-                <!-- Bases -->
                 <div id="forest-base" title="Base enemiga: Bosque">🌲</div>
                 <div id="ally-base" title="Base aliada: Edificio Gris">
                     <div class="window"></div>
                     <div class="window"></div>
                     <div class="window"></div>
                 </div>
-
-                <div id="map">
-                    <!-- Segmentos de río, camino y spots generados por JS -->
-                </div>
-
+                <div id="map"></div>
                 <div id="game-messages"></div>
-
                 <div id="game-over" class="modal">
                     <div class="modal-content">
                         <h2 data-i18n="gameOver">💀 GAME OVER 💀</h2>
@@ -133,19 +128,9 @@
                     </div>
                 </div>
             </div>
-        </div><!-- end .game-scale-wrapper -->
-
-        <div id="tower-shop">
-            <!-- Tienda generada por JS -->
         </div>
 
-
-        <div id="badges-panel">
-            <h4 data-i18n="achievements">Logros</h4>
-            <div id="badges-list">
-                <!-- Logros generados por JS -->
-            </div>
-        </div>
+        <div id="tower-shop"></div>
 
         <div id="evolve-panel" class="info-card" style="display: none;">
             <div class="info-card-header">
@@ -162,13 +147,37 @@
             </div>
         </div>
     </div>
+    <!-- FIN GAME CONTAINER -->
 
     <button id="debug-toggle" style="position: fixed; bottom: 10px; right: 10px; opacity: 0.1;">🐛</button>
 
-    <!-- Modal de Opciones -->
+    <!-- PANEL DE LOGROS FLOTANTE -->
+    <div id="badges-panel">
+        <h4 data-i18n="achievements">🏆 Logros</h4>
+        <div id="badges-list"></div>
+    </div>
+
+    <!-- MODAL DE OPCIONES -->
     <div id="options-modal" class="modal">
         <div class="modal-content options-content">
             <h2 data-i18n="settings_title">⚙️ Ajustes</h2>
+            
+            <div class="option-row audio-row">
+                <span>🎵 Audio</span>
+                <div class="audio-controls">
+                    <button id="music-toggle-btn">🎵 Música ON</button>
+                    <button id="effects-toggle-btn">🔊 Efectos ON</button>
+                </div>
+            </div>
+            
+            <div class="option-row">
+                <span>📍 Mostrar Hitbox de torres</span>
+                <label class="switch">
+                    <input type="checkbox" id="opt-show-hitbox" onchange="updateSettings()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
             <div class="option-row">
                 <span data-i18n="show_shop_desc">Mostrar descripción en tienda</span>
                 <label class="switch">
@@ -176,6 +185,7 @@
                     <span class="slider"></span>
                 </label>
             </div>
+            
             <div class="option-row">
                 <span data-i18n="show_total_damage">Ver Daño Total de torres</span>
                 <label class="switch">
@@ -183,13 +193,14 @@
                     <span class="slider"></span>
                 </label>
             </div>
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
-            <button id="reset-btn" onclick="confirmReset()" class="reset-btn" style="background: #ef4444; color: white; width: 100%; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;" data-i18n="reset_progress_btn">Resetear Todo el Progreso</button>
-            <button onclick="closeOptions()" class="close-btn" style="margin-top: 20px;" data-i18n="save_close">Guardar y Cerrar</button>
+            
+            <hr>
+            <button id="reset-btn" onclick="confirmReset()" class="reset-btn">🧨 Resetear Todo el Progreso</button>
+            <button onclick="closeOptions()" class="close-btn">Guardar y Cerrar</button>
         </div>
     </div>
 
-    <!-- Modales Meta-Juego -->
+    <!-- MODALES META-JUEGO -->
     <div id="shop-modal" class="modal">
         <div class="modal-content shop-content">
             <div class="modal-header">
@@ -199,16 +210,14 @@
                     <button class="shop-tab" onclick="switchShopTab('skins')" data-i18n="shop_skins">Skins</button>
                 </div>
                 <div class="header-btns">
-                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a
-                            Modos</span></button>
+                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a Modos</span></button>
                     <button class="close-btn" onclick="smartClose('shop-modal')">✖</button>
                 </div>
             </div>
             <div id="shop-items" class="meta-grid"></div>
-
             <div id="code-area">
-                <input type="text" id="game-code" data-i18n="code_placeholder" data-i18n-attr="placeholder" placeholder="Código Secreto...">
-                <button id="apply-code" data-i18n="apply_btn">Aplicar</button>
+                <input type="text" id="game-code" placeholder="Código Secreto...">
+                <button id="apply-code">Aplicar</button>
             </div>
         </div>
     </div>
@@ -218,8 +227,7 @@
             <div class="modal-header">
                 <h2 id="pass-title">🦆 Duck Pass</h2>
                 <div class="header-btns">
-                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a
-                            Modos</span></button>
+                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a Modos</span></button>
                     <button class="close-btn" onclick="smartClose('pass-modal')">✖</button>
                 </div>
             </div>
@@ -237,6 +245,7 @@
     </div>
 
     <div id="tooltip" class="tooltip" style="display: none;"></div>
+    
     <script src="config.js"></script>
     <script src="game.js"></script>
 </body>
