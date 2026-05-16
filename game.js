@@ -446,7 +446,7 @@ function selectMode(mode) {
   document.getElementById('mode-selection').style.display = 'none';
   document.getElementById('mode-selection').classList.remove('glitch-state');
   
-  // Reset completo al seleccionar modo (ya incluye drawTowerShop)
+  // Reset completo al seleccionar modo
   retryGame(); 
   
   gameState.globetines = 500;
@@ -570,14 +570,11 @@ function updateSettings() {
 }
 
 function drawTowerShop() {
-    // Solo mostrar tienda de torres si estamos en partida
     if (!gameState.modeConfirmed) return;
     
-    // Eliminar tienda flotante existente
     const existingShop = document.getElementById('floating-tower-shop');
     if (existingShop) existingShop.remove();
     
-    // Crear nuevo contenedor flotante
     const shopContainer = document.createElement('div');
     shopContainer.id = 'floating-tower-shop';
     shopContainer.className = 'floating-tower-shop';
@@ -1700,9 +1697,12 @@ function retryGame() {
   gameState.health = 100 + (gameState.baseHealthLevel * 20);
   gameState.wave = 0;
   gameState.globetines = 500;
-  gameState.towers.forEach(t => t.el.remove()); gameState.towers = [];
-  gameState.enemies.forEach(e => e.el.remove()); gameState.enemies = [];
-  gameState.projectiles.forEach(p => p.el.remove()); gameState.projectiles = [];
+  gameState.towers.forEach(t => t.el.remove()); 
+  gameState.towers = [];
+  gameState.enemies.forEach(e => e.el.remove()); 
+  gameState.enemies = [];
+  gameState.projectiles.forEach(p => p.el.remove()); 
+  gameState.projectiles = [];
   gameState.towerSpots.forEach(s => s.occupied = false);
   gameState.towerCounts = {};
   gameState.gameOver = false;
