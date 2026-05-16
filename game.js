@@ -446,7 +446,7 @@ function selectMode(mode) {
   document.getElementById('mode-selection').style.display = 'none';
   document.getElementById('mode-selection').classList.remove('glitch-state');
   
-  // Reset completo al seleccionar modo
+  // Reset completo al seleccionar modo (ya incluye drawTowerShop)
   retryGame(); 
   
   gameState.globetines = 500;
@@ -570,6 +570,9 @@ function updateSettings() {
 }
 
 function drawTowerShop() {
+    // Solo mostrar tienda de torres si estamos en partida
+    if (!gameState.modeConfirmed) return;
+    
     // Eliminar tienda flotante existente
     const existingShop = document.getElementById('floating-tower-shop');
     if (existingShop) existingShop.remove();
