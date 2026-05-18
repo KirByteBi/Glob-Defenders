@@ -110,6 +110,9 @@ let gameState = {
   claimedRewards: [],
   muted: false,
   totalDamage: 0,
+  usedGTackRed: false,
+  usedGTackGrey: false,
+  baseTookDamage: false,
   settings: {
     showShopDesc: true,
     showTotalDamage: false
@@ -660,7 +663,7 @@ function drawTowerShop() {
     { type: 'Ducky_Glob', unlocked: gameState.duckPassLevel >= 6, req: 'lvl6' },
     { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
     { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
-    { type: 'Work_Bombot', unlocked: gameState.duckPassLevel >= 60, req: 'lvl60' }
+    { type: 'Work_Bombot', unlocked: !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked), req: 'challenge' }
   ];
 
   shopTowers.forEach(item => {
@@ -682,7 +685,7 @@ function drawTowerShop() {
       let unlockMsg = '';
       if (item.req === 'lvl3') { reqText = 'Lvl 3'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 3' : '🔒 Unlocks at Duck Pass Level 3'; }
       else if (item.req === 'lvl6') { reqText = 'Lvl 6'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 6' : '🔒 Unlocks at Duck Pass Level 6'; }
-      else if (item.req === 'lvl60') { reqText = 'Lvl 60'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 60' : '🔒 Unlocks at Duck Pass Level 60'; }
+      else if (item.req === 'challenge') { reqText = 'DESAFÍO'; unlockMsg = currentLanguage === 'es' ? '🔒 Desbloqueado al superar modo Anti-normal o Corrupto' : '🔒 Unlocked by beating Anti-normal or Corrupt mode'; }
       else if (item.req === 'shop') { reqText = 'SHOP'; unlockMsg = currentLanguage === 'es' ? '🔒 Desbloquéalo en la Tienda Meta por PyCoins' : '🔒 Unlock it in the Meta Shop using PyCoins'; }
 
       btn.innerHTML = `
@@ -1129,6 +1132,10 @@ function updateMetaUI() {
   if (pycoinsEl) pycoinsEl.textContent = Math.floor(gameState.pycoins);
   if (duckpassEl) duckpassEl.textContent = gameState.duckPassCurrency;
 
+  if (gameState.pycoins >= 1500 && gameState.duckPassCurrency >= 1500) {
+    unlockBadge('deepSavings');
+  }
+
   // Update shop tab buttons
   document.querySelectorAll('.shop-tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === currentShopTab);
@@ -1145,7 +1152,7 @@ function isTowerOwned(t) {
   if (t === 'Glob' || t === 'Red_Glob' || t === 'Recolors' || t === 'Global') return true;
   if (t === 'Soap_Glob') return gameState.duckPassLevel >= 3;
   if (t === 'Ducky_Glob') return gameState.duckPassLevel >= 6;
-  if (t === 'Work_Bombot') return gameState.duckPassLevel >= 60;
+  if (t === 'Work_Bombot') return !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked);
   if (t === 'Old_Glob' || t === 'Pyce_Glob') return !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked);
   if (t === 'Comet_Glob') return !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked);
   return false;
@@ -1332,6 +1339,7 @@ function buyGTack(family, pyCost, dpCost) {
     gameState.pycoins -= pyCost;
     gameState.duckPassCurrency -= dpCost;
     gameState.gtacks[family] = true;
+    unlockBadge('gtackFirst');
     drawShop();
     saveProgress();
     updateMetaUI();
@@ -1404,7 +1412,11 @@ function buyUpgrade(id, cost, type) {
     if (TOWER_TYPES['Comet_Glob']) TOWER_TYPES['Comet_Glob'].unlocked = true;
     showMessage("🖤 " + (currentLanguage === 'es' ? "TORRE COMETA DESBLOQUEADA!" : "COMET GLOB TOWER UNLOCKED!"), 'success');
   }
-  else if (id.startsWith('dg_')) { gameState.duckgrades[id] = true; showMessage("🦆 DUCKGRADE UNLOCKED!", 'success'); }
+  else if (id.startsWith('dg_')) { 
+    gameState.duckgrades[id] = true; 
+    showMessage("🦆 DUCKGRADE UNLOCKED!", 'success'); 
+    unlockBadge('duckgradeFirst');
+  }
 
   updateMetaUI(); drawShop(); drawTowerShop(); saveProgress();
 }
@@ -1507,6 +1519,7 @@ function activateGTack(t) {
     // Red: Toxic Overcharge - +5% damage, applies Toxic Fast DoT for 6s
     t.toxicTimer = 6;
     showEffect(t.x, t.y - 25, "OVERCHARGED! 🔥", "#e74c3c");
+    gameState.usedGTackRed = true;
   } else if (t.family === 'Soap_Glob') {
     // Blue: Stun strike - next attack guarantees stun (bypasses Boss Immunity!)
     t.stunStrikeActive = true;
@@ -1530,6 +1543,11 @@ function activateGTack(t) {
     gameState.globalRangeBuffTimer = 10;
     updateBuffs();
     showEffect(t.x, t.y - 25, "RADAR AMPLIFIED! 📡", "#95a5a6");
+    gameState.usedGTackGrey = true;
+  }
+
+  if (gameState.usedGTackRed && gameState.usedGTackGrey) {
+    unlockBadge('supremeAlliance');
   }
 }
 
@@ -1727,10 +1745,11 @@ function gameLoop() {
       else { e.x += (dx / dist) * currentEnemySpeed; e.y += (dy / dist) * currentEnemySpeed; }
       e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
     } else {
-      if (e.instakill) { gameState.health = 0; endGame(); return; }
+      if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
       if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
       e.el.remove(); gameState.enemies.splice(i, 1);
       gameState.health -= e.boss ? 10 : 1;
+      gameState.baseTookDamage = true;
       if (gameState.health <= 0) { gameState.health = 0; endGame(); }
       updateUI(); continue;
     }
@@ -1743,6 +1762,32 @@ function gameLoop() {
     e.hpFill.style.backgroundColor = (e.shield > 0) ? '#ffd700' : '#ff4444';
 
     // Daño sobre el Tiempo (DoTs) de G-Tacks
+    // Slow effect physics
+    if (e.enemySlowTimer && e.enemySlowTimer > 0) {
+      e.enemySlowTimer -= dt;
+      const factor = e.enemySlowFactor || 0.4;
+      currentEnemySpeed = e.speed * (1 - factor);
+      e.el.style.filter = 'brightness(0.8) contrast(1.2) saturate(1.5) hue-rotate(100deg)';
+    } else {
+      e.el.style.filter = '';
+    }
+
+    // Burn effect DoT
+    if (e.burnTimer && e.burnTimer > 0) {
+      e.burnTimer -= dt;
+      const dmg = (e.burnDamage || 5) * dt;
+      e.health -= dmg;
+      e.el.classList.add('burning');
+      if (Math.random() < 0.1) showEffect(e.x, e.y, "🔥", "#ff5500");
+    } else {
+      e.el.classList.remove('burning');
+    }
+
+    // epicEffects Achievement Check
+    if (e.burnTimer > 0 && e.enemySlowTimer > 0 && e.stunned > 0 && e.toxicTimer > 0 && e.poisonTimer > 0) {
+      unlockBadge('epicEffects');
+    }
+
     if (e.toxicTimer && e.toxicTimer > 0) {
       e.toxicTimer -= dt;
       const dmg = 25 * dt;
@@ -1968,6 +2013,16 @@ function gameLoop() {
 
     let dmg = p.damage;
     if (p.meta) {
+      if (p.meta.slow) {
+        target.enemySlowTimer = 3.0;
+        target.enemySlowFactor = p.meta.slow;
+        showEffect(target.x, target.y - 15, "SLOWED! ❄️", "#00b4ff");
+      }
+      if (p.meta.burn) {
+        target.burnTimer = 3.0;
+        target.burnDamage = p.meta.burnDamage || 5;
+        showEffect(target.x, target.y - 15, "BURN! 🔥", "#ff4444");
+      }
       if (p.meta.toxic) {
         target.toxicTimer = (target.toxicTimer || 0) + 3.0;
         showEffect(target.x, target.y - 15, "TOXIC! 🤢", "#2ecc71");
@@ -2022,6 +2077,15 @@ function gameLoop() {
 
   for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
     const p = gameState.projectiles[i];
+    
+    if (p.projectile === 'laser_red') {
+      const collidesWithDemonic = gameState.projectiles.some(other => 
+        other !== p && other.projectile === 'laser_purple' && Math.hypot(other.x - p.x, other.y - p.y) < 25
+      );
+      if (collidesWithDemonic) {
+        unlockBadge('letsGoGambling');
+      }
+    }
     
     if (p.boomerang) {
       const homeX = p.shooter.x;
@@ -2093,6 +2157,12 @@ function gameLoop() {
 }
 
 function shoot(shooter, target, opts = {}) {
+  const typeCfg = TOWER_TYPES[shooter.type];
+  if (typeCfg) {
+    if (typeCfg.slow) opts.slow = typeCfg.slow;
+    if (typeCfg.burn) opts.burn = typeCfg.burn;
+    if (typeCfg.burnDamage) opts.burnDamage = typeCfg.burnDamage;
+  }
   if (shooter.toxicTimer && shooter.toxicTimer > 0) {
     opts.toxic = true;
   }
@@ -2199,6 +2269,27 @@ function updateUI() {
   document.getElementById('money').textContent = Math.floor(gameState.globetines);
   document.getElementById('wave-count').textContent = gameState.wave;
   if (gameState.settings.showTotalDamage) document.getElementById('total-damage').textContent = Math.floor(gameState.totalDamage);
+
+  if (gameState.health >= 300) {
+    unlockBadge('angelicFortress');
+  }
+
+  if (gameState.towers.length > 0) {
+    let allMaxed = true;
+    for (const [tKey, limit] of Object.entries(gameState.towerLimits)) {
+      if (isTowerOwned(tKey)) {
+        const count = gameState.towerCounts[tKey] || 0;
+        if (count < limit) {
+          allMaxed = false;
+          break;
+        }
+      }
+    }
+    if (allMaxed) {
+      unlockBadge('maxGlobs');
+    }
+  }
+
   updateMetaUI();
 }
 
@@ -2331,6 +2422,9 @@ function retryGame() {
   gameState.gameOver = false;
   gameState.waveActive = false;
   gameState.totalDamage = 0;
+  gameState.usedGTackRed = false;
+  gameState.usedGTackGrey = false;
+  gameState.baseTookDamage = false;
   deselectTower();
   updateUI();
   drawTowerShop();
@@ -2349,6 +2443,57 @@ function endGame(victory = false) {
   if (victory) {
     if (title) title.textContent = translate('victory_title');
     if (msg) msg.innerHTML = translate('victory_msg', { mode: gameState.mode.toUpperCase() });
+
+    // Mode-based badge unlocks
+    if (gameState.antiNormalActive) {
+      unlockBadge('antiNormal');
+      gameState.unlockedAntiNormal = true;
+    } else {
+      if (gameState.mode === 'facil') unlockBadge('winFacil');
+      else if (gameState.mode === 'normal') unlockBadge('winNormal');
+      else if (gameState.mode === 'dificil') unlockBadge('winDificil');
+      else if (gameState.mode === 'extremo') unlockBadge('winExtremo');
+      else if (gameState.mode === 'corrupto') {
+        gameState.corruptWins++;
+        unlockBadge('winCorrupto');
+        if (gameState.corruptWins >= 1) unlockBadge('corrupt1');
+        if (gameState.corruptWins >= 2) unlockBadge('corrupt2');
+        if (gameState.corruptWins >= 3) unlockBadge('corrupt3');
+        if (gameState.corruptWins >= 4) unlockBadge('corrupt4');
+        if (gameState.corruptWins >= 5) unlockBadge('corrupt5');
+      }
+    }
+
+    // Work-Bombot Unlock Challenge
+    if (gameState.mode === 'corrupto' || gameState.antiNormalActive) {
+      if (TOWER_TYPES['Work_Bombot'] && !TOWER_TYPES['Work_Bombot'].unlocked) {
+        TOWER_TYPES['Work_Bombot'].unlocked = true;
+        showMessage("🤖 ¡TORRE WORK-BOMBOT DESBLOQUEADA!", 'success');
+      }
+    }
+
+    // deepArtillery Badge Check
+    if (gameState.towers.length > 0) {
+      const allGreenOrBlack = gameState.towers.every(t => t.family === 'Glob' || t.family === 'Comet_Glob');
+      if (allGreenOrBlack) {
+        unlockBadge('deepArtillery');
+      }
+    }
+
+    // meleeBlueRed Badge Check
+    if (gameState.towers.length > 0) {
+      const allRedOrBlue = gameState.towers.every(t => t.family === 'Red_Glob' || t.family === 'Soap_Glob');
+      if (allRedOrBlue) {
+        unlockBadge('meleeBlueRed');
+      }
+    }
+
+    // titaniumBuilding Badge Check
+    if (!gameState.baseTookDamage) {
+      unlockBadge('titaniumBuilding');
+    }
+
+    saveProgress();
   } else {
     if (title) title.textContent = translate('gameOver');
     if (msg) msg.innerHTML = translate('waveStarted', { wave: gameState.wave }).replace('Oleada', 'Llegaste a la oleada').replace('Wave', 'You reached wave');
@@ -2575,6 +2720,17 @@ function drawStoryLogs() {
   } else if (currentStoryTab === 'logs') {
     if (currentLanguage === 'es') {
       container.innerHTML = `
+        <h3>📋 Historial de Actualizaciones (GD v2.1.0)</h3>
+        <p>¡Nuevos desafíos, mejoras de accesibilidad y 11 nuevos Emblemas (Logros) únicos!</p>
+        
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>⚙️ <strong>Ajustes Accesibles</strong>: Corregido el z-index del botón de ajustes y los modales para que se muestren correctamente por encima de las pantallas de login y selección.</li>
+          <li>🤖 <strong>Desbloqueo de Work-Bombot</strong>: ¡Ahora se consigue al superar con éxito los desafiantes modos <strong>Anti-Normal</strong> o <strong>Corrupto</strong> en lugar de por nivel de Duck Pass!</li>
+          <li>🏅 <strong>11 Nuevos Emblemas Añadidos</strong>: Ataques directos, Una actu dorada, La alianza suprema, Artillería profunda, Meleapela, Efectos épicos, LETS GO GAMBLING!!, Ahorros profundos, Ni dios soportaría esto, LA FORTALEZA ANGELICAL y Edificio de titanio. ¡Búscalos en la sección de logros!</li>
+          <li>🎯 <strong>Corrección de Física de Combate</strong>: ¡Los efectos de <strong>Quemado (Burn)</strong> y <strong>Ralentizado (Slow)</strong> ahora se aplican e infligen daño/efecto correctamente a los enemigos!</li>
+        </ul>
+
         <h3>📋 Historial de Actualizaciones (GD v2.0.0)</h3>
         <p>¡Bienvenido a la gran actualización de la progresión y jugabilidad de Glob Defenders!</p>
  
@@ -2602,6 +2758,17 @@ function drawStoryLogs() {
       `;
     } else {
       container.innerHTML = `
+        <h3>📋 Update Logs (GD v2.1.0)</h3>
+        <p>New challenges, accessibility fixes, and 11 unique Achievements/Badges to unlock!</p>
+        
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>⚙️ <strong>Accessible Settings</strong>: Fixed the settings button z-index and modal layout to properly render on top of the login and selection screens.</li>
+          <li>🤖 <strong>Work-Bombot Unlock Challenge</strong>: Now unlocked by defeating the challenging <strong>Anti-Normal</strong> or <strong>Corrupt</strong> modes instead of the Duck Pass!</li>
+          <li>🏅 <strong>11 New Badges Added</strong>: Direct Attacks, A Golden Upgrade, The Supreme Alliance, Deep Artillery, Meleapela, Epic Effects, LETS GO GAMBLING!!, Deep Savings, Not Even God Can Stand This, THE ANGELIC FORTRESS, and Titanium Building. Check them out in your achievements tab!</li>
+          <li>🎯 <strong>Combat Physics Correction</strong>: <strong>Burn</strong> and <strong>Slow</strong> status effects now correctly apply and deal damage/effect to enemies!</li>
+        </ul>
+
         <h3>📋 Update Logs (GD v2.0.0)</h3>
         <p>Welcome to the major progression and gameplay update of Glob Defenders!</p>
  

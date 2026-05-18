@@ -43,6 +43,18 @@ const TRANSLATIONS = {
     badge_winDificil_name: "Guerrero", badge_winDificil_desc: "Vence en modo Difícil",
     badge_winExtremo_name: "Leyenda", badge_winExtremo_desc: "Vence en modo Extremo",
     badge_winCorrupto_name: "Purificador", badge_winCorrupto_desc: "Vence en modo Corrupto",
+    badge_gtackFirst_name: "Ataques directos", badge_gtackFirst_desc: "Compra tu primera G-tack",
+    badge_duckgradeFirst_name: "Una actu dorada", badge_duckgradeFirst_desc: "Primera Duckgrade comprada",
+    badge_supremeAlliance_name: "La alianza suprema", badge_supremeAlliance_desc: "Usa la G-tack de la familia roja y de la familia gris",
+    badge_deepArtillery_name: "Artillería profunda", badge_deepArtillery_desc: "Usa únicamente familias verde y negro",
+    badge_meleeBlueRed_name: "Meleapela", badge_meleeBlueRed_desc: "Usa únicamente familias rojas y azules",
+    badge_epicEffects_name: "Efectos épicos", badge_epicEffects_desc: "Haz que un enemigo o jefe tenga todos los efectos posibles",
+    badge_letsGoGambling_name: "LETS GO GAMBLING!!", badge_letsGoGambling_desc: "Haz que un láser de Robotic Glob colisione con uno de Demonic Glob",
+    badge_deepSavings_name: "Ahorros profundos", badge_deepSavings_desc: "Ahorra 1500 Pycoins y Duckpasses",
+    badge_maxGlobs_name: "Ni dios soportaría esto", badge_maxGlobs_desc: "Ten el máximo de Globs (con las expansiones de límite) en una partida",
+    badge_angelicFortress_name: "LA FORTALEZA ANGELICAL", badge_angelicFortress_desc: "Ten el máximo de vida de la base",
+    badge_titaniumBuilding_name: "Edificio de titanio", badge_titaniumBuilding_desc: "Pásate un mapa sin dañar la base",
+
 
     // Nombres de Torres
     tower_Glob_name: "Glob Verde",
@@ -295,6 +307,18 @@ const TRANSLATIONS = {
     badge_winDificil_name: "Warrior", badge_winDificil_desc: "Win in Hard mode",
     badge_winExtremo_name: "Legend", badge_winExtremo_desc: "Win in Extreme mode",
     badge_winCorrupto_name: "Purifier", badge_winCorrupto_desc: "Win in Corrupt mode",
+    badge_gtackFirst_name: "Direct Attacks", badge_gtackFirst_desc: "Buy your first G-tack",
+    badge_duckgradeFirst_name: "A Golden Upgrade", badge_duckgradeFirst_desc: "First Duckgrade purchased",
+    badge_supremeAlliance_name: "The Supreme Alliance", badge_supremeAlliance_desc: "Use the G-tack of both the Red family and the Grey family",
+    badge_deepArtillery_name: "Deep Artillery", badge_deepArtillery_desc: "Use only Green and Black families",
+    badge_meleeBlueRed_name: "Meleapela", badge_meleeBlueRed_desc: "Use only Red and Blue families",
+    badge_epicEffects_name: "Epic Effects", badge_epicEffects_desc: "Make an enemy or boss have all possible status effects",
+    badge_letsGoGambling_name: "LETS GO GAMBLING!!", badge_letsGoGambling_desc: "Make a laser from Robotic Glob collide with one from Demonic Glob",
+    badge_deepSavings_name: "Deep Savings", badge_deepSavings_desc: "Save 1500 Pycoins and Duckpasses",
+    badge_maxGlobs_name: "Not Even God Can Stand This", badge_maxGlobs_desc: "Have the maximum allowed number of Globs in a single match",
+    badge_angelicFortress_name: "THE ANGELIC FORTRESS", badge_angelicFortress_desc: "Have the absolute maximum base health",
+    badge_titaniumBuilding_name: "Titanium Building", badge_titaniumBuilding_desc: "Complete a map without taking base damage",
+
 
     // Tower Names
     tower_Glob_name: "Green Glob",
@@ -761,7 +785,18 @@ const BADGES = {
   winNormal: { key: 'winNormal', icon: '⚔️ï¸', unlocked: false, reward: { pycoins: 100, xp: 100 } },
   winDificil: { key: 'winDificil', icon: '🔥', unlocked: false, reward: { pycoins: 200, xp: 200 } },
   winExtremo: { key: 'winExtremo', icon: '💀', unlocked: false, reward: { pycoins: 500, xp: 500 } },
-  winCorrupto: { key: 'winCorrupto', icon: '👾', unlocked: false, reward: { pycoins: 1000, xp: 1000 } }
+  winCorrupto: { key: 'winCorrupto', icon: '👾', unlocked: false, reward: { pycoins: 1000, xp: 1000 } },
+  gtackFirst: { key: 'gtackFirst', icon: '🎯', unlocked: false, reward: { pycoins: 100, xp: 50 } },
+  duckgradeFirst: { key: 'duckgradeFirst', icon: '🦆', unlocked: false, reward: { pycoins: 150, xp: 80 } },
+  supremeAlliance: { key: 'supremeAlliance', icon: '🤝', unlocked: false, reward: { pycoins: 300, xp: 150 } },
+  deepArtillery: { key: 'deepArtillery', icon: '💣', unlocked: false, reward: { pycoins: 400, xp: 200 } },
+  meleeBlueRed: { key: 'meleeBlueRed', icon: '⚔️', unlocked: false, reward: { pycoins: 400, xp: 200 } },
+  epicEffects: { key: 'epicEffects', icon: '🌈', unlocked: false, reward: { pycoins: 500, xp: 300 } },
+  letsGoGambling: { key: 'letsGoGambling', icon: '🎰', unlocked: false, reward: { pycoins: 777, xp: 777 } },
+  deepSavings: { key: 'deepSavings', icon: '💎', unlocked: false, reward: { pycoins: 500, xp: 250 } },
+  maxGlobs: { key: 'maxGlobs', icon: '🌌', unlocked: false, reward: { pycoins: 600, xp: 300 } },
+  angelicFortress: { key: 'angelicFortress', icon: '😇', unlocked: false, reward: { pycoins: 500, xp: 250 } },
+  titaniumBuilding: { key: 'titaniumBuilding', icon: '🛡️', unlocked: false, reward: { pycoins: 500, xp: 300 } }
 };
 
 const RIVER_ZONES = [

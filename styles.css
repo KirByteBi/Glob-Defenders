@@ -764,7 +764,7 @@ button.active {
 }
 
 /* Modales de tienda y pase — fuera del game-container, necesitan fixed */
-#shop-modal, #pass-modal {
+#shop-modal, #pass-modal, #options-modal, #story-logs-modal {
     position: fixed;
     z-index: 11000;
 }
@@ -1695,7 +1695,7 @@ button.active {
     border: 1px solid rgba(255,255,255,0.2);
     color: white;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 10001;
     display: flex;
     align-items: center;
     justify-content: center;
