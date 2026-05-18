@@ -1780,6 +1780,15 @@ function updateLanguage() {
   const storyBtn = document.getElementById('open-story-logs');
   if (storyBtn) storyBtn.innerHTML = `📖 ${translate('story_logs_btn')}`;
 
+  const mechBtn = document.getElementById('tab-mechanics-btn');
+  if (mechBtn) mechBtn.innerHTML = `⚙️ ${translate('story_tab_mechanics')}`;
+
+  const loreBtn = document.getElementById('tab-lore-btn');
+  if (loreBtn) loreBtn.innerHTML = `📖 ${translate('story_tab_lore')}`;
+
+  const logsBtn = document.getElementById('tab-logs-btn');
+  if (logsBtn) logsBtn.innerHTML = `📋 ${translate('story_tab_logs')}`;
+
   // Evolución
   const evolveTitle = document.querySelector('#evolve-panel h3');
   if (evolveTitle) evolveTitle.textContent = translate('evolve_title');
