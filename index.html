@@ -27,8 +27,9 @@
 
     <!-- Meta Controls (Visible after login) -->
     <div id="meta-controls" style="display: none;">
-        <button id="open-shop" class="meta-btn">🛒 Tienda</button>
+        <button id="open-shop" class="meta-btn">🛒 Tienda de Kirb</button>
         <button id="open-pass" class="meta-btn">🦆 Pass</button>
+        <button id="open-story-logs" class="meta-btn">📖 Historia y Logs</button>
         <button id="badges-toggle-btn" class="meta-btn" title="Logros">🏆</button>
     </div>
 
@@ -204,7 +205,7 @@
     <div id="shop-modal" class="modal">
         <div class="modal-content shop-content">
             <div class="modal-header">
-                <h2 id="shop-title">🛒 Tienda Meta</h2>
+                <h2 id="shop-title">🛒 Tienda de Kirb</h2>
                 <div class="shop-tabs">
                     <button class="shop-tab active" onclick="switchShopTab('upgrades')" data-i18n="shop_upgrades">Mejoras</button>
                     <button class="shop-tab" onclick="switchShopTab('skins')" data-i18n="shop_skins">Skins</button>
@@ -241,6 +242,29 @@
                 </div>
             </div>
             <div id="pass-rewards" class="meta-grid"></div>
+        </div>
+    </div>
+
+    <!-- MODAL DE HISTORIA Y LOGS -->
+    <div id="story-logs-modal" class="modal">
+        <div class="modal-content story-logs-content">
+            <div class="modal-header">
+                <h2 id="story-logs-title">📖 Historia y Logs</h2>
+                <div class="header-btns">
+                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a Modos</span></button>
+                    <button class="close-btn" onclick="smartClose('story-logs-modal')">✖</button>
+                </div>
+            </div>
+            
+            <div class="story-logs-tabs">
+                <button class="story-tab-btn active" id="tab-lore-btn" onclick="switchStoryTab('lore')">📖 Lore</button>
+                <button class="story-tab-btn" id="tab-mechanics-btn" onclick="switchStoryTab('mechanics')">⚙️ Mecánicas</button>
+                <button class="story-tab-btn" id="tab-logs-btn" onclick="switchStoryTab('logs')">📋 Update Logs</button>
+            </div>
+            
+            <div id="story-logs-body" class="story-logs-body">
+                <!-- El contenido dinámico se cargará aquí según el idioma -->
+            </div>
         </div>
     </div>
 

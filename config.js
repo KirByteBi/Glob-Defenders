@@ -82,7 +82,7 @@ const TRANSLATIONS = {
     login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla",
     select_mode: "Seleccionar Modo",
     backToModes: "Selección de Modo",
-    shop_title: "🛒 Tienda Meta",
+    shop_title: "🛒 Tienda de Kirb",
     pass_title: "🦆 Duck Pass",
     code_placeholder: "Código Secreto...",
     apply_btn: "Aplicar",
@@ -147,12 +147,15 @@ const TRANSLATIONS = {
     reset_confirm_2: "¡Último aviso! No hay vuelta atrás. ¿SEGURO?",
     reset_confirm_3: "Vale... si pulsas una vez más, se acabó todo. ¿DE VERDAD?",
     reset_done: "Progreso reseteado. El juego se reiniciará.",
+    story_logs_btn: "Historia y Logs",
 
     // Mejoras de Tienda
     upgrade_hp_name: "Salud de Base",
     upgrade_hp_desc: "+20 Salud Máxima",
-    upgrade_unlock_pyce_name: "Desbloquear Pyce Glob",
-    upgrade_unlock_pyce_desc: "Permite comprar Pyce Globs",
+    upgrade_unlock_old_name: "Desbloquear Old Glob (Gris)",
+    upgrade_unlock_old_desc: "Permite comprar Old Globs en combate (150 PyCoins)",
+    upgrade_unlock_comet_name: "Desbloquear Glob Cometa (Negra)",
+    upgrade_unlock_comet_desc: "Permite comprar Globs Cometa en combate (250 PyCoins)",
     upgrade_limit_name: "Límite: {name}",
     upgrade_limit_desc: "Aumenta límite de {name}",
 
@@ -328,7 +331,7 @@ const TRANSLATIONS = {
     login_user: "Username", login_pass: "Password", login_btn: "Join the battle",
     select_mode: "Select Mode",
     backToModes: "Mode Selection",
-    shop_title: "🛒 Meta Shop",
+    shop_title: "🛒 Kirb's Shop",
     pass_title: "🦆 Duck Pass",
     code_placeholder: "Secret Code...",
     apply_btn: "Apply",
@@ -388,12 +391,15 @@ const TRANSLATIONS = {
     pycoins_title: "PyCoins",
     duckpass_title: "Duck Pass",
     equip_btn: "Equip",
+    story_logs_btn: "Story & Logs",
 
     // Shop Upgrades
     upgrade_hp_name: "Base Health",
     upgrade_hp_desc: "+20 Max Health",
-    upgrade_unlock_pyce_name: "Unlock Pyce Glob",
-    upgrade_unlock_pyce_desc: "Allows buying Pyce Globs",
+    upgrade_unlock_old_name: "Unlock Old Glob (Grey)",
+    upgrade_unlock_old_desc: "Allows placing Old Globs in battle (150 PyCoins)",
+    upgrade_unlock_comet_name: "Unlock Comet Glob (Black)",
+    upgrade_unlock_comet_desc: "Allows placing Comet Globs in battle (250 PyCoins)",
     upgrade_limit_name: "Limit: {name}",
     upgrade_limit_desc: "Increase limit for {name}",
 
@@ -701,8 +707,8 @@ const TOWER_TYPES = {
   'Dark_Glob': { name: 'tower_Dark_Glob_name', damage: 80, range: 280, speed: 1.0, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'void', piercing: true, desc: "tower_Dark_Glob_desc", family: 'Comet_Glob' },
   'Demglob': { name: 'tower_Demglob_name', damage: 200, range: 300, speed: 2.0, cost: 1000, image: IMAGE_PATHS.Demglob, projectile: 'hellfire', piercing: true, burn: true, desc: "tower_Demglob_desc", family: 'Comet_Glob' },
 
-  'Pyce_Glob': { name: 'tower_Pyce_Glob_name', damage: 30, range: 180, speed: 0.8, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Special' },
-  'Old_Glob': { name: 'tower_Old_Glob_name', damage: 40, range: 200, speed: 0.5, cost: 200, image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "tower_Old_Glob_desc", family: 'Special' },
+  'Pyce_Glob': { name: 'tower_Pyce_Glob_name', damage: 30, range: 180, speed: 0.8, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Old_Glob' },
+  'Old_Glob': { name: 'tower_Old_Glob_name', damage: 40, range: 200, speed: 0.5, cost: 200, evolution: 'Pyce_Glob', image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "tower_Old_Glob_desc", family: 'Old_Glob' },
   'Work_Bombot': { name: 'tower_Work_Bombot_name', damage: 100, range: 150, speed: 0.2, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "tower_Work_Bombot_desc", family: 'Special' }
 };
 

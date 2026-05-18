@@ -1946,58 +1946,102 @@ input:checked + .slider:before {
 }
 
 /* ===================== NUEVO: BOTONES FLOTANTES DE TORRES (MÓVIL) ===================== */
+/* ===================== NUEVO: BOTONES FLOTANTES DE TORRES (MÓVIL) ===================== */
 .floating-tower-shop {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     gap: 12px;
     z-index: 10000;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 12px;
-    border-radius: 60px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    flex-wrap: wrap;
+    background: rgba(10, 10, 20, 0.85);
+    padding: 10px 20px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    flex-wrap: nowrap;
     justify-content: center;
-    max-width: 90vw;
+    align-items: center;
+    max-width: 95vw;
     overflow-x: auto;
+    scrollbar-width: none; /* Hide scrollbar in Firefox */
+}
+
+.floating-tower-shop::-webkit-scrollbar {
+    display: none; /* Hide scrollbar in Chrome/Safari */
 }
 
 .floating-tower-btn {
-    width: 70px;
-    height: 70px;
-    border-radius: 35px;
-    background: rgba(30, 30, 50, 0.9);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    width: 65px;
+    height: 65px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    font-size: 0.7rem;
-    font-weight: bold;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #e2e8f0;
+}
+
+.floating-tower-btn:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
     color: white;
 }
 
 .floating-tower-btn img {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
+    transition: transform 0.2s;
+}
+
+.floating-tower-btn:hover img {
+    transform: scale(1.1);
 }
 
 .floating-tower-btn.selected {
     border-color: #ffd700;
-    background: rgba(255, 215, 0, 0.3);
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    background: rgba(255, 215, 0, 0.2);
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    color: #ffd700;
+}
+
+.floating-tower-btn.locked {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.floating-tower-btn.locked .lock-overlay {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.65rem;
+    background: #e74c3c;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(231, 76, 60, 0.4);
+    z-index: 2;
 }
 
 .floating-tower-btn.disabled {
     opacity: 0.4;
-    filter: grayscale(0.5);
     cursor: not-allowed;
 }
 
@@ -2083,5 +2127,131 @@ input:checked + .slider:before {
     #badges-panel {
         width: 240px;
         max-height: 50vh;
+    }
+}
+
+/* ===================== HISTORIA Y LOGS MODAL ===================== */
+.story-logs-content {
+    background: rgba(15, 15, 30, 0.98);
+    border: 2px solid rgba(52, 152, 219, 0.5);
+    border-radius: 20px;
+    box-shadow: 0 0 60px rgba(52, 152, 219, 0.3);
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 800px;
+    width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #3498db transparent;
+    padding: 25px;
+}
+
+.story-logs-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+}
+
+.story-tab-btn {
+    flex: 1;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.story-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.story-tab-btn.active {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+}
+
+.story-logs-body {
+    color: #e2e8f0;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    text-align: left;
+    max-height: 52vh;
+    overflow-y: auto;
+    padding-right: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(52, 152, 219, 0.5) transparent;
+}
+
+.story-logs-body h3 {
+    color: #ffd700;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    padding-bottom: 6px;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    font-size: 1.25rem;
+    font-weight: 900;
+}
+
+.story-logs-body h4 {
+    color: #3498db;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.story-logs-body p {
+    margin-bottom: 12px;
+}
+
+.story-logs-body ul {
+    padding-left: 20px;
+    margin-bottom: 15px;
+}
+
+.story-logs-body li {
+    margin-bottom: 8px;
+}
+
+.story-logs-body strong {
+    color: #fff;
+    font-weight: 700;
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+    .story-logs-content {
+        padding: 15px;
+        max-height: 90vh;
+    }
+    .story-logs-tabs {
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        gap: 8px;
+    }
+    .story-tab-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    .story-logs-body {
+        max-height: 45vh;
+        font-size: 0.85rem;
+    }
+    .story-logs-body h3 {
+        margin-top: 12px;
+        font-size: 1.05rem;
     }
 }

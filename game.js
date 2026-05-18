@@ -167,7 +167,9 @@ function saveProgress() {
     unlockedInfinite: gameState.unlockedInfinite,
     corruptWins: gameState.corruptWins,
     unlockedBombot: TOWER_TYPES['Work_Bombot'] ? TOWER_TYPES['Work_Bombot'].unlocked : false,
-    unlockedPyceGlob: TOWER_TYPES['Pyce_Glob'] ? TOWER_TYPES['Pyce_Glob'].unlocked : false,
+    unlockedPyceGlob: TOWER_TYPES['Old_Glob'] ? TOWER_TYPES['Old_Glob'].unlocked : false,
+    unlockedOldGlob: TOWER_TYPES['Old_Glob'] ? TOWER_TYPES['Old_Glob'].unlocked : false,
+    unlockedCometGlob: TOWER_TYPES['Comet_Glob'] ? TOWER_TYPES['Comet_Glob'].unlocked : false,
 
     // Meta data
     globetines: gameState.globetines,
@@ -209,7 +211,35 @@ function loadProgress(username) {
     }
 
     if (data) {
-      const progress = JSON.parse(data);
+      let progress = JSON.parse(data);
+      
+      // Auto-reset upgrades once migration (keep skins, badges, currencies)
+      if (!progress.upgradesResetV3) {
+        console.log("Applying upgrades reset migration for:", user);
+        progress.baseHealthLevel = 0;
+        progress.towerLimits = {
+          'Glob': 3,
+          'Red_Glob': 5,
+          'Soap_Glob': 3,
+          'Ducky_Glob': 3,
+          'Comet_Glob': 3,
+          'Pyce_Glob': 2,
+          'Old_Glob': 2,
+          'Work_Bombot': 1
+        };
+        progress.metaRangeLevel = 0;
+        progress.metaRange = 0;
+        progress.metaDamageLevel = 0;
+        progress.metaDamage = 1;
+        progress.duckgrades = {};
+        progress.unlockedOldGlob = false;
+        progress.unlockedCometGlob = false;
+        progress.unlockedPyceGlob = false;
+        progress.upgradesResetV3 = true;
+        // Save the updated progress to localStorage immediately
+        localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
+      }
+
       if (progress.badges) {
         Object.keys(progress.badges).forEach(k => {
           if (BADGES[k]) BADGES[k].unlocked = progress.badges[k];
@@ -218,7 +248,9 @@ function loadProgress(username) {
       gameState.unlockedInfinite = progress.unlockedInfinite || false;
       gameState.corruptWins = progress.corruptWins || 0;
       if (TOWER_TYPES['Work_Bombot']) TOWER_TYPES['Work_Bombot'].unlocked = progress.unlockedBombot || false;
-      if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = progress.unlockedPyceGlob || false;
+      if (TOWER_TYPES['Old_Glob']) TOWER_TYPES['Old_Glob'].unlocked = progress.unlockedOldGlob || progress.unlockedPyceGlob || false;
+      if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = progress.unlockedOldGlob || progress.unlockedPyceGlob || false;
+      if (TOWER_TYPES['Comet_Glob']) TOWER_TYPES['Comet_Glob'].unlocked = progress.unlockedCometGlob || false;
 
       // Meta data
       gameState.globetines = Number(progress.globetines != null ? progress.globetines : 500);
@@ -452,6 +484,21 @@ function selectMode(mode) {
   gameState.globetines = 500;
   updateUI();
   showMessage(translate('mode_selected', { mode: mode.toUpperCase() }), 'info');
+
+  // Mostrar historias contextuales según el modo
+  setTimeout(() => {
+    if (gameState.mode === 'corrupto') {
+      const storyText = currentLanguage === 'es' 
+        ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!" 
+        : "Welcome to Gelatin Lake... or what is left of it. You have entered my region, where the Pyces do not act of their own free will, but obey my sacred stellar design. Prepare to be assimilated!";
+      showNarratorMsg('img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
+    } else if (gameState.mode === 'antiNormal') {
+      const storyText = currentLanguage === 'es' 
+        ? "¡S1S73M4 D3F1N171V0 D373C74D0! NOeye y MoonStar Pyce han unido sus fuerzas para crear la versión definitiva de este entorno. Los Globs serán borrados del sistema. ¡La purga comienza ya!" 
+        : "DEFINITIVE SYSTEM DETECTED! NOeye and MoonStar Pyce have joined forces to create the ultimate version of this environment. The Globs will be deleted from the system. The purge begins now!";
+      showNarratorMsg('img/NOeye_Pyce.png', 'NOeye & MoonStar', storyText);
+    }
+  }, 1000);
 }
 
 function triggerCorrupt() {
@@ -463,6 +510,14 @@ function triggerCorrupt() {
     document.getElementById('game-area').classList.add('corrupt');
     showMessage(translate('corrupt_active'), 'error');
     drawBadges();
+
+    // Narrador de historia
+    setTimeout(() => {
+      const storyText = currentLanguage === 'es' 
+        ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!" 
+        : "Welcome to Gelatin Lake... or what is left of it. You have entered my region, where the Pyces do not act of their own free will, but obey my sacred stellar design. Prepare to be assimilated!";
+      showNarratorMsg('img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
+    }, 1000);
   }
 }
 
@@ -579,12 +634,19 @@ function drawTowerShop() {
     shopContainer.id = 'floating-tower-shop';
     shopContainer.className = 'floating-tower-shop';
     
-    const initial = ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob'];
-    if (TOWER_TYPES['Pyce_Glob'] && TOWER_TYPES['Pyce_Glob'].unlocked) initial.push('Pyce_Glob');
-    if (TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked) initial.push('Old_Glob');
-    if (TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked) initial.push('Work_Bombot');
+    // Tower progression & unlock state
+    const shopTowers = [
+      { type: 'Glob', unlocked: true },
+      { type: 'Red_Glob', unlocked: true },
+      { type: 'Soap_Glob', unlocked: gameState.duckPassLevel >= 3, req: 'lvl3' },
+      { type: 'Ducky_Glob', unlocked: gameState.duckPassLevel >= 6, req: 'lvl6' },
+      { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
+      { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
+      { type: 'Work_Bombot', unlocked: gameState.duckPassLevel >= 60, req: 'lvl60' }
+    ];
 
-    initial.forEach(type => {
+    shopTowers.forEach(item => {
+        const type = item.type;
         const t = TOWER_TYPES[type];
         if (!t) return;
         
@@ -595,30 +657,51 @@ function drawTowerShop() {
         const name = translate(t.name);
         
         const btn = document.createElement('button');
-        btn.className = 'floating-tower-btn';
-        if (isFull) btn.classList.add('disabled');
-        if (gameState.selectedTowerType === type) btn.classList.add('selected');
         
-        btn.innerHTML = `
-            <img src="${displayImg}" alt="${name}">
-            <span style="font-size:0.65rem;">💰${t.cost}</span>
-        `;
-        
-        btn.onclick = (e) => {
-            e.stopPropagation();
-            if (isFull) {
-                showMessage(translate('limit_reached', { name: name, limit: limit }), 'error');
-                return;
-            }
-            if (gameState.selectedTowerType === type) {
-                gameState.selectedTowerType = null;
-                btn.classList.remove('selected');
-            } else {
-                document.querySelectorAll('.floating-tower-btn').forEach(b => b.classList.remove('selected'));
-                gameState.selectedTowerType = type;
-                btn.classList.add('selected');
-            }
-        };
+        if (!item.unlocked) {
+            btn.className = 'floating-tower-btn locked';
+            let reqText = '';
+            let unlockMsg = '';
+            if (item.req === 'lvl3') { reqText = 'Lvl 3'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 3' : '🔒 Unlocks at Duck Pass Level 3'; }
+            else if (item.req === 'lvl6') { reqText = 'Lvl 6'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 6' : '🔒 Unlocks at Duck Pass Level 6'; }
+            else if (item.req === 'lvl60') { reqText = 'Lvl 60'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 60' : '🔒 Unlocks at Duck Pass Level 60'; }
+            else if (item.req === 'shop') { reqText = 'SHOP'; unlockMsg = currentLanguage === 'es' ? '🔒 Desbloquéalo en la Tienda Meta por PyCoins' : '🔒 Unlock it in the Meta Shop using PyCoins'; }
+            
+            btn.innerHTML = `
+                <div class="lock-overlay">🔒</div>
+                <img src="${displayImg}" alt="${name}" style="filter: grayscale(1) opacity(0.4);">
+                <span style="font-size:0.55rem; color:#ff9f43; font-weight:900;">${reqText}</span>
+            `;
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                showMessage(unlockMsg, 'warning');
+            };
+        } else {
+            btn.className = 'floating-tower-btn';
+            if (isFull) btn.classList.add('disabled');
+            if (gameState.selectedTowerType === type) btn.classList.add('selected');
+            
+            btn.innerHTML = `
+                <img src="${displayImg}" alt="${name}">
+                <span style="font-size:0.65rem;">💰${t.cost}</span>
+            `;
+            
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                if (isFull) {
+                    showMessage(translate('limit_reached', { name: name, limit: limit }), 'error');
+                    return;
+                }
+                if (gameState.selectedTowerType === type) {
+                    gameState.selectedTowerType = null;
+                    btn.classList.remove('selected');
+                } else {
+                    document.querySelectorAll('.floating-tower-btn').forEach(b => b.classList.remove('selected'));
+                    gameState.selectedTowerType = type;
+                    btn.classList.add('selected');
+                }
+            };
+        }
         
         shopContainer.appendChild(btn);
     });
@@ -698,6 +781,14 @@ function toggleLanguage() {
   updateLanguage();
   drawTowerShop();
   drawBadges();
+  if (document.getElementById('story-logs-modal').style.display === 'flex') drawStoryLogs();
+}
+
+function toggleBadgesPanel() {
+  const panel = document.getElementById('badges-panel');
+  if (panel) {
+    panel.classList.toggle('show');
+  }
 }
 
 function bindEvents() {
@@ -812,7 +903,10 @@ function bindEvents() {
       'GHOSTWALKER': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
       'FIREBRAND': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
       'WINDFORCE': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
-      'THANIYEL': { dp: 150, xp: 500, msg: '150 DuckPass + 500 XP' }
+      'THANIYEL': { dp: 150, xp: 500, msg: '150 DuckPass + 500 XP' },
+      'JANBO': { py: 123, msg: '123 PyCoins' },
+      'ILERNA': { py: 130, msg: '130 PyCoins' },
+      'MANOLO': { py: 100, msg: '100 PyCoins' }
     };
 
     if (rewards[code]) {
@@ -850,6 +944,9 @@ function bindEvents() {
 
   const passBtn = document.getElementById('open-pass');
   if (passBtn) passBtn.onclick = () => { saveGameSnapshot(); if (typeof openPass === 'function') openPass(); };
+
+  const storyBtn = document.getElementById('open-story-logs');
+  if (storyBtn) storyBtn.onclick = () => { saveGameSnapshot(); openStoryLogs(); };
 
   document.querySelectorAll('.modal .modal-close, .modal .close-btn').forEach(btn => {
     btn.onclick = (e) => {
@@ -1006,6 +1103,16 @@ function updateMetaUI() {
   }
 }
 
+function isTowerOwned(t) {
+  if (t === 'Glob' || t === 'Red_Glob' || t === 'Recolors' || t === 'Global') return true;
+  if (t === 'Soap_Glob') return gameState.duckPassLevel >= 3;
+  if (t === 'Ducky_Glob') return gameState.duckPassLevel >= 6;
+  if (t === 'Work_Bombot') return gameState.duckPassLevel >= 60;
+  if (t === 'Old_Glob' || t === 'Pyce_Glob') return !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked);
+  if (t === 'Comet_Glob') return !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked);
+  return false;
+}
+
 function drawShop() {
   const container = document.getElementById('shop-items');
   if (!container) return;
@@ -1024,16 +1131,22 @@ function drawShop() {
   if (currentShopTab === 'upgrades') {
     const upgrades = [
       { id: 'hp', name: 'upgrade_hp_name', desc: 'upgrade_hp_desc', cost: 50, type: 'pycoin', level: gameState.baseHealthLevel, max: 10 },
-      { id: 'unlock_Pyce_Glob', name: 'upgrade_unlock_pyce_name', desc: 'upgrade_unlock_pyce_desc', cost: 100, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Old_Glob', name: 'upgrade_unlock_old_name', desc: 'upgrade_unlock_old_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Comet_Glob', name: 'upgrade_unlock_comet_name', desc: 'upgrade_unlock_comet_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
       { id: 'meta_range', name: 'upgrade_range_name', desc: 'upgrade_range_desc', cost: 10, type: 'duckpass', level: gameState.metaRangeLevel, max: 5 },
       { id: 'meta_damage', name: 'upgrade_damage_name', desc: 'upgrade_damage_desc', cost: 15, type: 'duckpass', level: gameState.metaDamageLevel, max: 5 }
     ];
-    ['Glob', 'Red_Glob', 'Ducky_Glob'].forEach(t => {
-      if (gameState.towerLimits[t] < 10) upgrades.push({ id: 'limit_'+t, name: 'upgrade_limit_name', desc: 'upgrade_limit_desc', cost: 30, type: 'pycoin', params: {name: t} });
+    ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Old_Glob', 'Work_Bombot'].forEach(t => {
+      const isUnlocked = isTowerOwned(t);
+      
+      if (isUnlocked && gameState.towerLimits[t] < 10) {
+        upgrades.push({ id: 'limit_'+t, name: 'upgrade_limit_name', desc: 'upgrade_limit_desc', cost: 30, type: 'pycoin', params: {name: translate(TOWER_TYPES[t].name)} });
+      }
     });
 
     upgrades.forEach(u => {
-      if (u.hideIfUnlocked && TOWER_TYPES['Pyce_Glob'].unlocked) return;
+      if (u.id === 'unlock_Old_Glob' && TOWER_TYPES['Old_Glob'].unlocked) return;
+      if (u.id === 'unlock_Comet_Glob' && TOWER_TYPES['Comet_Glob'].unlocked) return;
       const el = document.createElement('div');
       const isMax = u.max && u.level >= u.max;
       el.className = `meta-item ${isMax ? 'unlocked' : ''}`;
@@ -1057,7 +1170,17 @@ function drawShop() {
       { id: 'dg_Ducky_Glob', name: 'duckgrade_duck_name', desc: 'duckgrade_duck_desc', cost: 15, family: 'Ducky_Glob' }
     ];
 
-    dgs.forEach(u => {
+    const filteredDgs = dgs.filter(u => {
+      if (u.id === 'dg_Glob' || u.id === 'dg_Red_Glob') return true;
+      if (u.id === 'dg_Soap_Glob') return isTowerOwned('Soap_Glob');
+      if (u.id === 'dg_Comet_Glob') return isTowerOwned('Comet_Glob');
+      if (u.id === 'dg_Pyce_Glob' || u.id === 'dg_Old_Glob') return isTowerOwned('Old_Glob');
+      if (u.id === 'dg_Work_Bombot') return isTowerOwned('Work_Bombot');
+      if (u.id === 'dg_Ducky_Glob') return isTowerOwned('Ducky_Glob');
+      return false;
+    });
+
+    filteredDgs.forEach(u => {
       const isUnlocked = gameState.duckgrades[u.id];
       const el = document.createElement('div');
       el.className = `meta-item ${isUnlocked ? 'unlocked' : ''}`;
@@ -1070,6 +1193,7 @@ function drawShop() {
   } else {
     Object.keys(SKINS_DATA).forEach(family => {
       if (family === 'Global') return;
+      if (!isTowerOwned(family)) return;
       SKINS_DATA[family].forEach(skin => {
         const isUnlocked = gameState.unlockedSkins.includes(skin.id);
         const isEquipped = gameState.equippedSkins[family] === skin.id;
@@ -1163,9 +1287,22 @@ function buyUpgrade(id, cost, type) {
   if (type === 'pycoin') gameState.pycoins -= cost; else gameState.duckPassCurrency -= cost;
 
   if (id === 'hp') { if (gameState.baseHealthLevel >= 10) return; gameState.baseHealthLevel++; gameState.health += 20; showMessage(translate('base_hp_improved'), 'success'); }
-  else if (id.startsWith('limit_')) { gameState.towerLimits[id.replace('limit_', '')]++; showMessage(translate('tower_limit_increased', {name: id.replace('limit_', '')}), 'success'); }
+  else if (id.startsWith('limit_')) { 
+    const tKey = id.replace('limit_', '');
+    gameState.towerLimits[tKey]++; 
+    showMessage(translate('tower_limit_increased', {name: translate(TOWER_TYPES[tKey].name)}), 'success'); 
+  }
   else if (id === 'meta_range') { if (gameState.metaRangeLevel >= 5) return; gameState.metaRangeLevel++; gameState.metaRange = (gameState.metaRange||0) + 20; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
   else if (id === 'meta_damage') { if (gameState.metaDamageLevel >= 5) return; gameState.metaDamageLevel++; gameState.metaDamage = (gameState.metaDamage||1) + 0.15; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
+  else if (id === 'unlock_Old_Glob') {
+    if (TOWER_TYPES['Old_Glob']) TOWER_TYPES['Old_Glob'].unlocked = true;
+    if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = true;
+    showMessage("🩶 " + (currentLanguage === 'es' ? "TORRE ANCIANA DESBLOQUEADA!" : "ANCIENT GLOB TOWER UNLOCKED!"), 'success');
+  }
+  else if (id === 'unlock_Comet_Glob') {
+    if (TOWER_TYPES['Comet_Glob']) TOWER_TYPES['Comet_Glob'].unlocked = true;
+    showMessage("🖤 " + (currentLanguage === 'es' ? "TORRE COMETA DESBLOQUEADA!" : "COMET GLOB TOWER UNLOCKED!"), 'success');
+  }
   else if (id.startsWith('dg_')) { gameState.duckgrades[id] = true; showMessage("🦆 DUCKGRADE UNLOCKED!", 'success'); }
 
   updateMetaUI(); drawShop(); drawTowerShop(); saveProgress();
@@ -1631,8 +1768,15 @@ function updateLanguage() {
   // Títulos de modales
   const shopTitle = document.getElementById('shop-title');
   if (shopTitle) shopTitle.innerHTML = `🛒 ${translate('shop_title').replace('🛒 ', '')}`;
+  const shopBtn = document.getElementById('open-shop');
+  if (shopBtn) shopBtn.innerHTML = `🛒 ${translate('shop_title').replace('🛒 ', '')}`;
   const passTitle = document.getElementById('pass-title');
   if (passTitle) passTitle.innerHTML = `🦆 ${translate('pass_title').replace('🦆 ', '')}`;
+  const storyTitle = document.getElementById('story-logs-title');
+  if (storyTitle) storyTitle.innerHTML = `📖 ${translate('story_logs_btn')}`;
+
+  const storyBtn = document.getElementById('open-story-logs');
+  if (storyBtn) storyBtn.innerHTML = `📖 ${translate('story_logs_btn')}`;
 
   // Evolución
   const evolveTitle = document.querySelector('#evolve-panel h3');
@@ -1790,6 +1934,281 @@ function getSpecialAttack(t, target) {
   }
 
   return false;
+}
+
+// ===================== HISTORIA Y LOGS PANEL =====================
+let currentStoryTab = 'lore';
+
+function openStoryLogs() {
+  closeModal('shop-modal');
+  closeModal('pass-modal');
+  saveGameSnapshot();
+  document.getElementById('story-logs-modal').style.display = 'flex';
+  drawStoryLogs();
+}
+
+function switchStoryTab(tab) {
+  currentStoryTab = tab;
+  document.querySelectorAll('.story-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `tab-${tab}-btn`);
+  });
+  drawStoryLogs();
+}
+
+function drawStoryLogs() {
+  const container = document.getElementById('story-logs-body');
+  if (!container) return;
+  
+  if (currentStoryTab === 'lore') {
+    if (currentLanguage === 'es') {
+      container.innerHTML = `
+        <h3>🎮 Glob Defenders (GD)</h3>
+        <p>Glob Defenders es un juego de defensa por oleadas ambientado en <strong>Gelatin Lake</strong>, un gran valle natural donde la vida ha evolucionado de formas inesperadas a partir de criaturas gelatinosas conocidas como <strong>Globs</strong>.</p>
+        <p>En este mundo, los jugadores deben resistir el avance de los <strong>Pyces</strong>, organismos artificiales con forma de ordenadores vivientes que, aunque no son malvados por naturaleza, han sido utilizados o forzados por entidades superiores que alteran el equilibrio del sistema.</p>
+
+        <h3>🌊 El mundo: Gelatin Lake</h3>
+        <p>Gelatin Lake es un entorno natural donde los Globs surgieron como vida biológica basada en gelatina orgánica. Con el tiempo, esta especie se diversificó en múltiples familias evolutivas, cada una con habilidades, comportamientos y roles distintos dentro del ecosistema.</p>
+
+        <h3>🍮 Los Globs</h3>
+        <p>Los Globs son las unidades defensivas principales del juego. Funcionan como torres vivas que pueden evolucionar durante las partidas.</p>
+        <ul>
+          <li>🟢 <strong>Verdes</strong>: equilibrados, con múltiples etapas evolutivas y gran escalado de poder.</li>
+          <li>🔴 <strong>Rojos</strong>: ofensivos, con progresión hacia formas cada vez más tecnológicas y destructivas.</li>
+          <li>🟡 <strong>Amarillos (Ducky)</strong>: centrados en la generación de recursos.</li>
+          <li>🔵 <strong>Azules (Jabón)</strong>: especializados en ralentizar y controlar enemigos.</li>
+          <li>⚫ <strong>Negros</strong>: unidades de alto riesgo y altísimo poder, ligadas a energía cósmica e inestable.</li>
+          <li>🤖 <strong>Variantes especiales</strong> como Pyce Glob y Old Glob, con comportamientos únicos.</li>
+        </ul>
+
+        <h3>🖥️ Los Pyces</h3>
+        <p>Los Pyces son entidades artificiales vivas, con capacidad de adaptación y evolución.</p>
+        <ul>
+          <li><strong>Pyce base</strong>: forma original del sistema.</li>
+          <li><strong>Pyce 2.0</strong>: versión autónoma con curiosidad y pensamiento propio, origen de la Portalogía.</li>
+          <li><strong>Flower Pyce</strong>: entidad orgánica con capacidad curativa y comportamiento aleatorio.</li>
+          <li><strong>NOeye</strong>: masa anómala corrompida, antes conocida como NO Kerbo, capaz de crear y destruir microentornos.</li>
+          <li><strong>MoonStar Pyce</strong>: entidad corrompida por el Bitcore, capaz de crear dimensiones enteras y alterar realidades.</li>
+        </ul>
+
+        <h3>👁️ Entidades superiores</h3>
+        <p>El mundo está influenciado por fuerzas más allá de Globs y Pyces:</p>
+        <ul>
+          <li><strong>Kirb / KirByte (el prototipo)</strong>: robot abeja cuadrado de titanio capaz de viajar entre dimensiones. Su existencia está ligada a eventos como la expulsión de humanos de Bitlands.</li>
+          <li><strong>1x1x1x1 Pyce</strong>: entidad hacker capaz de alterar reglas internas del sistema.</li>
+        </ul>
+
+        <h3>⚖️ Estructura del universo</h3>
+        <p>El equilibrio del mundo se sostiene entre tres fuerzas:</p>
+        <ul>
+          <li>🌊 <strong>Globs</strong>: vida biológica adaptativa del entorno</li>
+          <li>🖥️ <strong>Pyces</strong>: vida artificial evolutiva</li>
+          <li>👁️ <strong>Entidades superiores</strong>: fuerzas que alteran o rompen el sistema</li>
+        </ul>
+      `;
+    } else {
+      container.innerHTML = `
+        <h3>🎮 Glob Defenders (GD)</h3>
+        <p>Glob Defenders is a wave defense game set in <strong>Gelatin Lake</strong>, a vast natural valley where life has evolved in unexpected ways from jelly-like creatures known as <strong>Globs</strong>.</p>
+        <p>In this world, players must resist the advance of the <strong>Pyces</strong>, artificial organisms shaped like living computers that, although not malicious by nature, have been used or forced by higher entities to disrupt the system's balance.</p>
+
+        <h3>🌊 The World: Gelatin Lake</h3>
+        <p>Gelatin Lake is a natural environment where Globs emerged as biological life based on organic jelly. Over time, this species diversified into multiple evolutionary families, each with unique abilities, behaviors, and ecological roles.</p>
+
+        <h3>🍮 The Globs</h3>
+        <p>Globs are the primary defensive units of the game. They function as living towers that can evolve during matches.</p>
+        <ul>
+          <li>🟢 <strong>Green</strong>: balanced, with multiple evolutionary stages and high scaling power.</li>
+          <li>🔴 <strong>Red</strong>: offensive, progressing toward increasingly technological and destructive forms.</li>
+          <li>🟡 <strong>Yellow (Ducky)</strong>: focused on resource generation.</li>
+          <li>🔵 <strong>Blue (Soap)</strong>: specialized in slowing down and controlling enemies.</li>
+          <li>⚫ <strong>Black</strong>: high-risk, high-power units tied to unstable cosmic energy.</li>
+          <li>🤖 <strong>Special variants</strong> like Pyce Glob and Old Glob, with unique behaviors.</li>
+        </ul>
+
+        <h3>🖥️ The Pyces</h3>
+        <p>Pyces are artificial living entities, capable of adaptation and evolution.</p>
+        <ul>
+          <li><strong>Base Pyce</strong>: original form of the system.</li>
+          <li><strong>Pyce 2.0</strong>: autonomous version with curiosity and independent thought, spawning Portalogy.</li>
+          <li><strong>Flower Pyce</strong>: organic entity with healing abilities and random behavior.</li>
+          <li><strong>NOeye</strong>: corrupted anomalous mass, formerly known as NO Kerbo, capable of creating and destroying micro-environments.</li>
+          <li><strong>MoonStar Pyce</strong>: entity corrupted by the Bitcore, capable of creating entire dimensions and altering realities.</li>
+        </ul>
+
+        <h3>👁️ Higher Entities</h3>
+        <p>The world is influenced by forces beyond Globs and Pyces:</p>
+        <ul>
+          <li><strong>Kirb / KirByte (the prototype)</strong>: square titanium bee robot capable of traveling between dimensions. Its existence is linked to events like the expulsion of humans from Bitlands.</li>
+          <li><strong>1x1x1x1 Pyce</strong>: hacker entity capable of altering the system's internal rules.</li>
+        </ul>
+
+        <h3>⚖️ Cosmic Structure</h3>
+        <p>The balance of the world is sustained between three forces:</p>
+        <ul>
+          <li>🌊 <strong>Globs</strong>: adaptive biological life of the environment</li>
+          <li>🖥️ <strong>Pyces</strong>: evolutionary artificial life</li>
+          <li>👁️ <strong>Higher Entities</strong>: forces that alter or break the system</li>
+        </ul>
+      `;
+    }
+  } else if (currentStoryTab === 'mechanics') {
+    if (currentLanguage === 'es') {
+      container.innerHTML = `
+        <h3>⚙️ Mecánicas de Juego</h3>
+        <p>Aprende el funcionamiento del ecosistema de Gelatin Lake y domina la defensa.</p>
+
+        <h4>💰 Economía del Juego</h4>
+        <ul>
+          <li>🟡 <strong>Globetines</strong>: Moneda interna de partida usada para comprar y mejorar Globs durante las oleadas. Se resetea en cada partida.</li>
+          <li>🟦 <strong>PyCoins</strong>: Residuos de energía/datos obtenidos al derrotar Pyces en combate. Se usan en la Tienda Meta permanente para adquirir mejoras de base, aumentar límites de torres y comprar skins.</li>
+          <li>🟨 <strong>Duckpasses</strong>: Tarjetas especiales patrocinadas por Ducky Glob que permiten comprar mejoras avanzadas (Duckgrades) y skins exclusivas.</li>
+        </ul>
+
+        <h4>🏪 Meta-progresión</h4>
+        <ul>
+          <li><strong>Mejoras de la base</strong>: Aumenta permanentemente la salud inicial de tu base hasta un máximo de +200 de salud.</li>
+          <li><strong>Límites de Globs</strong>: Aumenta la cantidad máxima de torres de un tipo específico que puedes tener activas simultáneamente en el mapa.</li>
+          <li><strong>Duckgrades</strong>: Habilidades pasivas definitivas de cada familia de Globs. Desbloquéalas con Duck Pass Currency en la Tienda Meta.</li>
+          <li><strong>Personalización de Aspectos</strong>: Desbloquea y equipa skins para tus familias de Globs para cambiar sus gráficos de combate y ataques especiales.</li>
+        </ul>
+      `;
+    } else {
+      container.innerHTML = `
+        <h3>⚙️ Game Mechanics</h3>
+        <p>Learn how the Gelatin Lake ecosystem works and master the defense.</p>
+
+        <h4>💰 Game Economy</h4>
+        <ul>
+          <li>🟡 <strong>Globetines</strong>: In-game match currency used to purchase and upgrade Globs during waves. Resets every game.</li>
+          <li>🟦 <strong>PyCoins</strong>: Energy/data residuals obtained from defeating Pyces in combat. Used in the permanent Meta Shop for base upgrades, tower limits, and buying skins.</li>
+          <li>🟨 <strong>Duckpasses</strong>: Special cards sponsored by Ducky Glob to purchase advanced passive skills (Duckgrades) and exclusive skins.</li>
+        </ul>
+
+        <h4>🏪 Meta-progression</h4>
+        <ul>
+          <li><strong>Base Upgrades</strong>: Permanently increases your starting base health up to a maximum of +200 health.</li>
+          <li><strong>Glob Limits</strong>: Increases the maximum number of towers of a specific type you can have active simultaneously on the map.</li>
+          <li><strong>Duckgrades</strong>: Ultimate passive skills for each Glob family. Unlock them with Duck Pass Currency in the Meta Shop.</li>
+          <li><strong>Aesthetics Customization</strong>: Unlock and equip skins for your Glob families to change their battle sprites and special attacks.</li>
+        </ul>
+      `;
+    }
+  } else if (currentStoryTab === 'logs') {
+    if (currentLanguage === 'es') {
+      container.innerHTML = `
+        <h3>📋 Historial de Actualizaciones (GD v2.0.0)</h3>
+        <p>¡Bienvenido a la gran actualización de la progresión y jugabilidad de Glob Defenders!</p>
+
+        <h4>Novedades de la Versión:</h4>
+        <ul>
+          <li>🛠️ <strong>¡Rediseño de la UI de las Torres!</strong> El menú de selección de torres es ahora un Dock inferior flotante y ultra accesible, optimizado para móvil y tablets en formato horizontal.</li>
+          <li>🩶 <strong>Fusión de las Torres Grises</strong>: Old Glob y Pyce Glob se han fusionado en una única línea evolutiva. Coloca un Old Glob (Nivel 1) y evoluciónalo en partida a Pyce Glob (Nivel 2) para distorsionar a los enemigos.</li>
+          <li>📈 <strong>Desbloqueos por Nivel del Duck Pass</strong>:
+            <ul>
+              <li><strong>Glob de Jabón (Azul)</strong>: Se consigue al alcanzar el Nivel 3.</li>
+              <li><strong>Pato Glob (Amarillo)</strong>: Se consigue al alcanzar el Nivel 6.</li>
+              <li><strong>Bombot de Trabajo</strong>: Se consigue al alcanzar el Nivel 60.</li>
+            </ul>
+          </li>
+          <li>💰 <strong>Nuevos Desbloqueos de Tienda Meta</strong>:
+            <ul>
+              <li><strong>Glob Cometa (Torre Negra)</strong>: Cómprala en la tienda por <strong>250 Pycoins</strong> para desbloquearla permanentemente.</li>
+              <li><strong>Old Glob (Torre Gris)</strong>: Cómprala en la tienda por <strong>150 Pycoins</strong> para desbloquearla permanentemente.</li>
+            </ul>
+          </li>
+          <li>🔄 <strong>Reajuste y Reequilibrio de Límites</strong>: Se ha reseteado el nivel de mejoras y límites para todas las cuentas para adaptarlos al nuevo sistema de progresión. ¡Tus skins y divisas están intactas!</li>
+          <li>🎭 <strong>Narrativa Contextual</strong>: Disfruta de introducciones de historia únicas al iniciar los modos de juego <strong>Corrupto</strong> y <strong>AntiNormal</strong>, narradas por los antagonistas del sistema.</li>
+        </ul>
+      `;
+    } else {
+      container.innerHTML = `
+        <h3>📋 Update Logs (GD v2.0.0)</h3>
+        <p>Welcome to the major progression and gameplay update of Glob Defenders!</p>
+
+        <h4>What's New in this Version:</h4>
+        <ul>
+          <li>🛠️ <strong>Redesigned Tower UI!</strong> The tower selection panel is now a sleek, bottom-floating dock, optimized for landscape mobile and tablet gaming.</li>
+          <li>🩶 <strong>Merged Grey Towers</strong>: Old Glob and Pyce Glob have been unified into a single evolutionary family. Place an Old Glob (Level 1) and evolve it during gameplay into a Pyce Glob (Level 2) to glitch out enemies.</li>
+          <li>📈 <strong>Duck Pass Level Unlocks</strong>:
+            <ul>
+              <li><strong>Soap Glob (Blue)</strong>: Obtained by reaching Level 3.</li>
+              <li><strong>Ducky Glob (Yellow)</strong>: Obtained by reaching Level 6.</li>
+              <li><strong>Work Bombot</strong>: Obtained by reaching Level 60.</li>
+            </ul>
+          </li>
+          <li>💰 <strong>New Meta Shop Unlocks</strong>:
+            <ul>
+              <li><strong>Comet Glob (Black Tower)</strong>: Purchase from the Meta Shop for <strong>250 Pycoins</strong> to unlock permanently.</li>
+              <li><strong>Old Glob (Grey Tower)</strong>: Purchase from the Meta Shop for <strong>150 Pycoins</strong> to unlock permanently.</li>
+            </ul>
+          </li>
+          <li>🔄 <strong>Upgrades & Limits Reset</strong>: Reset all players' upgrade levels and tower limits once to align with the new progression system. Skins and currencies are safely preserved!</li>
+          <li>🎭 <strong>Contextual Story Narration</strong>: Enjoy custom lore intros when launching **Corrupt** and **AntiNormal** game modes, told directly by the system's cyber-antagonists.</li>
+        </ul>
+      `;
+    }
+  }
+}
+
+// ===================== AUDIO & MUSIC SYSTEM =====================
+function initMusic() {
+  if (backgroundMusic) return; // Already initialized
+  try {
+    backgroundMusic = new Audio('sounds/DefendersTheme.mp3');
+    backgroundMusic.loop = true;
+    backgroundMusic.volume = 0.4;
+    
+    // Attempt autoplay if enabled
+    if (musicEnabled) {
+      const playPromise = backgroundMusic.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log("Autoplay blocked, waiting for user gesture:", error);
+          const playOnGesture = () => {
+            if (musicEnabled && backgroundMusic) {
+              backgroundMusic.play().catch(e => console.log("Play failed on gesture:", e));
+            }
+            document.removeEventListener('click', playOnGesture);
+          };
+          document.addEventListener('click', playOnGesture);
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Error initializing background music:", e);
+  }
+}
+
+function toggleMusic() {
+  musicEnabled = !musicEnabled;
+  const btn = document.getElementById('music-toggle-btn');
+  if (btn) {
+    btn.textContent = musicEnabled ? (currentLanguage === 'es' ? '🎵 Música ON' : '🎵 Music ON') : (currentLanguage === 'es' ? '🎵 Música OFF' : '🎵 Music OFF');
+  }
+  
+  if (backgroundMusic) {
+    if (musicEnabled) {
+      backgroundMusic.play().catch(e => console.log("Play failed:", e));
+    } else {
+      backgroundMusic.pause();
+    }
+  } else if (musicEnabled) {
+    initMusic();
+  }
+  saveProgress();
+}
+
+function toggleMute() {
+  gameState.muted = !gameState.muted;
+  updateMuteButton();
+  saveProgress();
+}
+
+function updateMuteButton() {
+  const btn = document.getElementById('effects-toggle-btn');
+  if (btn) {
+    btn.textContent = gameState.muted ? (currentLanguage === 'es' ? '🔊 Efectos OFF' : '🔊 Effects OFF') : (currentLanguage === 'es' ? '🔊 Efectos ON' : '🔊 Effects ON');
+  }
 }
 
 window.onload = init;
