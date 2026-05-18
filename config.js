@@ -896,11 +896,11 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "waveCompleted": "¡Oleada {wave} superada!",
   "skin_corrupted_swords_name": "Espadas Corrompidas",
   "skin_corrupted_swords_desc": "Set inspirado en Block Tales. ¡Llama a tus jefes favoritos para luchar en el campo con sus espadas!",
-  "skin_military_name": "Militar",
+  "skin_military_name": "Set Militar",
   "skin_military_desc": "Aspecto militar.",
-  "skin_music_name": "Musical",
+  "skin_music_name": "Set Musical",
   "skin_music_desc": "Aspecto con notas musicales.",
-  "skin_abyssal_name": "Abisal",
+  "skin_abyssal_name": "Set Abismal",
   "skin_abyssal_desc": "Aspecto abisal."
 });
 
@@ -911,7 +911,7 @@ Object.assign(window.SKIN_META, {
     attacks: {
       1: { type: 'projectile', color: '#00FFFF' }, // EVO1: Azul cian
       2: { type: 'projectile', color: '#39FF14' }, // EVO2: Verde neón
-      3: { type: 'projectile', color: 'multicolor', palette: ['#FFEA00','#00B4FF','#C58ED3','#8B0000'] }, // EVO3: multicolor
+      3: { type: 'projectile', color: 'multicolor', palette: ['#FFEA00', '#00B4FF', '#C58ED3', '#8B0000'] }, // EVO3: multicolor
       4: { type: 'gradient', from: '#FF7F00', to: '#001F5B' } // EVO4: naranja <-> azul oscuro
     }
   },
@@ -919,7 +919,7 @@ Object.assign(window.SKIN_META, {
     attacks: {
       1: { type: 'projectile', color: '#007BFF' }, // EVO1: Disparos azules
       2: { type: 'projectile', color: '#8B4513' }, // EVO2: Disparos marrones
-      3: { type: 'blackwhite', palette: ['#000000','#FFFFFF'] } // EVO3: agujero negro (negro/blanco)
+      3: { type: 'blackwhite', palette: ['#000000', '#FFFFFF'] } // EVO3: agujero negro (negro/blanco)
     }
   }
 });

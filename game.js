@@ -10,7 +10,7 @@ const TOWER_SPOTS = [];
 function generateSpots() {
   // Limpiar array por si acaso
   TOWER_SPOTS.length = 0;
-  
+
   // Zonas prohibidas (río y camino)
   const forbiddenZones = [
     { x: 300, y: 0, w: 60, h: 600 },      // Río vertical
@@ -23,30 +23,30 @@ function generateSpots() {
     { x: 700, y: 150, w: 60, h: 200 },     // Camino segmento 6
     { x: 700, y: 330, w: 300, h: 60 }      // Camino segmento 7
   ];
-  
+
   // Grid MÁS DENSO: 75px en lugar de 100px (más spots!)
   for (let x = 35; x < 950; x += 75) {
     for (let y = 35; y < 550; y += 75) {
       let collides = false;
-      
+
       // Verificar si colisiona con zona prohibida
       for (let zone of forbiddenZones) {
         if (x + 40 > zone.x && x - 40 < zone.x + zone.w &&
-            y + 40 > zone.y && y - 40 < zone.y + zone.h) {
+          y + 40 > zone.y && y - 40 < zone.y + zone.h) {
           collides = true;
           break;
         }
       }
-      
+
       // Evitar bordes del mapa
       if (x < 20 || x > 960 || y < 20 || y > 560) collides = true;
-      
+
       if (!collides) {
         TOWER_SPOTS.push({ x: x - 40, y: y - 40, w: 80, h: 80 });
       }
     }
   }
-  
+
   console.log(`✅ Generados ${TOWER_SPOTS.length} spots para torres (antes eran menos)`);
 }
 generateSpots();
@@ -187,7 +187,7 @@ function saveProgress() {
     muted: gameState.muted,
     totalDamage: gameState.totalDamage,
     settings: gameState.settings,
-        // ========== AÑADE ESTAS DOS LÍNEAS ==========
+    // ========== AÑADE ESTAS DOS LÍNEAS ==========
     musicEnabled: musicEnabled,
     showHitbox: showHitbox,
   };
@@ -200,7 +200,7 @@ function loadProgress(username) {
     if (!user) return;
 
     let data = localStorage.getItem('glob_progress_' + user);
-    
+
     // Migración: Si no hay datos del usuario pero hay datos globales antiguos
     if (!data) {
       data = localStorage.getItem('glob_progress');
@@ -212,7 +212,7 @@ function loadProgress(username) {
 
     if (data) {
       let progress = JSON.parse(data);
-      
+
       // Auto-reset upgrades once migration (keep skins, badges, currencies)
       if (!progress.upgradesResetV3) {
         console.log("Applying upgrades reset migration for:", user);
@@ -270,12 +270,12 @@ function loadProgress(username) {
       gameState.unlockedAntiNormal = progress.unlockedAntiNormal || false;
       gameState.claimedRewards = progress.claimedRewards || [];
       gameState.muted = progress.muted || false;
-      
+
       // ========== AÑADE ESTAS DOS LÍNEAS AQUÍ (DENTRO DEL IF) ==========
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
       // ================================================================
-      
+
       if (gameState.unlockedAntiNormal) BADGES.antiNormal.unlocked = true;
       updateBuffs();
       document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
@@ -283,11 +283,11 @@ function loadProgress(username) {
       // Ajustar salud según el nivel cargado
       gameState.health = 100 + (gameState.baseHealthLevel * 20);
     }
-    
+
     // ========== Y AÑADE initMusic() AQUÍ (FUERA DEL IF, PERO DESPUÉS) ==========
     initMusic();
     // ============================================================================
-    
+
   } catch (e) {
     console.error("Error al cargar el progreso (loadProgress):", e);
   }
@@ -375,7 +375,7 @@ function handleLogin() {
     }
   } else {
     USERS[name] = password;
-    saveUsers(); 
+    saveUsers();
     showMessage(translate('new_user_registered'), 'success');
   }
 
@@ -477,10 +477,10 @@ function selectMode(mode) {
 
   document.getElementById('mode-selection').style.display = 'none';
   document.getElementById('mode-selection').classList.remove('glitch-state');
-  
+
   // Reset completo al seleccionar modo
-  retryGame(); 
-  
+  retryGame();
+
   gameState.globetines = 500;
   updateUI();
   showMessage(translate('mode_selected', { mode: mode.toUpperCase() }), 'info');
@@ -488,13 +488,13 @@ function selectMode(mode) {
   // Mostrar historias contextuales según el modo
   setTimeout(() => {
     if (gameState.mode === 'corrupto') {
-      const storyText = currentLanguage === 'es' 
-        ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!" 
+      const storyText = currentLanguage === 'es'
+        ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!"
         : "Welcome to Gelatin Lake... or what is left of it. You have entered my region, where the Pyces do not act of their own free will, but obey my sacred stellar design. Prepare to be assimilated!";
       showNarratorMsg('img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
     } else if (gameState.mode === 'antiNormal') {
-      const storyText = currentLanguage === 'es' 
-        ? "¡S1S73M4 D3F1N171V0 D373C74D0! NOeye y MoonStar Pyce han unido sus fuerzas para crear la versión definitiva de este entorno. Los Globs serán borrados del sistema. ¡La purga comienza ya!" 
+      const storyText = currentLanguage === 'es'
+        ? "¡S1S73M4 D3F1N171V0 D373C74D0! NOeye y MoonStar Pyce han unido sus fuerzas para crear la versión definitiva de este entorno. Los Globs serán borrados del sistema. ¡La purga comienza ya!"
         : "DEFINITIVE SYSTEM DETECTED! NOeye and MoonStar Pyce have joined forces to create the ultimate version of this environment. The Globs will be deleted from the system. The purge begins now!";
       showNarratorMsg('img/NOeye_Pyce.png', 'NOeye & MoonStar', storyText);
     }
@@ -513,8 +513,8 @@ function triggerCorrupt() {
 
     // Narrador de historia
     setTimeout(() => {
-      const storyText = currentLanguage === 'es' 
-        ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!" 
+      const storyText = currentLanguage === 'es'
+        ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!"
         : "Welcome to Gelatin Lake... or what is left of it. You have entered my region, where the Pyces do not act of their own free will, but obey my sacred stellar design. Prepare to be assimilated!";
       showNarratorMsg('img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
     }, 1000);
@@ -555,7 +555,7 @@ function createMap() {
 function showTooltip(t, el) {
   const tooltip = document.getElementById('tooltip');
   if (!tooltip) return;
-  
+
   const rect = el.getBoundingClientRect();
   const name = translate('tower_' + (t.family || t.type) + '_name');
   tooltip.innerHTML = `
@@ -593,17 +593,17 @@ function confirmReset() {
 }
 
 function openOptions() {
-    resetCounter = 0;
-    const btn = document.getElementById('reset-btn');
-    if (btn) btn.textContent = translate('reset_progress_btn');
-    
-    updateOptionsUI();
-    
-    document.getElementById('options-modal').style.display = 'flex';
-    document.getElementById('opt-show-desc').checked = gameState.settings.showShopDesc;
-    document.getElementById('opt-show-damage').checked = gameState.settings.showTotalDamage;
-    const hitboxCheck = document.getElementById('opt-show-hitbox');
-    if (hitboxCheck) hitboxCheck.checked = showHitbox;
+  resetCounter = 0;
+  const btn = document.getElementById('reset-btn');
+  if (btn) btn.textContent = translate('reset_progress_btn');
+
+  updateOptionsUI();
+
+  document.getElementById('options-modal').style.display = 'flex';
+  document.getElementById('opt-show-desc').checked = gameState.settings.showShopDesc;
+  document.getElementById('opt-show-damage').checked = gameState.settings.showTotalDamage;
+  const hitboxCheck = document.getElementById('opt-show-hitbox');
+  if (hitboxCheck) hitboxCheck.checked = showHitbox;
 }
 
 function closeOptions() {
@@ -612,122 +612,122 @@ function closeOptions() {
 }
 
 function updateSettings() {
-    gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
-    gameState.settings.showTotalDamage = document.getElementById('opt-show-damage').checked;
-    
-    const hitboxCheck = document.getElementById('opt-show-hitbox');
-    if (hitboxCheck) showHitbox = hitboxCheck.checked;
-    updateHitboxesVisibility();
-    
-    document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
-    drawTowerShop();
-    saveProgress();
+  gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
+  gameState.settings.showTotalDamage = document.getElementById('opt-show-damage').checked;
+
+  const hitboxCheck = document.getElementById('opt-show-hitbox');
+  if (hitboxCheck) showHitbox = hitboxCheck.checked;
+  updateHitboxesVisibility();
+
+  document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
+  drawTowerShop();
+  saveProgress();
 }
 
 function drawTowerShop() {
-    if (!gameState.modeConfirmed) return;
-    
-    const existingShop = document.getElementById('floating-tower-shop');
-    if (existingShop) existingShop.remove();
-    
-    const shopContainer = document.createElement('div');
-    shopContainer.id = 'floating-tower-shop';
-    shopContainer.className = 'floating-tower-shop';
-    
-    // Tower progression & unlock state
-    const shopTowers = [
-      { type: 'Glob', unlocked: true },
-      { type: 'Red_Glob', unlocked: true },
-      { type: 'Soap_Glob', unlocked: gameState.duckPassLevel >= 3, req: 'lvl3' },
-      { type: 'Ducky_Glob', unlocked: gameState.duckPassLevel >= 6, req: 'lvl6' },
-      { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
-      { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
-      { type: 'Work_Bombot', unlocked: gameState.duckPassLevel >= 60, req: 'lvl60' }
-    ];
+  if (!gameState.modeConfirmed) return;
 
-    shopTowers.forEach(item => {
-        const type = item.type;
-        const t = TOWER_TYPES[type];
-        if (!t) return;
-        
-        const currentCount = gameState.towerCounts[type] || 0;
-        const limit = gameState.towerLimits[type] || 3;
-        const isFull = currentCount >= limit;
-        const displayImg = getTowerImage(type);
-        const name = translate(t.name);
-        
-        const btn = document.createElement('button');
-        
-        if (!item.unlocked) {
-            btn.className = 'floating-tower-btn locked';
-            let reqText = '';
-            let unlockMsg = '';
-            if (item.req === 'lvl3') { reqText = 'Lvl 3'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 3' : '🔒 Unlocks at Duck Pass Level 3'; }
-            else if (item.req === 'lvl6') { reqText = 'Lvl 6'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 6' : '🔒 Unlocks at Duck Pass Level 6'; }
-            else if (item.req === 'lvl60') { reqText = 'Lvl 60'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 60' : '🔒 Unlocks at Duck Pass Level 60'; }
-            else if (item.req === 'shop') { reqText = 'SHOP'; unlockMsg = currentLanguage === 'es' ? '🔒 Desbloquéalo en la Tienda Meta por PyCoins' : '🔒 Unlock it in the Meta Shop using PyCoins'; }
-            
-            btn.innerHTML = `
+  const existingShop = document.getElementById('floating-tower-shop');
+  if (existingShop) existingShop.remove();
+
+  const shopContainer = document.createElement('div');
+  shopContainer.id = 'floating-tower-shop';
+  shopContainer.className = 'floating-tower-shop';
+
+  // Tower progression & unlock state
+  const shopTowers = [
+    { type: 'Glob', unlocked: true },
+    { type: 'Red_Glob', unlocked: true },
+    { type: 'Soap_Glob', unlocked: gameState.duckPassLevel >= 3, req: 'lvl3' },
+    { type: 'Ducky_Glob', unlocked: gameState.duckPassLevel >= 6, req: 'lvl6' },
+    { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
+    { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
+    { type: 'Work_Bombot', unlocked: gameState.duckPassLevel >= 60, req: 'lvl60' }
+  ];
+
+  shopTowers.forEach(item => {
+    const type = item.type;
+    const t = TOWER_TYPES[type];
+    if (!t) return;
+
+    const currentCount = gameState.towerCounts[type] || 0;
+    const limit = gameState.towerLimits[type] || 3;
+    const isFull = currentCount >= limit;
+    const displayImg = getTowerImage(type);
+    const name = translate(t.name);
+
+    const btn = document.createElement('button');
+
+    if (!item.unlocked) {
+      btn.className = 'floating-tower-btn locked';
+      let reqText = '';
+      let unlockMsg = '';
+      if (item.req === 'lvl3') { reqText = 'Lvl 3'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 3' : '🔒 Unlocks at Duck Pass Level 3'; }
+      else if (item.req === 'lvl6') { reqText = 'Lvl 6'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 6' : '🔒 Unlocks at Duck Pass Level 6'; }
+      else if (item.req === 'lvl60') { reqText = 'Lvl 60'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 60' : '🔒 Unlocks at Duck Pass Level 60'; }
+      else if (item.req === 'shop') { reqText = 'SHOP'; unlockMsg = currentLanguage === 'es' ? '🔒 Desbloquéalo en la Tienda Meta por PyCoins' : '🔒 Unlock it in the Meta Shop using PyCoins'; }
+
+      btn.innerHTML = `
                 <div class="lock-overlay">🔒</div>
                 <img src="${displayImg}" alt="${name}" style="filter: grayscale(1) opacity(0.4);">
                 <span style="font-size:0.55rem; color:#ff9f43; font-weight:900;">${reqText}</span>
             `;
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                showMessage(unlockMsg, 'warning');
-            };
-        } else {
-            btn.className = 'floating-tower-btn';
-            if (isFull) btn.classList.add('disabled');
-            if (gameState.selectedTowerType === type) btn.classList.add('selected');
-            
-            btn.innerHTML = `
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        showMessage(unlockMsg, 'warning');
+      };
+    } else {
+      btn.className = 'floating-tower-btn';
+      if (isFull) btn.classList.add('disabled');
+      if (gameState.selectedTowerType === type) btn.classList.add('selected');
+
+      btn.innerHTML = `
                 <img src="${displayImg}" alt="${name}">
                 <span style="font-size:0.65rem;">💰${t.cost}</span>
             `;
-            
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                if (isFull) {
-                    showMessage(translate('limit_reached', { name: name, limit: limit }), 'error');
-                    return;
-                }
-                if (gameState.selectedTowerType === type) {
-                    gameState.selectedTowerType = null;
-                    btn.classList.remove('selected');
-                } else {
-                    document.querySelectorAll('.floating-tower-btn').forEach(b => b.classList.remove('selected'));
-                    gameState.selectedTowerType = type;
-                    btn.classList.add('selected');
-                }
-            };
+
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        if (isFull) {
+          showMessage(translate('limit_reached', { name: name, limit: limit }), 'error');
+          return;
         }
-        
-        shopContainer.appendChild(btn);
-    });
-    
-    document.body.appendChild(shopContainer);
+        if (gameState.selectedTowerType === type) {
+          gameState.selectedTowerType = null;
+          btn.classList.remove('selected');
+        } else {
+          document.querySelectorAll('.floating-tower-btn').forEach(b => b.classList.remove('selected'));
+          gameState.selectedTowerType = type;
+          btn.classList.add('selected');
+        }
+      };
+    }
+
+    shopContainer.appendChild(btn);
+  });
+
+  document.body.appendChild(shopContainer);
 }
 
 function drawBadges() {
-    const list = document.getElementById('badges-list');
-    if (!list) return;
-    list.innerHTML = '';
-    Object.values(BADGES).forEach(b => {
-        if (b.unlocked && !gameState.claimedRewards.includes(b.key)) {
-            grantBadgeReward(b);
-        }
-        const el = document.createElement('div');
-        el.className = `badge ${b.unlocked ? '' : 'locked'}`;
-        const name = translate(`badge_${b.key}_name`);
-        const desc = translate(`badge_${b.key}_desc`);
-        
-        let rewardText = "";
-        if (b.reward.pycoins) rewardText = `💰+${b.reward.pycoins}`;
-        if (b.reward.duckpass) rewardText = `🦆+${b.reward.duckpass}`;
-        rewardText += ` ✨+${b.reward.xp}xp`;
+  const list = document.getElementById('badges-list');
+  if (!list) return;
+  list.innerHTML = '';
+  Object.values(BADGES).forEach(b => {
+    if (b.unlocked && !gameState.claimedRewards.includes(b.key)) {
+      grantBadgeReward(b);
+    }
+    const el = document.createElement('div');
+    el.className = `badge ${b.unlocked ? '' : 'locked'}`;
+    const name = translate(`badge_${b.key}_name`);
+    const desc = translate(`badge_${b.key}_desc`);
 
-        el.innerHTML = `
+    let rewardText = "";
+    if (b.reward.pycoins) rewardText = `💰+${b.reward.pycoins}`;
+    if (b.reward.duckpass) rewardText = `🦆+${b.reward.duckpass}`;
+    rewardText += ` ✨+${b.reward.xp}xp`;
+
+    el.innerHTML = `
             <span class="badge-icon">${b.icon}</span>
             <div class="badge-info">
                 <b>${name}</b><br>
@@ -735,8 +735,8 @@ function drawBadges() {
                 <b style="color:#ffd700; font-size:0.7rem">${rewardText}</b>
             </div>
         `;
-        list.appendChild(el);
-    });
+    list.appendChild(el);
+  });
 }
 
 function unlockBadge(key) {
@@ -765,11 +765,11 @@ function showBadgePopup(badge) {
 
 function grantBadgeReward(badge) {
   if (gameState.claimedRewards.includes(badge.key)) return;
-  
+
   if (badge.reward.pycoins) gameState.pycoins += badge.reward.pycoins;
   if (badge.reward.duckpass) gameState.duckPassCurrency += badge.reward.duckpass;
   addXP(badge.reward.xp);
-  
+
   gameState.claimedRewards.push(badge.key);
   updateMetaUI();
   saveProgress();
@@ -800,26 +800,24 @@ function bindEvents() {
       if (name) loadProgress(name);
       updateMetaUI();
     });
-        // Botón de logros
-    const badgesBtn = document.getElementById('badges-toggle-btn');
-    if (badgesBtn) badgesBtn.onclick = toggleBadgesPanel;
-    
+    // (El botón de logros ahora se vincula fuera de este bloque)
+
     // Controles de música y efectos
     const musicToggle = document.getElementById('music-toggle-btn');
     if (musicToggle) musicToggle.onclick = toggleMusic;
-    
+
     const effectsToggle = document.getElementById('effects-toggle-btn');
     if (effectsToggle) effectsToggle.onclick = toggleMute;
-    
+
     // Cerrar panel de logros al hacer clic fuera
-    document.addEventListener('click', function(e) {
-        const panel = document.getElementById('badges-panel');
-        const btn = document.getElementById('badges-toggle-btn');
-        if (panel && panel.classList.contains('show')) {
-            if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
-                panel.classList.remove('show');
-            }
+    document.addEventListener('click', function (e) {
+      const panel = document.getElementById('badges-panel');
+      const btn = document.getElementById('badges-toggle-btn');
+      if (panel && panel.classList.contains('show')) {
+        if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+          panel.classList.remove('show');
         }
+      }
     });
   }
 
@@ -830,8 +828,8 @@ function bindEvents() {
       logo.style.transition = 'transform 0.5s ease, filter 0.2s ease';
       const spins = Math.floor(Math.random() * 3) + 1;
       logo.style.transform = `scale(1.2) rotate(${360 * spins}deg)`;
-      logo.style.filter = `hue-rotate(${Math.random()*360}deg) invert(${Math.random() > 0.5 ? 1 : 0})`;
-      
+      logo.style.filter = `hue-rotate(${Math.random() * 360}deg) invert(${Math.random() > 0.5 ? 1 : 0})`;
+
       setTimeout(() => {
         logo.style.transition = 'transform 0.3s ease, filter 0.3s ease';
         logo.style.transform = `scale(1) rotate(0deg)`;
@@ -841,7 +839,7 @@ function bindEvents() {
       if (gameState.unlockedAntiNormal) {
         gameState.pycoins += 1;
         updateMetaUI();
-        showEffect(window.innerWidth/2, window.innerHeight/2, "+1 PyCoin");
+        showEffect(window.innerWidth / 2, window.innerHeight / 2, "+1 PyCoin");
         saveProgress();
       }
     };
@@ -948,6 +946,9 @@ function bindEvents() {
   const storyBtn = document.getElementById('open-story-logs');
   if (storyBtn) storyBtn.onclick = () => { saveGameSnapshot(); openStoryLogs(); };
 
+  const badgesBtn = document.getElementById('badges-toggle-btn');
+  if (badgesBtn) badgesBtn.onclick = toggleBadgesPanel;
+
   document.querySelectorAll('.modal .modal-close, .modal .close-btn').forEach(btn => {
     btn.onclick = (e) => {
       const modal = btn.closest('.modal');
@@ -966,42 +967,42 @@ function bindEvents() {
 }
 
 function saveGameSnapshot() {
-    gameState._snapshot = {
-        mode: gameState.mode,
-        modeConfirmed: gameState.modeConfirmed,
-        wave: gameState.wave,
-        waveActive: gameState.waveActive,
-        health: gameState.health,
-        globetines: gameState.globetines,
-        pycoins: gameState.pycoins,
-        duckPassXP: gameState.duckPassXP,
-        duckPassLevel: gameState.duckPassLevel,
-        towers: JSON.parse(JSON.stringify(gameState.towers || [])),
-        enemies: (gameState.enemies || []).map(e => ({ type: e.type, x: e.x, y: e.y, health: e.health, pathIndex: e.pathIndex, boss: e.boss })),
-        projectiles: []
-    };
-    try { localStorage.setItem('gd_snapshot', JSON.stringify(gameState._snapshot)); } catch(e){}
+  gameState._snapshot = {
+    mode: gameState.mode,
+    modeConfirmed: gameState.modeConfirmed,
+    wave: gameState.wave,
+    waveActive: gameState.waveActive,
+    health: gameState.health,
+    globetines: gameState.globetines,
+    pycoins: gameState.pycoins,
+    duckPassXP: gameState.duckPassXP,
+    duckPassLevel: gameState.duckPassLevel,
+    towers: JSON.parse(JSON.stringify(gameState.towers || [])),
+    enemies: (gameState.enemies || []).map(e => ({ type: e.type, x: e.x, y: e.y, health: e.health, pathIndex: e.pathIndex, boss: e.boss })),
+    projectiles: []
+  };
+  try { localStorage.setItem('gd_snapshot', JSON.stringify(gameState._snapshot)); } catch (e) { }
 }
 
 function restoreGameSnapshot() {
-    const snap = gameState._snapshot || (function(){ try { return JSON.parse(localStorage.getItem('gd_snapshot')); } catch(e){return null;} })();
-    if (!snap) return;
-    gameState.mode = snap.mode;
-    gameState.modeConfirmed = !!snap.modeConfirmed;
-    gameState.wave = snap.wave;
-    gameState.waveActive = !!snap.waveActive;
-    gameState.health = snap.health;
-    gameState.globetines = snap.globetines;
-    gameState.pycoins = snap.pycoins;
-    gameState.duckPassXP = snap.duckPassXP;
-    gameState.duckPassLevel = snap.duckPassLevel;
-    gameState.towers = snap.towers || [];
-    gameState.enemies = (snap.enemies || []).map(e => {
-        const t = ENEMY_TYPES[e.type] || {};
-        return { ...t, type: e.type, x: e.x, y: e.y, health: e.health, maxHealth: e.health, pathIndex: e.pathIndex, boss: !!e.boss };
-    });
-    delete gameState._snapshot;
-    try { localStorage.removeItem('gd_snapshot'); } catch(e){}
+  const snap = gameState._snapshot || (function () { try { return JSON.parse(localStorage.getItem('gd_snapshot')); } catch (e) { return null; } })();
+  if (!snap) return;
+  gameState.mode = snap.mode;
+  gameState.modeConfirmed = !!snap.modeConfirmed;
+  gameState.wave = snap.wave;
+  gameState.waveActive = !!snap.waveActive;
+  gameState.health = snap.health;
+  gameState.globetines = snap.globetines;
+  gameState.pycoins = snap.pycoins;
+  gameState.duckPassXP = snap.duckPassXP;
+  gameState.duckPassLevel = snap.duckPassLevel;
+  gameState.towers = snap.towers || [];
+  gameState.enemies = (snap.enemies || []).map(e => {
+    const t = ENEMY_TYPES[e.type] || {};
+    return { ...t, type: e.type, x: e.x, y: e.y, health: e.health, maxHealth: e.health, pathIndex: e.pathIndex, boss: !!e.boss };
+  });
+  delete gameState._snapshot;
+  try { localStorage.removeItem('gd_snapshot'); } catch (e) { }
 }
 
 function openShop() {
@@ -1033,6 +1034,7 @@ function smartClose(modalId) {
 function backToModes() {
   closeModal('shop-modal');
   closeModal('pass-modal');
+  closeModal('story-logs-modal');
   document.getElementById('mode-selection').style.display = 'flex';
 }
 
@@ -1090,7 +1092,7 @@ function updateMetaUI() {
   const duckpassEl = document.getElementById('duckpass-currency');
   if (pycoinsEl) pycoinsEl.textContent = Math.floor(gameState.pycoins);
   if (duckpassEl) duckpassEl.textContent = gameState.duckPassCurrency;
-  
+
   // Update shop tab buttons
   document.querySelectorAll('.shop-tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === currentShopTab);
@@ -1118,9 +1120,9 @@ function drawShop() {
   if (!container) return;
   container.innerHTML = `
     <div class="shop-header-tabs">
-      <button class="shop-tab-btn ${currentShopTab==='upgrades'?'active':''}" onclick="switchShopTab('upgrades')">${translate('shop_upgrades')}</button>
-      <button class="shop-tab-btn ${currentShopTab==='duckgrades'?'active':''}" onclick="switchShopTab('duckgrades')">${translate('duckgrade_title')}</button>
-      <button class="shop-tab-btn ${currentShopTab==='skins'?'active':''}" onclick="switchShopTab('skins')">${translate('shop_skins')}</button>
+      <button class="shop-tab-btn ${currentShopTab === 'upgrades' ? 'active' : ''}" onclick="switchShopTab('upgrades')">${translate('shop_upgrades')}</button>
+      <button class="shop-tab-btn ${currentShopTab === 'duckgrades' ? 'active' : ''}" onclick="switchShopTab('duckgrades')">${translate('duckgrade_title')}</button>
+      <button class="shop-tab-btn ${currentShopTab === 'skins' ? 'active' : ''}" onclick="switchShopTab('skins')">${translate('shop_skins')}</button>
     </div>
     <div class="shop-balance">
       <div class="balance-item"><img src="img/Tokens/PyCoin.png" width="20"> <span>${Math.floor(gameState.pycoins)} PyCoins</span></div>
@@ -1138,9 +1140,9 @@ function drawShop() {
     ];
     ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Old_Glob', 'Work_Bombot'].forEach(t => {
       const isUnlocked = isTowerOwned(t);
-      
+
       if (isUnlocked && gameState.towerLimits[t] < 10) {
-        upgrades.push({ id: 'limit_'+t, name: 'upgrade_limit_name', desc: 'upgrade_limit_desc', cost: 30, type: 'pycoin', params: {name: translate(TOWER_TYPES[t].name)} });
+        upgrades.push({ id: 'limit_' + t, name: 'upgrade_limit_name', desc: 'upgrade_limit_desc', cost: 30, type: 'pycoin', params: { name: translate(TOWER_TYPES[t].name) } });
       }
     });
 
@@ -1151,7 +1153,7 @@ function drawShop() {
       const isMax = u.max && u.level >= u.max;
       el.className = `meta-item ${isMax ? 'unlocked' : ''}`;
       const costIcon = u.type === 'pycoin' ? 'img/Tokens/PyCoin.png' : 'img/Tokens/DuckPass.png';
-      
+
       const levelText = u.max ? ` [${u.level}/${u.max}]` : '';
       el.innerHTML = `<h3>${translate(u.name, u.params)}${levelText}</h3><p>${translate(u.desc, u.params)}</p>
         <div class="cost">${isMax ? translate('max_reached') : `<img src="${costIcon}" width="18"> ${u.cost}`}</div>
@@ -1199,12 +1201,12 @@ function drawShop() {
         const isEquipped = gameState.equippedSkins[family] === skin.id;
         const el = document.createElement('div');
         el.className = `skin-item ${isEquipped ? 'equipped' : ''} ${skin.isSpecial ? 'special-skin' : ''}`;
-        
+
         // Build cost display
         let costDisplay = '';
         let btnText = '';
         let canBuy = false;
-        
+
         if (isUnlocked) {
           btnText = isEquipped ? translate('actual') : translate('equip_btn');
         } else if (skin.type === 'free') {
@@ -1223,10 +1225,10 @@ function drawShop() {
 
         const previewImg = skin.skins ? (skin.skins[family] || Object.values(skin.skins)[0]) : 'img/Glob_DEF.png';
         const specialBadge = skin.isSpecial ? `<div class="special-badge">⭐ ESPECIAL</div>` : '';
-        
+
         const buyable = isUnlocked ? true : (skin.type === 'free' ? false : canBuy);
-        const onclickAction = isUnlocked 
-          ? `equipSkin('${family}', '${skin.id}')` 
+        const onclickAction = isUnlocked
+          ? `equipSkin('${family}', '${skin.id}')`
           : (skin.type === 'free' ? '' : `buySkin('${family}', '${skin.id}', ${skin.cost})`);
 
         el.innerHTML = `
@@ -1287,13 +1289,13 @@ function buyUpgrade(id, cost, type) {
   if (type === 'pycoin') gameState.pycoins -= cost; else gameState.duckPassCurrency -= cost;
 
   if (id === 'hp') { if (gameState.baseHealthLevel >= 10) return; gameState.baseHealthLevel++; gameState.health += 20; showMessage(translate('base_hp_improved'), 'success'); }
-  else if (id.startsWith('limit_')) { 
+  else if (id.startsWith('limit_')) {
     const tKey = id.replace('limit_', '');
-    gameState.towerLimits[tKey]++; 
-    showMessage(translate('tower_limit_increased', {name: translate(TOWER_TYPES[tKey].name)}), 'success'); 
+    gameState.towerLimits[tKey]++;
+    showMessage(translate('tower_limit_increased', { name: translate(TOWER_TYPES[tKey].name) }), 'success');
   }
-  else if (id === 'meta_range') { if (gameState.metaRangeLevel >= 5) return; gameState.metaRangeLevel++; gameState.metaRange = (gameState.metaRange||0) + 20; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
-  else if (id === 'meta_damage') { if (gameState.metaDamageLevel >= 5) return; gameState.metaDamageLevel++; gameState.metaDamage = (gameState.metaDamage||1) + 0.15; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
+  else if (id === 'meta_range') { if (gameState.metaRangeLevel >= 5) return; gameState.metaRangeLevel++; gameState.metaRange = (gameState.metaRange || 0) + 20; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
+  else if (id === 'meta_damage') { if (gameState.metaDamageLevel >= 5) return; gameState.metaDamageLevel++; gameState.metaDamage = (gameState.metaDamage || 1) + 0.15; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
   else if (id === 'unlock_Old_Glob') {
     if (TOWER_TYPES['Old_Glob']) TOWER_TYPES['Old_Glob'].unlocked = true;
     if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = true;
@@ -1311,7 +1313,7 @@ function buyUpgrade(id, cost, type) {
 function drawPass() {
   const container = document.getElementById('pass-rewards');
   if (!container) return; container.innerHTML = '';
-  [...SKINS_DATA['Global']].sort((a,b)=>a.level-b.level).forEach(skin => {
+  [...SKINS_DATA['Global']].sort((a, b) => a.level - b.level).forEach(skin => {
     const unlocked = gameState.duckPassLevel >= skin.level;
     const equipped = gameState.equippedSkins['Global'] === skin.id;
     const el = document.createElement('div');
@@ -1331,7 +1333,7 @@ function drawPass() {
 
 function placeTower(spotId, type) {
   const tCfg = TOWER_TYPES[type];
-  if ((gameState.towerCounts[type]||0) >= (gameState.towerLimits[type]||3)) return showMessage(translate('limit_reached', { name: translate('tower_' + type + '_name'), limit: gameState.towerLimits[type] || 3 }), 'error');
+  if ((gameState.towerCounts[type] || 0) >= (gameState.towerLimits[type] || 3)) return showMessage(translate('limit_reached', { name: translate('tower_' + type + '_name'), limit: gameState.towerLimits[type] || 3 }), 'error');
   if (gameState.globetines < tCfg.cost) return showMessage(translate('notEnoughMoney'), 'error');
 
   const spot = gameState.towerSpots[spotId];
@@ -1349,7 +1351,7 @@ function placeTower(spotId, type) {
   el.onclick = (e) => { e.stopPropagation(); selectTower(tower); };
   gameState.towers.push(tower);
   gameState.globetines -= tCfg.cost;
-  gameState.towerCounts[type] = (gameState.towerCounts[type]||0) + 1;
+  gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
   spot.occupied = true;
   updateUI(); drawTowerShop();
 }
@@ -1358,7 +1360,7 @@ function selectTower(t) {
   gameState.selectedTower = t;
   const panel = document.getElementById('evolve-panel');
   panel.style.display = 'flex';
-  
+
   // Posicionar el panel cerca de la torre (centrado, preferiblemente abajo)
   panel.style.left = `${t.x - 140}px`;
   if (t.y < 350) {
@@ -1366,7 +1368,7 @@ function selectTower(t) {
   } else {
     panel.style.top = `${t.y - 200}px`; // Arriba de la torre (si está muy abajo)
   }
-  
+
   document.getElementById('tower-name').textContent = getTowerName(t);
   document.getElementById('tower-desc').innerHTML = translate(t.desc);
   updateEvolveButtons(t);
@@ -1374,17 +1376,17 @@ function selectTower(t) {
 }
 
 function updateEvolveButtons(t) {
-  const container = document.getElementById('evolve-options'); 
+  const container = document.getElementById('evolve-options');
   if (container) {
     container.innerHTML = '';
-      const next = TOWER_TYPES[t.evolution];
-      const btn = document.createElement('button');
-      btn.className = 'evolve-btn';
-      if (gameState.globetines < next.cost) btn.disabled = true;
-      const nextName = getTowerName({ ...next, type: t.evolution, family: t.family });
-      btn.innerHTML = `${translate('evolve_to', { name: nextName })} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${next.cost}</div>`;
-      btn.onclick = () => evolveTower(t, t.evolution);
-      container.appendChild(btn);
+    const next = TOWER_TYPES[t.evolution];
+    const btn = document.createElement('button');
+    btn.className = 'evolve-btn';
+    if (gameState.globetines < next.cost) btn.disabled = true;
+    const nextName = getTowerName({ ...next, type: t.evolution, family: t.family });
+    btn.innerHTML = `${translate('evolve_to', { name: nextName })} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${next.cost}</div>`;
+    btn.onclick = () => evolveTower(t, t.evolution);
+    container.appendChild(btn);
   }
   const sellBtn = document.getElementById('sell-tower-btn');
   if (sellBtn) {
@@ -1398,7 +1400,7 @@ function evolveTower(tower, nextType) {
   const next = TOWER_TYPES[nextType];
   if (gameState.globetines < next.cost) return;
   gameState.globetines -= next.cost;
-  if (tower.type !== nextType) { gameState.towerCounts[tower.type]--; gameState.towerCounts[nextType] = (gameState.towerCounts[nextType]||0)+1; }
+  if (tower.type !== nextType) { gameState.towerCounts[tower.type]--; gameState.towerCounts[nextType] = (gameState.towerCounts[nextType] || 0) + 1; }
   tower.type = nextType; Object.assign(tower, next);
   tower.damage *= gameState.towerBuffs.damage; tower.range += gameState.towerBuffs.range; tower.speed *= gameState.towerBuffs.speed;
   tower.el.style.backgroundImage = `url('${getTowerImage(nextType)}')`; applyTowerEffects(tower.el, nextType);
@@ -1428,7 +1430,7 @@ function startWave() {
 
   const wave = gameState.wave;
   const baseCount = Math.min(6 + Math.floor(wave * 1.5), 60);
-  const pool = ['Stupid_Pyce','Pyce2','Guest_Pyce','Symbol_Pyce','Noob_Pyce','4motions_Pyce','SO_Pyce'];
+  const pool = ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'SO_Pyce'];
   const spawnList = [];
 
   const groups = 2 + Math.floor(Math.random() * 3);
@@ -1439,7 +1441,7 @@ function startWave() {
   }
 
   for (let i = 0; i < Math.floor(wave / 5); i++) {
-    if (Math.random() < 0.4) spawnList.push(['Stupid_GoldPyce','Flower_Pyce'][Math.floor(Math.random()*2)]);
+    if (Math.random() < 0.4) spawnList.push(['Stupid_GoldPyce', 'Flower_Pyce'][Math.floor(Math.random() * 2)]);
   }
 
   for (let i = spawnList.length - 1; i > 0; i--) {
@@ -1461,11 +1463,11 @@ function spawnEnemy(type, boss) {
   if (!type) {
     const wave = gameState.wave || 1;
     const pool = ['Stupid_Pyce'];
-    if (wave >= 2) pool.push('Pyce2','Pyce2');
-    if (wave >= 3) pool.push('Guest_Pyce','Symbol_Pyce');
-    if (wave >= 5) pool.push('Noob_Pyce','Noob_Pyce');
+    if (wave >= 2) pool.push('Pyce2', 'Pyce2');
+    if (wave >= 3) pool.push('Guest_Pyce', 'Symbol_Pyce');
+    if (wave >= 5) pool.push('Noob_Pyce', 'Noob_Pyce');
     if (wave >= 8) pool.push('4motions_Pyce');
-    if (wave >= 10) pool.push('Symbol_Pyce','Guest_Pyce','Noob_Pyce');
+    if (wave >= 10) pool.push('Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce');
     if (Math.random() < 0.01) type = 'Mimic_Pyce';
     else type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
   }
@@ -1483,7 +1485,7 @@ function spawnEnemy(type, boss) {
 
   const name = (typeof translate === 'function' && translate('enemy_' + type + '_name')) || type;
   const healthScaled = Math.max(1, (t.health || 10) * (1 + (gameState.wave || 1) * 0.15));
-  const enemyObj = { ...t, name, el, x: ENEMY_PATH[0].x, y: ENEMY_PATH[0].y, pathIndex: 0, health: healthScaled, maxHealth: healthScaled, hpFill, shield: (t.shield||0)*(t.health||10), type, boss };
+  const enemyObj = { ...t, name, el, x: ENEMY_PATH[0].x, y: ENEMY_PATH[0].y, pathIndex: 0, health: healthScaled, maxHealth: healthScaled, hpFill, shield: (t.shield || 0) * (t.health || 10), type, boss };
   gameState.enemies.push(enemyObj);
 }
 
@@ -1513,16 +1515,16 @@ function showNarratorMsg(imgSrc, speakerName, text) {
 
 function gameLoop() {
   if (gameState.gameOver) return;
-  const dt = 1/60;
+  const dt = 1 / 60;
 
-  for (let i = gameState.enemies.length-1; i >= 0; i--) {
+  for (let i = gameState.enemies.length - 1; i >= 0; i--) {
     const e = gameState.enemies[i];
-    const next = ENEMY_PATH[e.pathIndex+1];
-    
+    const next = ENEMY_PATH[e.pathIndex + 1];
+
     if (next) {
       const dx = next.x - e.x, dy = next.y - e.y, dist = Math.hypot(dx, dy);
       if (dist < e.speed) e.pathIndex++;
-      else { e.x += (dx/dist)*e.speed; e.y += (dy/dist)*e.speed; }
+      else { e.x += (dx / dist) * e.speed; e.y += (dy / dist) * e.speed; }
       e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
     } else {
       if (e.instakill) { gameState.health = 0; endGame(); return; }
@@ -1569,14 +1571,14 @@ function gameLoop() {
       let interval = t.type === 'Golden_Ducky_Glob' ? 5 : 8;
       // DUCKGRADE: Defensive Duck
       if (gameState.duckgrades.dg_Ducky_Glob) {
-        const enemiesInRange = gameState.enemies.filter(e => Math.hypot(e.x-t.x, e.y-t.y) <= (t.range || 100));
+        const enemiesInRange = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= (t.range || 100));
         if (enemiesInRange.length > 0) {
-           interval *= 0.5; // Doble de rápido
-           // Daño de área pequeño
-           enemiesInRange.forEach(e => {
-             e.health -= 0.5 * dt * (gameState.wave+1);
-           });
-           if (Math.random() < 0.1) showEffect(t.x, t.y, "🦆💥", "#ffd700");
+          interval *= 0.5; // Doble de rápido
+          // Daño de área pequeño
+          enemiesInRange.forEach(e => {
+            e.health -= 0.5 * dt * (gameState.wave + 1);
+          });
+          if (Math.random() < 0.1) showEffect(t.x, t.y, "🦆💥", "#ffd700");
         }
       }
 
@@ -1586,7 +1588,7 @@ function gameLoop() {
         const amount = 10 + Math.floor(gameState.wave * 1.5);
         gameState.globetines += amount;
         showEffect(t.x, t.y, `+${amount} 💰`);
-        
+
         const rand = Math.random();
         if (rand < 0.05) {
           gameState.pycoins += 1;
@@ -1602,14 +1604,14 @@ function gameLoop() {
 
     let currentSpeed = t.speed;
     if (gameState.duckgrades.dg_Glob && (t.family === 'Glob' || t.type === 'Glob')) {
-      const nearDuck = gameState.towers.some(d => (d.family === 'Ducky_Glob' || d.type === 'Ducky_Glob') && Math.hypot(d.x-t.x, d.y-t.y) < 150);
+      const nearDuck = gameState.towers.some(d => (d.family === 'Ducky_Glob' || d.type === 'Ducky_Glob') && Math.hypot(d.x - t.x, d.y - t.y) < 150);
       if (nearDuck) currentSpeed *= 1.5;
     }
 
     t.cooldown -= dt;
     if (t.cooldown <= 0 && t.family !== 'Ducky_Glob') {
-      const targets = gameState.enemies.filter(e => Math.hypot(e.x-t.x, e.y-t.y) <= t.range);
-      if (targets.length) { 
+      const targets = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= t.range);
+      if (targets.length) {
         let dmg = t.damage;
         // DUCKGRADE: Red Glob - More damage per sibling
         if (gameState.duckgrades.dg_Red_Glob && t.family === 'Red_Glob') {
@@ -1618,22 +1620,22 @@ function gameLoop() {
         }
 
         if (gameState.duckgrades.dg_Pyce_Glob && t.type === 'Pyce_Glob' && Math.random() < 0.2) {
-          for (let a=0; a<Math.PI*2; a+=Math.PI/4) {
-            shoot(t, { x: t.x + Math.cos(a)*100, y: t.y + Math.sin(a)*100, health: 999 }, true);
+          for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+            shoot(t, { x: t.x + Math.cos(a) * 100, y: t.y + Math.sin(a) * 100, health: 999 }, true);
           }
         } else {
           // Ataques Especiales de Skins
           const specialAttack = getSpecialAttack(t, targets[0]);
           if (!specialAttack) shoot(t, targets[0]);
         }
-        t.cooldown = 1/currentSpeed; 
+        t.cooldown = 1 / currentSpeed;
       }
     }
   });
 
-  for (let i = gameState.projectiles.length-1; i >= 0; i--) {
+  for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
     const p = gameState.projectiles[i];
-    if (!p.target || !gameState.enemies.includes(p.target)) { p.el.remove(); gameState.projectiles.splice(i,1); continue; }
+    if (!p.target || !gameState.enemies.includes(p.target)) { p.el.remove(); gameState.projectiles.splice(i, 1); continue; }
     const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
     if (dist < 10) {
       let dmg = p.damage;
@@ -1659,24 +1661,24 @@ function gameLoop() {
       if (gameState.duckgrades.dg_Work_Bombot && p.type === 'Work_Bombot' && !p.bounced) {
         p.bounced = true;
         p.x = p.target.x; p.y = p.target.y;
-        const nextTarget = gameState.enemies.find(e => e !== p.target && Math.hypot(e.x-p.x, e.y-p.y) < 100);
+        const nextTarget = gameState.enemies.find(e => e !== p.target && Math.hypot(e.x - p.x, e.y - p.y) < 100);
         if (nextTarget) { p.target = nextTarget; return; }
       }
 
       // DUCKGRADE: Old Glob - Fragments
       if (gameState.duckgrades.dg_Old_Glob && p.type === 'Old_Glob' && !p.isSpin) {
-        for (let a=0; a<Math.PI*2; a+=Math.PI/2) {
-          shoot({ ...p, projectile: 'stone_small', damage: p.damage*0.3 }, { x: p.x+Math.cos(a)*50, y: p.y+Math.sin(a)*50, health: 999 }, true);
+        for (let a = 0; a < Math.PI * 2; a += Math.PI / 2) {
+          shoot({ ...p, projectile: 'stone_small', damage: p.damage * 0.3 }, { x: p.x + Math.cos(a) * 50, y: p.y + Math.sin(a) * 50, health: 999 }, true);
         }
       }
 
-      p.el.remove(); gameState.projectiles.splice(i,1);
-    } else { p.x += (dx/dist)*10; p.y += (dy/dist)*10; p.el.style.left = p.x+'px'; p.el.style.top = p.y+'px'; }
+      p.el.remove(); gameState.projectiles.splice(i, 1);
+    } else { p.x += (dx / dist) * 10; p.y += (dy / dist) * 10; p.el.style.left = p.x + 'px'; p.el.style.top = p.y + 'px'; }
   }
 
   if (gameState.waveActive && !gameState.enemies.length) {
     gameState.waveActive = false;
-    gameState.globetines += 50 + gameState.wave*10;
+    gameState.globetines += 50 + gameState.wave * 10;
     gameState.pycoins += 10;
     addXP(20);
     updateUI(); updateMetaUI(); saveProgress();
@@ -1709,9 +1711,9 @@ function shoot(shooter, target, opts = {}) {
 
 function die(e, idx) {
   gameState.globetines += e.reward;
-  if (e.mimic) { 
-    gameState.pycoins += 5; 
-    showMessage(translate('plus_pycoins', { amount: 5 }), 'success'); 
+  if (e.mimic) {
+    gameState.pycoins += 5;
+    showMessage(translate('plus_pycoins', { amount: 5 }), 'success');
     if (e.isSpecialMimic && !gameState.unlockedSkins.includes('mimic_set')) {
       gameState.unlockedSkins.push('mimic_set');
       showMessage("🎁 ¡SKIN 'Mimic set' DESBLOQUEADA!", 'success');
@@ -1805,7 +1807,7 @@ function showMessage(text, type) {
 }
 
 function showEffect(x, y, text) {
-  const el = document.createElement('div'); el.className = 'money-popup'; el.style.left = x+'px'; el.style.top = y+'px'; el.textContent = text;
+  const el = document.createElement('div'); el.className = 'money-popup'; el.style.left = x + 'px'; el.style.top = y + 'px'; el.textContent = text;
   document.getElementById('map').appendChild(el); setTimeout(() => el.remove(), 1000);
 }
 
@@ -1833,7 +1835,7 @@ function applyTowerEffects(el, type) {
 function drawRangePreview(x, y, range) {
   let p = document.getElementById('range-preview') || document.createElement('div');
   p.id = 'range-preview'; p.className = 'range-preview';
-  p.style.left = x+'px'; p.style.top = y+'px'; p.style.width = p.style.height = (range*2)+'px';
+  p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.width = p.style.height = (range * 2) + 'px';
   document.getElementById('map').appendChild(p);
 }
 
@@ -1841,11 +1843,11 @@ function retryGame() {
   gameState.health = 100 + (gameState.baseHealthLevel * 20);
   gameState.wave = 0;
   gameState.globetines = 500;
-  gameState.towers.forEach(t => t.el.remove()); 
+  gameState.towers.forEach(t => t.el.remove());
   gameState.towers = [];
-  gameState.enemies.forEach(e => e.el.remove()); 
+  gameState.enemies.forEach(e => e.el.remove());
   gameState.enemies = [];
-  gameState.projectiles.forEach(p => p.el.remove()); 
+  gameState.projectiles.forEach(p => p.el.remove());
   gameState.projectiles = [];
   gameState.towerSpots.forEach(s => s.occupied = false);
   gameState.towerCounts = {};
@@ -1863,7 +1865,7 @@ function endGame(victory = false) {
   const modal = document.getElementById('game-over');
   if (!modal) return;
   modal.style.display = 'flex';
-  
+
   const title = modal.querySelector('h2');
   const msg = document.getElementById('game-over-msg');
 
@@ -1876,7 +1878,7 @@ function endGame(victory = false) {
   }
 
   // Update button texts for the buttons we added in HTML
-  updateLanguage(); 
+  updateLanguage();
 }
 
 function getTowerName(t) {
@@ -1901,35 +1903,35 @@ function getSpecialAttack(t, target) {
   // Lógica de ataques especiales por evolución
   if (skinSet.id === 'corrupt_swords_set') {
     if (t.type === 'Glob') { // Glob Corrupto: Disparo rápido
-       shoot(t, target); t.cooldown *= 0.5; return true;
+      shoot(t, target); t.cooldown *= 0.5; return true;
     }
     if (t.type === 'Poop_Glob') { // Espadachín Corrupto: Tajo circular
-       gameState.enemies.forEach(e => {
-         if (Math.hypot(e.x-t.x, e.y-t.y) < 80) e.health -= t.damage;
-       });
-       showEffect(t.x, t.y, "⚔️", "#ff00ff");
-       return true;
+      gameState.enemies.forEach(e => {
+        if (Math.hypot(e.x - t.x, e.y - t.y) < 80) e.health -= t.damage;
+      });
+      showEffect(t.x, t.y, "⚔️", "#ff00ff");
+      return true;
     }
     if (t.type === 'Golden_Glob') { // Maestro de Espadas: Triple disparo
-       for(let i=0; i<3; i++) setTimeout(() => { if (target.health > 0) shoot(t, target); }, i*100);
-       return true;
+      for (let i = 0; i < 3; i++) setTimeout(() => { if (target.health > 0) shoot(t, target); }, i * 100);
+      return true;
     }
     if (t.type === 'Rainbow_Glob') { // Cabal. del Vacío: Rayo oscuro penetrante
-       shoot({...t, projectile: 'void'}, target); return true;
+      shoot({ ...t, projectile: 'void' }, target); return true;
     }
   }
 
   if (skinSet.id === 'mimic_set') {
     if (t.type === 'Comet_Glob') { // Mimic Comet: Disparo dorado
-       shoot({...t, projectile: 'gold'}, target); return true;
+      shoot({ ...t, projectile: 'gold' }, target); return true;
     }
     if (t.type === 'Dark_Glob') { // Mimic Oscuro: Ralentización extra
-       shoot(t, target); target.speed *= 0.8; return true;
+      shoot(t, target); target.speed *= 0.8; return true;
     }
     if (t.type === 'Demglob') { // Mimic Supremo: Explosión de dinero
-       shoot(t, target); 
-       if (Math.random() < 0.1) { gameState.globetines += 1; showEffect(t.x, t.y, "+1 💰"); updateUI(); }
-       return true;
+      shoot(t, target);
+      if (Math.random() < 0.1) { gameState.globetines += 1; showEffect(t.x, t.y, "+1 💰"); updateUI(); }
+      return true;
     }
   }
 
@@ -1958,7 +1960,7 @@ function switchStoryTab(tab) {
 function drawStoryLogs() {
   const container = document.getElementById('story-logs-body');
   if (!container) return;
-  
+
   if (currentStoryTab === 'lore') {
     if (currentLanguage === 'es') {
       container.innerHTML = `
@@ -2157,7 +2159,7 @@ function initMusic() {
     backgroundMusic = new Audio('sounds/DefendersTheme.mp3');
     backgroundMusic.loop = true;
     backgroundMusic.volume = 0.4;
-    
+
     // Attempt autoplay if enabled
     if (musicEnabled) {
       const playPromise = backgroundMusic.play();
@@ -2185,7 +2187,7 @@ function toggleMusic() {
   if (btn) {
     btn.textContent = musicEnabled ? (currentLanguage === 'es' ? '🎵 Música ON' : '🎵 Music ON') : (currentLanguage === 'es' ? '🎵 Música OFF' : '🎵 Music OFF');
   }
-  
+
   if (backgroundMusic) {
     if (musicEnabled) {
       backgroundMusic.play().catch(e => console.log("Play failed:", e));
