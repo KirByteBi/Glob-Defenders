@@ -148,6 +148,9 @@ const TRANSLATIONS = {
     reset_confirm_3: "Vale... si pulsas una vez más, se acabó todo. ¿DE VERDAD?",
     reset_done: "Progreso reseteado. El juego se reiniciará.",
     story_logs_btn: "Historia y Logs",
+    story_tab_lore: "Lore",
+    story_tab_mechanics: "Mecánicas",
+    story_tab_logs: "Update Logs",
 
     // Mejoras de Tienda
     upgrade_hp_name: "Salud de Base",
@@ -392,6 +395,9 @@ const TRANSLATIONS = {
     duckpass_title: "Duck Pass",
     equip_btn: "Equip",
     story_logs_btn: "Story & Logs",
+    story_tab_lore: "Lore",
+    story_tab_mechanics: "Mechanics",
+    story_tab_logs: "Update Logs",
 
     // Shop Upgrades
     upgrade_hp_name: "Base Health",
