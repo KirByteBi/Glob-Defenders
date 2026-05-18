@@ -2,11 +2,11 @@
 
 const TRANSLATIONS = {
   es: {
-    health: "Salud", money: "Dinero", wave: "Oleada",
+    health: "Salud", money: "Globetines", wave: "Oleada",
     startWave: "Iniciar Oleada", autoWave: "Auto-Oleada",
     autoWaveActive: "Auto-ON", cancel: "Cancelar",
     gameOver: "💀 GAME OVER 💀", playAgain: "Reintentar",
-    achievements: "Logros", notEnoughMoney: "💸 Sin fondos",
+    achievements: "Logros", notEnoughMoney: "💸 Sin Globetines",
     towerPlaced: "✓ {name} colocada",
     towerEvolved: "✨ ¡Evolución a {name}!",
     towerSold: "🛍️ Vendida por {price}",
@@ -188,8 +188,8 @@ const TRANSLATIONS = {
     duckgrade_comet_desc: "15% prob. de hacer daño x2 (Crítico).",
     duckgrade_pyce_name: "Error de Sistema",
     duckgrade_pyce_desc: "A veces dispara en todas direcciones (Spin).",
-    duckgrade_old_name: "Sabiduría Dividida",
-    duckgrade_old_desc: "Sus proyectiles se dividen en más fragmentos.",
+    duckgrade_old_name: "Inmunidad Gris",
+    duckgrade_old_desc: "Las torres en un radio cercano de una torre Gris son inmunes a aturdimientos y ralentizaciones.",
     duckgrade_bombot_name: "Bomba Saltarina",
     duckgrade_bombot_desc: "Las bombas rebotan y explotan dos veces.",
     duckgrade_duck_name: "Pato Defensivo",
@@ -254,11 +254,11 @@ const TRANSLATIONS = {
     tower_Work_Bombot_desc: "Robot bomba. Hace daño de área masivo."
   },
   en: {
-    health: "Health", money: "Money", wave: "Wave",
+    health: "Health", money: "Globets", wave: "Wave",
     startWave: "Start Wave", autoWave: "Auto-Wave",
     autoWaveActive: "Auto-ON", cancel: "Cancel",
     gameOver: "💀 GAME OVER 💀", playAgain: "Retry",
-    achievements: "Achievements", notEnoughMoney: "💸 No money",
+    achievements: "Achievements", notEnoughMoney: "💸 No Globets",
     towerPlaced: "✓ {name} placed",
     towerEvolved: "✨ Evolved to {name}!",
     towerSold: "🛍️ Sold for {price}",
@@ -435,8 +435,8 @@ const TRANSLATIONS = {
     duckgrade_comet_desc: "15% chance to deal x2 damage (Crit).",
     duckgrade_pyce_name: "System Error",
     duckgrade_pyce_desc: "Sometimes fires in all directions (Spin).",
-    duckgrade_old_name: "Split Wisdom",
-    duckgrade_old_desc: "Projectiles split into more fragments.",
+    duckgrade_old_name: "Grey Immunity",
+    duckgrade_old_desc: "Towers in a close radius of a Grey family tower are immune to stuns and slows.",
     duckgrade_bombot_name: "Bouncing Bomb",
     duckgrade_bombot_desc: "Bombs bounce and explode twice.",
     duckgrade_duck_name: "Defensive Duck",
@@ -709,12 +709,12 @@ const TOWER_TYPES = {
   'Ducky_Glob': { name: 'tower_Ducky_Glob_name', damage: 0, range: 140, speed: 0, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'none', desc: "tower_Ducky_Glob_desc", family: 'Ducky_Glob' },
   'Golden_Ducky_Glob': { name: 'tower_Golden_Ducky_Glob_name', damage: 0, range: 160, speed: 0, cost: 180, image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'none', desc: "tower_Golden_Ducky_Glob_desc", family: 'Ducky_Glob' },
 
-  'Comet_Glob': { name: 'tower_Comet_Glob_name', damage: 50, range: 250, speed: 0.2, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'blue_comet', desc: "tower_Comet_Glob_desc", family: 'Comet_Glob' },
-  'Dark_Glob': { name: 'tower_Dark_Glob_name', damage: 80, range: 280, speed: 1.0, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'void', piercing: true, desc: "tower_Dark_Glob_desc", family: 'Comet_Glob' },
-  'Demglob': { name: 'tower_Demglob_name', damage: 200, range: 300, speed: 2.0, cost: 1000, image: IMAGE_PATHS.Demglob, projectile: 'hellfire', piercing: true, burn: true, desc: "tower_Demglob_desc", family: 'Comet_Glob' },
+  'Comet_Glob': { name: 'tower_Comet_Glob_name', damage: 50, range: 250, speed: 0.2, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'star_boomerang', piercing: true, boomerang: true, desc: "tower_Comet_Glob_desc", family: 'Comet_Glob' },
+  'Dark_Glob': { name: 'tower_Dark_Glob_name', damage: 80, range: 280, speed: 1.0, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'diamond_boomerang', piercing: true, boomerang: true, desc: "tower_Dark_Glob_desc", family: 'Comet_Glob' },
+  'Demglob': { name: 'tower_Demglob_name', damage: 200, range: 300, speed: 2.0, cost: 1000, image: IMAGE_PATHS.Demglob, projectile: 'laser_purple', piercing: true, burn: true, corruption: true, desc: "tower_Demglob_desc", family: 'Comet_Glob' },
 
-  'Pyce_Glob': { name: 'tower_Pyce_Glob_name', damage: 30, range: 180, speed: 0.8, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Old_Glob' },
-  'Old_Glob': { name: 'tower_Old_Glob_name', damage: 40, range: 200, speed: 0.5, cost: 200, evolution: 'Pyce_Glob', image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "tower_Old_Glob_desc", family: 'Old_Glob' },
+  'Pyce_Glob': { name: 'tower_Pyce_Glob_name', damage: 30, range: 180, speed: 0.8, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Grey' },
+  'Old_Glob': { name: 'tower_Old_Glob_name', damage: 40, range: 200, speed: 0.5, cost: 200, evolution: 'Pyce_Glob', image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "tower_Old_Glob_desc", family: 'Grey' },
   'Work_Bombot': { name: 'tower_Work_Bombot_name', damage: 100, range: 150, speed: 0.2, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "tower_Work_Bombot_desc", family: 'Special' }
 };
 
@@ -892,7 +892,7 @@ if (typeof window !== 'undefined') {
 }
 TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "health": "Salud",
-  "money": "Dinero",
+  "money": "Globetines",
   "wave": "Oleada",
   "startWave": "Iniciar Oleada",
   "autoWave": "Auto-Oleada",

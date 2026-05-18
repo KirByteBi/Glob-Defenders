@@ -1148,6 +1148,29 @@ button.active {
     transform: translateY(-2px);
 }
 
+.evolve-btn.gtack-btn {
+    background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+    border: 1px solid #f1c40f;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+    animation: premiumGlow 2s infinite alternate;
+}
+
+@keyframes premiumGlow {
+    0% { box-shadow: 0 0 5px rgba(241, 196, 15, 0.3); }
+    100% { box-shadow: 0 0 15px rgba(241, 196, 15, 0.7); }
+}
+
+.gtack-locked {
+    font-size: 0.8rem;
+    color: #e74c3c;
+    text-align: center;
+    padding: 8px;
+    font-weight: bold;
+    background: rgba(231, 76, 60, 0.1);
+    border-radius: 6px;
+    border: 1px dashed rgba(231, 76, 60, 0.3);
+}
+
 .sell-btn {
     width: 100%;
     padding: 8px;
@@ -1309,6 +1332,18 @@ button.active {
 .projectile.brown { background: #8b4513; width: 10px; height: 10px; }
 .projectile.green { background: #2ecc71; width: 10px; height: 10px; box-shadow: 0 0 5px #2ecc71; }
 .projectile.blue_comet { background: linear-gradient(135deg, #5fc3ff, #0d6fff); width: 14px; height: 14px; box-shadow: 0 0 12px rgba(95, 195, 255, 0.8); border-radius: 50%; }
+.projectile.stone { background: #888; border-radius: 20%; border: 2px solid #555; width: 14px; height: 14px; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+.projectile.stone_small { background: #888; border-radius: 20%; border: 1px solid #555; width: 8px; height: 8px; }
+.projectile.stone_red { background: #e74c3c; border-radius: 20%; border: 1px solid #c0392b; width: 10px; height: 10px; box-shadow: 0 0 6px #e74c3c; }
+.projectile.glitch { background: repeating-linear-gradient(45deg, #0f0, #0f0 2px, #000 2px, #000 4px); width: 12px; height: 12px; border-radius: 0; box-shadow: 0 0 5px #0f0; animation: glitchShake 0.1s infinite; }
+.projectile.star_boomerang { background: #00b4ff; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); width: 20px; height: 20px; animation: spin 0.5s linear infinite; }
+.projectile.diamond_boomerang { background: #8a2be2; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); width: 24px; height: 24px; animation: spin 0.4s linear infinite; box-shadow: 0 0 10px #8a2be2; }
+.projectile.laser_purple { background: #9b59b6; box-shadow: 0 0 10px #9b59b6; width: 40px !important; height: 4px !important; border-radius: 0; }
+.projectile.slash { background: linear-gradient(90deg, transparent, #fff, transparent); box-shadow: 0 0 8px #fff; width: 50px !important; height: 6px !important; border-radius: 50%; }
+.projectile.binary_code { background: transparent; color: #0f0; font-family: monospace; font-size: 16px; font-weight: bold; text-shadow: 0 0 5px #0f0; display: flex; justify-content: center; align-items: center; }
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.stunned-spin { animation: spin 1s linear infinite !important; filter: grayscale(50%) sepia(50%) hue-rotate(-50deg); }
 /* Meta Game Modals */
 .meta-grid {
     display: grid;

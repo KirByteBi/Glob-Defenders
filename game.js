@@ -114,7 +114,15 @@ let gameState = {
     showShopDesc: true,
     showTotalDamage: false
   },
-  duckgrades: {}
+  duckgrades: {},
+  gtacks: {
+    'Glob': false,
+    'Red_Glob': false,
+    'Soap_Glob': false,
+    'Ducky_Glob': false,
+    'Comet_Glob': false,
+    'Old_Glob': false
+  }
 };
 
 function saveUsers() {
@@ -187,6 +195,7 @@ function saveProgress() {
     muted: gameState.muted,
     totalDamage: gameState.totalDamage,
     settings: gameState.settings,
+    gtacks: gameState.gtacks,
     // ========== AÑADE ESTAS DOS LÍNEAS ==========
     musicEnabled: musicEnabled,
     showHitbox: showHitbox,
@@ -271,6 +280,15 @@ function loadProgress(username) {
       gameState.claimedRewards = progress.claimedRewards || [];
       gameState.muted = progress.muted || false;
 
+      gameState.duckgrades = progress.duckgrades || {};
+      gameState.gtacks = progress.gtacks || {
+        'Glob': false,
+        'Red_Glob': false,
+        'Soap_Glob': false,
+        'Ducky_Glob': false,
+        'Comet_Glob': false,
+        'Old_Glob': false
+      };
       // ========== AÑADE ESTAS DOS LÍNEAS AQUÍ (DENTRO DEL IF) ==========
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
@@ -580,14 +598,16 @@ function confirmReset() {
   resetCounter++;
   const btn = document.getElementById('reset-btn');
   if (resetCounter === 1) {
-    btn.textContent = translate('reset_confirm_1');
+    btn.textContent = translate('reset_confirm_1') || "⚠️ ¿ESTÁS SEGURO? (1/3)";
   } else if (resetCounter === 2) {
-    btn.textContent = translate('reset_confirm_2');
+    btn.textContent = translate('reset_confirm_2') || "⚠️ ¿REALMENTE SEGURO? (2/3)";
   } else if (resetCounter === 3) {
-    btn.textContent = translate('reset_confirm_3');
+    btn.textContent = translate('reset_confirm_3') || "💥 ÚLTIMO AVISO: BORRAR TODO (3/3)";
   } else if (resetCounter >= 4) {
+    const user = localStorage.getItem('glob_username') || 'default';
+    localStorage.removeItem('glob_progress_' + user);
     localStorage.removeItem('glob_defenders_save');
-    alert(translate('reset_done'));
+    alert(translate('reset_done') || "Progreso completamente reseteado.");
     location.reload();
   }
 }
@@ -596,8 +616,6 @@ function openOptions() {
   resetCounter = 0;
   const btn = document.getElementById('reset-btn');
   if (btn) btn.textContent = translate('reset_progress_btn');
-
-  updateOptionsUI();
 
   document.getElementById('options-modal').style.display = 'flex';
   document.getElementById('opt-show-desc').checked = gameState.settings.showShopDesc;
@@ -904,7 +922,10 @@ function bindEvents() {
       'THANIYEL': { dp: 150, xp: 500, msg: '150 DuckPass + 500 XP' },
       'JANBO': { py: 123, msg: '123 PyCoins' },
       'ILERNA': { py: 130, msg: '130 PyCoins' },
-      'MANOLO': { py: 100, msg: '100 PyCoins' }
+      'MANOLO': { py: 100, msg: '100 PyCoins' },
+      'BETA_OPENING': { dp: 100, msg: '100 DuckPass' },
+      'REWORKED': { dp: 100, py: 100, xp: 200, msg: '100 DuckPass + 100 PyCoins + 200 XP' },
+      'GLOBS_ATTACK': { dp: 100, xp: 100, msg: '100 DuckPass + 100 XP' }
     };
 
     if (rewards[code]) {
@@ -1065,8 +1086,23 @@ function updateBuffs() {
     const base = TOWER_TYPES[t.type];
     t.damage = base.damage * gameState.towerBuffs.damage;
     t.range = base.range + gameState.towerBuffs.range;
+    if (gameState.globalRangeBuffTimer && gameState.globalRangeBuffTimer > 0) {
+      t.range += 50;
+    }
     t.speed = base.speed * gameState.towerBuffs.speed;
   });
+}
+
+function getPycoinMultiplier() {
+  if (gameState.duckPassLevel >= 100) return 3.0;
+  if (gameState.duckPassLevel >= 80) return 2.5;
+  if (gameState.duckPassLevel >= 60) return 1.5;
+  return 1.0;
+}
+
+function getDuckpassMultiplier() {
+  if (gameState.duckPassLevel >= 100) return 2.0;
+  return 1.0;
 }
 
 function addXP(amount) {
@@ -1122,6 +1158,7 @@ function drawShop() {
     <div class="shop-header-tabs">
       <button class="shop-tab-btn ${currentShopTab === 'upgrades' ? 'active' : ''}" onclick="switchShopTab('upgrades')">${translate('shop_upgrades')}</button>
       <button class="shop-tab-btn ${currentShopTab === 'duckgrades' ? 'active' : ''}" onclick="switchShopTab('duckgrades')">${translate('duckgrade_title')}</button>
+      <button class="shop-tab-btn ${currentShopTab === 'gtacks' ? 'active' : ''}" onclick="switchShopTab('gtacks')">G-Tacks</button>
       <button class="shop-tab-btn ${currentShopTab === 'skins' ? 'active' : ''}" onclick="switchShopTab('skins')">${translate('shop_skins')}</button>
     </div>
     <div class="shop-balance">
@@ -1182,14 +1219,54 @@ function drawShop() {
       return false;
     });
 
+    const dgsLocked = gameState.duckPassLevel < 35;
     filteredDgs.forEach(u => {
       const isUnlocked = gameState.duckgrades[u.id];
       const el = document.createElement('div');
-      el.className = `meta-item ${isUnlocked ? 'unlocked' : ''}`;
+      el.className = `meta-item ${isUnlocked ? 'unlocked' : ''} ${dgsLocked ? 'level-locked' : ''}`;
+      
+      let buttonHTML = '';
+      if (dgsLocked) {
+        buttonHTML = `<button class="meta-buy-btn" disabled style="background: #95a5a6; border: 1px dashed #7f8c8d; cursor: not-allowed; color: #fff;">🔒 Req. Lvl 35</button>`;
+      } else {
+        buttonHTML = `<button class="meta-buy-btn" ${isUnlocked || gameState.duckPassCurrency < u.cost ? 'disabled' : ''} 
+          onclick="buyUpgrade('${u.id}', ${u.cost}, 'duckpass')">${isUnlocked ? translate('active') : translate('buy')}</button>`;
+      }
+
       el.innerHTML = `<h3>${translate(u.name)}</h3><p>${translate(u.desc)}</p>
         <div class="cost">${isUnlocked ? '✅' : `<img src="img/Tokens/DuckPass.png" width="18"> ${u.cost}`}</div>
-        <button class="meta-buy-btn" ${isUnlocked || gameState.duckPassCurrency < u.cost ? 'disabled' : ''} 
-          onclick="buyUpgrade('${u.id}', ${u.cost}, 'duckpass')">${isUnlocked ? translate('active') : translate('buy')}</button>`;
+        ${buttonHTML}`;
+      container.appendChild(el);
+    });
+  } else if (currentShopTab === 'gtacks') {
+    const gtacksData = [
+      { id: 'Glob', name: 'Green G-Tack: Frenesí', desc: 'Frenesí de Disparos: Al activarla en combate, la torre verde de nivel máximo lanza 10 disparos de ametralladora casi instantáneos. Cuesta 400 Globets activar. (¡MUY OP!)', pyCost: 750, dpCost: 250 },
+      { id: 'Red_Glob', name: 'Red G-Tack: Sobrecarga', desc: 'Sobrecarga de Ataque: Al activarla en combate, la torre roja de nivel máximo gana +5% de daño y aplica un efecto Tóxico DoT muy rápido. Cuesta 400 Globets activar.', pyCost: 550, dpCost: 180 },
+      { id: 'Soap_Glob', name: 'Blue G-Tack: Rayo Paralizante', desc: 'Impacto Relámpago: Al activarla en combate, el próximo ataque de la torre azul de nivel máximo stunea a los enemigos garantizadamente, ¡INCLUYENDO JEFES! Cuesta 400 Globets activar.', pyCost: 580, dpCost: 190 },
+      { id: 'Ducky_Glob', name: 'Yellow G-Tack: Lluvia Financiera', desc: 'Lluvia de Divisas: Al activarla en combate, la torre amarilla de nivel máximo genera 15 PyCoins y 3 DuckPasses. Cuesta 500 Globets activar.', pyCost: 650, dpCost: 210 },
+      { id: 'Comet_Glob', name: 'Black G-Tack: Contagio', desc: 'Hongo Venenoso: Al activarla en combate, la torre negra de nivel máximo aplica veneno DoT (calavera/seta) que se propaga entre enemigos al morir o tocarse. Cuesta 400 Globets activar. (¡MUY OP!)', pyCost: 780, dpCost: 260 },
+      { id: 'Old_Glob', name: 'Grey G-Tack: Amplificación', desc: 'Ampliación de Radar: Al activarla en combate, aumenta el rango de ataque de TODAS las torres del mapa en +50 por 10s. Cuesta 400 Globets activar.', pyCost: 520, dpCost: 170 }
+    ];
+
+    const gtacksLocked = gameState.duckPassLevel < 50;
+    const filtered = gtacksData.filter(g => isTowerOwned(g.id));
+
+    filtered.forEach(u => {
+      const isUnlocked = gameState.gtacks[u.id];
+      const el = document.createElement('div');
+      el.className = `meta-item ${isUnlocked ? 'unlocked' : ''} ${gtacksLocked ? 'level-locked' : ''}`;
+      
+      let buttonHTML = '';
+      if (gtacksLocked) {
+        buttonHTML = `<button class="meta-buy-btn" disabled style="background: #95a5a6; border: 1px dashed #7f8c8d; cursor: not-allowed; color: #fff;">🔒 Req. Lvl 50</button>`;
+      } else {
+        buttonHTML = `<button class="meta-buy-btn" ${isUnlocked || gameState.pycoins < u.pyCost || gameState.duckPassCurrency < u.dpCost ? 'disabled' : ''} 
+          onclick="buyGTack('${u.id}', ${u.pyCost}, ${u.dpCost})">${isUnlocked ? 'Activo' : 'Comprar'}</button>`;
+      }
+
+      el.innerHTML = `<h3>${u.name}</h3><p>${u.desc}</p>
+        <div class="cost">${isUnlocked ? '✅' : `<img src="img/Tokens/PyCoin.png" width="16"> ${u.pyCost} + <img src="img/Tokens/DuckPass.png" width="16"> ${u.dpCost}`}</div>
+        ${buttonHTML}`;
       container.appendChild(el);
     });
   } else {
@@ -1246,6 +1323,24 @@ function drawShop() {
 let currentShopTab = 'upgrades';
 function switchShopTab(tab) { currentShopTab = tab; drawShop(); }
 
+function buyGTack(family, pyCost, dpCost) {
+  if (gameState.duckPassLevel < 50) {
+    showMessage(currentLanguage === 'es' ? "¡Necesitas Nivel 50 en el Duck Pass para comprar G-Tacks!" : "Requires Duck Pass Level 50 to buy G-Tacks!", 'error');
+    return;
+  }
+  if (gameState.pycoins >= pyCost && gameState.duckPassCurrency >= dpCost) {
+    gameState.pycoins -= pyCost;
+    gameState.duckPassCurrency -= dpCost;
+    gameState.gtacks[family] = true;
+    drawShop();
+    saveProgress();
+    updateMetaUI();
+    showMessage("¡G-Tack Desbloqueada! 🌟", 'success');
+  } else {
+    showMessage(translate('notEnoughMoney') || "¡No tienes suficientes divisas!", 'error');
+  }
+}
+
 function buySkin(family, skinId, cost) {
   const skin = SKINS_DATA[family].find(s => s.id === skinId);
   if (skin.duckpass_cost) {
@@ -1285,6 +1380,10 @@ function equipSkin(family, skinId) {
 function canAfford(u) { return u.type === 'pycoin' ? gameState.pycoins >= u.cost : gameState.duckPassCurrency >= u.cost; }
 
 function buyUpgrade(id, cost, type) {
+  if (id.startsWith('dg_') && gameState.duckPassLevel < 35) {
+    showMessage(currentLanguage === 'es' ? "¡Necesitas Nivel 35 en el Duck Pass para comprar Duckgrades!" : "Requires Duck Pass Level 35 to buy Duckgrades!", 'error');
+    return;
+  }
   if (type === 'pycoin' ? gameState.pycoins < cost : gameState.duckPassCurrency < cost) return;
   if (type === 'pycoin') gameState.pycoins -= cost; else gameState.duckPassCurrency -= cost;
 
@@ -1375,18 +1474,103 @@ function selectTower(t) {
   drawRangePreview(t.x, t.y, t.range);
 }
 
+function getGTackName(family) {
+  switch (family) {
+    case 'Glob': return 'Frenesí ⚡';
+    case 'Red_Glob': return 'Sobrecarga 🔥';
+    case 'Soap_Glob': return 'Impacto Relámpago ⚡';
+    case 'Ducky_Glob': return 'Lluvia Financiera 💰';
+    case 'Comet_Glob': return 'Contagio 💀';
+    case 'Grey': return 'Ampliación 📡';
+    default: return 'G-Táctica';
+  }
+}
+
+function activateGTack(t) {
+  const cost = t.family === 'Ducky_Glob' ? 500 : 400;
+  if (gameState.globetines < cost) return;
+  if (t.gTackCooldown && t.gTackCooldown > 0) return;
+  
+  gameState.globetines -= cost;
+  t.gTackCooldown = 30; // 30s cooldown
+  
+  updateUI();
+  updateEvolveButtons(t);
+  
+  // Activate actual G-Tack power!
+  if (t.family === 'Glob') {
+    // Green: Frenzy mode - fire 10 fast shots
+    t.frenzyShots = 10;
+    t.cooldown = 0;
+    showEffect(t.x, t.y - 25, "FRENZIED! ⚡", "#2ecc71");
+  } else if (t.family === 'Red_Glob') {
+    // Red: Toxic Overcharge - +5% damage, applies Toxic Fast DoT for 6s
+    t.toxicTimer = 6;
+    showEffect(t.x, t.y - 25, "OVERCHARGED! 🔥", "#e74c3c");
+  } else if (t.family === 'Soap_Glob') {
+    // Blue: Stun strike - next attack guarantees stun (bypasses Boss Immunity!)
+    t.stunStrikeActive = true;
+    showEffect(t.x, t.y - 25, "STUN STRIKE! ⚡", "#3498db");
+  } else if (t.family === 'Ducky_Glob') {
+    // Yellow: Resource Burst - generates 15 PyCoins and 3 DuckPasses into meta-inventory
+    const earnedPy = Math.round(15 * getPycoinMultiplier());
+    const earnedDp = Math.round(3 * getDuckpassMultiplier());
+    gameState.pycoins += earnedPy;
+    gameState.duckPassCurrency += earnedDp;
+    updateMetaUI();
+    saveProgress();
+    showEffect(t.x, t.y - 25, `+${earnedPy} 💎 +${earnedDp} 🦆`, "#f1c40f");
+    showMessage(`¡Lluvia Financiera! Recibiste ${earnedPy} PyCoins y ${earnedDp} DuckPasses`, 'success');
+  } else if (t.family === 'Comet_Glob') {
+    // Black: Spreading Poison - applies mushroom/skull contagion DoT for 8s
+    t.contagioTimer = 8;
+    showEffect(t.x, t.y - 25, "CONTAGIO! 💀", "#9b59b6");
+  } else if (t.family === 'Grey') {
+    // Grey: Global Range Buff - temporarily increases range of all towers by +50 for 10s
+    gameState.globalRangeBuffTimer = 10;
+    updateBuffs();
+    showEffect(t.x, t.y - 25, "RADAR AMPLIFIED! 📡", "#95a5a6");
+  }
+}
+
 function updateEvolveButtons(t) {
   const container = document.getElementById('evolve-options');
   if (container) {
     container.innerHTML = '';
     const next = TOWER_TYPES[t.evolution];
-    const btn = document.createElement('button');
-    btn.className = 'evolve-btn';
-    if (gameState.globetines < next.cost) btn.disabled = true;
-    const nextName = getTowerName({ ...next, type: t.evolution, family: t.family });
-    btn.innerHTML = `${translate('evolve_to', { name: nextName })} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${next.cost}</div>`;
-    btn.onclick = () => evolveTower(t, t.evolution);
-    container.appendChild(btn);
+    if (next) {
+      const btn = document.createElement('button');
+      btn.className = 'evolve-btn';
+      if (gameState.globetines < next.cost) btn.disabled = true;
+      const nextName = getTowerName({ ...next, type: t.evolution, family: t.family });
+      btn.innerHTML = `${translate('evolve_to', { name: nextName })} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${next.cost}</div>`;
+      btn.onclick = () => evolveTower(t, t.evolution);
+      container.appendChild(btn);
+    } else {
+      // Max evolution tower! Let's check G-Tack
+      const familyKey = t.family === 'Grey' ? 'Old_Glob' : t.family;
+      const hasGTackUnlocked = gameState.gtacks[familyKey];
+      if (hasGTackUnlocked) {
+        const btn = document.createElement('button');
+        btn.className = 'evolve-btn gtack-btn';
+        const cost = t.family === 'Ducky_Glob' ? 500 : 400;
+        const onCd = t.gTackCooldown && t.gTackCooldown > 0;
+        if (gameState.globetines < cost || onCd) btn.disabled = true;
+
+        let label = `G-TACK: ${getGTackName(t.family)}`;
+        if (onCd) {
+          label += ` (${Math.ceil(t.gTackCooldown)}s)`;
+        }
+        btn.innerHTML = `${label} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
+        btn.onclick = () => activateGTack(t);
+        container.appendChild(btn);
+      } else {
+        const el = document.createElement('div');
+        el.className = 'gtack-locked';
+        el.textContent = "🔒 G-Tack bloqueado en la Tienda Meta";
+        container.appendChild(el);
+      }
+    }
   }
   const sellBtn = document.getElementById('sell-tower-btn');
   if (sellBtn) {
@@ -1517,14 +1701,30 @@ function gameLoop() {
   if (gameState.gameOver) return;
   const dt = 1 / 60;
 
+  function isTowerProtected(tower) {
+    if (!gameState.duckgrades.dg_Old_Glob) return false;
+    return gameState.towers.some(grey => {
+      if (grey.family === 'Grey' || grey.family === 'Old_Glob' || grey.type === 'Old_Glob' || grey.type === 'Pyce_Glob') {
+        return Math.hypot(grey.x - tower.x, grey.y - tower.y) < 150;
+      }
+      return false;
+    });
+  }
+
   for (let i = gameState.enemies.length - 1; i >= 0; i--) {
     const e = gameState.enemies[i];
     const next = ENEMY_PATH[e.pathIndex + 1];
 
+    let currentEnemySpeed = e.speed;
+    if (e.stunned && e.stunned > 0) {
+      e.stunned -= dt;
+      currentEnemySpeed = 0;
+    }
+
     if (next) {
       const dx = next.x - e.x, dy = next.y - e.y, dist = Math.hypot(dx, dy);
-      if (dist < e.speed) e.pathIndex++;
-      else { e.x += (dx / dist) * e.speed; e.y += (dy / dist) * e.speed; }
+      if (dist < currentEnemySpeed) e.pathIndex++;
+      else { e.x += (dx / dist) * currentEnemySpeed; e.y += (dy / dist) * currentEnemySpeed; }
       e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
     } else {
       if (e.instakill) { gameState.health = 0; endGame(); return; }
@@ -1541,6 +1741,33 @@ function gameLoop() {
     const pct = Math.max(0, (totalCurrent / (e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0))) * 100);
     e.hpFill.style.width = pct + '%';
     e.hpFill.style.backgroundColor = (e.shield > 0) ? '#ffd700' : '#ff4444';
+
+    // Daño sobre el Tiempo (DoTs) de G-Tacks
+    if (e.toxicTimer && e.toxicTimer > 0) {
+      e.toxicTimer -= dt;
+      const dmg = 25 * dt;
+      e.health -= dmg;
+      if (Math.random() < 0.1) showEffect(e.x, e.y, "🤢🔥", "#2ecc71");
+    }
+    if (e.poisonTimer && e.poisonTimer > 0) {
+      e.poisonTimer -= dt;
+      const dmg = 12 * dt;
+      e.health -= dmg;
+      if (Math.random() < 0.1) showEffect(e.x, e.y, "🍄💀", "#9b59b6");
+      
+      // Veneno contagioso se propaga al hacer contacto
+      gameState.enemies.forEach(other => {
+        if (other !== e && !other.poisonTimer && Math.hypot(other.x - e.x, other.y - e.y) < 40) {
+          other.poisonTimer = 3;
+          showEffect(other.x, other.y - 10, "CONTAGIO! 💀", "#9b59b6");
+        }
+      });
+    }
+
+    if (e.health <= 0) {
+      die(e, i);
+      continue;
+    }
 
     // Habilidad de Curación (Flower Pyce)
     if (e.healer) {
@@ -1560,10 +1787,83 @@ function gameLoop() {
       }
     }
 
+    // Ataques de Enemigos a Torres
+    if (e.type === '1x1x1x1_Pyce' || e.type === 'MoonStar_Pyce') {
+      e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+      if (e.attackTimer1 > 5) {
+        e.attackTimer1 = 0;
+        let targetTower = null;
+        let minDist = Infinity;
+        gameState.towers.forEach(t => {
+          const d = Math.hypot(t.x - e.x, t.y - e.y);
+          if (d < minDist) { minDist = d; targetTower = t; }
+        });
+        if (targetTower) shoot(e, targetTower, { isEnemy: true, projectile: 'binary_code', speed: 2, slow: 3 });
+      }
+    }
+    if (e.type === 'NOeye_Pyce' || e.type === 'MoonStar_Pyce') {
+      e.attackTimer2 = (e.attackTimer2 || 0) + dt;
+      if (e.attackTimer2 > 8) {
+        e.attackTimer2 = 0;
+        if (gameState.towers.length > 0) {
+          const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
+          shoot(e, targetTower, { isEnemy: true, projectile: 'laser_purple', speed: 5, stun: 2 });
+        }
+      }
+    }
+    if (e.type === 'Guest_Pyce') {
+      e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+      if (e.attackTimer1 > 3) {
+        let targetTower = null;
+        gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < 80) targetTower = t; });
+        if (targetTower) {
+          e.attackTimer1 = 0;
+          if (isTowerProtected(targetTower)) {
+            showEffect(targetTower.x, targetTower.y - 20, "IMMUNE! 🛡️", "#00ffcc");
+          } else {
+            targetTower.stunTimer = (targetTower.stunTimer || 0) + 1.5;
+            showEffect(targetTower.x, targetTower.y - 20, "STUNNED!", "#ff0000");
+          }
+        }
+      }
+    }
+    if (e.type === 'Noob_Pyce') {
+      e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+      if (e.attackTimer1 > 6) {
+        let targetTower = null;
+        gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < 200) targetTower = t; });
+        if (targetTower) shoot(e, targetTower, { isEnemy: true, projectile: 'stone_red', speed: 3, stun: 1.5 });
+      }
+    }
+
     if (e.health <= 0) die(e, i);
   }
 
+  // Tick global range buff timer
+  if (gameState.globalRangeBuffTimer && gameState.globalRangeBuffTimer > 0) {
+    gameState.globalRangeBuffTimer -= dt;
+    if (gameState.globalRangeBuffTimer <= 0) {
+      gameState.globalRangeBuffTimer = 0;
+      updateBuffs();
+    }
+  }
+
   gameState.towers.forEach(t => {
+    // Tick down G-Tack cooldown and active effects
+    if (t.gTackCooldown && t.gTackCooldown > 0) {
+      t.gTackCooldown -= dt;
+      if (t.gTackCooldown < 0) t.gTackCooldown = 0;
+      if (gameState.selectedTower === t) updateEvolveButtons(t);
+    }
+    if (t.toxicTimer && t.toxicTimer > 0) {
+      t.toxicTimer -= dt;
+      if (t.toxicTimer < 0) t.toxicTimer = 0;
+    }
+    if (t.contagioTimer && t.contagioTimer > 0) {
+      t.contagioTimer -= dt;
+      if (t.contagioTimer < 0) t.contagioTimer = 0;
+    }
+
     if (t.stunned > 0) { t.stunned -= dt; t.el.classList.add('stunned'); return; }
     t.el.classList.remove('stunned');
     // Ducky Glob Generation
@@ -1591,11 +1891,15 @@ function gameLoop() {
 
         const rand = Math.random();
         if (rand < 0.05) {
-          gameState.pycoins += 1;
-          showEffect(t.x, t.y - 25, `+1 💎`);
+          const mult = getPycoinMultiplier();
+          const earned = Math.round(1 * mult);
+          gameState.pycoins += earned;
+          showEffect(t.x, t.y - 25, `+${earned} 💎`);
         } else if (rand < 0.005) {
-          gameState.duckPassCurrency += 1;
-          showEffect(t.x, t.y - 25, `+1 🦆`);
+          const mult = getDuckpassMultiplier();
+          const earned = Math.round(1 * mult);
+          gameState.duckPassCurrency += earned;
+          showEffect(t.x, t.y - 25, `+${earned} 🦆`);
           showMessage(translate('level_duckpass', { level: 'SPECIAL' }), 'success');
         }
         updateUI(); updateMetaUI();
@@ -1603,6 +1907,18 @@ function gameLoop() {
     }
 
     let currentSpeed = t.speed;
+    if (t.slowTimer > 0) {
+      t.slowTimer -= dt;
+      currentSpeed *= 0.5; // Reduce ataque 50%
+    }
+    
+    if (t.stunTimer > 0) {
+      t.stunTimer -= dt;
+      if (!t.el.classList.contains('stunned-spin')) t.el.classList.add('stunned-spin');
+      if (t.stunTimer <= 0) t.el.classList.remove('stunned-spin');
+      return; // Skip attack and money generation while stunned
+    }
+
     if (gameState.duckgrades.dg_Glob && (t.family === 'Glob' || t.type === 'Glob')) {
       const nearDuck = gameState.towers.some(d => (d.family === 'Ducky_Glob' || d.type === 'Ducky_Glob') && Math.hypot(d.x - t.x, d.y - t.y) < 150);
       if (nearDuck) currentSpeed *= 1.5;
@@ -1633,53 +1949,142 @@ function gameLoop() {
     }
   });
 
+  function applyProjectileHit(p, target) {
+    if (p.isEnemy) {
+      if (isTowerProtected(target)) {
+        showEffect(target.x, target.y - 20, "IMMUNE! 🛡️", "#00ffcc");
+        return;
+      }
+      if (p.meta && p.meta.stun) {
+        target.stunTimer = (target.stunTimer || 0) + p.meta.stun;
+        showEffect(target.x, target.y - 20, "STUNNED!", "#ff0000");
+      }
+      if (p.meta && p.meta.slow) {
+        target.slowTimer = (target.slowTimer || 0) + p.meta.slow;
+        showEffect(target.x, target.y - 20, "SLOWED!", "#ffaa00");
+      }
+      return;
+    }
+
+    let dmg = p.damage;
+    if (p.meta) {
+      if (p.meta.toxic) {
+        target.toxicTimer = (target.toxicTimer || 0) + 3.0;
+        showEffect(target.x, target.y - 15, "TOXIC! 🤢", "#2ecc71");
+      }
+      if (p.meta.poison) {
+        target.poisonTimer = (target.poisonTimer || 0) + 5.0;
+        showEffect(target.x, target.y - 15, "POISON! 🍄", "#9b59b6");
+      }
+      if (p.meta.stunStrike) {
+        target.stunned = (target.stunned || 0) + 3.0; // 3 seconds stun strike
+        showEffect(target.x, target.y - 15, "SHOCKED! ⚡", "#3498db");
+      }
+    }
+    if (gameState.duckgrades.dg_Comet_Glob && p.family === 'Comet_Glob') {
+      if (Math.random() < 0.15) { dmg *= 2; showEffect(target.x, target.y, "CRIT! 💥"); }
+    }
+    if (gameState.duckgrades.dg_Soap_Glob && p.family === 'Soap_Glob') {
+      if (Math.random() < 0.2) target.stunned = 1.0;
+    }
+    if (p.projectile === 'glitch' || p.type === 'Pyce_Glob') {
+      target.speed = Math.max(0.5, target.speed * 0.9);
+      if (Math.random() < 0.2) target.stunned = 0.5;
+      target.el.classList.add('glitch-shake');
+      setTimeout(() => { if (target && target.el) target.el.classList.remove('glitch-shake'); }, 500);
+    }
+    if (p.meta && p.meta.corruption) {
+      target.speed = Math.max(0.5, target.speed * 0.7);
+      target.el.classList.add('glitch-shake');
+      setTimeout(() => { if (target && target.el) target.el.classList.remove('glitch-shake'); }, 800);
+    }
+
+    if (target.shield > 0) {
+      const abs = Math.min(target.shield, dmg);
+      target.shield -= abs;
+      dmg -= abs;
+    }
+    if (dmg > 0) target.health -= dmg;
+    gameState.totalDamage += p.damage;
+
+    if (gameState.duckgrades.dg_Work_Bombot && p.type === 'Work_Bombot' && !p.bounced) {
+      p.bounced = true;
+      p.x = target.x; p.y = target.y;
+      const nextTarget = gameState.enemies.find(e => e !== target && Math.hypot(e.x - p.x, e.y - p.y) < 100);
+      if (nextTarget) { p.target = nextTarget; }
+    }
+    if (gameState.duckgrades.dg_Old_Glob && p.type === 'Old_Glob' && !p.isSpin) {
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 2) {
+        shoot({ ...p, projectile: 'stone_small', damage: p.damage * 0.3 }, { x: p.x + Math.cos(a) * 50, y: p.y + Math.sin(a) * 50, health: 999 }, { size: 8 });
+      }
+    }
+  }
+
   for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
     const p = gameState.projectiles[i];
-    if (!p.target || !gameState.enemies.includes(p.target)) { p.el.remove(); gameState.projectiles.splice(i, 1); continue; }
-    const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
-    if (dist < 10) {
-      let dmg = p.damage;
-      // DUCKGRADE: Comet Glob (Black) - Crit
-      if (gameState.duckgrades.dg_Comet_Glob && p.family === 'Comet_Glob') {
-        if (Math.random() < 0.15) { dmg *= 2; showEffect(p.target.x, p.target.y, "CRIT! 💥"); }
-      }
-
-      // DUCKGRADE: Soap Glob (Blue) - Paralyze
-      if (gameState.duckgrades.dg_Soap_Glob && p.family === 'Soap_Glob') {
-        if (Math.random() < 0.2) p.target.stunned = 1.0;
-      }
-
-      if (p.target.shield > 0) {
-        const abs = Math.min(p.target.shield, dmg);
-        p.target.shield -= abs;
-        dmg -= abs;
-      }
-      if (dmg > 0) p.target.health -= dmg;
-      gameState.totalDamage += p.damage;
-
-      // DUCKGRADE: Work-Bombot - Bouncing
-      if (gameState.duckgrades.dg_Work_Bombot && p.type === 'Work_Bombot' && !p.bounced) {
-        p.bounced = true;
-        p.x = p.target.x; p.y = p.target.y;
-        const nextTarget = gameState.enemies.find(e => e !== p.target && Math.hypot(e.x - p.x, e.y - p.y) < 100);
-        if (nextTarget) { p.target = nextTarget; return; }
-      }
-
-      // DUCKGRADE: Old Glob - Fragments
-      if (gameState.duckgrades.dg_Old_Glob && p.type === 'Old_Glob' && !p.isSpin) {
-        for (let a = 0; a < Math.PI * 2; a += Math.PI / 2) {
-          shoot({ ...p, projectile: 'stone_small', damage: p.damage * 0.3 }, { x: p.x + Math.cos(a) * 50, y: p.y + Math.sin(a) * 50, health: 999 }, true);
+    
+    if (p.boomerang) {
+      const homeX = p.shooter.x;
+      const homeY = p.shooter.y;
+      if (!p.returnPhase) {
+        const targetDist = Math.hypot(p.target.x - p.x, p.target.y - p.y);
+        if (targetDist < 10 || (!p.target.health && targetDist < 50)) {
+          p.returnPhase = true;
+          p.hitEntities.clear();
+        } else {
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
         }
+      } else {
+        const dx = homeX - p.x, dy = homeY - p.y, hDist = Math.hypot(dx, dy);
+        if (hDist < 15) {
+          p.el.remove(); gameState.projectiles.splice(i, 1); continue;
+        }
+        p.vx = (dx / hDist) * p.speed;
+        p.vy = (dy / hDist) * p.speed;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
       }
+    } else if (p.piercing) {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      if (p.x < -100 || p.x > 2000 || p.y < -100 || p.y > 1000) {
+        p.el.remove(); gameState.projectiles.splice(i, 1); continue;
+      }
+    } else {
+      const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;
+      if (!p.target || !targetArray.includes(p.target)) { p.el.remove(); gameState.projectiles.splice(i, 1); continue; }
+      const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
+      if (dist < 10) {
+        applyProjectileHit(p, p.target);
+        p.el.remove(); gameState.projectiles.splice(i, 1); continue;
+      } else {
+        p.vx = (dx / dist) * p.speed;
+        p.vy = (dy / dist) * p.speed;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+      }
+    }
 
-      p.el.remove(); gameState.projectiles.splice(i, 1);
-    } else { p.x += (dx / dist) * 10; p.y += (dy / dist) * 10; p.el.style.left = p.x + 'px'; p.el.style.top = p.y + 'px'; }
+    p.el.style.left = p.x + 'px'; 
+    p.el.style.top = p.y + 'px';
+
+    if (p.piercing || p.boomerang) {
+      const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;
+      targetArray.forEach(e => {
+        if (!p.hitEntities.has(e) && Math.hypot(e.x - p.x, e.y - p.y) < 20) {
+          p.hitEntities.add(e);
+          applyProjectileHit(p, e);
+        }
+      });
+    }
   }
 
   if (gameState.waveActive && !gameState.enemies.length) {
     gameState.waveActive = false;
     gameState.globetines += 50 + gameState.wave * 10;
-    gameState.pycoins += 10;
+    const earnedPy = Math.round(10 * getPycoinMultiplier());
+    gameState.pycoins += earnedPy;
     addXP(20);
     updateUI(); updateMetaUI(); saveProgress();
     if (gameState.autoWave) setTimeout(startWave, 2000);
@@ -1688,12 +2093,42 @@ function gameLoop() {
 }
 
 function shoot(shooter, target, opts = {}) {
+  if (shooter.toxicTimer && shooter.toxicTimer > 0) {
+    opts.toxic = true;
+  }
+  if (shooter.contagioTimer && shooter.contagioTimer > 0) {
+    opts.poison = true;
+  }
+  if (shooter.stunStrikeActive) {
+    opts.stunStrike = true;
+    shooter.stunStrikeActive = false;
+  }
+
   const el = document.createElement('div');
   el.className = `projectile`;
+  
+  let projClass = opts.projectile || shooter.projectile;
+  if (gameState.equippedSkins[shooter.family] === 'corrupt_swords_set') {
+    projClass = 'slash';
+    shooter.piercing = true; // Sword slashes always pierce
+  }
+  if (projClass) el.classList.add(projClass);
+
+  // Angle and velocity calculation
+  const dx = target.x - shooter.x;
+  const dy = target.y - shooter.y;
+  const angle = Math.atan2(dy, dx);
+  const dist = Math.hypot(dx, dy) || 1;
+  const speed = (opts.speed || shooter.speed || 3) * 10;
+  const vx = (dx / dist) * speed;
+  const vy = (dy / dist) * speed;
+
   el.style.position = 'absolute';
   el.style.left = shooter.x + 'px'; el.style.top = shooter.y + 'px';
   el.style.width = el.style.height = (opts.size || 10) + 'px';
   el.style.borderRadius = '50%';
+  el.style.transform = `rotate(${angle}rad)`;
+
   if (opts.color === 'multicolor') {
     el.style.backgroundImage = `conic-gradient(#FFEA00,#00B4FF,#C58ED3,#8B0000)`;
   } else if (opts.color === 'gradient') {
@@ -1704,16 +2139,49 @@ function shoot(shooter, target, opts = {}) {
     el.style.backgroundColor = opts.color || (shooter.projectileColor || '#FFFFFF');
   }
 
+  if (projClass === 'binary_code') {
+    el.textContent = Math.random() < 0.5 ? '0' : '1';
+  }
+
   const mapEl = document.getElementById('map') || document.getElementById('game-area') || document.body;
   mapEl.appendChild(el);
-  gameState.projectiles.push({ x: shooter.x, y: shooter.y, target, speed: opts.speed || 3, damage: shooter.damage || 1, el, meta: opts });
+  gameState.projectiles.push({ 
+    x: shooter.x, 
+    y: shooter.y, 
+    startX: shooter.x,
+    startY: shooter.y,
+    target, 
+    vx,
+    vy,
+    speed, 
+    damage: shooter.damage || 1, 
+    el, 
+    meta: opts,
+    family: shooter.family,
+    type: shooter.type,
+    projectile: projClass,
+    piercing: shooter.piercing || opts.piercing || false,
+    boomerang: shooter.boomerang || opts.boomerang || false,
+    returnPhase: false,
+    hitEntities: new Set(),
+    shooter: shooter
+  });
 }
 
 function die(e, idx) {
+  if (e.poisonTimer && e.poisonTimer > 0) {
+    gameState.enemies.forEach(other => {
+      if (other !== e && !other.poisonTimer && Math.hypot(other.x - e.x, other.y - e.y) < 100) {
+        other.poisonTimer = 3;
+        showEffect(other.x, other.y - 10, "CONTAGIO! 💀", "#9b59b6");
+      }
+    });
+  }
   gameState.globetines += e.reward;
   if (e.mimic) {
-    gameState.pycoins += 5;
-    showMessage(translate('plus_pycoins', { amount: 5 }), 'success');
+    const earnedPy = Math.round(5 * getPycoinMultiplier());
+    gameState.pycoins += earnedPy;
+    showMessage(translate('plus_pycoins', { amount: earnedPy }), 'success');
     if (e.isSpecialMimic && !gameState.unlockedSkins.includes('mimic_set')) {
       gameState.unlockedSkins.push('mimic_set');
       showMessage("🎁 ¡SKIN 'Mimic set' DESBLOQUEADA!", 'success');
@@ -2070,9 +2538,9 @@ function drawStoryLogs() {
 
         <h4>💰 Economía del Juego</h4>
         <ul>
-          <li>🟡 <strong>Globetines</strong>: Moneda interna de partida usada para comprar y mejorar Globs durante las oleadas. Se resetea en cada partida.</li>
-          <li>🟦 <strong>PyCoins</strong>: Residuos de energía/datos obtenidos al derrotar Pyces en combate. Se usan en la Tienda Meta permanente para adquirir mejoras de base, aumentar límites de torres y comprar skins.</li>
-          <li>🟨 <strong>Duckpasses</strong>: Tarjetas especiales patrocinadas por Ducky Glob que permiten comprar mejoras avanzadas (Duckgrades) y skins exclusivas.</li>
+          <li><img src="img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globetines</strong>: Moneda interna de partida usada para comprar y mejorar Globs durante las oleadas. Se resetea en cada partida.</li>
+          <li><img src="img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: Residuos de energía/datos obtenidos al derrotar Pyces en combate. Se usan en la Tienda Meta permanente para adquirir mejoras de base, aumentar límites de torres y comprar skins.</li>
+          <li><img src="img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: Tarjetas especiales patrocinadas por Ducky Glob que permiten comprar mejoras avanzadas (Duckgrades) y skins exclusivas.</li>
         </ul>
 
         <h4>🏪 Meta-progresión</h4>
@@ -2090,9 +2558,9 @@ function drawStoryLogs() {
 
         <h4>💰 Game Economy</h4>
         <ul>
-          <li>🟡 <strong>Globetines</strong>: In-game match currency used to purchase and upgrade Globs during waves. Resets every game.</li>
-          <li>🟦 <strong>PyCoins</strong>: Energy/data residuals obtained from defeating Pyces in combat. Used in the permanent Meta Shop for base upgrades, tower limits, and buying skins.</li>
-          <li>🟨 <strong>Duckpasses</strong>: Special cards sponsored by Ducky Glob to purchase advanced passive skills (Duckgrades) and exclusive skins.</li>
+          <li><img src="img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globets</strong>: In-game match currency used to purchase and upgrade Globs during waves. Resets every game.</li>
+          <li><img src="img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: Energy/data residuals obtained from defeating Pyces in combat. Used in the permanent Meta Shop for base upgrades, tower limits, and buying skins.</li>
+          <li><img src="img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: Special cards sponsored by Ducky Glob to purchase advanced passive skills (Duckgrades) and exclusive skins.</li>
         </ul>
 
         <h4>🏪 Meta-progression</h4>
@@ -2109,25 +2577,26 @@ function drawStoryLogs() {
       container.innerHTML = `
         <h3>📋 Historial de Actualizaciones (GD v2.0.0)</h3>
         <p>¡Bienvenido a la gran actualización de la progresión y jugabilidad de Glob Defenders!</p>
-
+ 
         <h4>Novedades de la Versión:</h4>
         <ul>
+          <li>🔥 <strong>¡Llegan las G-Tácticas (G-Tacks)!</strong> Desbloquea habilidades activas devastadoras para tus torres de nivel máximo en la Meta-Tienda. Úsalas en combate a cambio de Globetines.</li>
+          <li>⚖️ <strong>Actualización de Balance y Progresión</strong>:
+            <ul>
+              <li><strong>Requisitos de Nivel</strong>: Nivel 35 en el Duck Pass requerido para comprar Duckgrades y Nivel 50 para G-Tacks. Los candados se muestran visualmente en la tienda.</li>
+              <li><strong>Multiplicadores de Recompensa</strong>: Desbloquea bonificaciones pasivas de recursos: Nivel 60 (x1.5 PyCoins), Nivel 80 (x2.5 PyCoins), Nivel 100 (x3.0 PyCoins y x2.0 DuckPasses).</li>
+              <li><strong>Reset Multi-Cuenta</strong>: El botón de reset en ajustes ahora borra correctamente el progreso del usuario activo, además del progreso antiguo.</li>
+            </ul>
+          </li>
+          <li>🩶 <strong>Inmunidad de la Familia Gris</strong>: La mejora Duckgrade de la familia Gris ahora otorga inmunidad contra aturdimientos y ralentizaciones a todas las torres cercanas.</li>
           <li>🛠️ <strong>¡Rediseño de la UI de las Torres!</strong> El menú de selección de torres es ahora un Dock inferior flotante y ultra accesible, optimizado para móvil y tablets en formato horizontal.</li>
-          <li>🩶 <strong>Fusión de las Torres Grises</strong>: Old Glob y Pyce Glob se han fusionado en una única línea evolutiva. Coloca un Old Glob (Nivel 1) y evoluciónalo en partida a Pyce Glob (Nivel 2) para distorsionar a los enemigos.</li>
-          <li>📈 <strong>Desbloqueos por Nivel del Duck Pass</strong>:
+          <li>🎁 <strong>Códigos de Regalo Activos</strong>:
             <ul>
-              <li><strong>Glob de Jabón (Azul)</strong>: Se consigue al alcanzar el Nivel 3.</li>
-              <li><strong>Pato Glob (Amarillo)</strong>: Se consigue al alcanzar el Nivel 6.</li>
-              <li><strong>Bombot de Trabajo</strong>: Se consigue al alcanzar el Nivel 60.</li>
+              <li><code>BETA_OPENING</code> (100 Duckpasses)</li>
+              <li><code>REWORKED</code> (100 Duckpasses + 100 Pycoins + 200 XP)</li>
+              <li><code>GLOBS_ATTACK</code> (100 Duckpasses + 100 XP)</li>
             </ul>
           </li>
-          <li>💰 <strong>Nuevos Desbloqueos de Tienda Meta</strong>:
-            <ul>
-              <li><strong>Glob Cometa (Torre Negra)</strong>: Cómprala en la tienda por <strong>250 Pycoins</strong> para desbloquearla permanentemente.</li>
-              <li><strong>Old Glob (Torre Gris)</strong>: Cómprala en la tienda por <strong>150 Pycoins</strong> para desbloquearla permanentemente.</li>
-            </ul>
-          </li>
-          <li>🔄 <strong>Reajuste y Reequilibrio de Límites</strong>: Se ha reseteado el nivel de mejoras y límites para todas las cuentas para adaptarlos al nuevo sistema de progresión. ¡Tus skins y divisas están intactas!</li>
           <li>🎭 <strong>Narrativa Contextual</strong>: Disfruta de introducciones de historia únicas al iniciar los modos de juego <strong>Corrupto</strong> y <strong>AntiNormal</strong>, narradas por los antagonistas del sistema.</li>
         </ul>
       `;
@@ -2135,25 +2604,26 @@ function drawStoryLogs() {
       container.innerHTML = `
         <h3>📋 Update Logs (GD v2.0.0)</h3>
         <p>Welcome to the major progression and gameplay update of Glob Defenders!</p>
-
+ 
         <h4>What's New in this Version:</h4>
         <ul>
+          <li>🔥 <strong>G-Tacks (G-Tactics) Are Here!</strong> Unlock devastating active abilities for your max-level towers in the Meta Shop. Trigger them in-game by spending Globets.</li>
+          <li>⚖️ <strong>Balance & Progression Update</strong>:
+            <ul>
+              <li><strong>Level Requirements</strong>: Level 35 in Duck Pass is required to buy Duckgrades, and Level 50 to buy G-Tacks. Visual locks are displayed in the shop.</li>
+              <li><strong>Prestige Reward Multipliers</strong>: Unlock passive resource yield bonuses: Level 60 (x1.5 PyCoins), Level 80 (x2.5 PyCoins), Level 100 (x3.0 PyCoins and x2.0 DuckPasses).</li>
+              <li><strong>Multi-Account Progress Reset</strong>: Options reset button now wipes the active user's specific progress key in addition to legacy saves.</li>
+            </ul>
+          </li>
+          <li>🩶 <strong>Grey Family Immunity</strong>: The Grey family Duckgrade now grants immunity against stuns and slows to all nearby towers.</li>
           <li>🛠️ <strong>Redesigned Tower UI!</strong> The tower selection panel is now a sleek, bottom-floating dock, optimized for landscape mobile and tablet gaming.</li>
-          <li>🩶 <strong>Merged Grey Towers</strong>: Old Glob and Pyce Glob have been unified into a single evolutionary family. Place an Old Glob (Level 1) and evolve it during gameplay into a Pyce Glob (Level 2) to glitch out enemies.</li>
-          <li>📈 <strong>Duck Pass Level Unlocks</strong>:
+          <li>🎁 <strong>Active Promo Codes</strong>:
             <ul>
-              <li><strong>Soap Glob (Blue)</strong>: Obtained by reaching Level 3.</li>
-              <li><strong>Ducky Glob (Yellow)</strong>: Obtained by reaching Level 6.</li>
-              <li><strong>Work Bombot</strong>: Obtained by reaching Level 60.</li>
+              <li><code>BETA_OPENING</code> (100 Duckpasses)</li>
+              <li><code>REWORKED</code> (100 Duckpasses + 100 Pycoins + 200 XP)</li>
+              <li><code>GLOBS_ATTACK</code> (100 Duckpasses + 100 XP)</li>
             </ul>
           </li>
-          <li>💰 <strong>New Meta Shop Unlocks</strong>:
-            <ul>
-              <li><strong>Comet Glob (Black Tower)</strong>: Purchase from the Meta Shop for <strong>250 Pycoins</strong> to unlock permanently.</li>
-              <li><strong>Old Glob (Grey Tower)</strong>: Purchase from the Meta Shop for <strong>150 Pycoins</strong> to unlock permanently.</li>
-            </ul>
-          </li>
-          <li>🔄 <strong>Upgrades & Limits Reset</strong>: Reset all players' upgrade levels and tower limits once to align with the new progression system. Skins and currencies are safely preserved!</li>
           <li>🎭 <strong>Contextual Story Narration</strong>: Enjoy custom lore intros when launching **Corrupt** and **AntiNormal** game modes, told directly by the system's cyber-antagonists.</li>
         </ul>
       `;
