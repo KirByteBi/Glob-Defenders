@@ -726,6 +726,13 @@ function deactivateCheatedMode() {
   saveProgress();
   showMessage(currentLanguage === 'es' ? "¡Modo Cheated Desactivado!" : "Cheated Mode Deactivated!", 'info');
 }
+function updateHitboxesVisibility() {
+  const map = document.getElementById('map');
+  if (map) {
+    if (typeof showHitbox !== 'undefined' && showHitbox) map.classList.add('show-hitboxes');
+    else map.classList.remove('show-hitboxes');
+  }
+}
 
 function updateSettings() {
   gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
@@ -2296,7 +2303,7 @@ function shoot(shooter, target, opts = {}) {
   const dy = target.y - shooter.y;
   const angle = Math.atan2(dy, dx);
   const dist = Math.hypot(dx, dy) || 1;
-  const speed = (opts.speed || shooter.speed || 3) * 10;
+  const speed = (opts.speed || 40) * 10;
   const vx = (dx / dist) * speed;
   const vy = (dy / dist) * speed;
 
