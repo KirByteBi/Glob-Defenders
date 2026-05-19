@@ -799,8 +799,8 @@ function drawTowerShop() {
       let unlockMsg = '';
       if (item.req === 'lvl3') { reqText = 'Lvl 3'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 3' : '🔒 Unlocks at Duck Pass Level 3'; }
       else if (item.req === 'lvl6') { reqText = 'Lvl 6'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 6' : '🔒 Unlocks at Duck Pass Level 6'; }
-      else if (item.req === 'challenge') { reqText = 'DESAFÍO'; unlockMsg = currentLanguage === 'es' ? '🔒 Desbloqueado al superar modo Anti-normal o Corrupto' : '🔒 Unlocked by beating Anti-normal or Corrupt mode'; }
-      else if (item.req === 'shop') { reqText = 'SHOP'; unlockMsg = currentLanguage === 'es' ? '🔒 Desbloquéalo en la Tienda Meta por PyCoins' : '🔒 Unlock it in the Meta Shop using PyCoins'; }
+      else if (item.req === 'challenge') { reqText = (currentLanguage === 'es' ? 'DESAFÍO' : 'CHALLENGE'); unlockMsg = currentLanguage === 'es' ? '🔒 Desbloqueado al superar modo Anti-normal o Corrupto' : '🔒 Unlocked by beating Anti-normal or Corrupt mode'; }
+      else if (item.req === 'shop') { reqText = (currentLanguage === 'es' ? 'TIENDA' : 'SHOP'); unlockMsg = currentLanguage === 'es' ? '🔒 Desbloquéalo en la Tienda Meta por PyCoins' : '🔒 Unlock it in the Meta Shop using PyCoins'; }
 
       btn.innerHTML = `
                 <div class="lock-overlay">🔒</div>
@@ -1737,7 +1737,11 @@ function deselectTower() { gameState.selectedTower = null; document.getElementBy
 
 function startWave() {
   if (gameState.waveActive || gameState.gameOver) return;
-  if (gameState.mode !== 'infinito' && gameState.wave >= gameState.maxWaves) return typeof endGame === 'function' && endGame(true);
+
+  let maxWaves = gameState.maxWaves || 20;
+  if (gameState.mode === 'pesadilla') maxWaves = 50;
+
+  if (gameState.mode !== 'infinito' && gameState.wave >= maxWaves) return typeof endGame === 'function' && endGame(true);
 
   gameState.waveActive = true;
   gameState.wave = (gameState.wave || 0) + 1;
@@ -1745,8 +1749,25 @@ function startWave() {
   if (typeof showMessage === 'function') showMessage((typeof translate === 'function') ? translate('waveStarted', { wave: gameState.wave }) : `¡Oleada ${gameState.wave}!`, 'info');
 
   const wave = gameState.wave;
-  const baseCount = Math.min(6 + Math.floor(wave * 1.5), 60);
-  const pool = ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'SO_Pyce'];
+
+  let mult = 1.0;
+  if (gameState.mode === 'facil') mult = 0.7;
+  else if (gameState.mode === 'normal') mult = 1.0;
+  else if (gameState.mode === 'dificil') mult = 1.3;
+  else if (gameState.mode === 'extremo') mult = 1.6;
+  else if (gameState.mode === 'corrupto') mult = 1.8;
+  else if (gameState.mode === 'pesadilla') mult = 2.0;
+
+  const baseCount = Math.min(6 + Math.floor(wave * 1.5 * mult), 60);
+
+  const pool = ['Stupid_Pyce'];
+  if (wave >= 2) pool.push('Pyce2');
+  if (wave >= 4) pool.push('Guest_Pyce');
+  if (wave >= 6) pool.push('Symbol_Pyce');
+  if (wave >= 8) pool.push('Noob_Pyce');
+  if (wave >= 10) pool.push('4motions_Pyce');
+  if (wave >= 13) pool.push('SO_Pyce');
+
   const spawnList = [];
 
   const groups = 2 + Math.floor(Math.random() * 3);
@@ -1780,10 +1801,10 @@ function spawnEnemy(type, boss) {
     const wave = gameState.wave || 1;
     const pool = ['Stupid_Pyce'];
     if (wave >= 2) pool.push('Pyce2', 'Pyce2');
-    if (wave >= 3) pool.push('Guest_Pyce', 'Symbol_Pyce');
-    if (wave >= 5) pool.push('Noob_Pyce', 'Noob_Pyce');
-    if (wave >= 8) pool.push('4motions_Pyce');
-    if (wave >= 10) pool.push('Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce');
+    if (wave >= 4) pool.push('Guest_Pyce', 'Symbol_Pyce');
+    if (wave >= 6) pool.push('Noob_Pyce', 'Noob_Pyce');
+    if (wave >= 9) pool.push('4motions_Pyce');
+    if (wave >= 11) pool.push('Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce');
     if (Math.random() < 0.01) type = 'Mimic_Pyce';
     else type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
   }
@@ -1800,7 +1821,16 @@ function spawnEnemy(type, boss) {
   gameArea.appendChild(el);
 
   const name = (typeof translate === 'function' && translate('enemy_' + type + '_name')) || type;
-  const healthScaled = Math.max(1, (t.health || 10) * (1 + (gameState.wave || 1) * 0.15));
+
+  let mult = 1.0;
+  if (gameState.mode === 'facil') mult = 0.7;
+  else if (gameState.mode === 'normal') mult = 1.0;
+  else if (gameState.mode === 'dificil') mult = 1.3;
+  else if (gameState.mode === 'extremo') mult = 1.6;
+  else if (gameState.mode === 'corrupto') mult = 1.8;
+  else if (gameState.mode === 'pesadilla') mult = 2.0;
+
+  const healthScaled = Math.max(1, (t.health || 10) * (1 + (gameState.wave || 1) * 0.15) * mult);
   const enemyObj = { ...t, name, el, x: ENEMY_PATH[0].x, y: ENEMY_PATH[0].y, pathIndex: 0, health: healthScaled, maxHealth: healthScaled, hpFill, shield: (t.shield || 0) * (t.health || 10), type, boss };
   gameState.enemies.push(enemyObj);
 }
@@ -2096,12 +2126,12 @@ function gameLoop() {
 
         if (gameState.duckgrades.dg_Pyce_Glob && t.type === 'Pyce_Glob' && Math.random() < 0.2) {
           for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-            shoot(t, { x: t.x + Math.cos(a) * 100, y: t.y + Math.sin(a) * 100, health: 999 }, true);
+            shoot(t, { x: t.x + Math.cos(a) * 100, y: t.y + Math.sin(a) * 100, health: 999 }, { damage: dmg });
           }
         } else {
           // Ataques Especiales de Skins
-          const specialAttack = getSpecialAttack(t, targets[0]);
-          if (!specialAttack) shoot(t, targets[0]);
+          const specialAttack = getSpecialAttack(t, targets[0], dmg);
+          if (!specialAttack) shoot(t, targets[0], { damage: dmg });
         }
         t.cooldown = 1 / currentSpeed;
       }
@@ -2338,7 +2368,7 @@ function shoot(shooter, target, opts = {}) {
     vx,
     vy,
     speed, 
-    damage: shooter.damage || 1, 
+    damage: opts.damage || shooter.damage || 1, 
     el, 
     meta: opts,
     family: shooter.family,
@@ -2629,7 +2659,7 @@ function getTowerName(t) {
   return translate(t.name);
 }
 
-function getSpecialAttack(t, target) {
+function getSpecialAttack(t, target, dmg) {
   const family = t.family || t.type;
   const equipped = gameState.equippedSkins[family];
   if (!equipped) return false;
@@ -2639,33 +2669,33 @@ function getSpecialAttack(t, target) {
   // Lógica de ataques especiales por evolución
   if (skinSet.id === 'corrupt_swords_set') {
     if (t.type === 'Glob') { // Glob Corrupto: Disparo rápido
-      shoot(t, target); t.cooldown *= 0.5; return true;
+      shoot(t, target, { damage: dmg }); t.cooldown *= 0.5; return true;
     }
     if (t.type === 'Poop_Glob') { // Espadachín Corrupto: Tajo circular
       gameState.enemies.forEach(e => {
-        if (Math.hypot(e.x - t.x, e.y - t.y) < 80) e.health -= t.damage;
+        if (Math.hypot(e.x - t.x, e.y - t.y) < 80) e.health -= dmg;
       });
       showEffect(t.x, t.y, "⚔️", "#ff00ff");
       return true;
     }
     if (t.type === 'Golden_Glob') { // Maestro de Espadas: Triple disparo
-      for (let i = 0; i < 3; i++) setTimeout(() => { if (target.health > 0) shoot(t, target); }, i * 100);
+      for (let i = 0; i < 3; i++) setTimeout(() => { if (target.health > 0) shoot(t, target, { damage: dmg }); }, i * 100);
       return true;
     }
     if (t.type === 'Rainbow_Glob') { // Cabal. del Vacío: Rayo oscuro penetrante
-      shoot({ ...t, projectile: 'void' }, target); return true;
+      shoot({ ...t, projectile: 'void' }, target, { damage: dmg }); return true;
     }
   }
 
   if (skinSet.id === 'mimic_set') {
     if (t.type === 'Comet_Glob') { // Mimic Comet: Disparo dorado
-      shoot({ ...t, projectile: 'gold' }, target); return true;
+      shoot({ ...t, projectile: 'gold' }, target, { damage: dmg }); return true;
     }
     if (t.type === 'Dark_Glob') { // Mimic Oscuro: Ralentización extra
-      shoot(t, target); target.speed *= 0.8; return true;
+      shoot(t, target, { damage: dmg }); target.speed *= 0.8; return true;
     }
     if (t.type === 'Demglob') { // Mimic Supremo: Explosión de dinero
-      shoot(t, target);
+      shoot(t, target, { damage: dmg });
       if (Math.random() < 0.1) { gameState.globetines += 1; showEffect(t.x, t.y, "+1 💰"); updateUI(); }
       return true;
     }

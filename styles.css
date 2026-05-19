@@ -302,6 +302,7 @@ body {
 }
 
 #game-ui {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -315,6 +316,7 @@ body {
 }
 
 #game-stats {
+    position: relative;
     display: flex;
     gap: 20px;
     background: rgba(0,0,0,0.4);
@@ -1342,7 +1344,13 @@ button.active {
 .projectile.slash { background: linear-gradient(90deg, transparent, #fff, transparent); box-shadow: 0 0 8px #fff; width: 50px !important; height: 6px !important; border-radius: 50%; }
 .projectile.binary_code { background: transparent; color: #0f0; font-family: monospace; font-size: 16px; font-weight: bold; text-shadow: 0 0 5px #0f0; display: flex; justify-content: center; align-items: center; }
 
-@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes spin { 
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+.tower.stunned, .tower.stunned-spin {
+    transform: translate(-50%, -50%) !important;
+}
 .stunned-spin { animation: spin 1s linear infinite !important; filter: grayscale(50%) sepia(50%) hue-rotate(-50deg); }
 /* Meta Game Modals */
 .meta-grid {
@@ -1593,11 +1601,11 @@ button.active {
 }
 
 @keyframes glitchShake {
-    0% { transform: translate(0,0) scale(1); }
-    25% { transform: translate(-5px, 2px) scale(1.1); filter: hue-rotate(90deg); }
-    50% { transform: translate(5px, -2px) scale(1); filter: invert(1); }
-    75% { transform: translate(-2px, -5px) scale(1.05); filter: contrast(200%); }
-    100% { transform: translate(0,0) scale(1); }
+    0% { transform: translate(-50%, -50%) scale(1); }
+    25% { transform: translate(calc(-50% - 5px), calc(-50% + 2px)) scale(1.1); filter: hue-rotate(90deg); }
+    50% { transform: translate(calc(-50% + 5px), calc(-50% - 2px)) scale(1); filter: invert(1); }
+    75% { transform: translate(calc(-50% - 2px), calc(-50% - 5px)) scale(1.05); filter: contrast(200%); }
+    100% { transform: translate(-50%, -50%) scale(1); }
 }
 
 .anti-normal {
