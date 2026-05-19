@@ -197,6 +197,14 @@
                 </label>
             </div>
 
+            <div class="option-row" id="admin-cheated-row" style="display: none;">
+                <span>⚠️ Cheated Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="opt-cheated" onchange="updateSettings()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
             <hr>
             <button id="reset-btn" onclick="confirmReset()" class="reset-btn">🧨 Resetear Todo el Progreso</button>
             <button onclick="closeOptions()" class="close-btn">Guardar y Cerrar</button>

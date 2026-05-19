@@ -185,6 +185,8 @@ const TRANSLATIONS = {
     skin_business_desc: "De un puesto de gelatina a una gran fábrica.",
     skin_universolar_name: "Set Universolar",
     skin_universolar_desc: "¡Poder estelar y elegancia espacial!",
+    skin_turret_name: "Set Torreta",
+    skin_turret_desc: "¡Tecnología de defensa aérea e intergaláctica para la línea gris!",
     upgrade_range_name: "Alcance Maestro",
     upgrade_range_desc: "+20 Alcance para todas las torres",
     upgrade_damage_name: "Poder del Pato",
@@ -444,6 +446,8 @@ const TRANSLATIONS = {
     skin_business_desc: "From a jelly stand to a giant factory.",
     skin_universolar_name: "Universolar Set",
     skin_universolar_desc: "Stellar power and spatial elegance!",
+    skin_turret_name: "Turret Set",
+    skin_turret_desc: "Air defense and intergalactic technology for the grey line!",
     upgrade_range_name: "Master Range",
     upgrade_range_desc: "+20 Range for all towers",
     upgrade_damage_name: "Duck Power",
@@ -875,6 +879,15 @@ const SKINS_DATA = {
       }
     }
   ],
+  'Grey': [
+    {
+      id: 'turret_set', name: 'skin_turret_name', desc: 'skin_turret_desc', cost: 250, type: 'pycoin',
+      skins: {
+        'Old_Glob': 'img/Skins/Gris Disperso/Turret Glob (SK-EVO1).png',
+        'Pyce_Glob': 'img/Skins/Gris Disperso/Spaceship Glob (SK-EVO2).png'
+      }
+    }
+  ],
   'Comet_Glob': [
     {
       id: 'universolar_comet_set', name: 'skin_universolar_name', desc: 'skin_universolar_desc', cost: 450, type: 'pycoin',
@@ -942,7 +955,9 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_music_name": "Set Musical",
   "skin_music_desc": "Aspecto con notas musicales.",
   "skin_abyssal_name": "Set Abismal",
-  "skin_abyssal_desc": "Aspecto abisal."
+  "skin_abyssal_desc": "Aspecto abisal.",
+  "skin_turret_name": "Set Torreta",
+  "skin_turret_desc": "¡Tecnología de defensa aérea e intergaláctica para la línea gris!"
 });
 
 window.SKIN_META = window.SKIN_META || {};

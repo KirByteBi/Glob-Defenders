@@ -101,8 +101,11 @@ let gameState = {
   equippedSkins: {
     'Glob': 'default',
     'Red_Glob': 'default',
-    'Global': 'default'
+    'Global': 'default',
+    'Grey': 'default'
   },
+  cheatedModeActive: false,
+  cheatedBackup: null,
   failedCodeAttempts: 0,
   logoClicks: 0,
   antiNormalActive: false,
@@ -202,6 +205,8 @@ function saveProgress() {
     // ========== AÑADE ESTAS DOS LÍNEAS ==========
     musicEnabled: musicEnabled,
     showHitbox: showHitbox,
+    cheatedModeActive: gameState.cheatedModeActive,
+    cheatedBackup: gameState.cheatedBackup,
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
 }
@@ -278,7 +283,9 @@ function loadProgress(username) {
       gameState.baseHealthLevel = progress.baseHealthLevel || 0;
       gameState.usedCodes = progress.usedCodes || {};
       gameState.unlockedSkins = progress.unlockedSkins || ['default'];
-      gameState.equippedSkins = progress.equippedSkins || { 'Glob': 'default', 'Red_Glob': 'default', 'Global': 'default' };
+      gameState.equippedSkins = Object.assign({ 'Glob': 'default', 'Red_Glob': 'default', 'Global': 'default', 'Grey': 'default' }, progress.equippedSkins || {});
+      gameState.cheatedModeActive = progress.cheatedModeActive || false;
+      gameState.cheatedBackup = progress.cheatedBackup || null;
       gameState.unlockedAntiNormal = progress.unlockedAntiNormal || false;
       gameState.claimedRewards = progress.claimedRewards || [];
       gameState.muted = progress.muted || false;
@@ -625,11 +632,98 @@ function openOptions() {
   document.getElementById('opt-show-damage').checked = gameState.settings.showTotalDamage;
   const hitboxCheck = document.getElementById('opt-show-hitbox');
   if (hitboxCheck) hitboxCheck.checked = showHitbox;
+
+  // Cheated Mode admin option
+  const cheatedRow = document.getElementById('admin-cheated-row');
+  if (cheatedRow) {
+    cheatedRow.style.display = gameState.adminMode ? 'flex' : 'none';
+  }
+  const cheatedCheck = document.getElementById('opt-cheated');
+  if (cheatedCheck) {
+    cheatedCheck.checked = !!gameState.cheatedModeActive;
+  }
 }
 
 function closeOptions() {
   document.getElementById('options-modal').style.display = 'none';
   saveProgress();
+}
+
+function activateCheatedMode() {
+  // 1. Back up current state
+  gameState.cheatedBackup = {
+    unlockedSkins: JSON.parse(JSON.stringify(gameState.unlockedSkins)),
+    equippedSkins: JSON.parse(JSON.stringify(gameState.equippedSkins)),
+    claimedRewards: JSON.parse(JSON.stringify(gameState.claimedRewards)),
+    pycoins: gameState.pycoins,
+    duckPassCurrency: gameState.duckPassCurrency,
+    duckPassXP: gameState.duckPassXP,
+    duckPassLevel: gameState.duckPassLevel,
+    badges: Object.fromEntries(Object.entries(BADGES).map(([k, v]) => [k, v.unlocked]))
+  };
+  gameState.cheatedModeActive = true;
+
+  // 2. Unlock all badges without showing popups
+  Object.keys(BADGES).forEach(k => {
+    BADGES[k].unlocked = true;
+  });
+
+  // 3. Prevent popups/claim rewards
+  gameState.claimedRewards = Object.keys(BADGES);
+
+  // 4. Unlock all skins
+  const allSkins = ['default'];
+  Object.keys(SKINS_DATA).forEach(family => {
+    SKINS_DATA[family].forEach(skin => {
+      if (skin.id && !allSkins.includes(skin.id)) {
+        allSkins.push(skin.id);
+      }
+    });
+  });
+  gameState.unlockedSkins = allSkins;
+
+  // 5. Update UI
+  drawBadges();
+  updateMetaUI();
+  drawTowerShop();
+  saveProgress();
+  showMessage(currentLanguage === 'es' ? "¡Modo Cheated Activado! 👑" : "Cheated Mode Activated! 👑", 'success');
+}
+
+function deactivateCheatedMode() {
+  if (!gameState.cheatedBackup) return;
+
+  // 1. Restore from backup
+  const backup = gameState.cheatedBackup;
+  gameState.unlockedSkins = backup.unlockedSkins || ['default'];
+  gameState.equippedSkins = backup.equippedSkins || { 'Glob': 'default', 'Red_Glob': 'default', 'Global': 'default', 'Grey': 'default' };
+  gameState.claimedRewards = backup.claimedRewards || [];
+  gameState.pycoins = backup.pycoins || 0;
+  gameState.duckPassCurrency = backup.duckPassCurrency || 0;
+  gameState.duckPassXP = backup.duckPassXP || 0;
+  gameState.duckPassLevel = backup.duckPassLevel || 1;
+
+  Object.keys(BADGES).forEach(k => {
+    if (BADGES[k]) {
+      BADGES[k].unlocked = !!backup.badges[k];
+    }
+  });
+
+  gameState.cheatedModeActive = false;
+  gameState.cheatedBackup = null;
+
+  // 2. Revert equipped skins visually on towers in play
+  gameState.towers.forEach(t => {
+    t.el.style.backgroundImage = `url('${getTowerImage(t.type)}')`;
+    applyTowerEffects(t.el, t.type);
+  });
+
+  // 3. Update UI
+  drawBadges();
+  updateMetaUI();
+  drawTowerShop();
+  saveProgress();
+  showMessage(currentLanguage === 'es' ? "¡Modo Cheated Desactivado!" : "Cheated Mode Deactivated!", 'info');
 }
 
 function updateSettings() {
@@ -641,6 +735,18 @@ function updateSettings() {
   updateHitboxesVisibility();
 
   document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
+
+  // Cheated Mode detection
+  const cheatedCheck = document.getElementById('opt-cheated');
+  if (cheatedCheck) {
+    const isCheatedNow = cheatedCheck.checked;
+    if (isCheatedNow && !gameState.cheatedModeActive) {
+      activateCheatedMode();
+    } else if (!isCheatedNow && gameState.cheatedModeActive) {
+      deactivateCheatedMode();
+    }
+  }
+
   drawTowerShop();
   saveProgress();
 }
@@ -1153,7 +1259,7 @@ function isTowerOwned(t) {
   if (t === 'Soap_Glob') return gameState.duckPassLevel >= 3;
   if (t === 'Ducky_Glob') return gameState.duckPassLevel >= 6;
   if (t === 'Work_Bombot') return !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked);
-  if (t === 'Old_Glob' || t === 'Pyce_Glob') return !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked);
+  if (t === 'Old_Glob' || t === 'Pyce_Glob' || t === 'Grey') return !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked);
   if (t === 'Comet_Glob') return !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked);
   return false;
 }
