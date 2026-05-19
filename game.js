@@ -106,6 +106,7 @@ let gameState = {
   },
   cheatedModeActive: false,
   cheatedBackup: null,
+  adminMode: false,
   failedCodeAttempts: 0,
   logoClicks: 0,
   antiNormalActive: false,
