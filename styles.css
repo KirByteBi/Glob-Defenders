@@ -821,3 +821,30 @@ input:checked + .slider:before {
     from { transform: scale(0.8); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
+
+/* ===================== ARREGLAR LOGO STARJUMP ===================== */
+.collab-logo {
+    width: 50px !important;
+    height: 50px !important;
+    max-width: 50px !important;
+    max-height: 50px !important;
+    object-fit: contain;
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+    .collab-logo {
+        width: 35px !important;
+        height: 35px !important;
+        max-width: 35px !important;
+        max-height: 35px !important;
+    }
+}
+
+@media (max-width: 600px) and (orientation: landscape) {
+    .collab-logo {
+        width: 25px !important;
+        height: 25px !important;
+        max-width: 25px !important;
+        max-height: 25px !important;
+    }
+}
