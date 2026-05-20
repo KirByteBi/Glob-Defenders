@@ -1329,6 +1329,8 @@ button.active {
 .projectile.laser_rainbow { background: linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta); box-shadow: 0 0 10px #fff; width: 40px !important; height: 4px !important; border-radius: 0; }
 .projectile.bomb { background: #333; border: 2px solid #ff4500; width: 12px; height: 12px; box-shadow: 0 0 10px #ff4500; border-radius: 50%; }
 .projectile.star { background: #ffff00; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); width: 15px; height: 15px; border-radius: 0; }
+.projectile.star_yellow { background: #ffff00; box-shadow: 0 0 8px #ffff00; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); width: 15px; height: 15px; border-radius: 0; }
+.projectile.star_celeste { background: #00ffff; box-shadow: 0 0 8px #00ffff; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); width: 15px; height: 15px; border-radius: 0; }
 .projectile.star_dark { background: #4b0082; border: 1px solid #fff; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); width: 15px; height: 15px; border-radius: 0; }
 .projectile.gold { background: #ffd700; box-shadow: 0 0 5px #ffd700; width: 8px; height: 8px; }
 .projectile.brown { background: #8b4513; width: 10px; height: 10px; }
@@ -2297,4 +2299,35 @@ input:checked + .slider:before {
         margin-top: 12px;
         font-size: 1.05rem;
     }
+}
+
+/* ===================== STARJUMP COLLABORATION ===================== */
+.collab-footer {
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.collab-label {
+    font-size: 0.65rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.collab-logo {
+    width: 60px;
+    height: auto;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.2));
+}
+
+.collab-logo:hover {
+    transform: scale(1.15) rotate(5deg);
+    filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.7));
 }

@@ -1042,7 +1042,8 @@ function bindEvents() {
       'MANOLO': { py: 100, msg: '100 PyCoins' },
       'BETA_OPENING': { dp: 100, msg: '100 DuckPass' },
       'REWORKED': { dp: 100, py: 100, xp: 200, msg: '100 DuckPass + 100 PyCoins + 200 XP' },
-      'GLOBS_ATTACK': { dp: 100, xp: 100, msg: '100 DuckPass + 100 XP' }
+      'GLOBS_ATTACK': { dp: 100, xp: 100, msg: '100 DuckPass + 100 XP' },
+      'GALAXIUM': { py: 200, dp: 200, msg: '200 PyCoins + 200 DuckPass' }
     };
 
     if (rewards[code]) {
@@ -1749,51 +1750,192 @@ function startWave() {
   if (typeof showMessage === 'function') showMessage((typeof translate === 'function') ? translate('waveStarted', { wave: gameState.wave }) : `¡Oleada ${gameState.wave}!`, 'info');
 
   const wave = gameState.wave;
+  const mode = gameState.mode; // 'facil', 'normal', 'dificil', 'extremo', 'corrupto', 'antiNormal', 'infinito'
 
+  // 1. Determinar multiplicador de dificultad para la salud de los enemigos
   let mult = 1.0;
-  if (gameState.mode === 'facil') mult = 0.7;
-  else if (gameState.mode === 'normal') mult = 1.0;
-  else if (gameState.mode === 'dificil') mult = 1.3;
-  else if (gameState.mode === 'extremo') mult = 1.6;
-  else if (gameState.mode === 'corrupto') mult = 1.8;
-  else if (gameState.mode === 'pesadilla') mult = 2.0;
-
-  const baseCount = Math.min(6 + Math.floor(wave * 1.5 * mult), 60);
-
-  const pool = ['Stupid_Pyce'];
-  if (wave >= 2) pool.push('Pyce2');
-  if (wave >= 4) pool.push('Guest_Pyce');
-  if (wave >= 6) pool.push('Symbol_Pyce');
-  if (wave >= 8) pool.push('Noob_Pyce');
-  if (wave >= 10) pool.push('4motions_Pyce');
-  if (wave >= 13) pool.push('SO_Pyce');
+  if (mode === 'facil') mult = 0.7;
+  else if (mode === 'normal') mult = 1.0;
+  else if (mode === 'dificil') mult = 1.3;
+  else if (mode === 'extremo') mult = 1.6;
+  else if (mode === 'corrupto' || mode === 'antiNormal') mult = 1.8;
+  else if (mode === 'pesadilla') mult = 2.0;
 
   const spawnList = [];
+  let isBossWave = false;
+  const bossesToSpawn = [];
 
-  const groups = 2 + Math.floor(Math.random() * 3);
-  for (let g = 0; g < groups; g++) {
-    const type = (Math.random() < 0.12 && wave > 6) ? 'Mimic_Pyce' : pool[Math.floor(Math.random() * pool.length)];
-    const cnt = Math.max(1, Math.round(baseCount / groups + (Math.random() - 0.5) * 3));
-    for (let i = 0; i < cnt; i++) spawnList.push(type);
+  // 2. Construir la lista de enemigos según el modo y oleada
+  if (mode === 'facil') {
+    // Modo Fácil: Pocos enemigos, tutorial para asimilar conceptos. Termina en la oleada 10.
+    // Solo Stupid_Pyce, Pyce2, Guest_Pyce y Symbol_Pyce. Sin jefes.
+    let countStupid = 2 + Math.floor(wave * 0.6);
+    let countPyce2 = wave >= 2 ? 1 + Math.floor((wave - 1) * 0.5) : 0;
+    let countSymbol = wave >= 4 ? 1 + Math.floor((wave - 3) * 0.5) : 0;
+    let countGuest = wave >= 6 ? 1 + Math.floor((wave - 5) * 0.5) : 0;
+
+    for (let i = 0; i < countStupid; i++) spawnList.push('Stupid_Pyce');
+    for (let i = 0; i < countPyce2; i++) spawnList.push('Pyce2');
+    for (let i = 0; i < countSymbol; i++) spawnList.push('Symbol_Pyce');
+    for (let i = 0; i < countGuest; i++) spawnList.push('Guest_Pyce');
+
+  } else if (mode === 'normal') {
+    // Modo Normal: Enseña conceptos de Fácil, añade Noob_Pyce, 4motions_Pyce, SO_Pyce (Serious Outline).
+    // Jefe primerizo 1x1x1x1_Pyce en la oleada 10 (casi solo). Termina en la 15.
+    if (wave === 10) {
+      isBossWave = true;
+      bossesToSpawn.push('1x1x1x1_Pyce');
+      spawnList.push('Stupid_Pyce', 'Stupid_Pyce'); // 2 torpes de adorno
+    } else {
+      let pool = ['Stupid_Pyce'];
+      if (wave >= 2) pool.push('Pyce2');
+      if (wave >= 3) pool.push('Guest_Pyce', 'Symbol_Pyce');
+      if (wave >= 5) pool.push('Noob_Pyce');
+      if (wave >= 7) pool.push('4motions_Pyce', 'SO_Pyce');
+
+      // Pocos enemigos al inicio, escala moderado
+      let baseCount = 3 + Math.floor(wave * 1.1);
+      for (let i = 0; i < baseCount; i++) {
+        spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
+      }
+
+      // Adición ocasional de Mimic o Gold
+      if (wave >= 5 && Math.random() < 0.15) {
+        spawnList.push(Math.random() < 0.5 ? 'Stupid_GoldPyce' : 'Flower_Pyce');
+      }
+    }
+
+  } else if (mode === 'dificil') {
+    // Modo Difícil: Salen todos los básicos desde el inicio (gradual pero rápido).
+    // Jefe 1x1x1x1_Pyce en oleada 10 ACOMPAÑADO.
+    // Jefe NOeye_Pyce en la oleada 20 ACOMPAÑADO.
+    // Termina en 25 con final grandioso.
+    if (wave === 10) {
+      isBossWave = true;
+      bossesToSpawn.push('1x1x1x1_Pyce');
+      for (let i = 0; i < 3; i++) spawnList.push('Symbol_Pyce');
+      for (let i = 0; i < 2; i++) spawnList.push('Noob_Pyce');
+    } else if (wave === 20) {
+      isBossWave = true;
+      bossesToSpawn.push('NOeye_Pyce');
+      for (let i = 0; i < 4; i++) spawnList.push('SO_Pyce');
+      for (let i = 0; i < 2; i++) spawnList.push('Noob_Pyce');
+    } else if (wave === 25) {
+      isBossWave = true;
+      bossesToSpawn.push('1x1x1x1_Pyce', 'NOeye_Pyce');
+      for (let i = 0; i < 6; i++) spawnList.push('SO_Pyce');
+      for (let i = 0; i < 4; i++) spawnList.push('Symbol_Pyce');
+    } else {
+      let pool = ['Stupid_Pyce', 'Pyce2'];
+      if (wave >= 2) pool.push('Guest_Pyce', 'Symbol_Pyce');
+      if (wave >= 4) pool.push('Noob_Pyce', '4motions_Pyce');
+      if (wave >= 6) pool.push('SO_Pyce');
+      if (wave >= 11) pool.push('Flower_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce');
+
+      let baseCount = 4 + Math.floor(wave * 1.4);
+      for (let i = 0; i < baseCount; i++) {
+        spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
+      }
+    }
+
+  } else if (mode === 'extremo') {
+    // Modo Extremo: Como difícil, pero con más enemigos y escalado superior. Termina en 40.
+    // Bosses en 10 (1x1x1x1), 20 (NOeye), 30 (1x1x1x1 + NOeye), 40 (Todos los jefes permitidos: 1x1x1x1 + NOeye).
+    if (wave === 10) {
+      isBossWave = true;
+      bossesToSpawn.push('1x1x1x1_Pyce');
+      for (let i = 0; i < 4; i++) spawnList.push('Noob_Pyce');
+      for (let i = 0; i < 2; i++) spawnList.push('SO_Pyce');
+    } else if (wave === 20) {
+      isBossWave = true;
+      bossesToSpawn.push('NOeye_Pyce');
+      for (let i = 0; i < 5; i++) spawnList.push('SO_Pyce');
+      for (let i = 0; i < 3; i++) spawnList.push('4motions_Pyce');
+    } else if (wave === 30) {
+      isBossWave = true;
+      bossesToSpawn.push('1x1x1x1_Pyce', 'NOeye_Pyce');
+      for (let i = 0; i < 6; i++) spawnList.push('4motions_Pyce');
+      for (let i = 0; i < 3; i++) spawnList.push('Flower_Pyce');
+    } else if (wave === 40) {
+      isBossWave = true;
+      bossesToSpawn.push('1x1x1x1_Pyce', 'NOeye_Pyce');
+      for (let i = 0; i < 8; i++) spawnList.push('SO_Pyce');
+      for (let i = 0; i < 4; i++) spawnList.push('Flower_Pyce');
+    } else {
+      let pool = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce'];
+      if (wave >= 2) pool.push('Guest_Pyce', 'Noob_Pyce');
+      if (wave >= 4) pool.push('4motions_Pyce', 'SO_Pyce');
+      if (wave >= 6) pool.push('Flower_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce');
+
+      let baseCount = 5 + Math.floor(wave * 1.7);
+      for (let i = 0; i < baseCount; i++) {
+        spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
+      }
+    }
+
+  } else {
+    // Modos Anti-Normal, Corrupto, Infinito y Pesadilla.
+    // Empiezan muy cargados desde la oleada 1 (muchos enemigos tipo Pyce/Pyce2) y suben a velocidad creciente.
+    if (wave % 10 === 0) {
+      isBossWave = true;
+      if (wave === 10) bossesToSpawn.push('1x1x1x1_Pyce');
+      else if (wave === 20) bossesToSpawn.push('NOeye_Pyce');
+      else if (wave === 30) {
+        if (mode === 'corrupto' || mode === 'antiNormal') {
+          bossesToSpawn.push('MoonStar_Pyce');
+        } else {
+          bossesToSpawn.push('NOeye_Pyce');
+        }
+      } else {
+        if (mode === 'corrupto' || mode === 'antiNormal') {
+          bossesToSpawn.push('NOeye_Pyce', 'MoonStar_Pyce');
+        } else {
+          bossesToSpawn.push('1x1x1x1_Pyce', 'NOeye_Pyce');
+        }
+      }
+
+      let swarmCount = 10 + Math.floor(wave * 0.9);
+      let pool = ['Symbol_Pyce', 'Noob_Pyce', 'SO_Pyce', '4motions_Pyce'];
+      for (let i = 0; i < swarmCount; i++) {
+        spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
+      }
+    } else {
+      // Empieza denso (ej. ~12-15 enemigos en oleada 1)
+      let baseCount = 10 + Math.floor(wave * 2.2 * mult);
+      let pool = ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce'];
+      if (wave >= 2) pool.push('Noob_Pyce', '4motions_Pyce', 'SO_Pyce');
+      if (wave >= 4) pool.push('Flower_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce');
+
+      for (let i = 0; i < baseCount; i++) {
+        spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
+      }
+    }
   }
 
-  for (let i = 0; i < Math.floor(wave / 5); i++) {
-    if (Math.random() < 0.4) spawnList.push(['Stupid_GoldPyce', 'Flower_Pyce'][Math.floor(Math.random() * 2)]);
-  }
-
+  // 3. Mezclar la lista de enemigos regulares para que no salgan todos juntos de golpe
   for (let i = spawnList.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [spawnList[i], spawnList[j]] = [spawnList[j], spawnList[i]];
   }
 
+  // 4. Anteponer los jefes a la lista de spawn para que entren primero en combate
+  if (isBossWave && bossesToSpawn.length > 0) {
+    spawnList.unshift(...bossesToSpawn);
+  }
+
+  // 5. Iniciar secuencia de generación con temporizador
   let spawned = 0;
   const interval = setInterval(() => {
+    if (gameState.gameOver || !gameState.waveActive) {
+      clearInterval(interval);
+      return;
+    }
     const type = spawnList[spawned] || null;
-    const boss = (spawned === 0 && (gameState.wave % 10 === 0));
-    spawnEnemy(type, boss);
+    const isThisBoss = isBossWave && bossesToSpawn.includes(type) && (spawned < bossesToSpawn.length);
+    spawnEnemy(type, isThisBoss);
     spawned++;
     if (spawned >= spawnList.length) clearInterval(interval);
-  }, Math.max(400, 800 - Math.min(400, wave * 20)));
+  }, Math.max(300, 800 - Math.min(500, wave * 25)));
 }
 
 function spawnEnemy(type, boss) {
@@ -2653,7 +2795,11 @@ function getTowerName(t) {
   if (equipped) {
     const skinSet = SKINS_DATA[family]?.find(s => s.id === equipped);
     if (skinSet?.isSpecial && skinSet.names?.[t.type]) {
-      return skinSet.names[t.type];
+      const val = skinSet.names[t.type];
+      if (val && typeof val === 'object') {
+        return val[currentLanguage] || val['es'] || val['en'];
+      }
+      return val;
     }
   }
   return translate(t.name);
@@ -2698,6 +2844,15 @@ function getSpecialAttack(t, target, dmg) {
       shoot(t, target, { damage: dmg });
       if (Math.random() < 0.1) { gameState.globetines += 1; showEffect(t.x, t.y, "+1 💰"); updateUI(); }
       return true;
+    }
+  }
+
+  if (skinSet.id === 'starjump_set') {
+    if (t.type === 'Old_Glob') { // EVO1: Estrella Amarilla
+      shoot(t, target, { projectile: 'star_yellow', damage: dmg }); return true;
+    }
+    if (t.type === 'Pyce_Glob') { // EVO2: Estrella Celeste
+      shoot(t, target, { projectile: 'star_celeste', damage: dmg }); return true;
     }
   }
 
@@ -2895,6 +3050,7 @@ function drawStoryLogs() {
               <li><code>BETA_OPENING</code> (100 Duckpasses)</li>
               <li><code>REWORKED</code> (100 Duckpasses + 100 Pycoins + 200 XP)</li>
               <li><code>GLOBS_ATTACK</code> (100 Duckpasses + 100 XP)</li>
+              <li><code>GALAXIUM</code> (200 PyCoins + 200 DuckPasses)</li>
             </ul>
           </li>
           <li>🎭 <strong>Narrativa Contextual</strong>: Disfruta de introducciones de historia únicas al iniciar los modos de juego <strong>Corrupto</strong> y <strong>AntiNormal</strong>, narradas por los antagonistas del sistema.</li>
@@ -2933,6 +3089,7 @@ function drawStoryLogs() {
               <li><code>BETA_OPENING</code> (100 Duckpasses)</li>
               <li><code>REWORKED</code> (100 Duckpasses + 100 Pycoins + 200 XP)</li>
               <li><code>GLOBS_ATTACK</code> (100 Duckpasses + 100 XP)</li>
+              <li><code>GALAXIUM</code> (200 PyCoins + 200 DuckPasses)</li>
             </ul>
           </li>
           <li>🎭 <strong>Contextual Story Narration</strong>: Enjoy custom lore intros when launching **Corrupt** and **AntiNormal** game modes, told directly by the system's cyber-antagonists.</li>

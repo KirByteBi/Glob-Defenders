@@ -85,7 +85,7 @@ const TRANSLATIONS = {
     enemy_4motions_Pyce_name: "4motions Pyce",
     enemy_SO_Pyce_name: "Pyce Serio",
     enemy_1x1x1x1_Pyce_name: "Corruptor 1x1",
-    enemy_NOeye_Pyce_name: "Ojo Ciego Pyce",
+    enemy_NOeye_Pyce_name: "NOeye Pyce",
     enemy_MoonStar_Pyce_name: "MoonStar Pyce",
     enemy_Stupid_GoldPyce_name: "Pyce de Oro Torpe",
     enemy_Flower_Pyce_name: "Flower Pyce",
@@ -351,7 +351,7 @@ const TRANSLATIONS = {
     enemy_4motions_Pyce_name: "4motions Pyce",
     enemy_SO_Pyce_name: "Serious Pyce",
     enemy_1x1x1x1_Pyce_name: "Corruptor 1x1",
-    enemy_NOeye_Pyce_name: "Blind Eye Pyce",
+    enemy_NOeye_Pyce_name: "NOeye Pyce",
     enemy_MoonStar_Pyce_name: "MoonStar Pyce",
     enemy_Stupid_GoldPyce_name: "Stupid GoldPyce",
     enemy_Flower_Pyce_name: "Flower Pyce",
@@ -756,7 +756,7 @@ const ENEMY_TYPES = {
   'SO_Pyce': { name: 'Pyce Serio', health: 450, speed: 0.6, reward: 80, image: IMAGE_PATHS.SO_Pyce },
 
   '1x1x1x1_Pyce': { name: 'Corruptor 1x1', health: 500, speed: 0.5, reward: 500, image: IMAGE_PATHS['1x1x1x1_Pyce'], boss: true, bossStun: true, stunCooldown: 10 },
-  'NOeye_Pyce': { name: 'Ojo Ciego Pyce', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12 },
+  'NOeye_Pyce': { name: 'NOeye Pyce', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12 },
   'MoonStar_Pyce': { name: 'MoonStar Pyce', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true },
 
   'Stupid_GoldPyce': { name: 'Pyce de Oro Torpe', health: 80, speed: 2.0, reward: 150, image: IMAGE_PATHS.Stupid_GoldPyce, mimic: true },
@@ -885,6 +885,17 @@ const SKINS_DATA = {
       skins: {
         'Old_Glob': 'img/Skins/Gris Disperso/Turret Glob (SK-EVO1).png',
         'Pyce_Glob': 'img/Skins/Gris Disperso/Spaceship Glob (SK-EVO2).png'
+      }
+    },
+    {
+      id: 'starjump_set', name: 'Starry (Destellito)', desc: '¡Colaboración especial con StarJump! Dispara estrellas cósmicas.', cost: 777, duckpass_cost: 666, type: 'pycoin', isSpecial: true,
+      skins: {
+        'Old_Glob': 'img/Collabs (SJ)/Skin/Starry (SK-EVO1).png',
+        'Pyce_Glob': 'img/Collabs (SJ)/Skin/Astral_Starry (SK_EVO2).png'
+      },
+      names: {
+        'Old_Glob': { es: 'Destellito', en: 'Starry' },
+        'Pyce_Glob': { es: 'Destellito Angelical', en: 'Heroic Starry' }
       }
     }
   ],
