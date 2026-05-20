@@ -2302,32 +2302,41 @@ input:checked + .slider:before {
 }
 
 /* ===================== STARJUMP COLLABORATION ===================== */
-.collab-footer {
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.15);
+#collab-badge {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 9999;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 3px;
+    text-decoration: none;
+    opacity: 0.75;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.collab-label {
-    font-size: 0.65rem;
+#collab-badge:hover {
+    opacity: 1;
+    transform: scale(1.1) rotate(3deg);
+}
+
+#collab-badge .collab-label {
+    font-size: 0.5rem;
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.6);
     letter-spacing: 2px;
     text-transform: uppercase;
+    font-family: 'Outfit', sans-serif;
 }
 
-.collab-logo {
-    width: 60px;
+#collab-badge .collab-logo {
+    width: 48px;
     height: auto;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.2));
+    filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.3));
+    transition: filter 0.3s;
 }
 
-.collab-logo:hover {
-    transform: scale(1.15) rotate(5deg);
-    filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.7));
+#collab-badge:hover .collab-logo {
+    filter: drop-shadow(0 0 14px rgba(0, 255, 255, 0.8));
 }
