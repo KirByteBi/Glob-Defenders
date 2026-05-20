@@ -8,46 +8,37 @@ let showHitbox = false;
 // Generamos spots automáticamente evitando el río y el camino
 const TOWER_SPOTS = [];
 function generateSpots() {
-  // Limpiar array por si acaso
   TOWER_SPOTS.length = 0;
 
-  // Zonas prohibidas (río y camino)
   const forbiddenZones = [
-    { x: 300, y: 0, w: 60, h: 600 },      // Río vertical
-    { x: 300, y: 200, w: 200, h: 60 },     // Brazo de río
-    { x: 0, y: 170, w: 200, h: 60 },       // Camino segmento 1
-    { x: 170, y: 170, w: 60, h: 200 },     // Camino segmento 2
-    { x: 170, y: 330, w: 300, h: 60 },     // Camino segmento 3
-    { x: 430, y: 150, w: 60, h: 240 },     // Camino segmento 4
-    { x: 430, y: 150, w: 300, h: 60 },     // Camino segmento 5
-    { x: 700, y: 150, w: 60, h: 200 },     // Camino segmento 6
-    { x: 700, y: 330, w: 300, h: 60 }      // Camino segmento 7
+    { x: 300, y: 0, w: 60, h: 600 },
+    { x: 300, y: 200, w: 200, h: 60 },
+    { x: 0, y: 170, w: 200, h: 60 },
+    { x: 170, y: 170, w: 60, h: 200 },
+    { x: 170, y: 330, w: 300, h: 60 },
+    { x: 430, y: 150, w: 60, h: 240 },
+    { x: 430, y: 150, w: 300, h: 60 },
+    { x: 700, y: 150, w: 60, h: 200 },
+    { x: 700, y: 330, w: 300, h: 60 }
   ];
 
-  // Grid MÁS DENSO: 75px en lugar de 100px (más spots!)
   for (let x = 35; x < 950; x += 75) {
     for (let y = 35; y < 550; y += 75) {
       let collides = false;
-
-      // Verificar si colisiona con zona prohibida
       for (let zone of forbiddenZones) {
         if (x + 40 > zone.x && x - 40 < zone.x + zone.w &&
-          y + 40 > zone.y && y - 40 < zone.y + zone.h) {
+            y + 40 > zone.y && y - 40 < zone.y + zone.h) {
           collides = true;
           break;
         }
       }
-
-      // Evitar bordes del mapa
       if (x < 20 || x > 960 || y < 20 || y > 560) collides = true;
-
       if (!collides) {
         TOWER_SPOTS.push({ x: x - 40, y: y - 40, w: 80, h: 80 });
       }
     }
   }
-
-  console.log(`✅ Generados ${TOWER_SPOTS.length} spots para torres (antes eran menos)`);
+  console.log(`✅ Generados ${TOWER_SPOTS.length} spots para torres`);
 }
 generateSpots();
 
@@ -57,7 +48,6 @@ let gameState = {
   selectedTowerType: null, waveActive: false,
   gameOver: false, adminMode: false, autoWave: false,
   towerSpots: [],
-
   mode: 'normal',
   modeConfirmed: false,
   corrupt: false,
@@ -66,44 +56,25 @@ let gameState = {
   corruptWins: 0,
   maxWaves: 15,
   unlockedInfinite: false,
-
-  // Nuevas divisas y progresión
   globetines: 500,
   pycoins: 0,
   duckPassXP: 0,
   duckPassLevel: 1,
   duckPassCurrency: 0,
-
-  // Límites y mejoras
   baseHealthLevel: 0,
   towerLimits: {
-    'Glob': 3,
-    'Red_Glob': 5,
-    'Soap_Glob': 3,
-    'Ducky_Glob': 3,
-    'Comet_Glob': 3,
-    'Pyce_Glob': 2,
-    'Old_Glob': 2,
-    'Work_Bombot': 1
+    'Glob': 3, 'Red_Glob': 5, 'Soap_Glob': 3, 'Ducky_Glob': 3,
+    'Comet_Glob': 3, 'Pyce_Glob': 2, 'Old_Glob': 2, 'Work_Bombot': 1
   },
   usedCodes: {},
   towerCounts: {},
-  towerBuffs: {
-    damage: 1,
-    range: 0,
-    speed: 1
-  },
+  towerBuffs: { damage: 1, range: 0, speed: 1 },
   metaRange: 0,
   metaDamage: 1,
   metaRangeLevel: 0,
   metaDamageLevel: 0,
   unlockedSkins: ['default'],
-  equippedSkins: {
-    'Glob': 'default',
-    'Red_Glob': 'default',
-    'Global': 'default',
-    'Grey': 'default'
-  },
+  equippedSkins: { 'Glob': 'default', 'Red_Glob': 'default', 'Global': 'default', 'Grey': 'default' },
   cheatedModeActive: false,
   cheatedBackup: null,
   adminMode: false,
@@ -117,19 +88,9 @@ let gameState = {
   usedGTackRed: false,
   usedGTackGrey: false,
   baseTookDamage: false,
-  settings: {
-    showShopDesc: true,
-    showTotalDamage: false
-  },
+  settings: { showShopDesc: true, showTotalDamage: false },
   duckgrades: {},
-  gtacks: {
-    'Glob': false,
-    'Red_Glob': false,
-    'Soap_Glob': false,
-    'Ducky_Glob': false,
-    'Comet_Glob': false,
-    'Old_Glob': false
-  }
+  gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false }
 };
 
 function saveUsers() {
@@ -142,9 +103,7 @@ function loadUsers() {
     USERS = { ...USERS, ...JSON.parse(saved) };
   }
 }
-loadUsers(); // Cargar al inicio
-
-// ===================== MOTOR DEL JUEGO =====================
+loadUsers();
 
 function init() {
   console.log("Iniciando Glob Defenders...");
@@ -154,7 +113,7 @@ function init() {
         img.src = 'img/GlobDefendersImage.png';
       });
     }
-    updateLanguage(); // Aplicar idioma al inicio
+    updateLanguage();
     bindEvents();
     spawnDecorations('login-decorations');
     spawnDecorations('mode-decorations');
@@ -182,11 +141,8 @@ function saveProgress() {
     unlockedInfinite: gameState.unlockedInfinite,
     corruptWins: gameState.corruptWins,
     unlockedBombot: TOWER_TYPES['Work_Bombot'] ? TOWER_TYPES['Work_Bombot'].unlocked : false,
-    unlockedPyceGlob: TOWER_TYPES['Old_Glob'] ? TOWER_TYPES['Old_Glob'].unlocked : false,
     unlockedOldGlob: TOWER_TYPES['Old_Glob'] ? TOWER_TYPES['Old_Glob'].unlocked : false,
     unlockedCometGlob: TOWER_TYPES['Comet_Glob'] ? TOWER_TYPES['Comet_Glob'].unlocked : false,
-
-    // Meta data
     globetines: gameState.globetines,
     pycoins: gameState.pycoins,
     duckPassXP: gameState.duckPassXP,
@@ -203,7 +159,6 @@ function saveProgress() {
     totalDamage: gameState.totalDamage,
     settings: gameState.settings,
     gtacks: gameState.gtacks,
-    // ========== AÑADE ESTAS DOS LÍNEAS ==========
     musicEnabled: musicEnabled,
     showHitbox: showHitbox,
     cheatedModeActive: gameState.cheatedModeActive,
@@ -219,7 +174,6 @@ function loadProgress(username) {
 
     let data = localStorage.getItem('glob_progress_' + user);
 
-    // Migración: Si no hay datos del usuario pero hay datos globales antiguos
     if (!data) {
       data = localStorage.getItem('glob_progress');
       if (data) {
@@ -231,19 +185,12 @@ function loadProgress(username) {
     if (data) {
       let progress = JSON.parse(data);
 
-      // Auto-reset upgrades once migration (keep skins, badges, currencies)
       if (!progress.upgradesResetV3) {
         console.log("Applying upgrades reset migration for:", user);
         progress.baseHealthLevel = 0;
         progress.towerLimits = {
-          'Glob': 3,
-          'Red_Glob': 5,
-          'Soap_Glob': 3,
-          'Ducky_Glob': 3,
-          'Comet_Glob': 3,
-          'Pyce_Glob': 2,
-          'Old_Glob': 2,
-          'Work_Bombot': 1
+          'Glob': 3, 'Red_Glob': 5, 'Soap_Glob': 3, 'Ducky_Glob': 3,
+          'Comet_Glob': 3, 'Pyce_Glob': 2, 'Old_Glob': 2, 'Work_Bombot': 1
         };
         progress.metaRangeLevel = 0;
         progress.metaRange = 0;
@@ -252,9 +199,7 @@ function loadProgress(username) {
         progress.duckgrades = {};
         progress.unlockedOldGlob = false;
         progress.unlockedCometGlob = false;
-        progress.unlockedPyceGlob = false;
         progress.upgradesResetV3 = true;
-        // Save the updated progress to localStorage immediately
         localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
       }
 
@@ -266,11 +211,10 @@ function loadProgress(username) {
       gameState.unlockedInfinite = progress.unlockedInfinite || false;
       gameState.corruptWins = progress.corruptWins || 0;
       if (TOWER_TYPES['Work_Bombot']) TOWER_TYPES['Work_Bombot'].unlocked = progress.unlockedBombot || false;
-      if (TOWER_TYPES['Old_Glob']) TOWER_TYPES['Old_Glob'].unlocked = progress.unlockedOldGlob || progress.unlockedPyceGlob || false;
-      if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = progress.unlockedOldGlob || progress.unlockedPyceGlob || false;
+      if (TOWER_TYPES['Old_Glob']) TOWER_TYPES['Old_Glob'].unlocked = progress.unlockedOldGlob || false;
+      if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = progress.unlockedOldGlob || false;
       if (TOWER_TYPES['Comet_Glob']) TOWER_TYPES['Comet_Glob'].unlocked = progress.unlockedCometGlob || false;
 
-      // Meta data
       gameState.globetines = Number(progress.globetines != null ? progress.globetines : 500);
       gameState.pycoins = Number(progress.pycoins || 0);
       gameState.totalDamage = Number(progress.totalDamage || 0);
@@ -293,29 +237,20 @@ function loadProgress(username) {
 
       gameState.duckgrades = progress.duckgrades || {};
       gameState.gtacks = progress.gtacks || {
-        'Glob': false,
-        'Red_Glob': false,
-        'Soap_Glob': false,
-        'Ducky_Glob': false,
-        'Comet_Glob': false,
-        'Old_Glob': false
+        'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false,
+        'Comet_Glob': false, 'Old_Glob': false
       };
-      // ========== AÑADE ESTAS DOS LÍNEAS AQUÍ (DENTRO DEL IF) ==========
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
-      // ================================================================
 
       if (gameState.unlockedAntiNormal) BADGES.antiNormal.unlocked = true;
       updateBuffs();
       document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
       updateMuteButton();
-      // Ajustar salud según el nivel cargado
       gameState.health = 100 + (gameState.baseHealthLevel * 20);
     }
 
-    // ========== Y AÑADE initMusic() AQUÍ (FUERA DEL IF, PERO DESPUÉS) ==========
     initMusic();
-    // ============================================================================
 
   } catch (e) {
     console.error("Error al cargar el progreso (loadProgress):", e);
@@ -507,14 +442,12 @@ function selectMode(mode) {
   document.getElementById('mode-selection').style.display = 'none';
   document.getElementById('mode-selection').classList.remove('glitch-state');
 
-  // Reset completo al seleccionar modo
   retryGame();
 
   gameState.globetines = 500;
   updateUI();
   showMessage(translate('mode_selected', { mode: mode.toUpperCase() }), 'info');
 
-  // Mostrar historias contextuales según el modo
   setTimeout(() => {
     if (gameState.mode === 'corrupto') {
       const storyText = currentLanguage === 'es'
@@ -540,7 +473,6 @@ function triggerCorrupt() {
     showMessage(translate('corrupt_active'), 'error');
     drawBadges();
 
-    // Narrador de historia
     setTimeout(() => {
       const storyText = currentLanguage === 'es'
         ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!"
@@ -634,7 +566,6 @@ function openOptions() {
   const hitboxCheck = document.getElementById('opt-show-hitbox');
   if (hitboxCheck) hitboxCheck.checked = showHitbox;
 
-  // Cheated Mode admin option
   const cheatedRow = document.getElementById('admin-cheated-row');
   if (cheatedRow) {
     cheatedRow.style.display = gameState.adminMode ? 'flex' : 'none';
@@ -651,7 +582,6 @@ function closeOptions() {
 }
 
 function activateCheatedMode() {
-  // 1. Back up current state
   gameState.cheatedBackup = {
     unlockedSkins: JSON.parse(JSON.stringify(gameState.unlockedSkins)),
     equippedSkins: JSON.parse(JSON.stringify(gameState.equippedSkins)),
@@ -664,15 +594,12 @@ function activateCheatedMode() {
   };
   gameState.cheatedModeActive = true;
 
-  // 2. Unlock all badges without showing popups
   Object.keys(BADGES).forEach(k => {
     BADGES[k].unlocked = true;
   });
 
-  // 3. Prevent popups/claim rewards
   gameState.claimedRewards = Object.keys(BADGES);
 
-  // 4. Unlock all skins
   const allSkins = ['default'];
   Object.keys(SKINS_DATA).forEach(family => {
     SKINS_DATA[family].forEach(skin => {
@@ -683,7 +610,6 @@ function activateCheatedMode() {
   });
   gameState.unlockedSkins = allSkins;
 
-  // 5. Update UI
   drawBadges();
   updateMetaUI();
   drawTowerShop();
@@ -694,7 +620,6 @@ function activateCheatedMode() {
 function deactivateCheatedMode() {
   if (!gameState.cheatedBackup) return;
 
-  // 1. Restore from backup
   const backup = gameState.cheatedBackup;
   gameState.unlockedSkins = backup.unlockedSkins || ['default'];
   gameState.equippedSkins = backup.equippedSkins || { 'Glob': 'default', 'Red_Glob': 'default', 'Global': 'default', 'Grey': 'default' };
@@ -713,19 +638,18 @@ function deactivateCheatedMode() {
   gameState.cheatedModeActive = false;
   gameState.cheatedBackup = null;
 
-  // 2. Revert equipped skins visually on towers in play
   gameState.towers.forEach(t => {
     t.el.style.backgroundImage = `url('${getTowerImage(t.type)}')`;
     applyTowerEffects(t.el, t.type);
   });
 
-  // 3. Update UI
   drawBadges();
   updateMetaUI();
   drawTowerShop();
   saveProgress();
   showMessage(currentLanguage === 'es' ? "¡Modo Cheated Desactivado!" : "Cheated Mode Deactivated!", 'info');
 }
+
 function updateHitboxesVisibility() {
   const map = document.getElementById('map');
   if (map) {
@@ -744,7 +668,6 @@ function updateSettings() {
 
   document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
 
-  // Cheated Mode detection
   const cheatedCheck = document.getElementById('opt-cheated');
   if (cheatedCheck) {
     const isCheatedNow = cheatedCheck.checked;
@@ -769,7 +692,6 @@ function drawTowerShop() {
   shopContainer.id = 'floating-tower-shop';
   shopContainer.className = 'floating-tower-shop';
 
-  // Tower progression & unlock state
   const shopTowers = [
     { type: 'Glob', unlocked: true },
     { type: 'Red_Glob', unlocked: true },
@@ -935,16 +857,13 @@ function bindEvents() {
       if (name) loadProgress(name);
       updateMetaUI();
     });
-    // (El botón de logros ahora se vincula fuera de este bloque)
 
-    // Controles de música y efectos
     const musicToggle = document.getElementById('music-toggle-btn');
     if (musicToggle) musicToggle.onclick = toggleMusic;
 
     const effectsToggle = document.getElementById('effects-toggle-btn');
     if (effectsToggle) effectsToggle.onclick = toggleMute;
 
-    // Cerrar panel de logros al hacer clic fuera
     document.addEventListener('click', function (e) {
       const panel = document.getElementById('badges-panel');
       const btn = document.getElementById('badges-toggle-btn');
@@ -1199,7 +1118,6 @@ function updateBuffs() {
       if (m.buff.speed) gameState.towerBuffs.speed *= m.buff.speed;
     }
   });
-  // Aplicar a torres existentes
   gameState.towers.forEach(t => {
     const base = TOWER_TYPES[t.type];
     t.damage = base.damage * gameState.towerBuffs.damage;
@@ -1251,7 +1169,6 @@ function updateMetaUI() {
     unlockBadge('deepSavings');
   }
 
-  // Update shop tab buttons
   document.querySelectorAll('.shop-tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === currentShopTab);
   });
@@ -1401,7 +1318,6 @@ function drawShop() {
         const el = document.createElement('div');
         el.className = `skin-item ${isEquipped ? 'equipped' : ''} ${skin.isSpecial ? 'special-skin' : ''}`;
 
-        // Build cost display
         let costDisplay = '';
         let btnText = '';
         let canBuy = false;
@@ -1412,7 +1328,6 @@ function drawShop() {
           btnText = '🔒 Derrota al Mimic Pyce';
           costDisplay = `<div class="cost" style="color:#ffd700">🎁 Gratis (drop)</div>`;
         } else if (skin.duckpass_cost) {
-          // Dual currency skin
           canBuy = gameState.pycoins >= skin.cost && gameState.duckPassCurrency >= skin.duckpass_cost;
           costDisplay = `<div class="cost"><img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}</div>`;
           btnText = translate('buy');
@@ -1587,12 +1502,11 @@ function selectTower(t) {
   const panel = document.getElementById('evolve-panel');
   panel.style.display = 'flex';
 
-  // Posicionar el panel cerca de la torre (centrado, preferiblemente abajo)
   panel.style.left = `${t.x - 140}px`;
   if (t.y < 350) {
-    panel.style.top = `${t.y + 60}px`; // Debajo de la torre
+    panel.style.top = `${t.y + 60}px`;
   } else {
-    panel.style.top = `${t.y - 200}px`; // Arriba de la torre (si está muy abajo)
+    panel.style.top = `${t.y - 200}px`;
   }
 
   document.getElementById('tower-name').textContent = getTowerName(t);
@@ -1619,28 +1533,23 @@ function activateGTack(t) {
   if (t.gTackCooldown && t.gTackCooldown > 0) return;
 
   gameState.globetines -= cost;
-  t.gTackCooldown = 30; // 30s cooldown
+  t.gTackCooldown = 30;
 
   updateUI();
   updateEvolveButtons(t);
 
-  // Activate actual G-Tack power!
   if (t.family === 'Glob') {
-    // Green: Frenzy mode - fire 10 fast shots
     t.frenzyShots = 10;
     t.cooldown = 0;
     showEffect(t.x, t.y - 25, "FRENZIED! ⚡", "#2ecc71");
   } else if (t.family === 'Red_Glob') {
-    // Red: Toxic Overcharge - +5% damage, applies Toxic Fast DoT for 6s
     t.toxicTimer = 6;
     showEffect(t.x, t.y - 25, "OVERCHARGED! 🔥", "#e74c3c");
     gameState.usedGTackRed = true;
   } else if (t.family === 'Soap_Glob') {
-    // Blue: Stun strike - next attack guarantees stun (bypasses Boss Immunity!)
     t.stunStrikeActive = true;
     showEffect(t.x, t.y - 25, "STUN STRIKE! ⚡", "#3498db");
   } else if (t.family === 'Ducky_Glob') {
-    // Yellow: Resource Burst - generates 15 PyCoins and 3 DuckPasses into meta-inventory
     const earnedPy = Math.round(15 * getPycoinMultiplier());
     const earnedDp = Math.round(3 * getDuckpassMultiplier());
     gameState.pycoins += earnedPy;
@@ -1650,11 +1559,9 @@ function activateGTack(t) {
     showEffect(t.x, t.y - 25, `+${earnedPy} 💎 +${earnedDp} 🦆`, "#f1c40f");
     showMessage(`¡Lluvia Financiera! Recibiste ${earnedPy} PyCoins y ${earnedDp} DuckPasses`, 'success');
   } else if (t.family === 'Comet_Glob') {
-    // Black: Spreading Poison - applies mushroom/skull contagion DoT for 8s
     t.contagioTimer = 8;
     showEffect(t.x, t.y - 25, "CONTAGIO! 💀", "#9b59b6");
   } else if (t.family === 'Grey') {
-    // Grey: Global Range Buff - temporarily increases range of all towers by +50 for 10s
     gameState.globalRangeBuffTimer = 10;
     updateBuffs();
     showEffect(t.x, t.y - 25, "RADAR AMPLIFIED! 📡", "#95a5a6");
@@ -1680,7 +1587,6 @@ function updateEvolveButtons(t) {
       btn.onclick = () => evolveTower(t, t.evolution);
       container.appendChild(btn);
     } else {
-      // Max evolution tower! Let's check G-Tack
       const familyKey = t.family === 'Grey' ? 'Old_Glob' : t.family;
       const hasGTackUnlocked = gameState.gtacks[familyKey];
       if (hasGTackUnlocked) {
@@ -1750,9 +1656,8 @@ function startWave() {
   if (typeof showMessage === 'function') showMessage((typeof translate === 'function') ? translate('waveStarted', { wave: gameState.wave }) : `¡Oleada ${gameState.wave}!`, 'info');
 
   const wave = gameState.wave;
-  const mode = gameState.mode; // 'facil', 'normal', 'dificil', 'extremo', 'corrupto', 'antiNormal', 'infinito'
+  const mode = gameState.mode;
 
-  // 1. Determinar multiplicador de dificultad para la salud de los enemigos
   let mult = 1.0;
   if (mode === 'facil') mult = 0.7;
   else if (mode === 'normal') mult = 1.0;
@@ -1765,10 +1670,7 @@ function startWave() {
   let isBossWave = false;
   const bossesToSpawn = [];
 
-  // 2. Construir la lista de enemigos según el modo y oleada
   if (mode === 'facil') {
-    // Modo Fácil: Pocos enemigos, tutorial para asimilar conceptos. Termina en la oleada 10.
-    // Solo Stupid_Pyce, Pyce2, Guest_Pyce y Symbol_Pyce. Sin jefes.
     let countStupid = 2 + Math.floor(wave * 0.6);
     let countPyce2 = wave >= 2 ? 1 + Math.floor((wave - 1) * 0.5) : 0;
     let countSymbol = wave >= 4 ? 1 + Math.floor((wave - 3) * 0.5) : 0;
@@ -1780,12 +1682,10 @@ function startWave() {
     for (let i = 0; i < countGuest; i++) spawnList.push('Guest_Pyce');
 
   } else if (mode === 'normal') {
-    // Modo Normal: Enseña conceptos de Fácil, añade Noob_Pyce, 4motions_Pyce, SO_Pyce (Serious Outline).
-    // Jefe primerizo 1x1x1x1_Pyce en la oleada 10 (casi solo). Termina en la 15.
     if (wave === 10) {
       isBossWave = true;
       bossesToSpawn.push('1x1x1x1_Pyce');
-      spawnList.push('Stupid_Pyce', 'Stupid_Pyce'); // 2 torpes de adorno
+      spawnList.push('Stupid_Pyce', 'Stupid_Pyce');
     } else {
       let pool = ['Stupid_Pyce'];
       if (wave >= 2) pool.push('Pyce2');
@@ -1793,23 +1693,17 @@ function startWave() {
       if (wave >= 5) pool.push('Noob_Pyce');
       if (wave >= 7) pool.push('4motions_Pyce', 'SO_Pyce');
 
-      // Pocos enemigos al inicio, escala moderado
       let baseCount = 3 + Math.floor(wave * 1.1);
       for (let i = 0; i < baseCount; i++) {
         spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
       }
 
-      // Adición ocasional de Mimic o Gold
       if (wave >= 5 && Math.random() < 0.15) {
         spawnList.push(Math.random() < 0.5 ? 'Stupid_GoldPyce' : 'Flower_Pyce');
       }
     }
 
   } else if (mode === 'dificil') {
-    // Modo Difícil: Salen todos los básicos desde el inicio (gradual pero rápido).
-    // Jefe 1x1x1x1_Pyce en oleada 10 ACOMPAÑADO.
-    // Jefe 1x1x1x1_Pyce en la oleada 20 ACOMPAÑADO.
-    // Termina en 25 con final grandioso.
     if (wave === 10) {
       isBossWave = true;
       bossesToSpawn.push('1x1x1x1_Pyce');
@@ -1839,8 +1733,6 @@ function startWave() {
     }
 
   } else if (mode === 'extremo') {
-    // Modo Extremo: Como difícil, pero con más enemigos y escalado superior. Termina en 40.
-    // Bosses en 10 (1x1x1x1), 20 (NOeye), 30 (1x1x1x1 + NOeye), 40 (Todos los jefes permitidos: 1x1x1x1 + NOeye).
     if (wave === 10) {
       isBossWave = true;
       bossesToSpawn.push('1x1x1x1_Pyce');
@@ -1874,8 +1766,6 @@ function startWave() {
     }
 
   } else {
-    // Modos Anti-Normal, Corrupto, Infinito y Pesadilla.
-    // Empiezan muy cargados desde la oleada 1 (muchos enemigos tipo Pyce/Pyce2) y suben a velocidad creciente.
     if (wave % 10 === 0) {
       isBossWave = true;
       if (wave === 10) bossesToSpawn.push('1x1x1x1_Pyce');
@@ -1900,7 +1790,6 @@ function startWave() {
         spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
       }
     } else {
-      // Empieza denso (ej. ~12-15 enemigos en oleada 1)
       let baseCount = 10 + Math.floor(wave * 2.2 * mult);
       let pool = ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce'];
       if (wave >= 2) pool.push('Noob_Pyce', '4motions_Pyce', 'SO_Pyce');
@@ -1912,18 +1801,15 @@ function startWave() {
     }
   }
 
-  // 3. Mezclar la lista de enemigos regulares para que no salgan todos juntos de golpe
   for (let i = spawnList.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [spawnList[i], spawnList[j]] = [spawnList[j], spawnList[i]];
   }
 
-  // 4. Anteponer los jefes a la lista de spawn para que entren primero en combate
   if (isBossWave && bossesToSpawn.length > 0) {
     spawnList.unshift(...bossesToSpawn);
   }
 
-  // 5. Iniciar secuencia de generación con temporizador
   let spawned = 0;
   const interval = setInterval(() => {
     if (gameState.gameOver || !gameState.waveActive) {
@@ -1979,7 +1865,6 @@ function spawnEnemy(type, boss) {
 
 let narratorTimeout = null;
 function showNarratorMsg(imgSrc, speakerName, text) {
-  // Elimina cualquier narrador activo
   const old = document.getElementById('narrator-bubble');
   if (old) old.remove();
   if (narratorTimeout) clearTimeout(narratorTimeout);
@@ -1997,7 +1882,6 @@ function showNarratorMsg(imgSrc, speakerName, text) {
   `;
   document.body.appendChild(bubble);
 
-  // Auto-desaparece tras 6 segundos
   narratorTimeout = setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 6000);
 }
 
@@ -2040,15 +1924,12 @@ function gameLoop() {
       updateUI(); continue;
     }
 
-    // Visual de Vida/Escudo
     const totalCurrent = e.health + (e.shield || 0);
-    const totalMax = e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0); // Estimación para barra
+    const totalMax = e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0);
     const pct = Math.max(0, (totalCurrent / (e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0))) * 100);
     e.hpFill.style.width = pct + '%';
     e.hpFill.style.backgroundColor = (e.shield > 0) ? '#ffd700' : '#ff4444';
 
-    // Daño sobre el Tiempo (DoTs) de G-Tacks
-    // Slow effect physics
     if (e.enemySlowTimer && e.enemySlowTimer > 0) {
       e.enemySlowTimer -= dt;
       const factor = e.enemySlowFactor || 0.4;
@@ -2058,7 +1939,6 @@ function gameLoop() {
       e.el.style.filter = '';
     }
 
-    // Burn effect DoT
     if (e.burnTimer && e.burnTimer > 0) {
       e.burnTimer -= dt;
       const dmg = (e.burnDamage || 5) * dt;
@@ -2069,7 +1949,6 @@ function gameLoop() {
       e.el.classList.remove('burning');
     }
 
-    // epicEffects Achievement Check
     if (e.burnTimer > 0 && e.enemySlowTimer > 0 && e.stunned > 0 && e.toxicTimer > 0 && e.poisonTimer > 0) {
       unlockBadge('epicEffects');
     }
@@ -2086,7 +1965,6 @@ function gameLoop() {
       e.health -= dmg;
       if (Math.random() < 0.1) showEffect(e.x, e.y, "🍄💀", "#9b59b6");
 
-      // Veneno contagioso se propaga al hacer contacto
       gameState.enemies.forEach(other => {
         if (other !== e && !other.poisonTimer && Math.hypot(other.x - e.x, other.y - e.y) < 40) {
           other.poisonTimer = 3;
@@ -2100,7 +1978,6 @@ function gameLoop() {
       continue;
     }
 
-    // Habilidad de Curación (Flower Pyce)
     if (e.healer) {
       e.healTimer = (e.healTimer || 0) + dt;
       if (e.healTimer >= (e.healCooldown || 2)) {
@@ -2118,7 +1995,6 @@ function gameLoop() {
       }
     }
 
-    // Ataques de Enemigos a Torres
     if (e.type === '1x1x1x1_Pyce' || e.type === 'MoonStar_Pyce') {
       e.attackTimer1 = (e.attackTimer1 || 0) + dt;
       if (e.attackTimer1 > 5) {
@@ -2170,7 +2046,6 @@ function gameLoop() {
     if (e.health <= 0) die(e, i);
   }
 
-  // Tick global range buff timer
   if (gameState.globalRangeBuffTimer && gameState.globalRangeBuffTimer > 0) {
     gameState.globalRangeBuffTimer -= dt;
     if (gameState.globalRangeBuffTimer <= 0) {
@@ -2180,7 +2055,6 @@ function gameLoop() {
   }
 
   gameState.towers.forEach(t => {
-    // Tick down G-Tack cooldown and active effects
     if (t.gTackCooldown && t.gTackCooldown > 0) {
       t.gTackCooldown -= dt;
       if (t.gTackCooldown < 0) t.gTackCooldown = 0;
@@ -2197,15 +2071,12 @@ function gameLoop() {
 
     if (t.stunned > 0) { t.stunned -= dt; t.el.classList.add('stunned'); return; }
     t.el.classList.remove('stunned');
-    // Ducky Glob Generation
     if (t.family === 'Ducky_Glob' || t.type === 'Ducky_Glob' || t.type === 'Golden_Ducky_Glob') {
       let interval = t.type === 'Golden_Ducky_Glob' ? 5 : 8;
-      // DUCKGRADE: Defensive Duck
       if (gameState.duckgrades.dg_Ducky_Glob) {
         const enemiesInRange = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= (t.range || 100));
         if (enemiesInRange.length > 0) {
-          interval *= 0.5; // Doble de rápido
-          // Daño de área pequeño
+          interval *= 0.5;
           enemiesInRange.forEach(e => {
             e.health -= 0.5 * dt * (gameState.wave + 1);
           });
@@ -2240,14 +2111,14 @@ function gameLoop() {
     let currentSpeed = t.speed;
     if (t.slowTimer > 0) {
       t.slowTimer -= dt;
-      currentSpeed *= 0.5; // Reduce ataque 50%
+      currentSpeed *= 0.5;
     }
 
     if (t.stunTimer > 0) {
       t.stunTimer -= dt;
       if (!t.el.classList.contains('stunned-spin')) t.el.classList.add('stunned-spin');
       if (t.stunTimer <= 0) t.el.classList.remove('stunned-spin');
-      return; // Skip attack and money generation while stunned
+      return;
     }
 
     if (gameState.duckgrades.dg_Glob && (t.family === 'Glob' || t.type === 'Glob')) {
@@ -2260,7 +2131,6 @@ function gameLoop() {
       const targets = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= t.range);
       if (targets.length) {
         let dmg = t.damage;
-        // DUCKGRADE: Red Glob - More damage per sibling
         if (gameState.duckgrades.dg_Red_Glob && t.family === 'Red_Glob') {
           const redCount = gameState.towers.filter(rt => rt.family === 'Red_Glob').length;
           dmg *= (1 + (redCount * 0.1));
@@ -2271,7 +2141,6 @@ function gameLoop() {
             shoot(t, { x: t.x + Math.cos(a) * 100, y: t.y + Math.sin(a) * 100, health: 999 }, { damage: dmg });
           }
         } else {
-          // Ataques Especiales de Skins
           const specialAttack = getSpecialAttack(t, targets[0], dmg);
           if (!specialAttack) shoot(t, targets[0], { damage: dmg });
         }
@@ -2318,7 +2187,7 @@ function gameLoop() {
         showEffect(target.x, target.y - 15, "POISON! 🍄", "#9b59b6");
       }
       if (p.meta.stunStrike) {
-        target.stunned = (target.stunned || 0) + 3.0; // 3 seconds stun strike
+        target.stunned = (target.stunned || 0) + 3.0;
         showEffect(target.x, target.y - 15, "SHOCKED! ⚡", "#3498db");
       }
     }
@@ -2466,11 +2335,10 @@ function shoot(shooter, target, opts = {}) {
   let projClass = opts.projectile || shooter.projectile;
   if (gameState.equippedSkins[shooter.family] === 'corrupt_swords_set') {
     projClass = 'slash';
-    shooter.piercing = true; // Sword slashes always pierce
+    shooter.piercing = true;
   }
   if (projClass) el.classList.add(projClass);
 
-  // Angle and velocity calculation
   const dx = target.x - shooter.x;
   const dy = target.y - shooter.y;
   const angle = Math.atan2(dy, dx);
@@ -2586,14 +2454,12 @@ function translate(key, params = {}) {
 }
 
 function updateLanguage() {
-  // Traducir todos los elementos con data-i18n
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     const attr = el.getAttribute('data-i18n-attr');
     if (attr) {
       el.setAttribute(attr, translate(key));
     } else {
-      // Caso especial para el Duck Pass Level que tiene un span dentro
       if (key === 'level_label' && el.firstChild && el.firstChild.nodeType === 3) {
         el.firstChild.textContent = translate(key) + " ";
       } else {
@@ -2602,7 +2468,6 @@ function updateLanguage() {
     }
   });
 
-  // Casos especiales que no pueden usar data-i18n fácilmente (ej. botones con iconos y texto)
   document.querySelectorAll('.btn-text').forEach(el => {
     const parent = el.parentElement;
     if (parent.id === 'start-wave') el.textContent = translate('startWave');
@@ -2612,7 +2477,6 @@ function updateLanguage() {
     if (parent.classList.contains('retry-btn')) el.textContent = translate('playAgain');
   });
 
-  // Títulos de modales
   const shopTitle = document.getElementById('shop-title');
   if (shopTitle) shopTitle.innerHTML = `🛒 ${translate('shop_title').replace('🛒 ', '')}`;
   const shopBtn = document.getElementById('open-shop');
@@ -2634,7 +2498,6 @@ function updateLanguage() {
   const logsBtn = document.getElementById('tab-logs-btn');
   if (logsBtn) logsBtn.innerHTML = `📋 ${translate('story_tab_logs')}`;
 
-  // Evolución
   const evolveTitle = document.querySelector('#evolve-panel h3');
   if (evolveTitle) evolveTitle.textContent = translate('evolve_title');
   const sellBtn = document.getElementById('sell-tower-btn');
@@ -2642,13 +2505,11 @@ function updateLanguage() {
   const evolveClose = document.querySelector('#evolve-panel .close-btn');
   if (evolveClose) evolveClose.textContent = translate('close');
 
-  // Portrait overlay
   const portTitle = document.querySelector('#portrait-overlay h2');
   if (portTitle) portTitle.textContent = translate('rotate_device');
   const portMsg = document.querySelector('#portrait-overlay p');
   if (portMsg) portMsg.textContent = translate('landscape_msg');
 
-  // Game Over
   const goHeader = document.querySelector('#game-over h2');
   if (goHeader) goHeader.textContent = translate('gameOver');
   const goBtn = document.querySelector('#game-over .retry-btn');
@@ -2730,7 +2591,6 @@ function endGame(victory = false) {
     if (title) title.textContent = translate('victory_title');
     if (msg) msg.innerHTML = translate('victory_msg', { mode: gameState.mode.toUpperCase() });
 
-    // Mode-based badge unlocks
     if (gameState.antiNormalActive) {
       unlockBadge('antiNormal');
       gameState.unlockedAntiNormal = true;
@@ -2750,15 +2610,15 @@ function endGame(victory = false) {
       }
     }
 
-    // Work-Bombot Unlock Challenge
-    if (gameState.mode === 'corrupto' || gameState.antiNormalActive) {
+    // CORREGIDO: Work-Bombot SOLO se desbloquea al ganar modo corrupto o anti-normal COMPLETAMENTE
+    if ((gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') && victory === true) {
       if (TOWER_TYPES['Work_Bombot'] && !TOWER_TYPES['Work_Bombot'].unlocked) {
         TOWER_TYPES['Work_Bombot'].unlocked = true;
         showMessage("🤖 ¡TORRE WORK-BOMBOT DESBLOQUEADA!", 'success');
+        saveProgress();
       }
     }
 
-    // deepArtillery Badge Check
     if (gameState.towers.length > 0) {
       const allGreenOrBlack = gameState.towers.every(t => t.family === 'Glob' || t.family === 'Comet_Glob');
       if (allGreenOrBlack) {
@@ -2766,7 +2626,6 @@ function endGame(victory = false) {
       }
     }
 
-    // meleeBlueRed Badge Check
     if (gameState.towers.length > 0) {
       const allRedOrBlue = gameState.towers.every(t => t.family === 'Red_Glob' || t.family === 'Soap_Glob');
       if (allRedOrBlue) {
@@ -2774,7 +2633,6 @@ function endGame(victory = false) {
       }
     }
 
-    // titaniumBuilding Badge Check
     if (!gameState.baseTookDamage) {
       unlockBadge('titaniumBuilding');
     }
@@ -2785,7 +2643,6 @@ function endGame(victory = false) {
     if (msg) msg.innerHTML = translate('waveStarted', { wave: gameState.wave }).replace('Oleada', 'Llegaste a la oleada').replace('Wave', 'You reached wave');
   }
 
-  // Update button texts for the buttons we added in HTML
   updateLanguage();
 }
 
@@ -2812,35 +2669,34 @@ function getSpecialAttack(t, target, dmg) {
   const skinSet = SKINS_DATA[family]?.find(s => s.id === equipped);
   if (!skinSet?.isSpecial) return false;
 
-  // Lógica de ataques especiales por evolución
   if (skinSet.id === 'corrupt_swords_set') {
-    if (t.type === 'Glob') { // Glob Corrupto: Disparo rápido
+    if (t.type === 'Glob') {
       shoot(t, target, { damage: dmg }); t.cooldown *= 0.5; return true;
     }
-    if (t.type === 'Poop_Glob') { // Espadachín Corrupto: Tajo circular
+    if (t.type === 'Poop_Glob') {
       gameState.enemies.forEach(e => {
         if (Math.hypot(e.x - t.x, e.y - t.y) < 80) e.health -= dmg;
       });
       showEffect(t.x, t.y, "⚔️", "#ff00ff");
       return true;
     }
-    if (t.type === 'Golden_Glob') { // Maestro de Espadas: Triple disparo
+    if (t.type === 'Golden_Glob') {
       for (let i = 0; i < 3; i++) setTimeout(() => { if (target.health > 0) shoot(t, target, { damage: dmg }); }, i * 100);
       return true;
     }
-    if (t.type === 'Rainbow_Glob') { // Cabal. del Vacío: Rayo oscuro penetrante
+    if (t.type === 'Rainbow_Glob') {
       shoot({ ...t, projectile: 'void' }, target, { damage: dmg }); return true;
     }
   }
 
   if (skinSet.id === 'mimic_set') {
-    if (t.type === 'Comet_Glob') { // Mimic Comet: Disparo dorado
+    if (t.type === 'Comet_Glob') {
       shoot({ ...t, projectile: 'gold' }, target, { damage: dmg }); return true;
     }
-    if (t.type === 'Dark_Glob') { // Mimic Oscuro: Ralentización extra
+    if (t.type === 'Dark_Glob') {
       shoot(t, target, { damage: dmg }); target.speed *= 0.8; return true;
     }
-    if (t.type === 'Demglob') { // Mimic Supremo: Explosión de dinero
+    if (t.type === 'Demglob') {
       shoot(t, target, { damage: dmg });
       if (Math.random() < 0.1) { gameState.globetines += 1; showEffect(t.x, t.y, "+1 💰"); updateUI(); }
       return true;
@@ -2848,10 +2704,10 @@ function getSpecialAttack(t, target, dmg) {
   }
 
   if (skinSet.id === 'starjump_set') {
-    if (t.type === 'Old_Glob') { // EVO1: Estrella Amarilla
+    if (t.type === 'Old_Glob') {
       shoot(t, target, { projectile: 'star_yellow', damage: dmg }); return true;
     }
-    if (t.type === 'Pyce_Glob') { // EVO2: Estrella Celeste
+    if (t.type === 'Pyce_Glob') {
       shoot(t, target, { projectile: 'star_celeste', damage: dmg }); return true;
     }
   }
@@ -2859,7 +2715,6 @@ function getSpecialAttack(t, target, dmg) {
   return false;
 }
 
-// ===================== HISTORIA Y LOGS PANEL =====================
 let currentStoryTab = 'lore';
 
 function openStoryLogs() {
@@ -3099,15 +2954,13 @@ function drawStoryLogs() {
   }
 }
 
-// ===================== AUDIO & MUSIC SYSTEM =====================
 function initMusic() {
-  if (backgroundMusic) return; // Already initialized
+  if (backgroundMusic) return;
   try {
     backgroundMusic = new Audio('sounds/DefendersTheme.mp3');
     backgroundMusic.loop = true;
     backgroundMusic.volume = 0.4;
 
-    // Attempt autoplay if enabled
     if (musicEnabled) {
       const playPromise = backgroundMusic.play();
       if (playPromise !== undefined) {
@@ -3145,19 +2998,6 @@ function toggleMusic() {
     initMusic();
   }
   saveProgress();
-}
-
-function toggleMute() {
-  gameState.muted = !gameState.muted;
-  updateMuteButton();
-  saveProgress();
-}
-
-function updateMuteButton() {
-  const btn = document.getElementById('effects-toggle-btn');
-  if (btn) {
-    btn.textContent = gameState.muted ? (currentLanguage === 'es' ? '🔊 Efectos OFF' : '🔊 Effects OFF') : (currentLanguage === 'es' ? '🔊 Efectos ON' : '🔊 Effects ON');
-  }
 }
 
 window.onload = init;
