@@ -1643,6 +1643,12 @@ function sellTower(tower) {
 function deselectTower() { gameState.selectedTower = null; document.getElementById('evolve-panel').style.display = 'none'; const p = document.getElementById('range-preview'); if (p) p.remove(); }
 
 function startWave() {
+  console.log("🔥 startWave() iniciada");
+  console.log("waveActive:", gameState.waveActive);
+  console.log("gameOver:", gameState.gameOver);
+  console.log("mode:", gameState.mode);
+  console.log("maxWaves:", gameState.maxWaves);
+  
   if (gameState.waveActive || gameState.gameOver) return;
 
   let maxWaves = gameState.maxWaves || 20;
@@ -1670,7 +1676,12 @@ function startWave() {
   let isBossWave = false;
   const bossesToSpawn = [];
 
+  console.log(`📋 Generando oleada ${wave} en modo ${mode} con mult ${mult}`);
+
+  // 2. Construir la lista de enemigos según el modo y oleada
   if (mode === 'facil') {
+    // Modo Fácil: Pocos enemigos, tutorial para asimilar conceptos. Termina en la oleada 10.
+    // Solo Stupid_Pyce, Pyce2, Guest_Pyce y Symbol_Pyce. Sin jefes.
     let countStupid = 2 + Math.floor(wave * 0.6);
     let countPyce2 = wave >= 2 ? 1 + Math.floor((wave - 1) * 0.5) : 0;
     let countSymbol = wave >= 4 ? 1 + Math.floor((wave - 3) * 0.5) : 0;
@@ -1682,10 +1693,12 @@ function startWave() {
     for (let i = 0; i < countGuest; i++) spawnList.push('Guest_Pyce');
 
   } else if (mode === 'normal') {
+    // Modo Normal: Enseña conceptos de Fácil, añade Noob_Pyce, 4motions_Pyce, SO_Pyce (Serious Outline).
+    // Jefe primerizo 1x1x1x1_Pyce en la oleada 10 (casi solo). Termina en la 15.
     if (wave === 10) {
       isBossWave = true;
       bossesToSpawn.push('1x1x1x1_Pyce');
-      spawnList.push('Stupid_Pyce', 'Stupid_Pyce');
+      spawnList.push('Stupid_Pyce', 'Stupid_Pyce'); // 2 torpes de adorno
     } else {
       let pool = ['Stupid_Pyce'];
       if (wave >= 2) pool.push('Pyce2');
@@ -1693,17 +1706,23 @@ function startWave() {
       if (wave >= 5) pool.push('Noob_Pyce');
       if (wave >= 7) pool.push('4motions_Pyce', 'SO_Pyce');
 
+      // Pocos enemigos al inicio, escala moderado
       let baseCount = 3 + Math.floor(wave * 1.1);
       for (let i = 0; i < baseCount; i++) {
         spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
       }
 
+      // Adición ocasional de Mimic o Gold
       if (wave >= 5 && Math.random() < 0.15) {
         spawnList.push(Math.random() < 0.5 ? 'Stupid_GoldPyce' : 'Flower_Pyce');
       }
     }
 
   } else if (mode === 'dificil') {
+    // Modo Difícil: Salen todos los básicos desde el inicio (gradual pero rápido).
+    // Jefe 1x1x1x1_Pyce en oleada 10 ACOMPAÑADO.
+    // Jefe 1x1x1x1_Pyce en la oleada 20 ACOMPAÑADO.
+    // Termina en 25 con final grandioso.
     if (wave === 10) {
       isBossWave = true;
       bossesToSpawn.push('1x1x1x1_Pyce');
@@ -1733,6 +1752,8 @@ function startWave() {
     }
 
   } else if (mode === 'extremo') {
+    // Modo Extremo: Como difícil, pero con más enemigos y escalado superior. Termina en 40.
+    // Bosses en 10 (1x1x1x1), 20 (NOeye), 30 (1x1x1x1 + NOeye), 40 (Todos los jefes permitidos: 1x1x1x1 + NOeye).
     if (wave === 10) {
       isBossWave = true;
       bossesToSpawn.push('1x1x1x1_Pyce');
@@ -1766,6 +1787,8 @@ function startWave() {
     }
 
   } else {
+    // Modos Anti-Normal, Corrupto, Infinito y Pesadilla.
+    // Empiezan muy cargados desde la oleada 1 (muchos enemigos tipo Pyce/Pyce2) y suben a velocidad creciente.
     if (wave % 10 === 0) {
       isBossWave = true;
       if (wave === 10) bossesToSpawn.push('1x1x1x1_Pyce');
@@ -1790,6 +1813,7 @@ function startWave() {
         spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
       }
     } else {
+      // Empieza denso (ej. ~12-15 enemigos en oleada 1)
       let baseCount = 10 + Math.floor(wave * 2.2 * mult);
       let pool = ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce'];
       if (wave >= 2) pool.push('Noob_Pyce', '4motions_Pyce', 'SO_Pyce');
@@ -1801,23 +1825,35 @@ function startWave() {
     }
   }
 
+  console.log(`📦 spawnList tiene ${spawnList.length} enemigos`);
+  
+  if (spawnList.length === 0) {
+    console.error("❌ ERROR: spawnList está VACÍA. Revisa la lógica de oleadas.");
+    gameState.waveActive = false;
+    return;
+  }
+
+  // 3. Mezclar la lista de enemigos regulares para que no salgan todos juntos de golpe
   for (let i = spawnList.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [spawnList[i], spawnList[j]] = [spawnList[j], spawnList[i]];
   }
 
+  // 4. Anteponer los jefes a la lista de spawn para que entren primero en combate
   if (isBossWave && bossesToSpawn.length > 0) {
     spawnList.unshift(...bossesToSpawn);
   }
 
+  // 5. Iniciar secuencia de generación con temporizador
   let spawned = 0;
   const interval = setInterval(() => {
     if (gameState.gameOver || !gameState.waveActive) {
       clearInterval(interval);
       return;
     }
-    const type = spawnList[spawned] || null;
+    const type = spawnList[spawned];
     const isThisBoss = isBossWave && bossesToSpawn.includes(type) && (spawned < bossesToSpawn.length);
+    console.log(`👾 Spawn enemigo ${spawned + 1}/${spawnList.length}: ${type}`);
     spawnEnemy(type, isThisBoss);
     spawned++;
     if (spawned >= spawnList.length) clearInterval(interval);
