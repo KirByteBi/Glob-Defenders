@@ -911,7 +911,7 @@ const SKINS_DATA = {
     {
       id: 'mimic_set', name: 'Mimic set', desc: 'Skin especial obtenida al derrotar al Mimic Pyce.', cost: 0, type: 'free', isSpecial: true,
       skins: {
-        'Comet_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png', // img\Skins\Negro Supremo\Mimic Pyce (ENEMY-SKIN)\Mimic Pyce.png
+        'Comet_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png',
         'Dark_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Didic Pyce (SK-EVO2).png',
         'Demglob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/NOmic Pyce (SK-EVO3).png'
       },

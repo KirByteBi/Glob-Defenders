@@ -650,6 +650,14 @@ function deactivateCheatedMode() {
   showMessage(currentLanguage === 'es' ? "¡Modo Cheated Desactivado!" : "Cheated Mode Deactivated!", 'info');
 }
 
+function updateHitboxesVisibility() {
+  const map = document.getElementById('map');
+  if (map) {
+    if (typeof showHitbox !== 'undefined' && showHitbox) map.classList.add('show-hitboxes');
+    else map.classList.remove('show-hitboxes');
+  }
+}
+
 function updateSettings() {
   gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
   gameState.settings.showTotalDamage = document.getElementById('opt-show-damage').checked;
