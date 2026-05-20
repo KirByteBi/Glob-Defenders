@@ -1346,7 +1346,7 @@ function drawShop() {
       const isUnlocked = gameState.duckgrades[u.id];
       const el = document.createElement('div');
       el.className = `meta-item ${isUnlocked ? 'unlocked' : ''} ${dgsLocked ? 'level-locked' : ''}`;
-      
+
       let buttonHTML = '';
       if (dgsLocked) {
         buttonHTML = `<button class="meta-buy-btn" disabled style="background: #95a5a6; border: 1px dashed #7f8c8d; cursor: not-allowed; color: #fff;">🔒 Req. Lvl 35</button>`;
@@ -1377,7 +1377,7 @@ function drawShop() {
       const isUnlocked = gameState.gtacks[u.id];
       const el = document.createElement('div');
       el.className = `meta-item ${isUnlocked ? 'unlocked' : ''} ${gtacksLocked ? 'level-locked' : ''}`;
-      
+
       let buttonHTML = '';
       if (gtacksLocked) {
         buttonHTML = `<button class="meta-buy-btn" disabled style="background: #95a5a6; border: 1px dashed #7f8c8d; cursor: not-allowed; color: #fff;">🔒 Req. Lvl 50</button>`;
@@ -1527,9 +1527,9 @@ function buyUpgrade(id, cost, type) {
     if (TOWER_TYPES['Comet_Glob']) TOWER_TYPES['Comet_Glob'].unlocked = true;
     showMessage("🖤 " + (currentLanguage === 'es' ? "TORRE COMETA DESBLOQUEADA!" : "COMET GLOB TOWER UNLOCKED!"), 'success');
   }
-  else if (id.startsWith('dg_')) { 
-    gameState.duckgrades[id] = true; 
-    showMessage("🦆 DUCKGRADE UNLOCKED!", 'success'); 
+  else if (id.startsWith('dg_')) {
+    gameState.duckgrades[id] = true;
+    showMessage("🦆 DUCKGRADE UNLOCKED!", 'success');
     unlockBadge('duckgradeFirst');
   }
 
@@ -1617,13 +1617,13 @@ function activateGTack(t) {
   const cost = t.family === 'Ducky_Glob' ? 500 : 400;
   if (gameState.globetines < cost) return;
   if (t.gTackCooldown && t.gTackCooldown > 0) return;
-  
+
   gameState.globetines -= cost;
   t.gTackCooldown = 30; // 30s cooldown
-  
+
   updateUI();
   updateEvolveButtons(t);
-  
+
   // Activate actual G-Tack power!
   if (t.family === 'Glob') {
     // Green: Frenzy mode - fire 10 fast shots
@@ -1808,7 +1808,7 @@ function startWave() {
   } else if (mode === 'dificil') {
     // Modo Difícil: Salen todos los básicos desde el inicio (gradual pero rápido).
     // Jefe 1x1x1x1_Pyce en oleada 10 ACOMPAÑADO.
-    // Jefe NOeye_Pyce en la oleada 20 ACOMPAÑADO.
+    // Jefe 1x1x1x1_Pyce en la oleada 20 ACOMPAÑADO.
     // Termina en 25 con final grandioso.
     if (wave === 10) {
       isBossWave = true;
@@ -1817,12 +1817,12 @@ function startWave() {
       for (let i = 0; i < 2; i++) spawnList.push('Noob_Pyce');
     } else if (wave === 20) {
       isBossWave = true;
-      bossesToSpawn.push('NOeye_Pyce');
+      bossesToSpawn.push('1x1x1x1_Pyce');
       for (let i = 0; i < 4; i++) spawnList.push('SO_Pyce');
       for (let i = 0; i < 2; i++) spawnList.push('Noob_Pyce');
     } else if (wave === 25) {
       isBossWave = true;
-      bossesToSpawn.push('1x1x1x1_Pyce', 'NOeye_Pyce');
+      bossesToSpawn.push('1x1x1x1_Pyce');
       for (let i = 0; i < 6; i++) spawnList.push('SO_Pyce');
       for (let i = 0; i < 4; i++) spawnList.push('Symbol_Pyce');
     } else {
@@ -2085,7 +2085,7 @@ function gameLoop() {
       const dmg = 12 * dt;
       e.health -= dmg;
       if (Math.random() < 0.1) showEffect(e.x, e.y, "🍄💀", "#9b59b6");
-      
+
       // Veneno contagioso se propaga al hacer contacto
       gameState.enemies.forEach(other => {
         if (other !== e && !other.poisonTimer && Math.hypot(other.x - e.x, other.y - e.y) < 40) {
@@ -2242,7 +2242,7 @@ function gameLoop() {
       t.slowTimer -= dt;
       currentSpeed *= 0.5; // Reduce ataque 50%
     }
-    
+
     if (t.stunTimer > 0) {
       t.stunTimer -= dt;
       if (!t.el.classList.contains('stunned-spin')) t.el.classList.add('stunned-spin');
@@ -2363,16 +2363,16 @@ function gameLoop() {
 
   for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
     const p = gameState.projectiles[i];
-    
+
     if (p.projectile === 'laser_red') {
-      const collidesWithDemonic = gameState.projectiles.some(other => 
+      const collidesWithDemonic = gameState.projectiles.some(other =>
         other !== p && other.projectile === 'laser_purple' && Math.hypot(other.x - p.x, other.y - p.y) < 25
       );
       if (collidesWithDemonic) {
         unlockBadge('letsGoGambling');
       }
     }
-    
+
     if (p.boomerang) {
       const homeX = p.shooter.x;
       const homeY = p.shooter.y;
@@ -2416,7 +2416,7 @@ function gameLoop() {
       }
     }
 
-    p.el.style.left = p.x + 'px'; 
+    p.el.style.left = p.x + 'px';
     p.el.style.top = p.y + 'px';
 
     if (p.piercing || p.boomerang) {
@@ -2462,7 +2462,7 @@ function shoot(shooter, target, opts = {}) {
 
   const el = document.createElement('div');
   el.className = `projectile`;
-  
+
   let projClass = opts.projectile || shooter.projectile;
   if (gameState.equippedSkins[shooter.family] === 'corrupt_swords_set') {
     projClass = 'slash';
@@ -2501,17 +2501,17 @@ function shoot(shooter, target, opts = {}) {
 
   const mapEl = document.getElementById('map') || document.getElementById('game-area') || document.body;
   mapEl.appendChild(el);
-  gameState.projectiles.push({ 
-    x: shooter.x, 
-    y: shooter.y, 
+  gameState.projectiles.push({
+    x: shooter.x,
+    y: shooter.y,
     startX: shooter.x,
     startY: shooter.y,
-    target, 
+    target,
     vx,
     vy,
-    speed, 
-    damage: opts.damage || shooter.damage || 1, 
-    el, 
+    speed,
+    damage: opts.damage || shooter.damage || 1,
+    el,
     meta: opts,
     family: shooter.family,
     type: shooter.type,
