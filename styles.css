@@ -555,25 +555,174 @@ button.active {
 }
 
 /* ===================== BOTONES FLOTANTES DE TORRES ===================== */
-.floating-tower-shop {
-    position: fixed;
-    bottom: 15px;
+/* ===================== ESTILO PREMIUM PARA BOTONES DE TORRES ===================== */
+.floating-tower-btn {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.25,0.8,0.25,1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #e2e8f0;
+    overflow: hidden;
+}
+
+.floating-tower-btn::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,69,0,0.2));
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+.floating-tower-btn:hover {
+    transform: translateY(-6px) scale(1.04);
+    background: rgba(255,255,255,0.12);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    color: #ffd700;
+    border-color: #ffd700;
+    .floating-tower-btn::before { opacity: 1; }
+}
+
+.floating-tower-btn.selected {
+    border-color: #ffd700;
+    background: rgba(255,215,0,0.25);
+    transform: translateY(-8px) scale(1.07);
+    box-shadow: 0 0 25px rgba(255,215,0,0.5);
+    color: #ffd700;
+}
+
+.floating-tower-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ===================== PANEL DE EVOLUCIÓN MEJORADO ===================== */
+#evolve-panel {
+    background: rgba(15,15,30,0.95);
+    border: 2px solid #ffd700;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(255,215,0,0.4), inset 0 0 20px rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+    padding: 20px;
+    gap: 15px;
+    animation: slideIn 0.35s ease-out forwards;
+}
+
+@keyframes slideIn {
+    from { opacity:0; transform: translateY(20px); }
+    to { opacity:1; transform: translateY(0); }
+}
+
+.evolve-btn {
+    width: 100%;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.evolve-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+}
+
+.evolve-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Close button (round) styling for modals */
+.close-btn-round {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    font-size: 1rem;
+    line-height: 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    backdrop-filter: blur(5px);
+}
+
+.close-btn-round:hover {
+    background: rgba(255,255,255,0.25);
+    transform: scale(1.1);
+}
+
+/* Slight glow for selected tower icons inside evolve panel */
+#tower-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #ffd700;
+    text-shadow: 0 0 8px rgba(255,215,0,0.7);
+}
+
+#tower-desc {
+    margin-top: 8px;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+}
+
+/* Glowy effect for upgrade cost badges inside shop */
+.floating-tower-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+.floating-tower-btn span::after {
+    content: attr(data-cost);
+    position: absolute;
+    bottom: -4px;
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
-    gap: 12px;
-    z-index: 10000;
-    background: rgba(10, 10, 20, 0.85);
-    padding: 10px 20px;
-    border-radius: 20px;
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    flex-wrap: nowrap;
-    justify-content: center;
-    max-width: 95vw;
-    overflow-x: auto;
+    color: #ffd700;
+    font-size: 0.6rem;
+    text-shadow: 0 0 4px rgba(255,215,0,0.8);
 }
+
+/* Ensure locked overlay stays on top */
+.floating-tower-btn.locked .lock-overlay {
+    z-index: 5;
+}
+
+/* Minor tweak for tooltip to match new palette */
+#tooltip {
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    font-size: 0.85rem;
+}
+
 
 .floating-tower-shop::-webkit-scrollbar {
     display: none;
