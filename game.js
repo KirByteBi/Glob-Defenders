@@ -685,12 +685,9 @@ function updateSettings() {
 function drawTowerShop() {
   if (!gameState.modeConfirmed) return;
 
-  const existingShop = document.getElementById('floating-tower-shop');
-  if (existingShop) existingShop.remove();
-
-  const shopContainer = document.createElement('div');
-  shopContainer.id = 'floating-tower-shop';
-  shopContainer.className = 'floating-tower-shop';
+  const shopContainer = document.getElementById('tower-shop');
+  if (!shopContainer) return;
+  shopContainer.innerHTML = '';
 
   const shopTowers = [
     { type: 'Glob', unlocked: true },
@@ -716,7 +713,7 @@ function drawTowerShop() {
     const btn = document.createElement('button');
 
     if (!item.unlocked) {
-      btn.className = 'floating-tower-btn locked';
+      btn.className = 'tower-item locked';
       let reqText = '';
       let unlockMsg = '';
       if (item.req === 'lvl3') { reqText = 'Lvl 3'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 3' : '🔒 Unlocks at Duck Pass Level 3'; }
@@ -734,7 +731,8 @@ function drawTowerShop() {
         showMessage(unlockMsg, 'warning');
       };
     } else {
-      btn.className = 'floating-tower-btn';
+      btn.className = 'tower-item';
+      btn.dataset.type = type;
       if (isFull) btn.classList.add('disabled');
       if (gameState.selectedTowerType === type) btn.classList.add('selected');
 
@@ -753,7 +751,7 @@ function drawTowerShop() {
           gameState.selectedTowerType = null;
           btn.classList.remove('selected');
         } else {
-          document.querySelectorAll('.floating-tower-btn').forEach(b => b.classList.remove('selected'));
+          document.querySelectorAll('.tower-item').forEach(b => b.classList.remove('selected'));
           gameState.selectedTowerType = type;
           btn.classList.add('selected');
         }
@@ -763,7 +761,7 @@ function drawTowerShop() {
     shopContainer.appendChild(btn);
   });
 
-  document.body.appendChild(shopContainer);
+  
 }
 
 function drawBadges() {
