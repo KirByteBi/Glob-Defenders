@@ -2921,6 +2921,28 @@ function drawStoryLogs() {
   } else if (currentStoryTab === 'logs') {
     if (currentLanguage === 'es') {
       container.innerHTML = `
+        <h3>📋 Historial de Actualizaciones (GD v2.2.0)</h3>
+        <p>¡El parche que devuelve la vida a los Pyces y reajusta todas las oleadas modo a modo!</p>
+
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🐛 <strong>Corrección del Sistema de Oleadas</strong>: Se ha solucionado un fallo crítico donde las oleadas terminaban instantáneamente antes de que apareciera ningún enemigo. ¡La invasión Pyce ya funciona como se espera!</li>
+          <li>🌊 <strong>Oleadas Rebalanceadas por Modo</strong>: Cada modo ahora tiene su propia escala de amenaza bien diferenciada:
+            <ul>
+              <li>🌱 <strong>Fácil</strong>: Pocas amenazas al inicio, ideal para aprender. Los enemigos son lentos y escasos.</li>
+              <li>⚔️ <strong>Normal</strong>: Presión progresiva. La variedad de enemigos crece a partir de la oleada 3 y se intensifica hacia el final.</li>
+              <li>🔥 <strong>Difícil</strong>: Más enemigos desde la primera oleada, con tipos peligrosos apareciendo antes de lo esperado.</li>
+              <li>💀 <strong>Extremo</strong>: Sin piedad. Grandes hordas y múltiples jefes en puntos clave del recorrido.</li>
+              <li>🔒 <strong>Modos ocultos</strong>: Hay ciertos modos que el sistema preferiría que no existieran... Si los encuentras, ya sabes a lo que te enfrentas desde la primera oleada.</li>
+            </ul>
+          </li>
+          <li>🎁 <strong>¡Nuevo Código Activo!</strong> Por la espera y los inconvenientes:
+            <ul>
+              <li><code>DELAYED_RELEASE</code> → 200 PyCoins + 150 DuckPasses</li>
+            </ul>
+          </li>
+        </ul>
+
         <h3>📋 Historial de Actualizaciones (GD v2.1.0)</h3>
         <p>¡Nuevos desafíos, mejoras de accesibilidad y 11 nuevos Emblemas (Logros) únicos!</p>
         
@@ -2960,6 +2982,28 @@ function drawStoryLogs() {
       `;
     } else {
       container.innerHTML = `
+        <h3>📋 Update Logs (GD v2.2.0)</h3>
+        <p>The patch that brings the Pyces back and rebalances every wave, mode by mode!</p>
+
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🐛 <strong>Wave System Fix</strong>: Fixed a critical bug where waves ended instantly before any enemy appeared on screen. The Pyce invasion is back on schedule!</li>
+          <li>🌊 <strong>Waves Rebalanced Per Mode</strong>: Each mode now has its own clearly distinct threat curve:
+            <ul>
+              <li>🌱 <strong>Easy</strong>: Few threats at first — great for learning. Enemies are slow and sparse.</li>
+              <li>⚔️ <strong>Normal</strong>: Progressive pressure. Enemy variety picks up from wave 3 and ramps toward the end.</li>
+              <li>🔥 <strong>Hard</strong>: More enemies from wave one, with dangerous types showing up sooner than you'd like.</li>
+              <li>💀 <strong>Extreme</strong>: No mercy. Massive hordes and multiple bosses at key points along the way.</li>
+              <li>🔒 <strong>Hidden modes</strong>: There are certain modes the system would rather didn't exist... If you find them, you already know what you're in for from wave one.</li>
+            </ul>
+          </li>
+          <li>🎁 <strong>New Active Code!</strong> For your patience and the inconvenience:
+            <ul>
+              <li><code>DELAYED_RELEASE</code> → 200 PyCoins + 150 DuckPasses</li>
+            </ul>
+          </li>
+        </ul>
+
         <h3>📋 Update Logs (GD v2.1.0)</h3>
         <p>New challenges, accessibility fixes, and 11 unique Achievements/Badges to unlock!</p>
         
