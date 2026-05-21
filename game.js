@@ -45,7 +45,7 @@ generateSpots();
 let gameState = {
   health: 100, wave: 0,
   towers: [], enemies: [], projectiles: [],
-  selectedTowerType: null, waveActive: false,
+  selectedTowerType: null, waveActive: false, spawningActive: false,
   gameOver: false, adminMode: false, autoWave: false,
   towerSpots: [],
   mode: 'normal',
@@ -962,7 +962,8 @@ function bindEvents() {
       'BETA_OPENING': { dp: 100, msg: '100 DuckPass' },
       'REWORKED': { dp: 100, py: 100, xp: 200, msg: '100 DuckPass + 100 PyCoins + 200 XP' },
       'GLOBS_ATTACK': { dp: 100, xp: 100, msg: '100 DuckPass + 100 XP' },
-      'GALAXIUM': { py: 200, dp: 200, msg: '200 PyCoins + 200 DuckPass' }
+      'GALAXIUM': { py: 200, dp: 200, msg: '200 PyCoins + 200 DuckPass' },
+      'DELAYED_RELEASE': { py: 200, dp: 150, msg: '200 PyCoins + 150 DuckPass' }
     };
 
     if (rewards[code]) {
@@ -1030,6 +1031,7 @@ function saveGameSnapshot() {
     modeConfirmed: gameState.modeConfirmed,
     wave: gameState.wave,
     waveActive: gameState.waveActive,
+    spawningActive: gameState.spawningActive,
     health: gameState.health,
     globetines: gameState.globetines,
     pycoins: gameState.pycoins,
@@ -1049,6 +1051,7 @@ function restoreGameSnapshot() {
   gameState.modeConfirmed = !!snap.modeConfirmed;
   gameState.wave = snap.wave;
   gameState.waveActive = !!snap.waveActive;
+  gameState.spawningActive = !!snap.spawningActive;
   gameState.health = snap.health;
   gameState.globetines = snap.globetines;
   gameState.pycoins = snap.pycoins;
@@ -1657,6 +1660,7 @@ function startWave() {
   if (gameState.mode !== 'infinito' && gameState.wave >= maxWaves) return typeof endGame === 'function' && endGame(true);
 
   gameState.waveActive = true;
+  gameState.spawningActive = true;
   gameState.wave = (gameState.wave || 0) + 1;
   if (typeof updateUI === 'function') updateUI();
   if (typeof showMessage === 'function') showMessage((typeof translate === 'function') ? translate('waveStarted', { wave: gameState.wave }) : `¡Oleada ${gameState.wave}!`, 'info');
@@ -1830,6 +1834,7 @@ function startWave() {
   if (spawnList.length === 0) {
     console.error("❌ ERROR: spawnList está VACÍA. Revisa la lógica de oleadas.");
     gameState.waveActive = false;
+    gameState.spawningActive = false;
     return;
   }
 
@@ -1849,6 +1854,7 @@ function startWave() {
   const interval = setInterval(() => {
     if (gameState.gameOver || !gameState.waveActive) {
       clearInterval(interval);
+      gameState.spawningActive = false;
       return;
     }
     const type = spawnList[spawned];
@@ -1856,7 +1862,10 @@ function startWave() {
     console.log(`👾 Spawn enemigo ${spawned + 1}/${spawnList.length}: ${type}`);
     spawnEnemy(type, isThisBoss);
     spawned++;
-    if (spawned >= spawnList.length) clearInterval(interval);
+    if (spawned >= spawnList.length) {
+      clearInterval(interval);
+      gameState.spawningActive = false;
+    }
   }, Math.max(300, 800 - Math.min(500, wave * 25)));
 }
 
@@ -2335,7 +2344,7 @@ function gameLoop() {
     }
   }
 
-  if (gameState.waveActive && !gameState.enemies.length) {
+  if (gameState.waveActive && !gameState.spawningActive && !gameState.enemies.length) {
     gameState.waveActive = false;
     gameState.globetines += 50 + gameState.wave * 10;
     const earnedPy = Math.round(10 * getPycoinMultiplier());
@@ -2604,6 +2613,7 @@ function retryGame() {
   gameState.towerCounts = {};
   gameState.gameOver = false;
   gameState.waveActive = false;
+  gameState.spawningActive = false;
   gameState.totalDamage = 0;
   gameState.usedGTackRed = false;
   gameState.usedGTackGrey = false;
@@ -2616,6 +2626,7 @@ function retryGame() {
 
 function endGame(victory = false) {
   gameState.gameOver = true;
+  gameState.spawningActive = false;
   const modal = document.getElementById('game-over');
   if (!modal) return;
   modal.style.display = 'flex';
