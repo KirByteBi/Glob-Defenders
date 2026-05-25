@@ -1096,3 +1096,296 @@ input:checked + .slider:before {
         max-height: 25px !important;
     }
 }
+
+/* ==========================================================================
+   TIENDA META & DUCK PASS - ESTILO PREMIUM RENOVADO
+   ========================================================================== */
+
+/* Ocultar pestañas estáticas obsoletas para evitar duplicados */
+.shop-tabs {
+    display: none !important;
+}
+
+/* Modales Premium de Shop y Pass */
+.shop-content, 
+.pass-content {
+    max-width: 950px !important;
+    width: 92% !important;
+    max-height: 88vh !important;
+    background: rgba(14, 14, 26, 0.98) !important;
+    border: 2px solid #8e44ad !important;
+    box-shadow: 0 0 35px rgba(142, 68, 173, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.6) !important;
+    padding: 30px !important;
+    overflow-y: auto !important;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Barra de Pestañas Dinámicas del Shop */
+.shop-header-tabs {
+    grid-column: 1 / -1 !important;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 5px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 15px;
+}
+
+.shop-tab-btn {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 20px !important;
+    color: #a0aec0 !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+    box-shadow: none !important;
+}
+
+.shop-tab-btn:hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+.shop-tab-btn.active {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6) !important;
+    border-color: #ffd700 !important;
+    color: #fff !important;
+    box-shadow: 0 0 15px rgba(155, 89, 182, 0.4) !important;
+}
+
+/* Balances de Divisas del Shop */
+.shop-balance {
+    grid-column: 1 / -1 !important;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 10px;
+}
+
+.balance-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+/* Grilla Responsiva */
+.meta-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+    gap: 20px !important;
+    padding: 10px 5px !important;
+}
+
+/* Tarjetas Premium del Shop y Pass */
+.meta-item, 
+.skin-item {
+    position: relative;
+    background: rgba(22, 22, 38, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 16px !important;
+    padding: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+    overflow: visible !important;
+    min-height: 250px;
+}
+
+.meta-item:hover, 
+.skin-item:hover {
+    transform: translateY(-6px);
+    background: rgba(26, 26, 46, 0.85) !important;
+    border-color: rgba(142, 68, 173, 0.3) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(142, 68, 173, 0.15) !important;
+}
+
+/* Textos dentro de las Tarjetas */
+.meta-item h3, 
+.skin-item h3 {
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    margin: 10px 0 6px 0 !important;
+    color: #fff !important;
+    letter-spacing: 0.5px;
+}
+
+.meta-item p, 
+.skin-item p {
+    font-size: 0.78rem !important;
+    color: #a0aec0 !important;
+    margin: 0 0 15px 0 !important;
+    line-height: 1.4 !important;
+    flex-grow: 1;
+}
+
+/* Previsualización de Skins */
+.skin-preview {
+    width: 60px !important;
+    height: 60px !important;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Coste e Indicadores */
+.meta-item .cost, 
+.skin-item .cost {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #ffd700;
+    margin-bottom: 12px;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.2);
+}
+
+/* Botón de Compra / Equipamiento en Tarjetas */
+.meta-buy-btn, 
+.skin-buy-btn {
+    width: 100% !important;
+    padding: 10px 14px !important;
+    background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+    box-shadow: 0 4px 10px rgba(142, 68, 173, 0.3) !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.meta-buy-btn:hover:not(:disabled), 
+.skin-buy-btn:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 15px rgba(142, 68, 173, 0.5) !important;
+    filter: brightness(1.1);
+}
+
+.meta-buy-btn:disabled, 
+.skin-buy-btn:disabled {
+    background: #2d3748 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #718096 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    opacity: 0.6;
+}
+
+/* Botón de tipo "Equipar" (Estilo alternativo verde) */
+.skin-buy-btn.equip {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important;
+}
+
+.skin-buy-btn.equip:hover:not(:disabled) {
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.5) !important;
+}
+
+/* Tarjeta especial con brillo / borde dorado */
+.special-skin {
+    border: 2px solid #ffd700 !important;
+    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.15), 0 0 20px rgba(255, 215, 0, 0.1) !important;
+    background: rgba(28, 26, 18, 0.85) !important;
+}
+
+.special-skin:hover {
+    border-color: #ffd700 !important;
+    box-shadow: 0 12px 30px rgba(255, 215, 0, 0.25), 0 0 25px rgba(255, 215, 0, 0.2) !important;
+    background: rgba(33, 31, 20, 0.95) !important;
+}
+
+/* Distintivo de "ESPECIAL" en la tarjeta */
+.special-badge {
+    position: absolute !important;
+    top: -12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: linear-gradient(135deg, #ffd700, #ffae00) !important;
+    color: #000 !important;
+    font-size: 0.62rem !important;
+    font-weight: 900 !important;
+    padding: 3px 12px !important;
+    border-radius: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4) !important;
+    white-space: nowrap !important;
+    border: 1px solid #fff !important;
+}
+
+/* Estado de bloqueo de tarjeta (Duck Pass) */
+.meta-item.locked {
+    filter: grayscale(0.5);
+    opacity: 0.7;
+    border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.milestone-tag {
+    font-size: 0.6rem;
+    font-weight: 900;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 2px 8px;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+    color: #cbd5e0;
+}
+
+/* ==========================================================================
+   TIENDA DE COLOCACIÓN DE TORRES - CORRECCIÓN DE TAMAÑOS
+   ========================================================================== */
+
+/* Selector de colocación de torres (tienda en partida) */
+.tower-item img {
+    width: 36px !important;
+    height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    object-fit: contain !important;
+    margin-bottom: 3px !important;
+}
+
+/* Asegurar alineación de textos y botones */
+.tower-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 8px 4px !important;
+    min-height: 68px !important;
+    gap: 2px !important;
+}
+
+.tower-item span {
+    font-size: 0.65rem !important;
+    font-weight: 900 !important;
+    color: #ffd700 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+}

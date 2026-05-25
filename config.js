@@ -722,28 +722,28 @@ const NARRATOR_DATA = {
 };
 
 const TOWER_TYPES = {
-  'Glob': { name: 'tower_Glob_name', damage: 10, range: 150, speed: 5.0, cost: 50, evolution: 'Poop_Glob', image: IMAGE_PATHS.Glob, projectile: 'green', desc: "tower_Glob_desc", family: 'Glob' },
-  'Poop_Glob': { name: 'tower_Poop_Glob_name', damage: 25, range: 150, speed: 5.0, cost: 100, evolution: 'Golden_Glob', image: IMAGE_PATHS.Poop_Glob, projectile: 'brown', desc: "tower_Poop_Glob_desc", family: 'Glob' },
-  'Golden_Glob': { name: 'tower_Golden_Glob_name', damage: 45, range: 170, speed: 5.0, cost: 200, evolution: 'Rainbow_Glob', image: IMAGE_PATHS.Golden_Glob, projectile: 'gold', desc: "tower_Golden_Glob_desc", family: 'Glob' },
-  'Rainbow_Glob': { name: 'tower_Rainbow_Glob_name', damage: 30, range: 180, speed: 5.0, cost: 400, image: IMAGE_PATHS.Rainbow_Glob, projectile: 'laser_rainbow', piercing: true, desc: "tower_Rainbow_Glob_desc", family: 'Glob' },
+  'Glob': { name: 'tower_Glob_name', damage: 10, range: 150, speed: 1.0, cost: 50, evolution: 'Poop_Glob', image: IMAGE_PATHS.Glob, projectile: 'green', desc: "tower_Glob_desc", family: 'Glob' },
+  'Poop_Glob': { name: 'tower_Poop_Glob_name', damage: 25, range: 150, speed: 0.6, cost: 100, evolution: 'Golden_Glob', image: IMAGE_PATHS.Poop_Glob, projectile: 'brown', desc: "tower_Poop_Glob_desc", family: 'Glob' },
+  'Golden_Glob': { name: 'tower_Golden_Glob_name', damage: 45, range: 170, speed: 1.4, cost: 200, evolution: 'Rainbow_Glob', image: IMAGE_PATHS.Golden_Glob, projectile: 'gold', desc: "tower_Golden_Glob_desc", family: 'Glob' },
+  'Rainbow_Glob': { name: 'tower_Rainbow_Glob_name', damage: 30, range: 180, speed: 1.8, cost: 400, image: IMAGE_PATHS.Rainbow_Glob, projectile: 'laser_rainbow', piercing: true, desc: "tower_Rainbow_Glob_desc", family: 'Glob' },
 
-  'Red_Glob': { name: 'tower_Red_Glob_name', damage: 20, range: 60, speed: 5.0, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "tower_Red_Glob_desc", family: 'Red_Glob' },
-  'Molten_Glob': { name: 'tower_Molten_Glob_name', damage: 15, range: 70, speed: 5.0, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "tower_Molten_Glob_desc", family: 'Red_Glob' },
-  'Robotic_Glob': { name: 'tower_Robotic_Glob_name', damage: 40, range: 200, speed: 5.0, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
+  'Red_Glob': { name: 'tower_Red_Glob_name', damage: 20, range: 60, speed: 2.0, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "tower_Red_Glob_desc", family: 'Red_Glob' },
+  'Molten_Glob': { name: 'tower_Molten_Glob_name', damage: 15, range: 70, speed: 2.2, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "tower_Molten_Glob_desc", family: 'Red_Glob' },
+  'Robotic_Glob': { name: 'tower_Robotic_Glob_name', damage: 40, range: 200, speed: 1.5, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
 
-  'Soap_Glob': { name: 'tower_Soap_Glob_name', damage: 0, range: 120, speed: 0.8, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "tower_Soap_Glob_desc", family: 'Soap_Glob' },
-  'Cotton_Glob': { name: 'tower_Cotton_Glob_name', damage: 5, range: 140, speed: 1.0, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "tower_Cotton_Glob_desc", family: 'Soap_Glob' },
+  'Soap_Glob': { name: 'tower_Soap_Glob_name', damage: 0, range: 120, speed: 0.3, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "tower_Soap_Glob_desc", family: 'Soap_Glob' },
+  'Cotton_Glob': { name: 'tower_Cotton_Glob_name', damage: 5, range: 140, speed: 2.6, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "tower_Cotton_Glob_desc", family: 'Soap_Glob' },
 
   'Ducky_Glob': { name: 'tower_Ducky_Glob_name', damage: 0, range: 140, speed: 0, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'none', desc: "tower_Ducky_Glob_desc", family: 'Ducky_Glob' },
   'Golden_Ducky_Glob': { name: 'tower_Golden_Ducky_Glob_name', damage: 0, range: 160, speed: 0, cost: 180, image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'none', desc: "tower_Golden_Ducky_Glob_desc", family: 'Ducky_Glob' },
 
-  'Comet_Glob': { name: 'tower_Comet_Glob_name', damage: 50, range: 250, speed: 0.2, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'star_boomerang', piercing: true, boomerang: true, desc: "tower_Comet_Glob_desc", family: 'Comet_Glob' },
-  'Dark_Glob': { name: 'tower_Dark_Glob_name', damage: 80, range: 280, speed: 1.0, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'diamond_boomerang', piercing: true, boomerang: true, desc: "tower_Dark_Glob_desc", family: 'Comet_Glob' },
+  'Comet_Glob': { name: 'tower_Comet_Glob_name', damage: 50, range: 250, speed: 0.25, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'star_boomerang', piercing: true, boomerang: true, desc: "tower_Comet_Glob_desc", family: 'Comet_Glob' },
+  'Dark_Glob': { name: 'tower_Dark_Glob_name', damage: 80, range: 280, speed: 0.5, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'diamond_boomerang', piercing: true, boomerang: true, desc: "tower_Dark_Glob_desc", family: 'Comet_Glob' },
   'Demglob': { name: 'tower_Demglob_name', damage: 200, range: 300, speed: 2.0, cost: 1000, image: IMAGE_PATHS.Demglob, projectile: 'laser_purple', piercing: true, burn: true, corruption: true, desc: "tower_Demglob_desc", family: 'Comet_Glob' },
 
-  'Pyce_Glob': { name: 'tower_Pyce_Glob_name', damage: 30, range: 180, speed: 0.8, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Grey' },
-  'Old_Glob': { name: 'tower_Old_Glob_name', damage: 40, range: 200, speed: 0.5, cost: 200, evolution: 'Pyce_Glob', image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "tower_Old_Glob_desc", family: 'Grey' },
-  'Work_Bombot': { name: 'tower_Work_Bombot_name', damage: 100, range: 150, speed: 0.2, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "tower_Work_Bombot_desc", family: 'Special' }
+  'Pyce_Glob': { name: 'tower_Pyce_Glob_name', damage: 30, range: 180, speed: 4.5, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Grey' },
+  'Old_Glob': { name: 'tower_Old_Glob_name', damage: 40, range: 200, speed: 3.5, cost: 200, evolution: 'Pyce_Glob', image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "tower_Old_Glob_desc", family: 'Grey' },
+  'Work_Bombot': { name: 'tower_Work_Bombot_name', damage: 100, range: 150, speed: 0.6, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "tower_Work_Bombot_desc", family: 'Special' }
 };
 
 const ENEMY_TYPES = {
