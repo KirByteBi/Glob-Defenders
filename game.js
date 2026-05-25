@@ -2386,7 +2386,7 @@ function shoot(shooter, target, opts = {}) {
   const dy = target.y - shooter.y;
   const angle = Math.atan2(dy, dx);
   const dist = Math.hypot(dx, dy) || 1;
-  const speed = (opts.speed || shooter.speed || 3) * 10;
+  const speed = (opts.speed || shooter.speed || 3) * 300;
   const vx = (dx / dist) * speed;
   const vy = (dy / dist) * speed;
 

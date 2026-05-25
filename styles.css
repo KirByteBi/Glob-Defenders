@@ -5,7 +5,7 @@ body {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: white;
     margin: 0;
-    padding: 20px;
+    padding: 8px 12px;
     user-select: none;
     overflow-x: hidden;
 }
@@ -295,11 +295,11 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 6px;
 }
 
 .game-logo {
-    height: 100px;
+    height: 60px;
     width: auto;
     filter: drop-shadow(0 5px 15px rgba(255, 140, 0, 0.4));
     transition: transform 0.3s;
@@ -315,9 +315,9 @@ body {
     justify-content: space-between;
     align-items: center;
     background: rgba(0, 0, 0, 0.7);
-    padding: 15px 25px;
-    border-radius: 15px;
-    margin-bottom: 15px;
+    padding: 8px 15px;
+    border-radius: 10px;
+    margin-bottom: 8px;
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -408,6 +408,35 @@ button.active {
 #start-wave { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
 #deselect-tower { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); }
 
+/* ===================== BOTONES UTILITARIOS (ES/EN, ⚙️, X) ===================== */
+#language-toggle,
+.meta-btn-round,
+.close-btn,
+.close-btn-round {
+    background: linear-gradient(135deg, #1db954 0%, #17a84a 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 14px rgba(29, 185, 84, 0.45);
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+#language-toggle:hover:not(:disabled),
+.meta-btn-round:hover:not(:disabled),
+.close-btn:hover:not(:disabled),
+.close-btn-round:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.06);
+    box-shadow: 0 8px 22px rgba(29, 185, 84, 0.65);
+    background: linear-gradient(135deg, #22e868 0%, #1db954 100%);
+}
+
+#language-toggle:active,
+.meta-btn-round:active,
+.close-btn:active,
+.close-btn-round:active {
+    transform: translateY(1px) scale(0.98);
+    box-shadow: 0 2px 6px rgba(29, 185, 84, 0.3);
+}
+
 #game-area.corrupt {
     background-color: #4a148c;
     background-image: 
@@ -483,6 +512,13 @@ button.active {
 #map {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
+}
+
+/* ===================== PROYECTILES ===================== */
+.projectile {
+    position: absolute;
+    z-index: 15;
+    pointer-events: none;
 }
 
 .path-segment {
