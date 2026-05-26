@@ -892,10 +892,10 @@ const SKINS_DATA = {
         'Rainbow_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Ancigon Glob (SK-EVO4).png'
       },
       names: {
-        'Glob': 'Blackrock',
-        'Poop_Glob': 'Brad',
-        'Golden_Glob': 'Emotional',
-        'Rainbow_Glob': 'Ancigon'
+        'Glob': 'Blackrock Glob',
+        'Poop_Glob': 'Brad Glob',
+        'Golden_Glob': 'Emotional Glob',
+        'Rainbow_Glob': 'Ancigon Glob'
       }
     }
   ],
@@ -964,9 +964,9 @@ const SKINS_DATA = {
         'Demglob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/NOmic Pyce (SK-EVO3).png'
       },
       names: {
-        'Comet_Glob': 'Mimic Comet',
-        'Dark_Glob': 'Mimic Oscuro',
-        'Demglob': 'Mimic Supremo'
+        'Comet_Glob': 'Mimic Pyce',
+        'Dark_Glob': 'Dirty Mimic',
+        'Demglob': 'NOeye Mimic'
       }
     }
   ],
