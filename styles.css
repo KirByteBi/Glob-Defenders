@@ -5,9 +5,12 @@ body {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: white;
     margin: 0;
-    padding: 8px 12px;
+    padding: 0;
+    width: 100vw;
+    min-height: 100vh;
     user-select: none;
     overflow-x: hidden;
+    overflow-y: auto;
 }
 
 /* ===================== PORTRAIT OVERLAY ===================== */
@@ -54,11 +57,23 @@ body {
     #portrait-overlay { display: flex; }
 }
 
+#game-container {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 8px;
+}
+
 /* ===================== GAME SCALE WRAPPER - CORREGIDO ===================== */
 .game-scale-wrapper {
     width: 100%;
     overflow: visible;
-    min-height: 600px;
+    min-height: 0;
+    display: flex;
+    justify-content: center;
 }
 
 #game-area {
@@ -409,6 +424,32 @@ button.active {
 #deselect-tower { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); }
 
 /* ===================== BOTONES UTILITARIOS (ES/EN, ⚙️, X) ===================== */
+#language-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 10000;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#options-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 #language-toggle,
 .meta-btn-round,
 .close-btn,
@@ -514,11 +555,60 @@ button.active {
     top: 0; left: 0; width: 100%; height: 100%;
 }
 
+/* ===================== CRÉDITOS DEL DESARROLLADOR ===================== */
+.dev-credit {
+    margin-top: 12px;
+    text-align: center;
+}
+
+.pink-credit {
+    color: #ff69b4;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-shadow:
+        0 0 6px rgba(255, 105, 180, 0.6),
+        0 0 15px rgba(255, 105, 180, 0.3),
+        0 0 30px rgba(255, 105, 180, 0.15);
+    animation: pinkPulse 3s ease-in-out infinite;
+}
+
+@keyframes pinkPulse {
+    0%, 100% { opacity: 0.85; text-shadow: 0 0 6px rgba(255,105,180,0.6), 0 0 15px rgba(255,105,180,0.3); }
+    50% { opacity: 1; text-shadow: 0 0 10px rgba(255,105,180,0.9), 0 0 25px rgba(255,105,180,0.5), 0 0 40px rgba(255,105,180,0.2); }
+}
+
+.game-credit-footer {
+    position: absolute;
+    bottom: 4px;
+    right: 12px;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.game-credit-footer .pink-credit {
+    font-size: 0.65rem;
+    opacity: 0.7;
+}
+
 /* ===================== PROYECTILES ===================== */
 .projectile {
     position: absolute;
     z-index: 15;
     pointer-events: none;
+    image-rendering: auto;
+    transition: none;
+}
+
+.projectile.star_yellow, .projectile.star_celeste {
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    border-radius: 0 !important;
+}
+
+@keyframes rainbowShift {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
 }
 
 .path-segment {
@@ -537,6 +627,18 @@ button.active {
     z-index: 3;
     cursor: pointer;
     transition: all 0.3s;
+}
+
+.range-indicator {
+    position: absolute;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 2; /* Debajo de la torre pero por encima del mapa */
+    box-sizing: border-box;
+    transition: all 0.2s ease-out;
 }
 
 .tower-spot:hover {
@@ -943,6 +1045,30 @@ button.active {
     animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+@keyframes victoryGlow {
+    0%   { box-shadow: 0 0 40px rgba(0, 242, 254, 0.5), 0 0 80px rgba(0, 200, 80, 0.2); border-color: #00f2fe; }
+    50%  { box-shadow: 0 0 70px rgba(0, 200, 80, 0.7), 0 0 120px rgba(0, 242, 254, 0.3); border-color: #00e676; }
+    100% { box-shadow: 0 0 40px rgba(0, 242, 254, 0.5), 0 0 80px rgba(0, 200, 80, 0.2); border-color: #00f2fe; }
+}
+
+.modal-content.victory {
+    border-color: #00f2fe;
+    border-width: 3px;
+    box-shadow: 0 0 50px rgba(0, 242, 254, 0.4);
+    background: linear-gradient(180deg, rgba(10, 25, 35, 0.97) 0%, rgba(0, 40, 55, 0.92) 100%);
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), victoryGlow 2.5s ease-in-out infinite;
+}
+
+.modal-content.victory h2 {
+    background: linear-gradient(90deg, #00e676, #00f2fe, #00e676);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: rainbowShift 3s linear infinite;
+    font-size: 1.8rem;
+}
+
 .options-content {
     max-width: 400px !important;
 }
@@ -1108,7 +1234,8 @@ input:checked + .slider:before {
 
 /* Modales Premium de Shop y Pass */
 .shop-content, 
-.pass-content {
+.pass-content,
+.story-logs-content {
     max-width: 950px !important;
     width: 92% !important;
     max-height: 88vh !important;
@@ -1123,7 +1250,8 @@ input:checked + .slider:before {
 }
 
 /* Barra de Pestañas Dinámicas del Shop */
-.shop-header-tabs {
+.shop-header-tabs,
+.story-logs-tabs {
     grid-column: 1 / -1 !important;
     width: 100%;
     display: flex;
@@ -1135,7 +1263,8 @@ input:checked + .slider:before {
     padding-bottom: 15px;
 }
 
-.shop-tab-btn {
+.shop-tab-btn,
+.story-tab-btn {
     padding: 10px 20px;
     background: rgba(255, 255, 255, 0.04) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -1148,14 +1277,16 @@ input:checked + .slider:before {
     box-shadow: none !important;
 }
 
-.shop-tab-btn:hover {
+.shop-tab-btn:hover,
+.story-tab-btn:hover {
     color: #fff !important;
     background: rgba(255, 255, 255, 0.08) !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
     transform: translateY(-2px) !important;
 }
 
-.shop-tab-btn.active {
+.shop-tab-btn.active,
+.story-tab-btn.active {
     background: linear-gradient(135deg, #8e44ad, #9b59b6) !important;
     border-color: #ffd700 !important;
     color: #fff !important;
@@ -1388,4 +1519,45 @@ input:checked + .slider:before {
     font-weight: 900 !important;
     color: #ffd700 !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* ==========================================================================
+   RESPONSIVE PARA PANTALLAS BAJAS (Ej: Pantalla partida)
+   ========================================================================== */
+@media (max-height: 750px) {
+    #game-header {
+        margin-bottom: 2px !important;
+    }
+    .game-logo {
+        height: 35px !important;
+    }
+    #game-ui {
+        padding: 4px 8px !important;
+        margin-bottom: 4px !important;
+    }
+    .stat-value {
+        font-size: 1rem !important;
+    }
+    .stat-label {
+        font-size: 0.5rem !important;
+    }
+    #game-container {
+        padding: 2px !important;
+    }
+    #tower-shop {
+        margin-top: 4px !important;
+        padding: 4px !important;
+    }
+    .tower-item {
+        width: 50px !important;
+        height: 50px !important;
+        min-height: 50px !important;
+    }
+    .tower-item img {
+        width: 25px !important;
+        height: 25px !important;
+    }
+    .tower-item span {
+        font-size: 0.55rem !important;
+    }
 }

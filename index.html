@@ -50,6 +50,9 @@
                     <img src="img/Collabs%20(SJ)/IconoStarJump.png" alt="StarJump" class="collab-logo">
                 </a>
             </div>
+            <div class="dev-credit">
+                <span class="pink-credit">✦ Creado por KirByte_Bi ✦</span>
+            </div>
         </div>
     </div>
 
@@ -124,6 +127,20 @@
                     <div class="window"></div>
                 </div>
                 <div id="map"></div>
+                <div id="evolve-panel" class="info-card" style="display: none;">
+                    <div class="info-card-header">
+                        <h3 data-i18n="evolve_title">Evolución de Torre</h3>
+                        <button onclick="deselectTower()" class="close-btn-round">×</button>
+                    </div>
+                    <div class="info-card-body">
+                        <div id="tower-name" class="info-title">Torre</div>
+                        <div id="tower-desc" class="info-desc">Descripción...</div>
+                        <div id="evolve-options" class="evolve-container"></div>
+                    </div>
+                    <div class="info-card-footer">
+                        <button id="sell-tower-btn" class="sell-btn" onclick="sellTower()"></button>
+                    </div>
+                </div>
                 <div id="game-messages"></div>
                 <div id="game-over" class="modal">
                     <div class="modal-content">
@@ -141,24 +158,15 @@
 
         <div id="tower-shop"></div>
 
-        <div id="evolve-panel" class="info-card" style="display: none;">
-            <div class="info-card-header">
-                <h3 data-i18n="evolve_title">Evolución de Torre</h3>
-                <button onclick="deselectTower()" class="close-btn-round">×</button>
-            </div>
-            <div class="info-card-body">
-                <div id="tower-name" class="info-title">Torre</div>
-                <div id="tower-desc" class="info-desc">Descripción...</div>
-                <div id="evolve-options" class="evolve-container"></div>
-            </div>
-            <div class="info-card-footer">
-                <button id="sell-tower-btn" class="sell-btn" onclick="sellTower()"></button>
-            </div>
+        <div class="game-credit-footer">
+            <span class="pink-credit">✦ KirByte_Bi ✦</span>
         </div>
+
+
     </div>
     <!-- FIN GAME CONTAINER -->
 
-    <button id="debug-toggle" style="position: fixed; bottom: 10px; right: 10px; opacity: 0.1;">🐛</button>
+    <button id="debug-toggle" style="position: fixed; bottom: 10px; right: 10px; opacity: 0.1; background-color: #ff69b4; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 100;">🐛</button>
 
     <!-- PANEL DE LOGROS FLOTANTE -->
     <div id="badges-panel">
@@ -199,6 +207,14 @@
                 <span data-i18n="show_total_damage">Ver Daño Total de torres</span>
                 <label class="switch">
                     <input type="checkbox" id="opt-show-damage" onchange="updateSettings()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="option-row">
+                <span data-i18n="show_ranges">Ver Rango de torres</span>
+                <label class="switch">
+                    <input type="checkbox" id="opt-show-ranges" onchange="updateSettings()">
                     <span class="slider"></span>
                 </label>
             </div>

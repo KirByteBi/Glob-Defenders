@@ -74,7 +74,7 @@ let gameState = {
   metaRangeLevel: 0,
   metaDamageLevel: 0,
   unlockedSkins: ['default'],
-  equippedSkins: { 'Glob': 'default', 'Red_Glob': 'default', 'Global': 'default', 'Grey': 'default' },
+  equippedSkins: { 'Glob': 'default', 'Red_Glob': 'default', 'Soap_Glob': 'default', 'Ducky_Glob': 'default', 'Comet_Glob': 'default', 'Grey': 'default', 'Special': 'default', 'Global': 'default' },
   cheatedModeActive: false,
   cheatedBackup: null,
   adminMode: false,
@@ -228,7 +228,7 @@ function loadProgress(username) {
       gameState.baseHealthLevel = progress.baseHealthLevel || 0;
       gameState.usedCodes = progress.usedCodes || {};
       gameState.unlockedSkins = progress.unlockedSkins || ['default'];
-      gameState.equippedSkins = Object.assign({ 'Glob': 'default', 'Red_Glob': 'default', 'Global': 'default', 'Grey': 'default' }, progress.equippedSkins || {});
+      gameState.equippedSkins = Object.assign({ 'Glob': 'default', 'Red_Glob': 'default', 'Soap_Glob': 'default', 'Ducky_Glob': 'default', 'Comet_Glob': 'default', 'Grey': 'default', 'Special': 'default', 'Global': 'default' }, progress.equippedSkins || {});
       gameState.cheatedModeActive = progress.cheatedModeActive || false;
       gameState.cheatedBackup = progress.cheatedBackup || null;
       gameState.unlockedAntiNormal = progress.unlockedAntiNormal || false;
@@ -563,6 +563,8 @@ function openOptions() {
   document.getElementById('options-modal').style.display = 'flex';
   document.getElementById('opt-show-desc').checked = gameState.settings.showShopDesc;
   document.getElementById('opt-show-damage').checked = gameState.settings.showTotalDamage;
+  const optShowRanges = document.getElementById('opt-show-ranges');
+  if (optShowRanges) optShowRanges.checked = !!gameState.settings.showRanges;
   const hitboxCheck = document.getElementById('opt-show-hitbox');
   if (hitboxCheck) hitboxCheck.checked = showHitbox;
 
@@ -661,10 +663,13 @@ function updateHitboxesVisibility() {
 function updateSettings() {
   gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
   gameState.settings.showTotalDamage = document.getElementById('opt-show-damage').checked;
+  const optShowRanges = document.getElementById('opt-show-ranges');
+  if (optShowRanges) gameState.settings.showRanges = optShowRanges.checked;
 
   const hitboxCheck = document.getElementById('opt-show-hitbox');
   if (hitboxCheck) showHitbox = hitboxCheck.checked;
   updateHitboxesVisibility();
+  updateAllTowerRanges();
 
   document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
 
@@ -961,7 +966,9 @@ function bindEvents() {
       'REWORKED': { dp: 100, py: 100, xp: 200, msg: '100 DuckPass + 100 PyCoins + 200 XP' },
       'GLOBS_ATTACK': { dp: 100, xp: 100, msg: '100 DuckPass + 100 XP' },
       'GALAXIUM': { py: 200, dp: 200, msg: '200 PyCoins + 200 DuckPass' },
-      'DELAYED_RELEASE': { py: 200, dp: 150, msg: '200 PyCoins + 150 DuckPass' }
+      'MAYJUNE_RELEASE': { py: 100, dp: 100, xp: 100, msg: '100 PyCoins + 100 DuckPass + 100 XP' },
+      'DELAYED_RELEASE': { py: 200, dp: 150, msg: '200 PyCoins + 150 DuckPass' },
+      'NITRODRAWS': { py: 50, dp: 25, msg: '50 PyCoins + 25 DuckPass' }
     };
 
     if (rewards[code]) {
@@ -1104,8 +1111,29 @@ function applyScale() {
   const area = document.getElementById('game-area');
   const wrapper = document.querySelector('.game-scale-wrapper');
   if (!area || !wrapper) return;
-  const availW = Math.min(window.innerWidth - 40, GAME_DESIGN_W);
-  const scale = Math.min(availW / GAME_DESIGN_W, 1.0);
+
+  // Measure actual heights of surrounding elements
+  const header = document.getElementById('game-header');
+  const ui = document.getElementById('game-ui');
+  const shop = document.getElementById('tower-shop');
+  const footer = document.querySelector('.game-credit-footer');
+
+  const headerH = header ? header.offsetHeight : 0;
+  const uiH = ui ? ui.offsetHeight : 0;
+  const shopH = shop ? shop.offsetHeight : 0;
+  const footerH = footer ? footer.offsetHeight : 0;
+
+  const usedH = headerH + uiH + shopH + footerH + 30; // 30px breathing room
+  
+  const availW = window.innerWidth - 20;
+  const availH = Math.max(100, window.innerHeight - usedH);
+
+  const scaleW = availW / GAME_DESIGN_W;
+  const scaleH = availH / GAME_DESIGN_H;
+  
+  const scale = Math.max(0.15, Math.min(scaleW, scaleH, 1.0));
+  
+  area.style.transformOrigin = 'top center';
   area.style.transform = `scale(${scale})`;
   wrapper.style.height = (GAME_DESIGN_H * scale) + 'px';
 }
@@ -1185,7 +1213,7 @@ function isTowerOwned(t) {
   if (t === 'Glob' || t === 'Red_Glob' || t === 'Recolors' || t === 'Global') return true;
   if (t === 'Soap_Glob') return gameState.duckPassLevel >= 3;
   if (t === 'Ducky_Glob') return gameState.duckPassLevel >= 6;
-  if (t === 'Work_Bombot') return !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked);
+  if (t === 'Work_Bombot' || t === 'Special') return !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked);
   if (t === 'Old_Glob' || t === 'Pyce_Glob' || t === 'Grey') return !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked);
   if (t === 'Comet_Glob') return !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked);
   return false;
@@ -1280,12 +1308,12 @@ function drawShop() {
     });
   } else if (currentShopTab === 'gtacks') {
     const gtacksData = [
-      { id: 'Glob', name: 'Green G-Tack: Frenesí', desc: 'Frenesí de Disparos: Al activarla en combate, la torre verde de nivel máximo lanza 10 disparos de ametralladora casi instantáneos. Cuesta 400 Globets activar. (¡MUY OP!)', pyCost: 750, dpCost: 250 },
-      { id: 'Red_Glob', name: 'Red G-Tack: Sobrecarga', desc: 'Sobrecarga de Ataque: Al activarla en combate, la torre roja de nivel máximo gana +5% de daño y aplica un efecto Tóxico DoT muy rápido. Cuesta 400 Globets activar.', pyCost: 550, dpCost: 180 },
-      { id: 'Soap_Glob', name: 'Blue G-Tack: Rayo Paralizante', desc: 'Impacto Relámpago: Al activarla en combate, el próximo ataque de la torre azul de nivel máximo stunea a los enemigos garantizadamente, ¡INCLUYENDO JEFES! Cuesta 400 Globets activar.', pyCost: 580, dpCost: 190 },
-      { id: 'Ducky_Glob', name: 'Yellow G-Tack: Lluvia Financiera', desc: 'Lluvia de Divisas: Al activarla en combate, la torre amarilla de nivel máximo genera 15 PyCoins y 3 DuckPasses. Cuesta 500 Globets activar.', pyCost: 650, dpCost: 210 },
-      { id: 'Comet_Glob', name: 'Black G-Tack: Contagio', desc: 'Hongo Venenoso: Al activarla en combate, la torre negra de nivel máximo aplica veneno DoT (calavera/seta) que se propaga entre enemigos al morir o tocarse. Cuesta 400 Globets activar. (¡MUY OP!)', pyCost: 780, dpCost: 260 },
-      { id: 'Old_Glob', name: 'Grey G-Tack: Amplificación', desc: 'Ampliación de Radar: Al activarla en combate, aumenta el rango de ataque de TODAS las torres del mapa en +50 por 10s. Cuesta 400 Globets activar.', pyCost: 520, dpCost: 170 }
+      { id: 'Glob', name: translate('gtack_green_name'), desc: translate('gtack_green_desc'), pyCost: 750, dpCost: 250 },
+      { id: 'Red_Glob', name: translate('gtack_red_name'), desc: translate('gtack_red_desc'), pyCost: 550, dpCost: 180 },
+      { id: 'Soap_Glob', name: translate('gtack_blue_name'), desc: translate('gtack_blue_desc'), pyCost: 580, dpCost: 190 },
+      { id: 'Ducky_Glob', name: translate('gtack_yellow_name'), desc: translate('gtack_yellow_desc'), pyCost: 650, dpCost: 210 },
+      { id: 'Comet_Glob', name: translate('gtack_black_name'), desc: translate('gtack_black_desc'), pyCost: 780, dpCost: 260 },
+      { id: 'Old_Glob', name: translate('gtack_grey_name'), desc: translate('gtack_grey_desc'), pyCost: 520, dpCost: 170 }
     ];
 
     const gtacksLocked = gameState.duckPassLevel < 50;
@@ -1298,10 +1326,10 @@ function drawShop() {
 
       let buttonHTML = '';
       if (gtacksLocked) {
-        buttonHTML = `<button class="meta-buy-btn" disabled style="background: #95a5a6; border: 1px dashed #7f8c8d; cursor: not-allowed; color: #fff;">🔒 Req. Lvl 50</button>`;
+        buttonHTML = `<button class="meta-buy-btn" disabled style="background: #95a5a6; border: 1px dashed #7f8c8d; cursor: not-allowed; color: #fff;">${translate('gtack_req_lvl')}</button>`;
       } else {
         buttonHTML = `<button class="meta-buy-btn" ${isUnlocked || gameState.pycoins < u.pyCost || gameState.duckPassCurrency < u.dpCost ? 'disabled' : ''} 
-          onclick="buyGTack('${u.id}', ${u.pyCost}, ${u.dpCost})">${isUnlocked ? 'Activo' : 'Comprar'}</button>`;
+          onclick="buyGTack('${u.id}', ${u.pyCost}, ${u.dpCost})">${isUnlocked ? translate('gtack_active') : translate('gtack_buy')}</button>`;
       }
 
       el.innerHTML = `<h3>${u.name}</h3><p>${u.desc}</p>
@@ -1355,6 +1383,45 @@ function drawShop() {
         container.appendChild(el);
       });
     });
+
+    if (gameState.cheatedModeActive) {
+      const oldBtn = document.getElementById('admin-playtest-btn');
+      if (oldBtn) oldBtn.remove();
+      
+      const secretBtn = document.createElement('button');
+      secretBtn.id = 'admin-playtest-btn';
+      secretBtn.style.marginTop = '20px';
+      secretBtn.style.alignSelf = 'flex-end';
+      secretBtn.style.width = '20px';
+      secretBtn.style.height = '20px';
+      secretBtn.style.opacity = '0.4';
+      secretBtn.style.backgroundColor = '#ff69b4';
+      secretBtn.style.border = 'none';
+      secretBtn.style.borderRadius = '50%';
+      secretBtn.style.cursor = 'pointer';
+      secretBtn.style.display = 'flex';
+      secretBtn.style.alignItems = 'center';
+      secretBtn.style.justifyContent = 'center';
+      secretBtn.style.fontSize = '10px';
+      secretBtn.textContent = '🐛';
+      secretBtn.title = 'Admin: Unlock All Towers';
+      secretBtn.onclick = () => {
+        const ALL_TOWERS = ['Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Old_Glob', 'Work_Bombot', 'Pyce_Glob'];
+        ALL_TOWERS.forEach(t => {
+          if (TOWER_TYPES[t]) TOWER_TYPES[t].unlocked = true;
+        });
+        showMessage("👑 MODO ADMIN: Todas las torres desbloqueadas para Playtesting", "success");
+        drawTowerShop();
+      };
+      
+      const spacer = document.createElement('div');
+      spacer.style.width = '100%';
+      spacer.style.display = 'flex';
+      spacer.style.justifyContent = 'flex-end';
+      spacer.appendChild(secretBtn);
+      
+      container.appendChild(spacer);
+    }
   }
 }
 
@@ -1496,6 +1563,7 @@ function placeTower(spotId, type) {
   gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
   spot.occupied = true;
   updateUI(); drawTowerShop();
+  updateAllTowerRanges();
 }
 
 function selectTower(t) {
@@ -1590,6 +1658,10 @@ function updateEvolveButtons(t) {
     } else {
       const familyKey = t.family === 'Grey' ? 'Old_Glob' : t.family;
       const hasGTackUnlocked = gameState.gtacks[familyKey];
+      
+      const evolveTitle = document.querySelector('#evolve-panel h3');
+      if (evolveTitle) evolveTitle.textContent = hasGTackUnlocked ? 'G-Tack (Habilidad)' : translate('max_reached');
+
       if (hasGTackUnlocked) {
         const btn = document.createElement('button');
         btn.className = 'evolve-btn gtack-btn';
@@ -1607,7 +1679,10 @@ function updateEvolveButtons(t) {
       } else {
         const el = document.createElement('div');
         el.className = 'gtack-locked';
-        el.textContent = "🔒 G-Tack bloqueado en la Tienda Meta";
+        el.style.textAlign = 'center';
+        el.style.color = '#ffd700';
+        el.style.fontWeight = 'bold';
+        el.textContent = translate('max_reached');
         container.appendChild(el);
       }
     }
@@ -1625,16 +1700,20 @@ function evolveTower(tower, nextType) {
   if (gameState.globetines < next.cost) return;
   gameState.globetines -= next.cost;
   if (tower.type !== nextType) { gameState.towerCounts[tower.type]--; gameState.towerCounts[nextType] = (gameState.towerCounts[nextType] || 0) + 1; }
-  tower.type = nextType; Object.assign(tower, next);
+  tower.type = nextType; 
+  tower.evolution = next.evolution; 
+  Object.assign(tower, next);
   tower.damage *= gameState.towerBuffs.damage; tower.range += gameState.towerBuffs.range; tower.speed *= gameState.towerBuffs.speed;
   tower.el.style.backgroundImage = `url('${getTowerImage(nextType)}')`; applyTowerEffects(tower.el, nextType);
   if (!next.evolution) unlockBadge('evolution');
+  updateAllTowerRanges();
   selectTower(tower); updateUI(); drawTowerShop();
 }
 
 function sellTower(tower) {
   gameState.globetines += Math.floor(tower.cost * 0.7);
   tower.el.remove();
+  if (tower.rangeEl) tower.rangeEl.remove();
   gameState.towerCounts[tower.type]--;
   gameState.towerSpots[tower.spotId].occupied = false;
   gameState.towers.splice(gameState.towers.indexOf(tower), 1);
@@ -2378,7 +2457,18 @@ function shoot(shooter, target, opts = {}) {
   let projClass = opts.projectile || shooter.projectile;
   if (gameState.equippedSkins[shooter.family] === 'corrupt_swords_set') {
     projClass = 'slash';
-    shooter.piercing = true;
+    if (shooter.type === 'Glob') opts.color = '#00FFFF';
+    else if (shooter.type === 'Poop_Glob') opts.color = '#39FF14';
+    else if (shooter.type === 'Golden_Glob') opts.color = 'multicolor';
+    else if (shooter.type === 'Rainbow_Glob') opts.color = 'gradient';
+  } else if (gameState.equippedSkins[shooter.family] === 'mimic_set') {
+    projClass = 'laser';
+    if (shooter.type === 'Comet_Glob') opts.color = '#007BFF'; // Azul
+    else if (shooter.type === 'Dark_Glob') opts.color = '#8B4513'; // Marrón
+    else if (shooter.type === 'Demglob') opts.color = '#000000'; // Negro
+  } else if (gameState.equippedSkins[shooter.family] === 'starjump_set') {
+    if (shooter.type === 'Old_Glob') { projClass = 'star_yellow'; opts.color = '#FFD700'; }
+    else if (shooter.type === 'Pyce_Glob') { projClass = 'star_celeste'; opts.color = '#00FFFF'; opts.size = 14; }
   }
   if (projClass) el.classList.add(projClass);
 
@@ -2392,18 +2482,137 @@ function shoot(shooter, target, opts = {}) {
 
   el.style.position = 'absolute';
   el.style.left = shooter.x + 'px'; el.style.top = shooter.y + 'px';
-  el.style.width = el.style.height = (opts.size || 10) + 'px';
-  el.style.borderRadius = '50%';
-  el.style.transform = `rotate(${angle}rad)`;
+  // Como las imágenes base de proyectiles miran hacia la izquierda, 
+  // tenemos que sumarle Math.PI (180 grados) al ángulo para que apunten bien al moverse
+  el.style.transform = `rotate(${angle + Math.PI}rad)`;
 
-  if (opts.color === 'multicolor') {
-    el.style.backgroundImage = `conic-gradient(#FFEA00,#00B4FF,#C58ED3,#8B0000)`;
-  } else if (opts.color === 'gradient') {
-    el.style.background = `linear-gradient(45deg, ${opts.from || '#FF7F00'}, ${opts.to || '#001F5B'})`;
-  } else if (opts.color === 'blackwhite') {
-    el.style.background = 'radial-gradient(circle at 30% 30%, #fff 0%, #000 60%)';
+  // ========== SISTEMA DE PROYECTILES 3D TINTADOS ==========
+  const isEnemy = !!opts.isEnemy;
+  const isBomb = (shooter.type === 'Work_Bombot' || shooter.aoe);
+  const isLaser = projClass && (projClass.includes('laser') || projClass === 'void');
+  const isBoomerang = projClass && (projClass.includes('boomerang'));
+  const isSpecialProj = projClass === 'binary_code' || projClass === 'stone' || projClass === 'stone_red' || projClass === 'glitch' || projClass === 'star_yellow' || projClass === 'star_celeste' || projClass === 'slash' || projClass === 'gold' || projClass === 'none';
+
+  // Determine projectile image and size
+  let projImg = 'img/Proyectiles/Proyectil_Base.png';
+  let projSize = 16;
+
+  if (isBomb) {
+    projImg = 'img/Proyectiles/Proyectil_Bomba.png';
+    projSize = 24;
+  } else if (isLaser) {
+    projImg = 'img/Proyectiles/Proyectil_Laser.png';
+    projSize = 20;
+  } else if (isBoomerang) {
+    projImg = 'img/Proyectiles/Proyectil_Base.png';
+    projSize = 18;
+  }
+
+  el.style.width = projSize + 'px';
+  el.style.height = projSize + 'px';
+
+  // Color mapping per tower family/type for tinting
+  const FAMILY_COLORS = {
+    'Glob': '#4CAF50',        // Verde
+    'Red_Glob': '#e74c3c',    // Rojo
+    'Soap_Glob': '#3498db',   // Azul
+    'Ducky_Glob': '#f1c40f',  // Amarillo
+    'Comet_Glob': '#2c2c2c',  // Negro/oscuro
+    'Grey': '#95a5a6',        // Gris
+    'Special': '#ff8c00'      // Naranja (Bombot)
+  };
+
+  // Specific tower type overrides
+  const TYPE_COLORS = {
+    'Glob': '#4CAF50',
+    'Poop_Glob': '#8B4513',
+    'Golden_Glob': '#ffd700',
+    'Rainbow_Glob': null,      // special: rainbow gradient
+    'Red_Glob': '#e74c3c',
+    'Molten_Glob': '#ff4500',
+    'Robotic_Glob': '#e74c3c',
+    'Soap_Glob': '#3498db',
+    'Cotton_Glob': '#87CEEB',
+    'Comet_Glob': '#555555',
+    'Dark_Glob': '#1a1a2e',
+    'Demglob': '#c394fc',      // Lila obligatorio
+    'Old_Glob': '#808080',
+    'Pyce_Glob': '#00ff88',
+    'Work_Bombot': null        // Bomba negra sin tintado
+  };
+
+  if (isEnemy) {
+    // Enemy projectiles: keep legacy color system
+    el.style.borderRadius = '50%';
+    if (opts.color === 'multicolor') {
+      el.style.backgroundImage = `conic-gradient(#FFEA00,#00B4FF,#C58ED3,#8B0000)`;
+    } else if (opts.color === 'gradient') {
+      el.style.background = `linear-gradient(45deg, ${opts.from || '#FF7F00'}, ${opts.to || '#001F5B'})`;
+    } else if (opts.color === 'blackwhite') {
+      el.style.background = 'radial-gradient(circle at 30% 30%, #fff 0%, #000 60%)';
+    } else {
+      el.style.backgroundColor = opts.color || '#ff4444';
+    }
+    el.style.width = el.style.height = (opts.size || 10) + 'px';
+  } else if (isSpecialProj && !isBomb) {
+    // Special projectiles: keep legacy simple color
+    el.style.borderRadius = '50%';
+    el.style.width = el.style.height = (opts.size || 10) + 'px';
+    if (opts.color === 'multicolor') {
+      el.style.backgroundImage = `conic-gradient(#FFEA00,#00B4FF,#C58ED3,#8B0000)`;
+    } else if (opts.color === 'gradient') {
+      el.style.background = `linear-gradient(45deg, ${opts.from || '#FF7F00'}, ${opts.to || '#001F5B'})`;
+    } else if (opts.color === 'blackwhite') {
+      el.style.background = 'radial-gradient(circle at 30% 30%, #fff 0%, #000 60%)';
+    } else {
+      el.style.backgroundColor = opts.color || (shooter.projectileColor || '#FFFFFF');
+    }
   } else {
-    el.style.backgroundColor = opts.color || (shooter.projectileColor || '#FFFFFF');
+    // ===== 3D TINTED PROJECTILE SYSTEM =====
+    const tintColor = opts.color || TYPE_COLORS[shooter.type] || FAMILY_COLORS[shooter.family] || '#FFFFFF';
+    const imgUrl = `url('${projImg}')`;
+
+    if (isBomb) {
+      el.style.backgroundImage = imgUrl;
+      el.style.backgroundSize = '100% 100%';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundPosition = 'center';
+    } else if (shooter.type === 'Rainbow_Glob' && !opts.color) {
+      el.style.maskImage = imgUrl;
+      el.style.webkitMaskImage = imgUrl;
+      el.style.maskSize = '100% 100%';
+      el.style.webkitMaskSize = '100% 100%';
+      el.style.maskRepeat = 'no-repeat';
+      el.style.webkitMaskRepeat = 'no-repeat';
+      el.style.maskPosition = 'center';
+      el.style.webkitMaskPosition = 'center';
+      el.style.background = 'linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000)';
+      el.style.backgroundSize = '200% 100%';
+      el.style.animation = 'rainbowShift 1s linear infinite';
+      
+      // Preservar 3D
+      el.style.backgroundImage = imgUrl + ', ' + el.style.background;
+      el.style.backgroundBlendMode = 'multiply, normal';
+    } else if (tintColor) {
+      // Usamos el color base como fondo
+      el.style.backgroundColor = tintColor;
+      // Añadimos la imagen gris encima en modo multiply para darle el sombreado 3D
+      el.style.backgroundImage = imgUrl;
+      el.style.backgroundSize = '100% 100%';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundBlendMode = 'multiply';
+      
+      // Y usamos la misma imagen como máscara para recortar el cuadrado sobrante
+      el.style.maskImage = imgUrl;
+      el.style.webkitMaskImage = imgUrl;
+      el.style.maskSize = '100% 100%';
+      el.style.webkitMaskSize = '100% 100%';
+      el.style.maskRepeat = 'no-repeat';
+      el.style.webkitMaskRepeat = 'no-repeat';
+      el.style.maskPosition = 'center';
+      el.style.webkitMaskPosition = 'center';
+    }
   }
 
   if (projClass === 'binary_code') {
@@ -2592,9 +2801,33 @@ function applyTowerEffects(el, type) {
 
 function drawRangePreview(x, y, range) {
   let p = document.getElementById('range-preview') || document.createElement('div');
-  p.id = 'range-preview'; p.className = 'range-preview';
+  p.id = 'range-preview'; p.className = 'range-indicator';
   p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.width = p.style.height = (range * 2) + 'px';
   document.getElementById('map').appendChild(p);
+}
+
+function updateAllTowerRanges() {
+  const map = document.getElementById('map');
+  if (!map) return;
+  
+  gameState.towers.forEach(t => {
+    if (!t.rangeEl) {
+      t.rangeEl = document.createElement('div');
+      t.rangeEl.className = 'range-indicator';
+      map.appendChild(t.rangeEl);
+    }
+    const r = t.range || 100;
+    t.rangeEl.style.width = (r * 2) + 'px';
+    t.rangeEl.style.height = (r * 2) + 'px';
+    t.rangeEl.style.left = t.x + 'px';
+    t.rangeEl.style.top = t.y + 'px';
+    
+    if (gameState.settings.showRanges) {
+      t.rangeEl.style.display = 'block';
+    } else {
+      t.rangeEl.style.display = 'none';
+    }
+  });
 }
 
 function retryGame() {
@@ -2631,8 +2864,10 @@ function endGame(victory = false) {
 
   const title = modal.querySelector('h2');
   const msg = document.getElementById('game-over-msg');
+  const content = modal.querySelector('.modal-content');
 
   if (victory) {
+    if (content) content.classList.add('victory');
     if (title) title.textContent = translate('victory_title');
     if (msg) msg.innerHTML = translate('victory_msg', { mode: gameState.mode.toUpperCase() });
 
@@ -2684,6 +2919,7 @@ function endGame(victory = false) {
 
     saveProgress();
   } else {
+    if (content) content.classList.remove('victory');
     if (title) title.textContent = translate('gameOver');
     if (msg) msg.innerHTML = translate('waveStarted', { wave: gameState.wave }).replace('Oleada', 'Llegaste a la oleada').replace('Wave', 'You reached wave');
   }
@@ -2714,25 +2950,7 @@ function getSpecialAttack(t, target, dmg) {
   const skinSet = SKINS_DATA[family]?.find(s => s.id === equipped);
   if (!skinSet?.isSpecial) return false;
 
-  if (skinSet.id === 'corrupt_swords_set') {
-    if (t.type === 'Glob') {
-      shoot(t, target, { damage: dmg }); t.cooldown *= 0.5; return true;
-    }
-    if (t.type === 'Poop_Glob') {
-      gameState.enemies.forEach(e => {
-        if (Math.hypot(e.x - t.x, e.y - t.y) < 80) e.health -= dmg;
-      });
-      showEffect(t.x, t.y, "⚔️", "#ff00ff");
-      return true;
-    }
-    if (t.type === 'Golden_Glob') {
-      for (let i = 0; i < 3; i++) setTimeout(() => { if (target.health > 0) shoot(t, target, { damage: dmg }); }, i * 100);
-      return true;
-    }
-    if (t.type === 'Rainbow_Glob') {
-      shoot({ ...t, projectile: 'void' }, target, { damage: dmg }); return true;
-    }
-  }
+
 
   if (skinSet.id === 'mimic_set') {
     if (t.type === 'Comet_Glob') {
@@ -2919,6 +3137,17 @@ function drawStoryLogs() {
   } else if (currentStoryTab === 'logs') {
     if (currentLanguage === 'es') {
       container.innerHTML = `
+        <h3>📋 Historial de Actualizaciones (GD v3.0.0 - LANZAMIENTO)</h3>
+        <p>¡El esperado lanzamiento oficial con mejoras visuales y colaboraciones exclusivas!</p>
+
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>✨ <strong>Mejores Visuales</strong>: Nuevas <span style="color: #ffd700;">imágenes para proyectiles</span>, torres mejor pulidas y una opción nueva en ajustes para <strong>ver el rango de las torres</strong>.</li>
+          <li>🦈 <strong>Nuevas Skins</strong>: Demos la bienvenida a <strong>SharkBot (RoboTibu)</strong>, creada por <span style="color: #ff3333;">@Nitrogen</span> y rehecha por <span style="color: #ff69b4;">@KirByte_Bi</span>. También se ha creado una skin de "Among Us" un tanto singular... cada quien sus gustos, supongo.</li>
+          <li>⭐ <strong>COLLAB EXCLUSIVA</strong>: <strong>Star Jump</strong> (de <span style="color: #ff69b4;">@KirByte_Bi</span>) ha colaborado con Glob Defenders. ¡Ahora podrás comprar la skin de <strong>Starry</strong>, el protagonista de dicho juego, para la Familia Gris!</li>
+          <li>🎁 <strong>Muchos códigos nuevos</strong>: Encuéntralos por ahí ocultos o simplemente usa tu imaginación.</li>
+        </ul>
+
         <h3>📋 Historial de Actualizaciones (GD v2.2.0)</h3>
         <p>¡El parche que devuelve la vida a los Pyces y reajusta todas las oleadas modo a modo!</p>
 
@@ -2980,6 +3209,17 @@ function drawStoryLogs() {
       `;
     } else {
       container.innerHTML = `
+        <h3>📋 Update Logs (GD v3.0.0 - LAUNCH)</h3>
+        <p>The highly anticipated official launch featuring visual overhauls and exclusive collaborations!</p>
+
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>✨ <strong>Better Visuals</strong>: New <span style="color: #ffd700;">projectile images</span>, highly polished towers, and a new settings option to <strong>view tower ranges</strong>.</li>
+          <li>🦈 <strong>New Skins</strong>: Welcome <strong>SharkBot</strong>, created by <span style="color: #ff3333;">@Nitrogen</span> and remade by <span style="color: #ff69b4;">@KirByte_Bi</span>. We also added a somewhat peculiar "Among Us" skin... to each their own, I guess.</li>
+          <li>⭐ <strong>EXCLUSIVE COLLAB</strong>: <strong>Star Jump</strong> (by <span style="color: #ff69b4;">@KirByte_Bi</span>) has collaborated with Glob Defenders. You can now buy the <strong>Starry</strong> skin, the protagonist of that game, for the Grey Family!</li>
+          <li>🎁 <strong>Many new codes</strong>: Find them hidden around or simply use your imagination.</li>
+        </ul>
+
         <h3>📋 Update Logs (GD v2.2.0)</h3>
         <p>The patch that brings the Pyces back and rebalances every wave, mode by mode!</p>
 

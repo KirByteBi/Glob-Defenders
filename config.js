@@ -143,6 +143,7 @@ const TRANSLATIONS = {
     settings_title: "⚙️ Ajustes",
     show_shop_desc: "Mostrar descripción en tienda",
     show_total_damage: "Ver Daño Total de torres",
+    show_ranges: "Ver Rango de torres",
     save_close: "Guardar y Cerrar",
     close: "Cerrar",
     level_label: "Nivel",
@@ -187,6 +188,12 @@ const TRANSLATIONS = {
     skin_universolar_desc: "¡Poder estelar y elegancia espacial!",
     skin_turret_name: "Set Torreta",
     skin_turret_desc: "¡Tecnología de defensa aérea e intergaláctica para la línea gris!",
+    skin_corrupt_swords_name: "Espadas Corrompidas",
+    skin_corrupt_swords_desc: "Un set especial con ataques únicos por evolución.",
+    skin_starry_name: "Starry (Destellito)",
+    skin_starry_desc: "¡Colaboración especial con StarJump! Dispara estrellas cósmicas.",
+    skin_mimic_name: "Mimic set",
+    skin_mimic_desc: "Skin especial obtenida al derrotar al Mimic Pyce.",
     upgrade_range_name: "Alcance Maestro",
     upgrade_range_desc: "+20 Alcance para todas las torres",
     upgrade_damage_name: "Poder del Pato",
@@ -209,6 +216,23 @@ const TRANSLATIONS = {
     duckgrade_duck_name: "Pato Defensivo",
     duckgrade_duck_desc: "Genera dinero más rápido cerca de enemigos y hace daño de área.",
     max_reached: "NIVEL MÁXIMO",
+
+    // G-Tacks
+    gtack_green_name: "Green G-Tack: Frenesí",
+    gtack_green_desc: "Frenesí de Disparos: Al activarla en combate, la torre verde de nivel máximo lanza 10 disparos de ametralladora casi instantáneos. Cuesta 400 Globets activar. (¡MUY OP!)",
+    gtack_red_name: "Red G-Tack: Sobrecarga",
+    gtack_red_desc: "Sobrecarga de Ataque: Al activarla en combate, la torre roja de nivel máximo gana +5% de daño y aplica un efecto Tóxico DoT muy rápido. Cuesta 400 Globets activar.",
+    gtack_blue_name: "Blue G-Tack: Rayo Paralizante",
+    gtack_blue_desc: "Impacto Relámpago: Al activarla en combate, el próximo ataque de la torre azul de nivel máximo stunea a los enemigos garantizadamente, ¡INCLUYENDO JEFES! Cuesta 400 Globets activar.",
+    gtack_yellow_name: "Yellow G-Tack: Lluvia Financiera",
+    gtack_yellow_desc: "Lluvia de Divisas: Al activarla en combate, la torre amarilla de nivel máximo genera 15 PyCoins y 3 DuckPasses. Cuesta 500 Globets activar.",
+    gtack_black_name: "Black G-Tack: Contagio",
+    gtack_black_desc: "Hongo Venenoso: Al activarla en combate, la torre negra de nivel máximo aplica veneno DoT (calavera/seta) que se propaga entre enemigos al morir o tocarse. Cuesta 400 Globets activar. (¡MUY OP!)",
+    gtack_grey_name: "Grey G-Tack: Amplificación",
+    gtack_grey_desc: "Ampliación de Radar: Al activarla en combate, aumenta el rango de ataque de TODAS las torres del mapa en +50 por 10s. Cuesta 400 Globets activar.",
+    gtack_buy: "Comprar",
+    gtack_active: "Activo",
+    gtack_req_lvl: "🔒 Req. Lvl 50",
 
     // Skins Globales (Recolores y Buffs)
     skin_emerald_name: "Edición Esmeralda",
@@ -409,6 +433,7 @@ const TRANSLATIONS = {
     settings_title: "⚙️ï¸ Settings",
     show_shop_desc: "Show description in shop",
     show_total_damage: "View total tower damage",
+    show_ranges: "View tower range",
     save_close: "Save & Close",
     close: "Close",
     level_label: "Level",
@@ -448,6 +473,12 @@ const TRANSLATIONS = {
     skin_universolar_desc: "Stellar power and spatial elegance!",
     skin_turret_name: "Turret Set",
     skin_turret_desc: "Air defense and intergalactic technology for the grey line!",
+    skin_corrupt_swords_name: "Corrupted Swords",
+    skin_corrupt_swords_desc: "A special set with unique attacks per evolution.",
+    skin_starry_name: "Starry",
+    skin_starry_desc: "Special collaboration with StarJump! Shoots cosmic stars.",
+    skin_mimic_name: "Mimic Set",
+    skin_mimic_desc: "Special skin obtained by defeating the Mimic Pyce.",
     upgrade_range_name: "Master Range",
     upgrade_range_desc: "+20 Range for all towers",
     upgrade_damage_name: "Duck Power",
@@ -470,6 +501,23 @@ const TRANSLATIONS = {
     duckgrade_duck_name: "Defensive Duck",
     duckgrade_duck_desc: "Generates money faster near enemies and deals area damage.",
     max_reached: "MAX LEVEL",
+
+    // G-Tacks
+    gtack_green_name: "Green G-Tack: Frenzy",
+    gtack_green_desc: "Shot Frenzy: When activated in combat, the max-level green tower fires 10 machine-gun shots almost instantly. Costs 400 Globets to activate. (VERY OP!)",
+    gtack_red_name: "Red G-Tack: Overcharge",
+    gtack_red_desc: "Attack Overcharge: When activated in combat, the max-level red tower gains +5% damage and applies a very fast Toxic DoT effect. Costs 400 Globets to activate.",
+    gtack_blue_name: "Blue G-Tack: Paralyzing Ray",
+    gtack_blue_desc: "Lightning Impact: When activated in combat, the next attack from the max-level blue tower stuns enemies guaranteed, INCLUDING BOSSES! Costs 400 Globets to activate.",
+    gtack_yellow_name: "Yellow G-Tack: Financial Rain",
+    gtack_yellow_desc: "Currency Rain: When activated in combat, the max-level yellow tower generates 15 PyCoins and 3 DuckPasses. Costs 500 Globets to activate.",
+    gtack_black_name: "Black G-Tack: Contagion",
+    gtack_black_desc: "Poison Mushroom: When activated in combat, the max-level black tower applies poison DoT (skull/mushroom) that spreads between enemies on death or contact. Costs 400 Globets to activate. (VERY OP!)",
+    gtack_grey_name: "Grey G-Tack: Amplification",
+    gtack_grey_desc: "Radar Expansion: When activated in combat, increases the attack range of ALL towers on the map by +50 for 10s. Costs 400 Globets to activate.",
+    gtack_buy: "Buy",
+    gtack_active: "Active",
+    gtack_req_lvl: "🔒 Req. Lvl 50",
 
     // Global Skins
     skin_emerald_name: "Emerald Edition",
@@ -836,7 +884,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'corrupt_swords_set', name: 'Espadas Corrompidas', desc: 'Un set especial con ataques unicos por evolucion.', cost: 637, type: 'pycoin', duckpass_cost: 207, isSpecial: true,
+      id: 'corrupt_swords_set', name: 'skin_corrupt_swords_name', desc: 'skin_corrupt_swords_desc', cost: 637, type: 'pycoin', duckpass_cost: 207, isSpecial: true,
       skins: {
         'Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO1).png',
         'Poop_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Brad Glob (SK-EVO2).png',
@@ -888,7 +936,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'starjump_set', name: 'Starry (Destellito)', desc: '¡Colaboración especial con StarJump! Dispara estrellas cósmicas.', cost: 777, duckpass_cost: 666, type: 'pycoin', isSpecial: true,
+      id: 'starjump_set', name: 'skin_starry_name', desc: 'skin_starry_desc', cost: 777, duckpass_cost: 666, type: 'pycoin', isSpecial: true,
       skins: {
         'Old_Glob': 'img/Collabs (SJ)/Skin/Starry (SK-EVO1).png',
         'Pyce_Glob': 'img/Collabs (SJ)/Skin/Astral_Starry (SK_EVO2).png'
@@ -909,7 +957,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'mimic_set', name: 'Mimic set', desc: 'Skin especial obtenida al derrotar al Mimic Pyce.', cost: 0, type: 'free', isSpecial: true,
+      id: 'mimic_set', name: 'skin_mimic_name', desc: 'skin_mimic_desc', cost: 0, type: 'free', isSpecial: true,
       skins: {
         'Comet_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png',
         'Dark_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Didic Pyce (SK-EVO2).png',
@@ -919,6 +967,20 @@ const SKINS_DATA = {
         'Comet_Glob': 'Mimic Comet',
         'Dark_Glob': 'Mimic Oscuro',
         'Demglob': 'Mimic Supremo'
+      }
+    }
+  ],
+  'Special': [
+    {
+      id: 'sharkbot_bombot', name: 'skin_sharkbot_name', desc: 'skin_sharkbot_desc', cost: 50, type: 'pycoin',
+      skins: {
+        'Work_Bombot': 'img/Skins/Work-Bombot/SharkBot (SK-EVO).png'
+      }
+    },
+    {
+      id: 'globsus_bombot', name: 'skin_globsus_name', desc: 'skin_globsus_desc', cost: 50, type: 'pycoin',
+      skins: {
+        'Work_Bombot': 'img/Skins/Work-Bombot/GlobSus (SK-EVO).png'
       }
     }
   ],
@@ -968,7 +1030,18 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_abyssal_name": "Set Abismal",
   "skin_abyssal_desc": "Aspecto abisal.",
   "skin_turret_name": "Set Torreta",
-  "skin_turret_desc": "¡Tecnología de defensa aérea e intergaláctica para la línea gris!"
+  "skin_turret_desc": "¡Tecnología de defensa aérea e intergaláctica para la línea gris!",
+  "skin_sharkbot_name": "RoboTibu",
+  "skin_sharkbot_desc": "Un tiburón robótico de acero con propulsión. <br><span style='color: #ff3333; font-weight: bold; text-shadow: 0 0 5px rgba(255,51,51,0.5);'>Crédito: Nitrogen</span>",
+  "skin_globsus_name": "GlobSus",
+  "skin_globsus_desc": "Un Bombot bastante sospechoso. Creado por KirByte_Bi. <br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>"
+});
+
+TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
+  "skin_sharkbot_name": "SharkBot",
+  "skin_sharkbot_desc": "A steel robotic shark with propulsion. <br><span style='color: #ff3333; font-weight: bold; text-shadow: 0 0 5px rgba(255,51,51,0.5);'>Credit: Nitrogen</span>",
+  "skin_globsus_name": "GlobSus",
+  "skin_globsus_desc": "A very suspicious Bombot. Created by KirByte_Bi. <br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>"
 });
 
 window.SKIN_META = window.SKIN_META || {};
