@@ -63,8 +63,8 @@ let gameState = {
   duckPassCurrency: 0,
   baseHealthLevel: 0,
   towerLimits: {
-    'Glob': 3, 'Red_Glob': 5, 'Soap_Glob': 3, 'Ducky_Glob': 3,
-    'Comet_Glob': 3, 'Pyce_Glob': 2, 'Old_Glob': 2, 'Work_Bombot': 1
+    'Glob': 5, 'Red_Glob': 6, 'Soap_Glob': 3, 'Ducky_Glob': 3,
+    'Comet_Glob': 3, 'Old_Glob': 2, 'Work_Bombot': 1
   },
   usedCodes: {},
   towerCounts: {},
@@ -92,6 +92,13 @@ let gameState = {
   duckgrades: {},
   gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false }
 };
+
+function getFamilyCount(baseType) {
+  const cfg = TOWER_TYPES[baseType];
+  if (!cfg) return 0;
+  const family = cfg.family || baseType;
+  return gameState.towers.filter(t => (t.family || t.type) === family).length;
+}
 
 function saveUsers() {
   localStorage.setItem('glob_users', JSON.stringify(USERS));
@@ -163,6 +170,14 @@ function saveProgress() {
     showHitbox: showHitbox,
     cheatedModeActive: gameState.cheatedModeActive,
     cheatedBackup: gameState.cheatedBackup,
+    // Campos de meta-progresión que faltaban
+    metaRangeLevel: gameState.metaRangeLevel,
+    metaRange: gameState.metaRange,
+    metaDamageLevel: gameState.metaDamageLevel,
+    metaDamage: gameState.metaDamage,
+    duckgrades: gameState.duckgrades,
+    upgradesResetV3: true,
+    upgradesResetV4: true,
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
 }
@@ -203,6 +218,16 @@ function loadProgress(username) {
         localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
       }
 
+      if (!progress.upgradesResetV4) {
+        console.log("Applying limits reset migration V4 for:", user);
+        progress.towerLimits = {
+          'Glob': 5, 'Red_Glob': 6, 'Soap_Glob': 3, 'Ducky_Glob': 3,
+          'Comet_Glob': 3, 'Old_Glob': 2, 'Work_Bombot': 1
+        };
+        progress.upgradesResetV4 = true;
+        localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
+      }
+
       if (progress.badges) {
         Object.keys(progress.badges).forEach(k => {
           if (BADGES[k]) BADGES[k].unlocked = progress.badges[k];
@@ -235,6 +260,10 @@ function loadProgress(username) {
       gameState.claimedRewards = progress.claimedRewards || [];
       gameState.muted = progress.muted || false;
 
+      gameState.metaRangeLevel = progress.metaRangeLevel || 0;
+      gameState.metaRange = progress.metaRange || 0;
+      gameState.metaDamageLevel = progress.metaDamageLevel || 0;
+      gameState.metaDamage = progress.metaDamage || 1;
       gameState.duckgrades = progress.duckgrades || {};
       gameState.gtacks = progress.gtacks || {
         'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false,
@@ -709,7 +738,7 @@ function drawTowerShop() {
     const t = TOWER_TYPES[type];
     if (!t) return;
 
-    const currentCount = gameState.towerCounts[type] || 0;
+    const currentCount = getFamilyCount(type);
     const limit = gameState.towerLimits[type] || 3;
     const isFull = currentCount >= limit;
     const displayImg = getTowerImage(type);
@@ -743,7 +772,10 @@ function drawTowerShop() {
 
       btn.innerHTML = `
                 <img src="${displayImg}" alt="${name}">
-                <span style="font-size:0.65rem;">💰${t.cost}</span>
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                  <span style="font-size:0.65rem;">💰${t.cost}</span>
+                  <span style="font-size:0.55rem; color:#fff; background:rgba(0,0,0,0.5); padding:1px 4px; border-radius:4px; margin-top:2px;">${currentCount}/${limit}</span>
+                </div>
             `;
 
       btn.onclick = (e) => {
@@ -1002,13 +1034,13 @@ function bindEvents() {
   };
 
   const shopBtn = document.getElementById('open-shop');
-  if (shopBtn) shopBtn.onclick = () => { saveGameSnapshot(); if (typeof openShop === 'function') openShop(); };
+  if (shopBtn) shopBtn.onclick = () => { if (typeof openShop === 'function') openShop(); };
 
   const passBtn = document.getElementById('open-pass');
-  if (passBtn) passBtn.onclick = () => { saveGameSnapshot(); if (typeof openPass === 'function') openPass(); };
+  if (passBtn) passBtn.onclick = () => { if (typeof openPass === 'function') openPass(); };
 
   const storyBtn = document.getElementById('open-story-logs');
-  if (storyBtn) storyBtn.onclick = () => { saveGameSnapshot(); openStoryLogs(); };
+  if (storyBtn) storyBtn.onclick = () => { openStoryLogs(); };
 
   const badgesBtn = document.getElementById('badges-toggle-btn');
   if (badgesBtn) badgesBtn.onclick = toggleBadgesPanel;
@@ -1021,8 +1053,6 @@ function bindEvents() {
       if (!gameState.modeConfirmed) {
         const ms = document.getElementById('mode-selection');
         if (ms) ms.style.display = 'flex';
-      } else {
-        restoreGameSnapshot();
       }
     };
   });
@@ -1243,10 +1273,16 @@ function drawShop() {
       { id: 'meta_range', name: 'upgrade_range_name', desc: 'upgrade_range_desc', cost: 10, type: 'duckpass', level: gameState.metaRangeLevel, max: 5 },
       { id: 'meta_damage', name: 'upgrade_damage_name', desc: 'upgrade_damage_desc', cost: 15, type: 'duckpass', level: gameState.metaDamageLevel, max: 5 }
     ];
+    const MAX_LIMITS = {
+      'Glob': 8, 'Red_Glob': 11, 'Soap_Glob': 5, 'Ducky_Glob': 8,
+      'Comet_Glob': 6, 'Old_Glob': 4, 'Work_Bombot': 2
+    };
+
     ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Old_Glob', 'Work_Bombot'].forEach(t => {
       const isUnlocked = isTowerOwned(t);
+      const maxLim = MAX_LIMITS[t] || 10;
 
-      if (isUnlocked && gameState.towerLimits[t] < 10) {
+      if (isUnlocked && gameState.towerLimits[t] < maxLim) {
         upgrades.push({ id: 'limit_' + t, name: 'upgrade_limit_name', desc: 'upgrade_limit_desc', cost: 30, type: 'pycoin', params: { name: translate(TOWER_TYPES[t].name) } });
       }
     });
@@ -1542,7 +1578,10 @@ function drawPass() {
 
 function placeTower(spotId, type) {
   const tCfg = TOWER_TYPES[type];
-  if ((gameState.towerCounts[type] || 0) >= (gameState.towerLimits[type] || 3)) return showMessage(translate('limit_reached', { name: translate('tower_' + type + '_name'), limit: gameState.towerLimits[type] || 3 }), 'error');
+  const family = tCfg.family || type;
+  const currentCount = getFamilyCount(type);
+  const limit = gameState.towerLimits[type] || 3;
+  if (currentCount >= limit) return showMessage(translate('limit_reached', { name: translate('tower_' + type + '_name'), limit: limit }), 'error');
   if (gameState.globetines < tCfg.cost) return showMessage(translate('notEnoughMoney'), 'error');
 
   const spot = gameState.towerSpots[spotId];
@@ -2009,6 +2048,7 @@ function showNarratorMsg(imgSrc, speakerName, text) {
 
 function gameLoop() {
   if (gameState.gameOver) return;
+  try {
   const dt = 1 / 60;
 
   function isTowerProtected(tower) {
@@ -2429,6 +2469,9 @@ function gameLoop() {
     addXP(20);
     updateUI(); updateMetaUI(); saveProgress();
     if (gameState.autoWave) setTimeout(startWave, 2000);
+  }
+  } catch (err) {
+    console.error("Error en gameLoop (el juego continúa):", err);
   }
   requestAnimationFrame(gameLoop);
 }
@@ -2922,6 +2965,7 @@ function endGame(victory = false) {
     if (content) content.classList.remove('victory');
     if (title) title.textContent = translate('gameOver');
     if (msg) msg.innerHTML = translate('waveStarted', { wave: gameState.wave }).replace('Oleada', 'Llegaste a la oleada').replace('Wave', 'You reached wave');
+    saveProgress();
   }
 
   updateLanguage();
@@ -2983,7 +3027,6 @@ let currentStoryTab = 'lore';
 function openStoryLogs() {
   closeModal('shop-modal');
   closeModal('pass-modal');
-  saveGameSnapshot();
   document.getElementById('story-logs-modal').style.display = 'flex';
   drawStoryLogs();
 }
