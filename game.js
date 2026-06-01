@@ -27,7 +27,7 @@ function generateSpots() {
       let collides = false;
       for (let zone of forbiddenZones) {
         if (x + 40 > zone.x && x - 40 < zone.x + zone.w &&
-            y + 40 > zone.y && y - 40 < zone.y + zone.h) {
+          y + 40 > zone.y && y - 40 < zone.y + zone.h) {
           collides = true;
           break;
         }
@@ -88,9 +88,12 @@ let gameState = {
   usedGTackRed: false,
   usedGTackGrey: false,
   baseTookDamage: false,
-  settings: { showShopDesc: true, showTotalDamage: false },
+  settings: { showShopDesc: true, showTotalDamage: false, oldAchievements: false },
   duckgrades: {},
-  gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false }
+  gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false },
+  pycesKilled: {},
+  globsPlaced: {},
+  mimicSpawned: 0
 };
 
 function getFamilyCount(baseType) {
@@ -176,8 +179,10 @@ function saveProgress() {
     metaDamageLevel: gameState.metaDamageLevel,
     metaDamage: gameState.metaDamage,
     duckgrades: gameState.duckgrades,
-    upgradesResetV3: true,
     upgradesResetV4: true,
+    pycesKilled: gameState.pycesKilled,
+    globsPlaced: gameState.globsPlaced,
+    mimicSpawned: gameState.mimicSpawned
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
 }
@@ -269,6 +274,9 @@ function loadProgress(username) {
         'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false,
         'Comet_Glob': false, 'Old_Glob': false
       };
+      gameState.pycesKilled = progress.pycesKilled || {};
+      gameState.globsPlaced = progress.globsPlaced || {};
+      gameState.mimicSpawned = progress.mimicSpawned || 0;
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
 
@@ -276,6 +284,7 @@ function loadProgress(username) {
       updateBuffs();
       document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
       updateMuteButton();
+      updateAchievementsBtnUI();
       gameState.health = 100 + (gameState.baseHealthLevel * 20);
     }
 
@@ -415,9 +424,37 @@ function handleLogin() {
       infBtn.style.opacity = "1";
     }
   }
+}
 
+function showModeSelection() {
+  document.getElementById('mode-selection').style.display = 'flex';
   const modes = ['normal', 'dificil', 'extremo', 'corrupto'];
   const requirements = { 'normal': 'winFacil', 'dificil': 'winNormal', 'extremo': 'winDificil', 'corrupto': 'winExtremo' };
+  
+  // Render hidden modes dynamically
+  const grid = document.querySelector('.modes-grid');
+  if (grid) {
+    // Clean up old dynamic buttons first
+    grid.querySelectorAll('.dynamic-mode').forEach(el => el.remove());
+    
+    if (BADGES.winCorrupto && BADGES.winCorrupto.unlocked) {
+      const btn = document.createElement('button');
+      btn.className = 'mode-btn dynamic-mode mode-btn-corrupt';
+      btn.dataset.mode = 'corrupto';
+      btn.innerHTML = '👾 Corrupto';
+      btn.onclick = () => selectMode('corrupto');
+      grid.appendChild(btn);
+    }
+    
+    if (BADGES.antiNormal && BADGES.antiNormal.unlocked) {
+      const btn = document.createElement('button');
+      btn.className = 'mode-btn dynamic-mode mode-btn-antinormal';
+      btn.dataset.mode = 'antiNormal';
+      btn.innerHTML = '🌑 Anti-Normal';
+      btn.onclick = () => selectMode('antiNormal');
+      grid.appendChild(btn);
+    }
+  }
 
   modes.forEach(m => {
     const btn = document.querySelector(`.mode-btn[data-mode="${m}"]`);
@@ -448,22 +485,25 @@ function disableAntiNormal() {
 }
 
 function selectMode(mode) {
-  if (gameState.antiNormalActive && mode !== 'facil' && mode !== 'normal') {
-    showMessage("3RR0R: ACC3S0 D3N364D0", 'error');
+  if (gameState.antiNormalActive && mode !== 'normal') {
+    showMessage(translate('system_corrupt_error'), 'error');
     const btn = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
-    if (btn) btn.classList.add('glitch-shake');
-    setTimeout(() => btn.classList.remove('glitch-shake'), 500);
+    if (btn) {
+      btn.classList.remove('glitch-rejected');
+      void btn.offsetWidth;
+      btn.classList.add('glitch-rejected');
+    }
     return;
   }
 
   gameState.mode = mode;
   gameState.modeConfirmed = true;
-  const limits = { facil: 10, normal: 15, dificil: 25, extremo: 40, infinito: 999, corrupto: 45 };
+  const limits = { facil: 10, normal: 15, dificil: 25, extremo: 40, infinito: 999, corrupto: 40, antiNormal: 35 };
   gameState.maxWaves = limits[mode] || 15;
 
   if (gameState.antiNormalActive && mode === 'normal') {
     gameState.mode = 'antiNormal';
-    gameState.maxWaves = 20;
+    gameState.maxWaves = 35;
     document.getElementById('game-area').classList.add('anti-normal');
     showMessage(translate('anti_normal_active'), 'error');
   }
@@ -594,6 +634,8 @@ function openOptions() {
   document.getElementById('opt-show-damage').checked = gameState.settings.showTotalDamage;
   const optShowRanges = document.getElementById('opt-show-ranges');
   if (optShowRanges) optShowRanges.checked = !!gameState.settings.showRanges;
+  const optOldAch = document.getElementById('opt-old-achievements');
+  if (optOldAch) optOldAch.checked = !!gameState.settings.oldAchievements;
   const hitboxCheck = document.getElementById('opt-show-hitbox');
   if (hitboxCheck) hitboxCheck.checked = showHitbox;
 
@@ -694,6 +736,11 @@ function updateSettings() {
   gameState.settings.showTotalDamage = document.getElementById('opt-show-damage').checked;
   const optShowRanges = document.getElementById('opt-show-ranges');
   if (optShowRanges) gameState.settings.showRanges = optShowRanges.checked;
+  const optOldAch = document.getElementById('opt-old-achievements');
+  if (optOldAch) {
+    gameState.settings.oldAchievements = optOldAch.checked;
+    updateAchievementsBtnUI();
+  }
 
   const hitboxCheck = document.getElementById('opt-show-hitbox');
   if (hitboxCheck) showHitbox = hitboxCheck.checked;
@@ -798,7 +845,7 @@ function drawTowerShop() {
     shopContainer.appendChild(btn);
   });
 
-  
+
 }
 
 function drawBadges() {
@@ -883,6 +930,214 @@ function toggleBadgesPanel() {
   }
 }
 
+function updateAchievementsBtnUI() {
+  const btn = document.getElementById('badges-toggle-btn');
+  if (!btn) return;
+  if (gameState.settings.oldAchievements) {
+    btn.innerHTML = translate('btn_achievements');
+    btn.classList.remove('encyclopedia-btn-yellow');
+    btn.title = translate('btn_achievements').replace('🏆 ', '');
+  } else {
+    btn.innerHTML = translate('btn_encyclopedia');
+    btn.classList.add('encyclopedia-btn-yellow');
+    btn.title = translate('btn_encyclopedia').replace('📖 ', '');
+  }
+}
+
+function openEncyclopedia() {
+  const modal = document.getElementById('encyclopedia-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+    switchEncyclopediaTab('globs');
+  }
+}
+
+function switchEncyclopediaTab(tab) {
+  document.querySelectorAll('.encyclopedia-tab').forEach(btn => btn.classList.remove('active'));
+  const activeBtn = document.getElementById('enc-tab-' + tab);
+  if (activeBtn) activeBtn.classList.add('active');
+  
+  const body = document.getElementById('encyclopedia-body');
+  if (!body) return;
+  body.innerHTML = '';
+  
+  // Create split layout container
+  const container = document.createElement('div');
+  container.className = 'almanac-container';
+  
+  const grid = document.createElement('div');
+  grid.className = 'almanac-grid';
+  grid.id = 'almanac-grid';
+  
+  const details = document.createElement('div');
+  details.className = 'meta-item almanac-details';
+  details.id = 'almanac-details';
+  
+  container.appendChild(grid);
+  container.appendChild(details);
+  body.appendChild(container);
+  
+  let firstItem = null;
+  
+  if (tab === 'globs') {
+    // Determine base towers: any tower that is NOT an evolution of another tower
+    const allEvos = Object.values(TOWER_TYPES).map(t => t.evolution).filter(Boolean);
+    const baseTowers = Object.keys(TOWER_TYPES).filter(type => !allEvos.includes(type));
+
+    baseTowers.forEach(type => {
+      const t = TOWER_TYPES[type];
+      if (!firstItem) firstItem = type;
+      const btn = document.createElement('div');
+      btn.className = 'almanac-btn';
+      btn.id = 'almanac-btn-' + type;
+      btn.onclick = () => selectAlmanacItem(type, 'globs');
+      btn.innerHTML = `<img src="${t.image}" title="${translate(t.name)}">`;
+      grid.appendChild(btn);
+    });
+    selectAlmanacItem('Glob', 'globs');
+  } else if (tab === 'pyces') {
+    Object.keys(ENEMY_TYPES).forEach(type => {
+      const e = ENEMY_TYPES[type];
+      if (!firstItem) firstItem = type;
+      const btn = document.createElement('div');
+      btn.className = 'almanac-btn';
+      btn.id = 'almanac-btn-' + type;
+      btn.onclick = () => selectAlmanacItem(type, 'pyces');
+      btn.innerHTML = `<img src="${e.image}" title="${translate(e.name || type)}">`;
+      grid.appendChild(btn);
+    });
+    selectAlmanacItem('Pyce2', 'pyces');
+  } else if (tab === 'emblemas') {
+    Object.values(BADGES).forEach(b => {
+      if (!firstItem) firstItem = b.key;
+      const btn = document.createElement('div');
+      btn.className = 'almanac-btn';
+      btn.id = 'almanac-btn-' + b.key;
+      btn.onclick = () => selectAlmanacItem(b.key, 'emblemas');
+      if (!b.unlocked) btn.style.filter = 'grayscale(100%)';
+      // Fallback for missing icon image: use a text span if it's emoji, or img if it's an image.
+      // Badges use emojis right now in `icon`, so we render the emoji directly.
+      btn.innerHTML = `<span style="font-size:24px;">${b.icon}</span>`;
+      grid.appendChild(btn);
+    });
+    // Default selection for emblemas as requested: duckpass or first item
+    selectAlmanacItem(firstItem, 'emblemas');
+  }
+}
+
+function selectAlmanacItem(id, category) {
+  // Update active button styling
+  document.querySelectorAll('.almanac-btn').forEach(btn => btn.classList.remove('active'));
+  const btn = document.getElementById('almanac-btn-' + id);
+  if (btn) btn.classList.add('active');
+
+  const details = document.getElementById('almanac-details');
+  if (!details) return;
+
+  if (category === 'globs') {
+    const t = TOWER_TYPES[id];
+    if (!t) return;
+    
+    // Find base tower to show full evolution tree
+    let base = id;
+    let parentFound = true;
+    while(parentFound) {
+      const parent = Object.keys(TOWER_TYPES).find(k => TOWER_TYPES[k].evolution === base);
+      if (parent) base = parent;
+      else parentFound = false;
+    }
+    
+    let evosHTML = `<div class="evo-list" style="justify-content:center;">`;
+    let curKey = base;
+    let cur = TOWER_TYPES[base];
+    let evoCount = 0;
+    while(cur) {
+      if (curKey !== base) evoCount++;
+      const isSelected = curKey === id ? 'background: rgba(255,215,0,0.2); border: 1px solid #ffd700;' : 'cursor: pointer;';
+      evosHTML += `
+        <div class="evo-step" style="${isSelected}" onclick="selectAlmanacItem('${curKey}', 'globs')">
+          <img src="${cur.image}" width="30" height="30">
+          <div style="font-size: 0.7rem;">${translate(cur.name)}</div>
+        </div>`;
+      curKey = cur.evolution;
+      cur = TOWER_TYPES[curKey];
+    }
+    evosHTML += `</div>`;
+    
+    let metaHTML = '';
+    if (gameState.gtacks && gameState.gtacks[t.family]) {
+      metaHTML += `<div style="color:#2ecc71; font-size:0.85rem; font-weight:bold; margin-top:10px;">${translate('almanac_gtack_active')}</div>`;
+    }
+    if (gameState.duckgrades && gameState.duckgrades['dg_' + t.family]) {
+      metaHTML += `<div style="color:#ff9f43; font-size:0.85rem; font-weight:bold; margin-top:5px;">${translate('almanac_duckgrade_active')}</div>`;
+    }
+
+    details.innerHTML = `
+      <img src="${t.image}" style="width:80px; height:80px; margin-bottom:10px;">
+      <h3 style="font-size: 1.4rem;">${translate(t.name)}</h3>
+      <p style="font-size:0.9rem;">${translate(t.desc)}</p>
+      <div style="display:flex; justify-content:center; gap:15px; font-size:0.85rem; color:#ccc; margin-top:10px;">
+        <span>${translate('almanac_damage')} ${t.damage}</span>
+        <span>${translate('almanac_range')} ${t.range}</span>
+        <span>${translate('almanac_speed')} ${t.speed}</span>
+      </div>
+      ${evoCount > 0 ? evosHTML : ''}
+      ${metaHTML}
+    `;
+  } else if (category === 'pyces') {
+    const e = ENEMY_TYPES[id];
+    if (!e) return;
+    
+    const isBoss = e.boss;
+    const isMimic = id === 'Mimic_Pyce' || id === 'Stupid_GoldPyce';
+    let titleStyle = '';
+    if (isMimic) titleStyle = 'color: #e84393; text-shadow: 0 0 8px rgba(232, 67, 147, 0.5);';
+    else if (isBoss) titleStyle = 'color: #8e44ad; text-shadow: 0 0 8px rgba(142, 68, 173, 0.5);';
+
+    let mechanicText = translate('mechanic_common');
+    if (e.mechanic_key) mechanicText = translate(e.mechanic_key);
+    else if (isMimic) mechanicText = translate('mechanic_mimic');
+    else if (isBoss) mechanicText = translate('mechanic_boss');
+    else if (e.health > 150) mechanicText = translate('mechanic_tank');
+    else if (e.speed > 1.8) mechanicText = translate('mechanic_speed');
+    else if (e.healer) mechanicText = translate('mechanic_support');
+    else if (e.stunAbility) mechanicText = translate('mechanic_annoying');
+
+    details.innerHTML = `
+      <img src="${e.image}" style="width:100px; height:100px; margin-bottom:10px; ${isBoss ? 'transform:scale(1.2);' : ''}">
+      <h3 style="font-size: 1.5rem; ${titleStyle}">${translate(e.name || id)}</h3>
+      ${e.desc ? `<p style="font-size:0.9rem; margin-top:5px; margin-bottom:10px;">${translate(e.desc)}</p>` : ''}
+      <p style="font-size:0.95rem; color:#ffd700; font-weight:bold; margin-top:5px;">⭐ ${mechanicText}</p>
+      <div style="display:flex; justify-content:center; gap:15px; font-size:0.9rem; color:#ddd; margin-top:15px; background: rgba(0,0,0,0.3); padding:10px; border-radius:10px;">
+        <span>${translate('almanac_hp')} ${e.health}</span>
+        <span>${translate('almanac_speed')} ${e.speed}</span>
+        <span>${translate('almanac_reward')}${e.reward}</span>
+      </div>
+    `;
+  } else if (category === 'emblemas') {
+    const badgeArr = Object.values(BADGES);
+    const b = badgeArr.find(x => x.key === id);
+    if (!b) return;
+
+    const name = translate(`badge_${b.key}_name`);
+    const desc = translate(`badge_${b.key}_desc`);
+    let rewardText = "";
+    if (b.reward.pycoins) rewardText += `💰+${b.reward.pycoins} `;
+    if (b.reward.duckpass) rewardText += `🦆+${b.reward.duckpass} `;
+    rewardText += `✨+${b.reward.xp}xp`;
+
+    details.innerHTML = `
+      <div style="font-size:80px; margin-bottom:10px; filter:${b.unlocked ? 'none' : 'grayscale(100%)'};">${b.icon}</div>
+      <h3 style="font-size: 1.4rem;">${name}</h3>
+      <p style="font-size:0.95rem;">${desc}</p>
+      <div style="margin-top:15px; padding:10px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:10px;">
+        <b style="color:#ffd700; font-size:0.9rem;">${translate('badge_reward_label')}${rewardText}</b>
+      </div>
+      ${b.unlocked ? `<div style="color:#2ecc71; margin-top:10px; font-weight:bold;">${translate('badge_unlocked')}</div>` : `<div style="color:#e74c3c; margin-top:10px; font-weight:bold;">${translate('badge_locked')}</div>`}
+    `;
+  }
+}
+
 function bindEvents() {
   document.getElementById('login-btn').onclick = handleLogin;
   const nameInput = document.getElementById('username-input');
@@ -892,9 +1147,34 @@ function bindEvents() {
       if (name) loadProgress(name);
       updateMetaUI();
     });
+  }
 
-    const musicToggle = document.getElementById('music-toggle-btn');
-    if (musicToggle) musicToggle.onclick = toggleMusic;
+  const loginLogo = document.getElementById('login-logo');
+  if (loginLogo) {
+    loginLogo.onclick = () => {
+      gameState.logoClicks++;
+      
+      loginLogo.classList.remove('glitch-effect');
+      void loginLogo.offsetWidth;
+      loginLogo.classList.add('glitch-effect');
+
+      if (gameState.logoClicks === 5) {
+        showFloatingText(translate('easter_egg_warn_1'), window.innerWidth/2, 100, '#ff9f43');
+      } else if (gameState.logoClicks === 10) {
+        showFloatingText(translate('easter_egg_warn_2'), window.innerWidth/2, 100, '#e74c3c');
+      } else if (gameState.logoClicks === 15) {
+        gameState.antiNormalActive = true;
+        document.querySelector('.login-box').classList.add('login-glitch-critical');
+        showFloatingText(translate('easter_egg_corrupt'), window.innerWidth/2, 100, '#000000');
+        setTimeout(() => {
+          document.querySelector('.login-box').classList.remove('login-glitch-critical');
+        }, 1500);
+      }
+    };
+  }
+
+  const musicToggle = document.getElementById('music-toggle-btn');
+  if (musicToggle) musicToggle.onclick = toggleMusic;
 
     const effectsToggle = document.getElementById('effects-toggle-btn');
     if (effectsToggle) effectsToggle.onclick = toggleMute;
@@ -908,7 +1188,6 @@ function bindEvents() {
         }
       }
     });
-  }
 
   const logo = document.querySelector('.login-logo');
   if (logo) {
@@ -1043,7 +1322,19 @@ function bindEvents() {
   if (storyBtn) storyBtn.onclick = () => { openStoryLogs(); };
 
   const badgesBtn = document.getElementById('badges-toggle-btn');
-  if (badgesBtn) badgesBtn.onclick = toggleBadgesPanel;
+  if (badgesBtn) badgesBtn.onclick = () => {
+    if (gameState.settings.oldAchievements) {
+      toggleBadgesPanel();
+    } else {
+      openEncyclopedia();
+    }
+  };
+  
+  const openEncBtn = document.getElementById('open-encyclopedia-btn');
+  if (openEncBtn) openEncBtn.onclick = () => {
+    toggleBadgesPanel(); // close floating panel
+    openEncyclopedia();
+  };
 
   document.querySelectorAll('.modal .modal-close, .modal .close-btn').forEach(btn => {
     btn.onclick = (e) => {
@@ -1154,15 +1445,15 @@ function applyScale() {
   const footerH = footer ? footer.offsetHeight : 0;
 
   const usedH = headerH + uiH + shopH + footerH + 30; // 30px breathing room
-  
+
   const availW = window.innerWidth - 20;
   const availH = Math.max(100, window.innerHeight - usedH);
 
   const scaleW = availW / GAME_DESIGN_W;
   const scaleH = availH / GAME_DESIGN_H;
-  
+
   const scale = Math.max(0.15, Math.min(scaleW, scaleH, 1.0));
-  
+
   area.style.transformOrigin = 'top center';
   area.style.transform = `scale(${scale})`;
   wrapper.style.height = (GAME_DESIGN_H * scale) + 'px';
@@ -1423,7 +1714,7 @@ function drawShop() {
     if (gameState.cheatedModeActive) {
       const oldBtn = document.getElementById('admin-playtest-btn');
       if (oldBtn) oldBtn.remove();
-      
+
       const secretBtn = document.createElement('button');
       secretBtn.id = 'admin-playtest-btn';
       secretBtn.style.marginTop = '20px';
@@ -1449,13 +1740,13 @@ function drawShop() {
         showMessage("👑 MODO ADMIN: Todas las torres desbloqueadas para Playtesting", "success");
         drawTowerShop();
       };
-      
+
       const spacer = document.createElement('div');
       spacer.style.width = '100%';
       spacer.style.display = 'flex';
       spacer.style.justifyContent = 'flex-end';
       spacer.appendChild(secretBtn);
-      
+
       container.appendChild(spacer);
     }
   }
@@ -1600,6 +1891,7 @@ function placeTower(spotId, type) {
   gameState.towers.push(tower);
   gameState.globetines -= tCfg.cost;
   gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
+  gameState.globsPlaced[type] = (gameState.globsPlaced[type] || 0) + 1;
   spot.occupied = true;
   updateUI(); drawTowerShop();
   updateAllTowerRanges();
@@ -1697,7 +1989,7 @@ function updateEvolveButtons(t) {
     } else {
       const familyKey = t.family === 'Grey' ? 'Old_Glob' : t.family;
       const hasGTackUnlocked = gameState.gtacks[familyKey];
-      
+
       const evolveTitle = document.querySelector('#evolve-panel h3');
       if (evolveTitle) evolveTitle.textContent = hasGTackUnlocked ? 'G-Tack (Habilidad)' : translate('max_reached');
 
@@ -1739,8 +2031,8 @@ function evolveTower(tower, nextType) {
   if (gameState.globetines < next.cost) return;
   gameState.globetines -= next.cost;
   if (tower.type !== nextType) { gameState.towerCounts[tower.type]--; gameState.towerCounts[nextType] = (gameState.towerCounts[nextType] || 0) + 1; }
-  tower.type = nextType; 
-  tower.evolution = next.evolution; 
+  tower.type = nextType;
+  tower.evolution = next.evolution;
   Object.assign(tower, next);
   tower.damage *= gameState.towerBuffs.damage; tower.range += gameState.towerBuffs.range; tower.speed *= gameState.towerBuffs.speed;
   tower.el.style.backgroundImage = `url('${getTowerImage(nextType)}')`; applyTowerEffects(tower.el, nextType);
@@ -1751,6 +2043,11 @@ function evolveTower(tower, nextType) {
 
 function sellTower(tower) {
   gameState.globetines += Math.floor(tower.cost * 0.7);
+  // Badge: mimicRevenge (Traición) - sell a max level tower
+  const tCfg = TOWER_TYPES[tower.type];
+  if (tCfg && !tCfg.evolution) {
+    unlockBadge('mimicRevenge');
+  }
   tower.el.remove();
   if (tower.rangeEl) tower.rangeEl.remove();
   gameState.towerCounts[tower.type]--;
@@ -1767,7 +2064,7 @@ function startWave() {
   console.log("gameOver:", gameState.gameOver);
   console.log("mode:", gameState.mode);
   console.log("maxWaves:", gameState.maxWaves);
-  
+
   if (gameState.waveActive || gameState.gameOver) return;
 
   let maxWaves = gameState.maxWaves || 20;
@@ -1863,7 +2160,7 @@ function startWave() {
       if (wave >= 2) pool.push('Guest_Pyce', 'Symbol_Pyce');
       if (wave >= 4) pool.push('Noob_Pyce', '4motions_Pyce');
       if (wave >= 6) pool.push('SO_Pyce');
-      if (wave >= 11) pool.push('Flower_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce');
+      if (wave >= 11) pool.push('Flower_Pyce', 'Stupid_GoldPyce');
 
       let baseCount = 4 + Math.floor(wave * 1.4);
       for (let i = 0; i < baseCount; i++) {
@@ -1898,7 +2195,7 @@ function startWave() {
       let pool = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce'];
       if (wave >= 2) pool.push('Guest_Pyce', 'Noob_Pyce');
       if (wave >= 4) pool.push('4motions_Pyce', 'SO_Pyce');
-      if (wave >= 6) pool.push('Flower_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce');
+      if (wave >= 6) pool.push('Flower_Pyce', 'Stupid_GoldPyce');
 
       let baseCount = 5 + Math.floor(wave * 1.7);
       for (let i = 0; i < baseCount; i++) {
@@ -1911,19 +2208,20 @@ function startWave() {
     // Empiezan muy cargados desde la oleada 1 (muchos enemigos tipo Pyce/Pyce2) y suben a velocidad creciente.
     if (wave % 10 === 0) {
       isBossWave = true;
-      if (wave === 10) bossesToSpawn.push('1x1x1x1_Pyce');
-      else if (wave === 20) bossesToSpawn.push('NOeye_Pyce');
-      else if (wave === 30) {
-        if (mode === 'corrupto' || mode === 'antiNormal') {
-          bossesToSpawn.push('MoonStar_Pyce');
-        } else {
-          bossesToSpawn.push('NOeye_Pyce');
-        }
+      if (mode === 'antiNormal') {
+        if (wave === 15) bossesToSpawn.push('NOeye_Pyce');
+        else if (wave === 25) bossesToSpawn.push('NOeye_Pyce', '1x1x1x1_Pyce');
+        else if (wave === 35) bossesToSpawn.push('MoonStar_Pyce');
+        else if (wave % 10 === 0) bossesToSpawn.push('NOeye_Pyce');
       } else {
-        if (mode === 'corrupto' || mode === 'antiNormal') {
-          bossesToSpawn.push('NOeye_Pyce', 'MoonStar_Pyce');
+        if (wave === 10) bossesToSpawn.push('1x1x1x1_Pyce');
+        else if (wave === 20) bossesToSpawn.push('NOeye_Pyce');
+        else if (wave === 30) {
+          if (mode === 'corrupto') bossesToSpawn.push('MoonStar_Pyce');
+          else bossesToSpawn.push('NOeye_Pyce');
         } else {
-          bossesToSpawn.push('1x1x1x1_Pyce', 'NOeye_Pyce');
+          if (mode === 'corrupto') bossesToSpawn.push('NOeye_Pyce', 'MoonStar_Pyce');
+          else bossesToSpawn.push('1x1x1x1_Pyce', 'NOeye_Pyce');
         }
       }
 
@@ -1937,7 +2235,7 @@ function startWave() {
       let baseCount = 10 + Math.floor(wave * 2.2 * mult);
       let pool = ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce'];
       if (wave >= 2) pool.push('Noob_Pyce', '4motions_Pyce', 'SO_Pyce');
-      if (wave >= 4) pool.push('Flower_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce');
+      if (wave >= 4) pool.push('Flower_Pyce', 'Stupid_GoldPyce');
 
       for (let i = 0; i < baseCount; i++) {
         spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
@@ -1946,7 +2244,7 @@ function startWave() {
   }
 
   console.log(`📦 spawnList tiene ${spawnList.length} enemigos`);
-  
+
   if (spawnList.length === 0) {
     console.error("❌ ERROR: spawnList está VACÍA. Revisa la lógica de oleadas.");
     gameState.waveActive = false;
@@ -1986,6 +2284,11 @@ function startWave() {
 }
 
 function spawnEnemy(type, boss) {
+  if (gameState.mimicSpawned < 2 && !boss && Math.random() < 0.001) {
+    type = 'Mimic_Pyce';
+    gameState.mimicSpawned++;
+  }
+
   if (!type) {
     const wave = gameState.wave || 1;
     const pool = ['Stupid_Pyce'];
@@ -1994,8 +2297,7 @@ function spawnEnemy(type, boss) {
     if (wave >= 6) pool.push('Noob_Pyce', 'Noob_Pyce');
     if (wave >= 9) pool.push('4motions_Pyce');
     if (wave >= 11) pool.push('Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce');
-    if (Math.random() < 0.01) type = 'Mimic_Pyce';
-    else type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
+    type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
   }
 
   const t = ENEMY_TYPES[type];
@@ -2032,444 +2334,503 @@ function showNarratorMsg(imgSrc, speakerName, text) {
 
   const bubble = document.createElement('div');
   bubble.id = 'narrator-bubble';
-  bubble.className = 'narrator-bubble';
+  bubble.className = 'narrator-bubble narrator-enter';
   bubble.innerHTML = `
     <img src="${imgSrc}" class="narrator-portrait" onerror="this.style.display='none'">
     <div class="narrator-text-box">
       <div class="narrator-name">${speakerName}</div>
       <div class="narrator-text">${text}</div>
     </div>
-    <button class="narrator-close" onclick="document.getElementById('narrator-bubble').remove()">✕</button>
+    <button class="narrator-close" onclick="closeNarratorMsg()">✕</button>
   `;
   document.body.appendChild(bubble);
 
-  narratorTimeout = setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 6000);
+  setTimeout(() => {
+    if (bubble.parentNode) {
+      bubble.classList.remove('narrator-enter');
+      bubble.classList.add('narrator-float');
+    }
+  }, 500); // 500ms after enter animation finishes
+
+  narratorTimeout = setTimeout(() => { closeNarratorMsg(); }, 6000);
+}
+
+function closeNarratorMsg() {
+  const bubble = document.getElementById('narrator-bubble');
+  if (bubble) {
+    bubble.classList.remove('narrator-float');
+    bubble.classList.add('narrator-exit');
+    setTimeout(() => {
+      if (bubble.parentNode) bubble.remove();
+    }, 500); // match exit animation duration
+  }
 }
 
 function gameLoop() {
   if (gameState.gameOver) return;
   try {
-  const dt = 1 / 60;
+    const dt = 1 / 60;
 
-  function isTowerProtected(tower) {
-    if (!gameState.duckgrades.dg_Old_Glob) return false;
-    return gameState.towers.some(grey => {
-      if (grey.family === 'Grey' || grey.family === 'Old_Glob' || grey.type === 'Old_Glob' || grey.type === 'Pyce_Glob') {
-        return Math.hypot(grey.x - tower.x, grey.y - tower.y) < 150;
-      }
-      return false;
-    });
-  }
-
-  for (let i = gameState.enemies.length - 1; i >= 0; i--) {
-    const e = gameState.enemies[i];
-    const next = ENEMY_PATH[e.pathIndex + 1];
-
-    let currentEnemySpeed = e.speed;
-    if (e.stunned && e.stunned > 0) {
-      e.stunned -= dt;
-      currentEnemySpeed = 0;
-    }
-
-    if (next) {
-      const dx = next.x - e.x, dy = next.y - e.y, dist = Math.hypot(dx, dy);
-      if (dist < currentEnemySpeed) e.pathIndex++;
-      else { e.x += (dx / dist) * currentEnemySpeed; e.y += (dy / dist) * currentEnemySpeed; }
-      e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
-    } else {
-      if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
-      if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
-      e.el.remove(); gameState.enemies.splice(i, 1);
-      gameState.health -= e.boss ? 10 : 1;
-      gameState.baseTookDamage = true;
-      if (gameState.health <= 0) { gameState.health = 0; endGame(); }
-      updateUI(); continue;
-    }
-
-    const totalCurrent = e.health + (e.shield || 0);
-    const totalMax = e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0);
-    const pct = Math.max(0, (totalCurrent / (e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0))) * 100);
-    e.hpFill.style.width = pct + '%';
-    e.hpFill.style.backgroundColor = (e.shield > 0) ? '#ffd700' : '#ff4444';
-
-    if (e.enemySlowTimer && e.enemySlowTimer > 0) {
-      e.enemySlowTimer -= dt;
-      const factor = e.enemySlowFactor || 0.4;
-      currentEnemySpeed = e.speed * (1 - factor);
-      e.el.style.filter = 'brightness(0.8) contrast(1.2) saturate(1.5) hue-rotate(100deg)';
-    } else {
-      e.el.style.filter = '';
-    }
-
-    if (e.burnTimer && e.burnTimer > 0) {
-      e.burnTimer -= dt;
-      const dmg = (e.burnDamage || 5) * dt;
-      e.health -= dmg;
-      e.el.classList.add('burning');
-      if (Math.random() < 0.1) showEffect(e.x, e.y, "🔥", "#ff5500");
-    } else {
-      e.el.classList.remove('burning');
-    }
-
-    if (e.burnTimer > 0 && e.enemySlowTimer > 0 && e.stunned > 0 && e.toxicTimer > 0 && e.poisonTimer > 0) {
-      unlockBadge('epicEffects');
-    }
-
-    if (e.toxicTimer && e.toxicTimer > 0) {
-      e.toxicTimer -= dt;
-      const dmg = 25 * dt;
-      e.health -= dmg;
-      if (Math.random() < 0.1) showEffect(e.x, e.y, "🤢🔥", "#2ecc71");
-    }
-    if (e.poisonTimer && e.poisonTimer > 0) {
-      e.poisonTimer -= dt;
-      const dmg = 12 * dt;
-      e.health -= dmg;
-      if (Math.random() < 0.1) showEffect(e.x, e.y, "🍄💀", "#9b59b6");
-
-      gameState.enemies.forEach(other => {
-        if (other !== e && !other.poisonTimer && Math.hypot(other.x - e.x, other.y - e.y) < 40) {
-          other.poisonTimer = 3;
-          showEffect(other.x, other.y - 10, "CONTAGIO! 💀", "#9b59b6");
+    function isTowerProtected(tower) {
+      if (!gameState.duckgrades.dg_Old_Glob) return false;
+      return gameState.towers.some(grey => {
+        if (grey.family === 'Grey' || grey.family === 'Old_Glob' || grey.type === 'Old_Glob' || grey.type === 'Pyce_Glob') {
+          return Math.hypot(grey.x - tower.x, grey.y - tower.y) < 150;
         }
+        return false;
       });
     }
 
-    if (e.health <= 0) {
-      die(e, i);
-      continue;
-    }
+    for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+      const e = gameState.enemies[i];
+      const next = ENEMY_PATH[e.pathIndex + 1];
 
-    if (e.healer) {
-      e.healTimer = (e.healTimer || 0) + dt;
-      if (e.healTimer >= (e.healCooldown || 2)) {
-        e.healTimer = 0;
-        let healed = false;
-        gameState.enemies.forEach(ally => {
-          if (ally !== e && Math.hypot(ally.x - e.x, ally.y - e.y) <= (e.healRange || 100)) {
-            if (ally.health < ally.maxHealth) {
-              ally.health = Math.min(ally.maxHealth, ally.health + (e.healAmount || 10));
-              healed = true;
+      let currentEnemySpeed = e.speed;
+      if (e.stunned && e.stunned > 0) {
+        e.stunned -= dt;
+        currentEnemySpeed = 0;
+      }
+
+      if (next) {
+        const dx = next.x - e.x, dy = next.y - e.y, dist = Math.hypot(dx, dy);
+        if (dist < currentEnemySpeed) e.pathIndex++;
+        else { e.x += (dx / dist) * currentEnemySpeed; e.y += (dy / dist) * currentEnemySpeed; }
+        e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
+      } else {
+        if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
+        if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
+        e.el.remove(); gameState.enemies.splice(i, 1);
+        gameState.health -= e.boss ? 10 : 1;
+        gameState.baseTookDamage = true;
+        if (gameState.health <= 0) { gameState.health = 0; endGame(); }
+        updateUI(); continue;
+      }
+
+      const totalCurrent = e.health + (e.shield || 0);
+      const totalMax = e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0);
+      const pct = Math.max(0, (totalCurrent / (e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0))) * 100);
+      e.hpFill.style.width = pct + '%';
+      e.hpFill.style.backgroundColor = (e.shield > 0) ? '#ffd700' : '#ff4444';
+
+      if (e.enemySlowTimer && e.enemySlowTimer > 0) {
+        e.enemySlowTimer -= dt;
+        const factor = e.enemySlowFactor || 0.4;
+        currentEnemySpeed = e.speed * (1 - factor);
+        e.el.style.filter = 'brightness(0.8) contrast(1.2) saturate(1.5) hue-rotate(100deg)';
+      } else {
+        e.el.style.filter = '';
+      }
+
+      if (e.burnTimer && e.burnTimer > 0) {
+        e.burnTimer -= dt;
+        const dmg = (e.burnDamage || 5) * dt;
+        e.health -= dmg;
+        e.el.classList.add('burning');
+        if (Math.random() < 0.1) showEffect(e.x, e.y, "🔥", "#ff5500");
+      } else {
+        e.el.classList.remove('burning');
+      }
+
+      if (e.burnTimer > 0 && e.enemySlowTimer > 0 && e.stunned > 0 && e.toxicTimer > 0 && e.poisonTimer > 0) {
+        unlockBadge('epicEffects');
+      }
+
+      if (e.toxicTimer && e.toxicTimer > 0) {
+        e.toxicTimer -= dt;
+        const dmg = 25 * dt;
+        e.health -= dmg;
+        if (Math.random() < 0.1) showEffect(e.x, e.y, "🤢🔥", "#2ecc71");
+      }
+      if (e.poisonTimer && e.poisonTimer > 0) {
+        e.poisonTimer -= dt;
+        const dmg = 12 * dt;
+        e.health -= dmg;
+        if (Math.random() < 0.1) showEffect(e.x, e.y, "🍄💀", "#9b59b6");
+
+        gameState.enemies.forEach(other => {
+          if (other !== e && !other.poisonTimer && Math.hypot(other.x - e.x, other.y - e.y) < 40) {
+            other.poisonTimer = 3;
+            showEffect(other.x, other.y - 10, "CONTAGIO! 💀", "#9b59b6");
+          }
+        });
+      }
+
+      if (e.health <= 0) {
+        die(e, i);
+        continue;
+      }
+
+      if (e.healer) {
+        e.healTimer = (e.healTimer || 0) + dt;
+        if (e.healTimer >= (e.healCooldown || 2)) {
+          e.healTimer = 0;
+          let healed = false;
+          gameState.enemies.forEach(ally => {
+            if (ally !== e && Math.hypot(ally.x - e.x, ally.y - e.y) <= (e.healRange || 100)) {
+              if (ally.health < ally.maxHealth) {
+                ally.health = Math.min(ally.maxHealth, ally.health + (e.healAmount || 10));
+                healed = true;
+              }
+            }
+          });
+          if (healed) showEffect(e.x, e.y, "✨ HEAL", "#2ecc71");
+        }
+      }
+
+      if (e.type === '1x1x1x1_Pyce' || e.type === 'MoonStar_Pyce') {
+        e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+        if (e.attackTimer1 > 5) {
+          e.attackTimer1 = 0;
+          let targetTower = null;
+          let minDist = Infinity;
+          gameState.towers.forEach(t => {
+            const d = Math.hypot(t.x - e.x, t.y - e.y);
+            if (d < minDist) { minDist = d; targetTower = t; }
+          });
+          if (targetTower) shoot(e, targetTower, { isEnemy: true, projectile: 'binary_code', speed: 2, slow: 3 });
+        }
+      }
+      if (e.type === 'NOeye_Pyce' || e.type === 'MoonStar_Pyce') {
+        e.attackTimer2 = (e.attackTimer2 || 0) + dt;
+        if (e.attackTimer2 > 8) {
+          e.attackTimer2 = 0;
+          if (gameState.towers.length > 0) {
+            const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
+            shoot(e, targetTower, { isEnemy: true, projectile: 'laser_purple', speed: 5, stun: 2 });
+          }
+        }
+      }
+      if (e.type === 'Guest_Pyce') {
+        e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+        if (e.attackTimer1 > 3) {
+          let targetTower = null;
+          gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < 80) targetTower = t; });
+          if (targetTower) {
+            e.attackTimer1 = 0;
+            if (isTowerProtected(targetTower)) {
+              showEffect(targetTower.x, targetTower.y - 20, "IMMUNE! 🛡️", "#00ffcc");
+            } else {
+              targetTower.stunTimer = (targetTower.stunTimer || 0) + 1.5;
+              showEffect(targetTower.x, targetTower.y - 20, "STUNNED!", "#ff0000");
             }
           }
-        });
-        if (healed) showEffect(e.x, e.y, "✨ HEAL", "#2ecc71");
+        }
+      }
+      if (e.type === 'Noob_Pyce') {
+        e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+        if (e.attackTimer1 > 6) {
+          let targetTower = null;
+          gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < 200) targetTower = t; });
+          if (targetTower) shoot(e, targetTower, { isEnemy: true, projectile: 'stone_red', speed: 3, stun: 1.5 });
+        }
+      }
+
+      if (e.health <= 0) die(e, i);
+    }
+
+    if (gameState.globalRangeBuffTimer && gameState.globalRangeBuffTimer > 0) {
+      gameState.globalRangeBuffTimer -= dt;
+      if (gameState.globalRangeBuffTimer <= 0) {
+        gameState.globalRangeBuffTimer = 0;
+        updateBuffs();
       }
     }
 
-    if (e.type === '1x1x1x1_Pyce' || e.type === 'MoonStar_Pyce') {
-      e.attackTimer1 = (e.attackTimer1 || 0) + dt;
-      if (e.attackTimer1 > 5) {
-        e.attackTimer1 = 0;
-        let targetTower = null;
-        let minDist = Infinity;
-        gameState.towers.forEach(t => {
-          const d = Math.hypot(t.x - e.x, t.y - e.y);
-          if (d < minDist) { minDist = d; targetTower = t; }
-        });
-        if (targetTower) shoot(e, targetTower, { isEnemy: true, projectile: 'binary_code', speed: 2, slow: 3 });
+    gameState.towers.forEach(t => {
+      if (t.gTackCooldown && t.gTackCooldown > 0) {
+        t.gTackCooldown -= dt;
+        if (t.gTackCooldown < 0) t.gTackCooldown = 0;
+        if (gameState.selectedTower === t) updateEvolveButtons(t);
       }
-    }
-    if (e.type === 'NOeye_Pyce' || e.type === 'MoonStar_Pyce') {
-      e.attackTimer2 = (e.attackTimer2 || 0) + dt;
-      if (e.attackTimer2 > 8) {
-        e.attackTimer2 = 0;
-        if (gameState.towers.length > 0) {
-          const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
-          shoot(e, targetTower, { isEnemy: true, projectile: 'laser_purple', speed: 5, stun: 2 });
-        }
+      if (t.toxicTimer && t.toxicTimer > 0) {
+        t.toxicTimer -= dt;
+        if (t.toxicTimer < 0) t.toxicTimer = 0;
       }
-    }
-    if (e.type === 'Guest_Pyce') {
-      e.attackTimer1 = (e.attackTimer1 || 0) + dt;
-      if (e.attackTimer1 > 3) {
-        let targetTower = null;
-        gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < 80) targetTower = t; });
-        if (targetTower) {
-          e.attackTimer1 = 0;
-          if (isTowerProtected(targetTower)) {
-            showEffect(targetTower.x, targetTower.y - 20, "IMMUNE! 🛡️", "#00ffcc");
-          } else {
-            targetTower.stunTimer = (targetTower.stunTimer || 0) + 1.5;
-            showEffect(targetTower.x, targetTower.y - 20, "STUNNED!", "#ff0000");
+      if (t.contagioTimer && t.contagioTimer > 0) {
+        t.contagioTimer -= dt;
+        if (t.contagioTimer < 0) t.contagioTimer = 0;
+      }
+
+      if (t.stunned > 0) { t.stunned -= dt; t.el.classList.add('stunned'); return; }
+      t.el.classList.remove('stunned');
+      if (t.family === 'Ducky_Glob' || t.type === 'Ducky_Glob' || t.type === 'Golden_Ducky_Glob') {
+        let interval = t.type === 'Golden_Ducky_Glob' ? 5 : 8;
+        if (gameState.duckgrades.dg_Ducky_Glob) {
+          const enemiesInRange = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= (t.range || 100));
+          if (enemiesInRange.length > 0) {
+            interval *= 0.5;
+            enemiesInRange.forEach(e => {
+              e.health -= 0.5 * dt * (gameState.wave + 1);
+            });
+            if (Math.random() < 0.1) showEffect(t.x, t.y, "🦆💥", "#ffd700");
           }
         }
-      }
-    }
-    if (e.type === 'Noob_Pyce') {
-      e.attackTimer1 = (e.attackTimer1 || 0) + dt;
-      if (e.attackTimer1 > 6) {
-        let targetTower = null;
-        gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < 200) targetTower = t; });
-        if (targetTower) shoot(e, targetTower, { isEnemy: true, projectile: 'stone_red', speed: 3, stun: 1.5 });
-      }
-    }
 
-    if (e.health <= 0) die(e, i);
-  }
+        t.moneyTimer += dt;
+        if (t.moneyTimer >= interval) {
+          t.moneyTimer = 0;
+          const amount = 10 + Math.floor(gameState.wave * 1.5);
+          gameState.globetines += amount;
+          showEffect(t.x, t.y, `+${amount} 💰`);
 
-  if (gameState.globalRangeBuffTimer && gameState.globalRangeBuffTimer > 0) {
-    gameState.globalRangeBuffTimer -= dt;
-    if (gameState.globalRangeBuffTimer <= 0) {
-      gameState.globalRangeBuffTimer = 0;
-      updateBuffs();
-    }
-  }
-
-  gameState.towers.forEach(t => {
-    if (t.gTackCooldown && t.gTackCooldown > 0) {
-      t.gTackCooldown -= dt;
-      if (t.gTackCooldown < 0) t.gTackCooldown = 0;
-      if (gameState.selectedTower === t) updateEvolveButtons(t);
-    }
-    if (t.toxicTimer && t.toxicTimer > 0) {
-      t.toxicTimer -= dt;
-      if (t.toxicTimer < 0) t.toxicTimer = 0;
-    }
-    if (t.contagioTimer && t.contagioTimer > 0) {
-      t.contagioTimer -= dt;
-      if (t.contagioTimer < 0) t.contagioTimer = 0;
-    }
-
-    if (t.stunned > 0) { t.stunned -= dt; t.el.classList.add('stunned'); return; }
-    t.el.classList.remove('stunned');
-    if (t.family === 'Ducky_Glob' || t.type === 'Ducky_Glob' || t.type === 'Golden_Ducky_Glob') {
-      let interval = t.type === 'Golden_Ducky_Glob' ? 5 : 8;
-      if (gameState.duckgrades.dg_Ducky_Glob) {
-        const enemiesInRange = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= (t.range || 100));
-        if (enemiesInRange.length > 0) {
-          interval *= 0.5;
-          enemiesInRange.forEach(e => {
-            e.health -= 0.5 * dt * (gameState.wave + 1);
-          });
-          if (Math.random() < 0.1) showEffect(t.x, t.y, "🦆💥", "#ffd700");
-        }
-      }
-
-      t.moneyTimer += dt;
-      if (t.moneyTimer >= interval) {
-        t.moneyTimer = 0;
-        const amount = 10 + Math.floor(gameState.wave * 1.5);
-        gameState.globetines += amount;
-        showEffect(t.x, t.y, `+${amount} 💰`);
-
-        const rand = Math.random();
-        if (rand < 0.05) {
-          const mult = getPycoinMultiplier();
-          const earned = Math.round(1 * mult);
-          gameState.pycoins += earned;
-          showEffect(t.x, t.y - 25, `+${earned} 💎`);
-        } else if (rand < 0.005) {
-          const mult = getDuckpassMultiplier();
-          const earned = Math.round(1 * mult);
-          gameState.duckPassCurrency += earned;
-          showEffect(t.x, t.y - 25, `+${earned} 🦆`);
-          showMessage(translate('level_duckpass', { level: 'SPECIAL' }), 'success');
-        }
-        updateUI(); updateMetaUI();
-      }
-    }
-
-    let currentSpeed = t.speed;
-    if (t.slowTimer > 0) {
-      t.slowTimer -= dt;
-      currentSpeed *= 0.5;
-    }
-
-    if (t.stunTimer > 0) {
-      t.stunTimer -= dt;
-      if (!t.el.classList.contains('stunned-spin')) t.el.classList.add('stunned-spin');
-      if (t.stunTimer <= 0) t.el.classList.remove('stunned-spin');
-      return;
-    }
-
-    if (gameState.duckgrades.dg_Glob && (t.family === 'Glob' || t.type === 'Glob')) {
-      const nearDuck = gameState.towers.some(d => (d.family === 'Ducky_Glob' || d.type === 'Ducky_Glob') && Math.hypot(d.x - t.x, d.y - t.y) < 150);
-      if (nearDuck) currentSpeed *= 1.5;
-    }
-
-    t.cooldown -= dt;
-    if (t.cooldown <= 0 && t.family !== 'Ducky_Glob') {
-      const targets = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= t.range);
-      if (targets.length) {
-        let dmg = t.damage;
-        if (gameState.duckgrades.dg_Red_Glob && t.family === 'Red_Glob') {
-          const redCount = gameState.towers.filter(rt => rt.family === 'Red_Glob').length;
-          dmg *= (1 + (redCount * 0.1));
-        }
-
-        if (gameState.duckgrades.dg_Pyce_Glob && t.type === 'Pyce_Glob' && Math.random() < 0.2) {
-          for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-            shoot(t, { x: t.x + Math.cos(a) * 100, y: t.y + Math.sin(a) * 100, health: 999 }, { damage: dmg });
+          const rand = Math.random();
+          if (rand < 0.05) {
+            const mult = getPycoinMultiplier();
+            const earned = Math.round(1 * mult);
+            gameState.pycoins += earned;
+            showEffect(t.x, t.y - 25, `+${earned} 💎`);
+          } else if (rand < 0.005) {
+            const mult = getDuckpassMultiplier();
+            const earned = Math.round(1 * mult);
+            gameState.duckPassCurrency += earned;
+            showEffect(t.x, t.y - 25, `+${earned} 🦆`);
+            showMessage(translate('level_duckpass', { level: 'SPECIAL' }), 'success');
           }
-        } else {
-          const specialAttack = getSpecialAttack(t, targets[0], dmg);
-          if (!specialAttack) shoot(t, targets[0], { damage: dmg });
+          updateUI(); updateMetaUI();
         }
-        t.cooldown = 1 / currentSpeed;
       }
-    }
-  });
 
-  function applyProjectileHit(p, target) {
-    if (p.isEnemy) {
-      if (isTowerProtected(target)) {
-        showEffect(target.x, target.y - 20, "IMMUNE! 🛡️", "#00ffcc");
+      let currentSpeed = t.speed;
+      if (t.slowTimer > 0) {
+        t.slowTimer -= dt;
+        currentSpeed *= 0.5;
+      }
+
+      if (t.stunTimer > 0) {
+        t.stunTimer -= dt;
+        if (!t.el.classList.contains('stunned-spin')) t.el.classList.add('stunned-spin');
+        if (t.stunTimer <= 0) t.el.classList.remove('stunned-spin');
         return;
       }
-      if (p.meta && p.meta.stun) {
-        target.stunTimer = (target.stunTimer || 0) + p.meta.stun;
-        showEffect(target.x, target.y - 20, "STUNNED!", "#ff0000");
+
+      if (gameState.duckgrades.dg_Glob && (t.family === 'Glob' || t.type === 'Glob')) {
+        const nearDuck = gameState.towers.some(d => (d.family === 'Ducky_Glob' || d.type === 'Ducky_Glob') && Math.hypot(d.x - t.x, d.y - t.y) < 150);
+        if (nearDuck) currentSpeed *= 1.5;
       }
-      if (p.meta && p.meta.slow) {
-        target.slowTimer = (target.slowTimer || 0) + p.meta.slow;
-        showEffect(target.x, target.y - 20, "SLOWED!", "#ffaa00");
+
+      t.cooldown -= dt;
+      if (t.cooldown <= 0 && t.family !== 'Ducky_Glob') {
+        const targets = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= t.range);
+        if (targets.length) {
+          let dmg = t.damage;
+          if (gameState.duckgrades.dg_Red_Glob && t.family === 'Red_Glob') {
+            const redCount = gameState.towers.filter(rt => rt.family === 'Red_Glob').length;
+            dmg *= (1 + (redCount * 0.1));
+          }
+
+          if (gameState.duckgrades.dg_Pyce_Glob && t.type === 'Pyce_Glob' && Math.random() < 0.2) {
+            for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+              shoot(t, { x: t.x + Math.cos(a) * 100, y: t.y + Math.sin(a) * 100, health: 999 }, { damage: dmg });
+            }
+          } else {
+            const specialAttack = getSpecialAttack(t, targets[0], dmg);
+            if (!specialAttack) shoot(t, targets[0], { damage: dmg });
+          }
+          t.cooldown = 1 / currentSpeed;
+        }
       }
-      return;
+    });
+
+    function applyProjectileHit(p, target) {
+      if (p.isEnemy) {
+        if (isTowerProtected(target)) {
+          showEffect(target.x, target.y - 20, "IMMUNE! 🛡️", "#00ffcc");
+          return;
+        }
+        if (p.meta && p.meta.stun) {
+          target.stunTimer = (target.stunTimer || 0) + p.meta.stun;
+          showEffect(target.x, target.y - 20, "STUNNED!", "#ff0000");
+        }
+        if (p.meta && p.meta.slow) {
+          target.slowTimer = (target.slowTimer || 0) + p.meta.slow;
+          showEffect(target.x, target.y - 20, "SLOWED!", "#ffaa00");
+        }
+        return;
+      }
+
+      let dmg = p.damage;
+      if (p.meta) {
+        if (p.meta.slow) {
+          target.enemySlowTimer = 3.0;
+          target.enemySlowFactor = p.meta.slow;
+          showEffect(target.x, target.y - 15, "SLOWED! ❄️", "#00b4ff");
+        }
+        if (p.meta.burn) {
+          target.burnTimer = 3.0;
+          target.burnDamage = p.meta.burnDamage || 5;
+          showEffect(target.x, target.y - 15, "BURN! 🔥", "#ff4444");
+        }
+        if (p.meta.toxic) {
+          target.toxicTimer = (target.toxicTimer || 0) + 3.0;
+          showEffect(target.x, target.y - 15, "TOXIC! 🤢", "#2ecc71");
+        }
+        if (p.meta.poison) {
+          target.poisonTimer = (target.poisonTimer || 0) + 5.0;
+          showEffect(target.x, target.y - 15, "POISON! 🍄", "#9b59b6");
+        }
+        if (p.meta.stunStrike) {
+          target.stunned = (target.stunned || 0) + 3.0;
+          showEffect(target.x, target.y - 15, "SHOCKED! ⚡", "#3498db");
+        }
+      }
+      if (gameState.duckgrades.dg_Comet_Glob && p.family === 'Comet_Glob') {
+        if (Math.random() < 0.15) { dmg *= 2; showEffect(target.x, target.y, "CRIT! 💥"); }
+      }
+      if (gameState.duckgrades.dg_Soap_Glob && p.family === 'Soap_Glob') {
+        if (Math.random() < 0.2) target.stunned = 1.0;
+      }
+      if (p.projectile === 'glitch' || p.type === 'Pyce_Glob') {
+        target.speed = Math.max(0.5, target.speed * 0.9);
+        if (Math.random() < 0.2) target.stunned = 0.5;
+        target.el.classList.add('glitch-shake');
+        setTimeout(() => { if (target && target.el) target.el.classList.remove('glitch-shake'); }, 500);
+      }
+      if (p.meta && p.meta.corruption) {
+        target.speed = Math.max(0.5, target.speed * 0.7);
+        target.el.classList.add('glitch-shake');
+        setTimeout(() => { if (target && target.el) target.el.classList.remove('glitch-shake'); }, 800);
+      }
+
+      if (target.shield > 0) {
+        const abs = Math.min(target.shield, dmg);
+        target.shield -= abs;
+        dmg -= abs;
+      }
+      if (dmg > 0) target.health -= dmg;
+      gameState.totalDamage += p.damage;
+
+      if (gameState.duckgrades.dg_Work_Bombot && p.type === 'Work_Bombot' && !p.bounced) {
+        p.bounced = true;
+        p.x = target.x; p.y = target.y;
+        const nextTarget = gameState.enemies.find(e => e !== target && Math.hypot(e.x - p.x, e.y - p.y) < 100);
+        if (nextTarget) { p.target = nextTarget; }
+      }
+      if (gameState.duckgrades.dg_Old_Glob && p.type === 'Old_Glob' && !p.isSpin) {
+        for (let a = 0; a < Math.PI * 2; a += Math.PI / 2) {
+          shoot({ ...p, projectile: 'stone_small', damage: p.damage * 0.3 }, { x: p.x + Math.cos(a) * 50, y: p.y + Math.sin(a) * 50, health: 999 }, { size: 8 });
+        }
+      }
     }
 
-    let dmg = p.damage;
-    if (p.meta) {
-      if (p.meta.slow) {
-        target.enemySlowTimer = 3.0;
-        target.enemySlowFactor = p.meta.slow;
-        showEffect(target.x, target.y - 15, "SLOWED! ❄️", "#00b4ff");
-      }
-      if (p.meta.burn) {
-        target.burnTimer = 3.0;
-        target.burnDamage = p.meta.burnDamage || 5;
-        showEffect(target.x, target.y - 15, "BURN! 🔥", "#ff4444");
-      }
-      if (p.meta.toxic) {
-        target.toxicTimer = (target.toxicTimer || 0) + 3.0;
-        showEffect(target.x, target.y - 15, "TOXIC! 🤢", "#2ecc71");
-      }
-      if (p.meta.poison) {
-        target.poisonTimer = (target.poisonTimer || 0) + 5.0;
-        showEffect(target.x, target.y - 15, "POISON! 🍄", "#9b59b6");
-      }
-      if (p.meta.stunStrike) {
-        target.stunned = (target.stunned || 0) + 3.0;
-        showEffect(target.x, target.y - 15, "SHOCKED! ⚡", "#3498db");
-      }
-    }
-    if (gameState.duckgrades.dg_Comet_Glob && p.family === 'Comet_Glob') {
-      if (Math.random() < 0.15) { dmg *= 2; showEffect(target.x, target.y, "CRIT! 💥"); }
-    }
-    if (gameState.duckgrades.dg_Soap_Glob && p.family === 'Soap_Glob') {
-      if (Math.random() < 0.2) target.stunned = 1.0;
-    }
-    if (p.projectile === 'glitch' || p.type === 'Pyce_Glob') {
-      target.speed = Math.max(0.5, target.speed * 0.9);
-      if (Math.random() < 0.2) target.stunned = 0.5;
-      target.el.classList.add('glitch-shake');
-      setTimeout(() => { if (target && target.el) target.el.classList.remove('glitch-shake'); }, 500);
-    }
-    if (p.meta && p.meta.corruption) {
-      target.speed = Math.max(0.5, target.speed * 0.7);
-      target.el.classList.add('glitch-shake');
-      setTimeout(() => { if (target && target.el) target.el.classList.remove('glitch-shake'); }, 800);
-    }
+    for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
+      const p = gameState.projectiles[i];
 
-    if (target.shield > 0) {
-      const abs = Math.min(target.shield, dmg);
-      target.shield -= abs;
-      dmg -= abs;
-    }
-    if (dmg > 0) target.health -= dmg;
-    gameState.totalDamage += p.damage;
-
-    if (gameState.duckgrades.dg_Work_Bombot && p.type === 'Work_Bombot' && !p.bounced) {
-      p.bounced = true;
-      p.x = target.x; p.y = target.y;
-      const nextTarget = gameState.enemies.find(e => e !== target && Math.hypot(e.x - p.x, e.y - p.y) < 100);
-      if (nextTarget) { p.target = nextTarget; }
-    }
-    if (gameState.duckgrades.dg_Old_Glob && p.type === 'Old_Glob' && !p.isSpin) {
-      for (let a = 0; a < Math.PI * 2; a += Math.PI / 2) {
-        shoot({ ...p, projectile: 'stone_small', damage: p.damage * 0.3 }, { x: p.x + Math.cos(a) * 50, y: p.y + Math.sin(a) * 50, health: 999 }, { size: 8 });
+      if (p.projectile === 'laser_red') {
+        const collidesWithDemonic = gameState.projectiles.some(other =>
+          other !== p && other.projectile === 'laser_purple' && Math.hypot(other.x - p.x, other.y - p.y) < 25
+        );
+        if (collidesWithDemonic) {
+          unlockBadge('letsGoGambling');
+        }
       }
-    }
-  }
 
-  for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
-    const p = gameState.projectiles[i];
-
-    if (p.projectile === 'laser_red') {
-      const collidesWithDemonic = gameState.projectiles.some(other =>
-        other !== p && other.projectile === 'laser_purple' && Math.hypot(other.x - p.x, other.y - p.y) < 25
-      );
-      if (collidesWithDemonic) {
-        unlockBadge('letsGoGambling');
-      }
-    }
-
-    if (p.boomerang) {
-      const homeX = p.shooter.x;
-      const homeY = p.shooter.y;
-      if (!p.returnPhase) {
-        const targetDist = Math.hypot(p.target.x - p.x, p.target.y - p.y);
-        if (targetDist < 10 || (!p.target.health && targetDist < 50)) {
-          p.returnPhase = true;
-          p.hitEntities.clear();
+      if (p.boomerang) {
+        const homeX = p.shooter.x;
+        const homeY = p.shooter.y;
+        if (!p.returnPhase) {
+          const targetDist = Math.hypot(p.target.x - p.x, p.target.y - p.y);
+          if (targetDist < 10 || (!p.target.health && targetDist < 50)) {
+            p.returnPhase = true;
+            p.hitEntities.clear();
+          } else {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+          }
         } else {
+          const dx = homeX - p.x, dy = homeY - p.y, hDist = Math.hypot(dx, dy);
+          if (hDist < 15) {
+            p.el.remove(); gameState.projectiles.splice(i, 1); continue;
+          }
+          p.vx = (dx / hDist) * p.speed;
+          p.vy = (dy / hDist) * p.speed;
           p.x += p.vx * dt;
           p.y += p.vy * dt;
         }
-      } else {
-        const dx = homeX - p.x, dy = homeY - p.y, hDist = Math.hypot(dx, dy);
-        if (hDist < 15) {
+      } else if (p.piercing) {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.x < -100 || p.x > 2000 || p.y < -100 || p.y > 1000) {
           p.el.remove(); gameState.projectiles.splice(i, 1); continue;
         }
-        p.vx = (dx / hDist) * p.speed;
-        p.vy = (dy / hDist) * p.speed;
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-      }
-    } else if (p.piercing) {
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      if (p.x < -100 || p.x > 2000 || p.y < -100 || p.y > 1000) {
-        p.el.remove(); gameState.projectiles.splice(i, 1); continue;
-      }
-    } else {
-      const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;
-      if (!p.target || !targetArray.includes(p.target)) { p.el.remove(); gameState.projectiles.splice(i, 1); continue; }
-      const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
-      if (dist < 10) {
-        applyProjectileHit(p, p.target);
-        p.el.remove(); gameState.projectiles.splice(i, 1); continue;
       } else {
-        p.vx = (dx / dist) * p.speed;
-        p.vy = (dy / dist) * p.speed;
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
+        const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;
+        if (!p.target || !targetArray.includes(p.target)) { p.el.remove(); gameState.projectiles.splice(i, 1); continue; }
+        const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
+        if (dist < 10) {
+          applyProjectileHit(p, p.target);
+          p.el.remove(); gameState.projectiles.splice(i, 1); continue;
+        } else {
+          p.vx = (dx / dist) * p.speed;
+          p.vy = (dy / dist) * p.speed;
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+        }
+      }
+
+      p.el.style.left = p.x + 'px';
+      p.el.style.top = p.y + 'px';
+
+      if (p.piercing || p.boomerang) {
+        const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;
+        targetArray.forEach(e => {
+          if (!p.hitEntities.has(e) && Math.hypot(e.x - p.x, e.y - p.y) < 20) {
+            p.hitEntities.add(e);
+            applyProjectileHit(p, e);
+          }
+        });
       }
     }
 
-    p.el.style.left = p.x + 'px';
-    p.el.style.top = p.y + 'px';
-
-    if (p.piercing || p.boomerang) {
-      const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;
-      targetArray.forEach(e => {
-        if (!p.hitEntities.has(e) && Math.hypot(e.x - p.x, e.y - p.y) < 20) {
-          p.hitEntities.add(e);
-          applyProjectileHit(p, e);
-        }
-      });
+    if (gameState.waveActive && !gameState.spawningActive && !gameState.enemies.length) {
+      gameState.waveActive = false;
+      gameState.globetines += 50 + gameState.wave * 10;
+      const earnedPy = Math.round(10 * getPycoinMultiplier());
+      gameState.pycoins += earnedPy;
+      addXP(20);
+      // Badge: mimic3 (Aura de Cristal) - finish wave with 1 health
+      if (gameState.health === 1) unlockBadge('mimic3');
+      // Badge: mimic4 (Economía de Guerra) - 10 ducky towers on map
+      const duckyCount = gameState.towers.filter(t => t.family === 'Ducky_Glob').length;
+      if (duckyCount >= 10) unlockBadge('mimic4');
+      // Badge: survivor - reach wave 10
+      if (gameState.wave >= 10) unlockBadge('survivor');
+      // Badge: millionaire - have over 20000 money
+      if (gameState.globetines >= 20000) unlockBadge('millionaire');
+      // Badge: inf wave badges
+      if (gameState.wave >= 100) unlockBadge('inf100');
+      if (gameState.wave >= 500) unlockBadge('inf500');
+      if (gameState.wave >= 999) unlockBadge('inf999');
+      // Badge: titaniumBuilding - no base damage
+      if (!gameState.baseTookDamage && gameState.wave >= gameState.maxWaves && gameState.mode !== 'infinito') unlockBadge('titaniumBuilding');
+      // Badge: deepSavings - 1500 pycoins and duckpasses
+      if (gameState.pycoins >= 1500 && gameState.duckPassCurrency >= 1500) unlockBadge('deepSavings');
+      updateUI(); updateMetaUI(); saveProgress();
+      if (gameState.autoWave) setTimeout(startWave, 2000);
     }
-  }
 
-  if (gameState.waveActive && !gameState.spawningActive && !gameState.enemies.length) {
-    gameState.waveActive = false;
-    gameState.globetines += 50 + gameState.wave * 10;
-    const earnedPy = Math.round(10 * getPycoinMultiplier());
-    gameState.pycoins += earnedPy;
-    addXP(20);
-    updateUI(); updateMetaUI(); saveProgress();
-    if (gameState.autoWave) setTimeout(startWave, 2000);
-  }
+    // Anti-Normal random glitch mechanic
+    if (gameState.mode === 'antiNormal' && gameState.waveActive && Math.random() < 0.005) {
+      const gameArea = document.getElementById('game-area');
+      if (gameArea && !gameArea.classList.contains('game-glitch-event')) {
+        gameArea.classList.add('game-glitch-event');
+        
+        // Glitch gives Pyces a shield equal to half their max health (excluding Bosses)
+        gameState.enemies.forEach(e => {
+          if (!e.frozen && e.type !== 'NOeye_Pyce' && e.type !== 'MoonStar_Pyce') {
+            const baseHealth = ENEMY_TYPES[e.type] ? ENEMY_TYPES[e.type].health : e.health;
+            e.shield = (e.shield || 0) + (baseHealth / 2);
+            if (e.el) {
+              e.el.style.boxShadow = "0 0 15px #00ffff"; // Cyan shield visual
+              e.el.style.border = "2px solid #00ffff";
+              e.el.style.borderRadius = "50%";
+            }
+          }
+        });
+
+        showFloatingText(translate('glitch_shields'), window.innerWidth/2, 200, "#00ffff");
+        setTimeout(() => gameArea.classList.remove('game-glitch-event'), 300);
+      }
+    }
   } catch (err) {
     console.error("Error en gameLoop (el juego continúa):", err);
   }
@@ -2534,7 +2895,7 @@ function shoot(shooter, target, opts = {}) {
   const isBomb = (shooter.type === 'Work_Bombot' || shooter.aoe);
   const isLaser = projClass && (projClass.includes('laser') || projClass === 'void');
   const isBoomerang = projClass && (projClass.includes('boomerang'));
-  const isSpecialProj = projClass === 'binary_code' || projClass === 'stone' || projClass === 'stone_red' || projClass === 'glitch' || projClass === 'star_yellow' || projClass === 'star_celeste' || projClass === 'slash' || projClass === 'gold' || projClass === 'none';
+  const isSpecialProj = projClass === 'binary_code' || projClass === 'stone_red' || projClass === 'star_yellow' || projClass === 'star_celeste' || projClass === 'slash' || projClass === 'none';
 
   // Determine projectile image and size
   let projImg = 'img/Proyectiles/Proyectil_Base.png';
@@ -2584,78 +2945,57 @@ function shoot(shooter, target, opts = {}) {
     'Work_Bombot': null        // Bomba negra sin tintado
   };
 
-  if (isEnemy) {
-    // Enemy projectiles: keep legacy color system
-    el.style.borderRadius = '50%';
-    if (opts.color === 'multicolor') {
-      el.style.backgroundImage = `conic-gradient(#FFEA00,#00B4FF,#C58ED3,#8B0000)`;
-    } else if (opts.color === 'gradient') {
-      el.style.background = `linear-gradient(45deg, ${opts.from || '#FF7F00'}, ${opts.to || '#001F5B'})`;
-    } else if (opts.color === 'blackwhite') {
-      el.style.background = 'radial-gradient(circle at 30% 30%, #fff 0%, #000 60%)';
-    } else {
-      el.style.backgroundColor = opts.color || '#ff4444';
-    }
-    el.style.width = el.style.height = (opts.size || 10) + 'px';
-  } else if (isSpecialProj && !isBomb) {
-    // Special projectiles: keep legacy simple color
-    el.style.borderRadius = '50%';
-    el.style.width = el.style.height = (opts.size || 10) + 'px';
-    if (opts.color === 'multicolor') {
-      el.style.backgroundImage = `conic-gradient(#FFEA00,#00B4FF,#C58ED3,#8B0000)`;
-    } else if (opts.color === 'gradient') {
-      el.style.background = `linear-gradient(45deg, ${opts.from || '#FF7F00'}, ${opts.to || '#001F5B'})`;
-    } else if (opts.color === 'blackwhite') {
-      el.style.background = 'radial-gradient(circle at 30% 30%, #fff 0%, #000 60%)';
-    } else {
-      el.style.backgroundColor = opts.color || (shooter.projectileColor || '#FFFFFF');
-    }
-  } else {
-    // ===== 3D TINTED PROJECTILE SYSTEM =====
-    const tintColor = opts.color || TYPE_COLORS[shooter.type] || FAMILY_COLORS[shooter.family] || '#FFFFFF';
-    const imgUrl = `url('${projImg}')`;
+  // ===== 3D TINTED PROJECTILE SYSTEM PARA TODOS =====
+  const tintColor = opts.color || TYPE_COLORS[shooter.type] || FAMILY_COLORS[shooter.family] || (isEnemy ? '#ff4444' : '#FFFFFF');
+  const imgUrl = `url('${projImg}')`;
 
-    if (isBomb) {
-      el.style.backgroundImage = imgUrl;
-      el.style.backgroundSize = '100% 100%';
-      el.style.backgroundRepeat = 'no-repeat';
-      el.style.backgroundPosition = 'center';
-    } else if (shooter.type === 'Rainbow_Glob' && !opts.color) {
-      el.style.maskImage = imgUrl;
-      el.style.webkitMaskImage = imgUrl;
-      el.style.maskSize = '100% 100%';
-      el.style.webkitMaskSize = '100% 100%';
-      el.style.maskRepeat = 'no-repeat';
-      el.style.webkitMaskRepeat = 'no-repeat';
-      el.style.maskPosition = 'center';
-      el.style.webkitMaskPosition = 'center';
-      el.style.background = 'linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000)';
-      el.style.backgroundSize = '200% 100%';
-      el.style.animation = 'rainbowShift 1s linear infinite';
-      
-      // Preservar 3D
-      el.style.backgroundImage = imgUrl + ', ' + el.style.background;
-      el.style.backgroundBlendMode = 'multiply, normal';
+  if (isBomb) {
+    el.style.backgroundImage = imgUrl;
+    el.style.backgroundSize = '100% 100%';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.backgroundPosition = 'center';
+  } else if (!isEnemy && shooter.type === 'Rainbow_Glob' && !opts.color) {
+    el.style.maskImage = imgUrl;
+    el.style.webkitMaskImage = imgUrl;
+    el.style.maskSize = '100% 100%';
+    el.style.webkitMaskSize = '100% 100%';
+    el.style.maskRepeat = 'no-repeat';
+    el.style.webkitMaskRepeat = 'no-repeat';
+    el.style.maskPosition = 'center';
+    el.style.webkitMaskPosition = 'center';
+    el.style.background = 'linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000)';
+    el.style.backgroundSize = '200% 100%';
+    el.style.animation = 'rainbowShift 1s linear infinite';
+    el.style.backgroundImage = imgUrl + ', ' + el.style.background;
+    el.style.backgroundBlendMode = 'multiply, normal';
+  } else {
+    if (opts.color === 'multicolor') {
+      el.style.backgroundImage = imgUrl + `, conic-gradient(#FFEA00,#00B4FF,#C58ED3,#8B0000)`;
+    } else if (opts.color === 'gradient') {
+      el.style.backgroundImage = imgUrl + `, linear-gradient(45deg, ${opts.from || '#FF7F00'}, ${opts.to || '#001F5B'})`;
+    } else if (opts.color === 'blackwhite') {
+      el.style.backgroundImage = imgUrl + `, radial-gradient(circle at 30% 30%, #fff 0%, #000 60%)`;
     } else if (tintColor) {
-      // Usamos el color base como fondo
       el.style.backgroundColor = tintColor;
-      // Añadimos la imagen gris encima en modo multiply para darle el sombreado 3D
       el.style.backgroundImage = imgUrl;
-      el.style.backgroundSize = '100% 100%';
-      el.style.backgroundPosition = 'center';
-      el.style.backgroundRepeat = 'no-repeat';
-      el.style.backgroundBlendMode = 'multiply';
-      
-      // Y usamos la misma imagen como máscara para recortar el cuadrado sobrante
-      el.style.maskImage = imgUrl;
-      el.style.webkitMaskImage = imgUrl;
-      el.style.maskSize = '100% 100%';
-      el.style.webkitMaskSize = '100% 100%';
-      el.style.maskRepeat = 'no-repeat';
-      el.style.webkitMaskRepeat = 'no-repeat';
-      el.style.maskPosition = 'center';
-      el.style.webkitMaskPosition = 'center';
+    } else {
+      el.style.backgroundImage = imgUrl;
     }
+    
+    el.style.backgroundSize = '100% 100%';
+    el.style.backgroundPosition = 'center';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.backgroundBlendMode = 'multiply';
+
+    // Mask for cropping properly
+    el.style.maskImage = imgUrl;
+    el.style.webkitMaskImage = imgUrl;
+    el.style.maskSize = '100% 100%';
+    el.style.webkitMaskSize = '100% 100%';
+    el.style.maskRepeat = 'no-repeat';
+    el.style.webkitMaskRepeat = 'no-repeat';
+    el.style.maskPosition = 'center';
+    el.style.webkitMaskPosition = 'center';
   }
 
   if (projClass === 'binary_code') {
@@ -2701,15 +3041,22 @@ function die(e, idx) {
     const earnedPy = Math.round(5 * getPycoinMultiplier());
     gameState.pycoins += earnedPy;
     showMessage(translate('plus_pycoins', { amount: earnedPy }), 'success');
-    if (e.isSpecialMimic && !gameState.unlockedSkins.includes('mimic_set')) {
-      gameState.unlockedSkins.push('mimic_set');
-      showMessage("🎁 ¡SKIN 'Mimic set' DESBLOQUEADA!", 'success');
-      saveProgress();
+    if (e.isSpecialMimic) {
+      gameState.consecutiveMimics++;
+      unlockBadge('mimic1');
+      if (gameState.consecutiveMimics >= 2) unlockBadge('mimic2');
+      if (gameState.mode === 'corrupto') unlockBadge('corruptMimic');
+      if (!gameState.unlockedSkins.includes('mimic_set')) {
+        gameState.unlockedSkins.push('mimic_set');
+        showMessage("🎁 ¡SKIN 'Mimic set' DESBLOQUEADA!", 'success');
+        saveProgress();
+      }
     }
   }
   e.el.remove();
   if (e.boss) unlockBadge('bossKiller');
   gameState.enemies.splice(idx, 1);
+  gameState.pycesKilled[e.type] = (gameState.pycesKilled[e.type] || 0) + 1;
   updateUI();
 }
 
@@ -2793,6 +3140,23 @@ function updateLanguage() {
   const logsBtn = document.getElementById('tab-logs-btn');
   if (logsBtn) logsBtn.innerHTML = `📋 ${translate('story_tab_logs')}`;
 
+  const encBtn = document.getElementById('open-encyclopedia-btn');
+  if (encBtn) encBtn.innerHTML = translate('btn_encyclopedia');
+
+  const encTitle = document.querySelector('#encyclopedia-modal h2');
+  if (encTitle) encTitle.innerHTML = translate('btn_encyclopedia');
+
+  const encTabGlobs = document.getElementById('enc-tab-globs');
+  if (encTabGlobs) encTabGlobs.innerHTML = translate('enc_tab_globs');
+
+  const encTabPyces = document.getElementById('enc-tab-pyces');
+  if (encTabPyces) encTabPyces.innerHTML = translate('enc_tab_pyces');
+
+  const encTabBadges = document.getElementById('enc-tab-badges');
+  if (encTabBadges) encTabBadges.innerHTML = translate('enc_tab_badges');
+
+  updateAchievementsBtnUI();
+
   const evolveTitle = document.querySelector('#evolve-panel h3');
   if (evolveTitle) evolveTitle.textContent = translate('evolve_title');
   const sellBtn = document.getElementById('sell-tower-btn');
@@ -2852,7 +3216,7 @@ function drawRangePreview(x, y, range) {
 function updateAllTowerRanges() {
   const map = document.getElementById('map');
   if (!map) return;
-  
+
   gameState.towers.forEach(t => {
     if (!t.rangeEl) {
       t.rangeEl = document.createElement('div');
@@ -2864,7 +3228,7 @@ function updateAllTowerRanges() {
     t.rangeEl.style.height = (r * 2) + 'px';
     t.rangeEl.style.left = t.x + 'px';
     t.rangeEl.style.top = t.y + 'px';
-    
+
     if (gameState.settings.showRanges) {
       t.rangeEl.style.display = 'block';
     } else {
@@ -2892,6 +3256,8 @@ function retryGame() {
   gameState.usedGTackRed = false;
   gameState.usedGTackGrey = false;
   gameState.baseTookDamage = false;
+  gameState.mimicSpawned = 0;
+  gameState.consecutiveMimics = 0;
   deselectTower();
   updateUI();
   drawTowerShop();
@@ -3180,6 +3546,17 @@ function drawStoryLogs() {
   } else if (currentStoryTab === 'logs') {
     if (currentLanguage === 'es') {
       container.innerHTML = `
+        <h3>📋 Historial de Actualizaciones (GD v3.1.0 - ENCICLOPEDIA VIVIENTE Y PERSONALIDAD DIALOGADA)</h3>
+        <p>¡Los enemigos cobran vida y los misterios del sistema se revelan!</p>
+        
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>📖 <strong>Enciclopedia Viviente</strong>: ¡Hemos añadido lore y descripciones únicas para todos los Pyces! Ahora podrás conocer la historia detrás de cada enemigo en la enciclopedia, junto con sus mecánicas resaltadas.</li>
+          <li>🌐 <strong>Traducción Total</strong>: La enciclopedia, los modos secretos y las descripciones de las mecánicas están 100% internacionalizados y adaptados perfectamente al inglés y al español.</li>
+          <li>👾 <strong>Un normal desnormalizado...</strong>: Quizas presionando algun logo- ¿Sabes que? No lo hagas, podrias estar ante un modo peligroso, mejor preparate antes de lanzarte al ataque.</li>
+          <li>🔧 <strong>Correcciones Menores</strong>: Los nombres y estadísticas se han estandarizado según los archivos originales del juego.</li>
+        </ul>
+
         <h3>📋 Historial de Actualizaciones (GD v3.0.0 - LANZAMIENTO)</h3>
         <p>¡El esperado lanzamiento oficial con mejoras visuales y colaboraciones exclusivas!</p>
 
@@ -3252,6 +3629,17 @@ function drawStoryLogs() {
       `;
     } else {
       container.innerHTML = `
+        <h3>📋 Update Logs (GD v3.1.0 - LIVING ENCYCLOPEDIA AND DIALOGUED PERSONALITY)</h3>
+        <p>The enemies come to life and the system's mysteries are revealed!</p>
+        
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>📖 <strong>Living Encyclopedia</strong>: We've added lore and unique descriptions for all Pyces! Now you can learn the story behind each enemy in the encyclopedia, alongside their highlighted mechanics.</li>
+          <li>🌐 <strong>Full Translation</strong>: The encyclopedia, secret modes, and mechanic descriptions are 100% internationalized and perfectly adapted to English and Spanish.</li>
+          <li>👾 <strong>A desmesurated normal...</strong>: Maybe pressing some logo- You know what? Don't do it, you could be facing a dangerous mode, better prepare yourself before launching into the attack.</li>
+          <li>🔧 <strong>Minor Fixes</strong>: Names and stats have been standardized according to the original game files.</li>
+        </ul>
+
         <h3>📋 Update Logs (GD v3.0.0 - LAUNCH)</h3>
         <p>The highly anticipated official launch featuring visual overhauls and exclusive collaborations!</p>
 

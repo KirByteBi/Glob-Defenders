@@ -170,8 +170,27 @@
 
     <!-- PANEL DE LOGROS FLOTANTE -->
     <div id="badges-panel">
+        <button id="open-encyclopedia-btn" class="meta-btn encyclopedia-btn-yellow" style="width:100%; margin-bottom:10px;">📖 Enciclopedia</button>
         <h4 data-i18n="achievements">🏆 Logros</h4>
         <div id="badges-list"></div>
+    </div>
+
+    <!-- MODAL DE ENCICLOPEDIA -->
+    <div id="encyclopedia-modal" class="modal">
+        <div class="modal-content encyclopedia-content">
+            <div class="modal-header">
+                <h2>📖 Enciclopedia</h2>
+                <div class="encyclopedia-tabs">
+                    <button class="encyclopedia-tab active" id="enc-tab-globs" onclick="switchEncyclopediaTab('globs')">Familias Glob</button>
+                    <button class="encyclopedia-tab" id="enc-tab-pyces" onclick="switchEncyclopediaTab('pyces')">Pyces</button>
+                    <button class="encyclopedia-tab" id="enc-tab-emblemas" onclick="switchEncyclopediaTab('emblemas')">Emblemas</button>
+                </div>
+                <div class="header-btns">
+                    <button class="close-btn" onclick="smartClose('encyclopedia-modal')">✖</button>
+                </div>
+            </div>
+            <div id="encyclopedia-body" class="encyclopedia-body"></div>
+        </div>
     </div>
 
     <!-- MODAL DE OPCIONES -->
@@ -215,6 +234,14 @@
                 <span data-i18n="show_ranges">Ver Rango de torres</span>
                 <label class="switch">
                     <input type="checkbox" id="opt-show-ranges" onchange="updateSettings()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="option-row">
+                <span>Logros Antiguos</span>
+                <label class="switch">
+                    <input type="checkbox" id="opt-old-achievements" onchange="updateSettings()">
                     <span class="slider"></span>
                 </label>
             </div>

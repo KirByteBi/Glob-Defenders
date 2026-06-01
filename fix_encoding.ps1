@@ -1,0 +1,5 @@
+$text = [IO.File]::ReadAllText('config.js', [System.Text.Encoding]::UTF8)
+$win1252 = [System.Text.Encoding]::GetEncoding(1252)
+$bytes = $win1252.GetBytes($text)
+$fixedText = [System.Text.Encoding]::UTF8.GetString($bytes)
+[IO.File]::WriteAllText('config.js', $fixedText, [System.Text.Encoding]::UTF8)
