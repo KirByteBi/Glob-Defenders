@@ -93,7 +93,8 @@ let gameState = {
   gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false },
   pycesKilled: {},
   globsPlaced: {},
-  mimicSpawned: 0
+  mimicSpawned: 0,
+  maxedFamilies: []
 };
 
 function getFamilyCount(baseType) {
@@ -182,7 +183,8 @@ function saveProgress() {
     upgradesResetV4: true,
     pycesKilled: gameState.pycesKilled,
     globsPlaced: gameState.globsPlaced,
-    mimicSpawned: gameState.mimicSpawned
+    mimicSpawned: gameState.mimicSpawned,
+    maxedFamilies: gameState.maxedFamilies || []
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
 }
@@ -277,6 +279,7 @@ function loadProgress(username) {
       gameState.pycesKilled = progress.pycesKilled || {};
       gameState.globsPlaced = progress.globsPlaced || {};
       gameState.mimicSpawned = progress.mimicSpawned || 0;
+      gameState.maxedFamilies = progress.maxedFamilies || [];
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
 
@@ -522,12 +525,12 @@ function selectMode(mode) {
       const storyText = currentLanguage === 'es'
         ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!"
         : "Welcome to Gelatin Lake... or what is left of it. You have entered my region, where the Pyces do not act of their own free will, but obey my sacred stellar design. Prepare to be assimilated!";
-      showNarratorMsg('img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
+      showNarratorMsg('moonstar', 'img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
     } else if (gameState.mode === 'antiNormal') {
       const storyText = currentLanguage === 'es'
         ? "¡S1S73M4 D3F1N171V0 D373C74D0! NOeye y MoonStar Pyce han unido sus fuerzas para crear la versión definitiva de este entorno. Los Globs serán borrados del sistema. ¡La purga comienza ya!"
         : "DEFINITIVE SYSTEM DETECTED! NOeye and MoonStar Pyce have joined forces to create the ultimate version of this environment. The Globs will be deleted from the system. The purge begins now!";
-      showNarratorMsg('img/NOeye_Pyce.png', 'NOeye & MoonStar', storyText);
+      showNarratorMsg('noeye', 'img/NOeye_Pyce.png', 'NOeye & MoonStar', storyText);
     }
   }, 1000);
 }
@@ -546,7 +549,7 @@ function triggerCorrupt() {
       const storyText = currentLanguage === 'es'
         ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!"
         : "Welcome to Gelatin Lake... or what is left of it. You have entered my region, where the Pyces do not act of their own free will, but obey my sacred stellar design. Prepare to be assimilated!";
-      showNarratorMsg('img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
+      showNarratorMsg('moonstar', 'img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
     }, 1000);
   }
 }
@@ -1001,6 +1004,10 @@ function switchEncyclopediaTab(tab) {
       if (!firstItem) firstItem = type;
       const btn = document.createElement('div');
       btn.className = 'almanac-btn';
+      if (typeof getPyceKillTarget === 'function' && (gameState.pycesKilled[type] || 0) >= getPyceKillTarget(type)) {
+        btn.style.boxShadow = '0 0 10px #ffd700';
+        btn.style.borderColor = '#ffd700';
+      }
       btn.id = 'almanac-btn-' + type;
       btn.onclick = () => selectAlmanacItem(type, 'pyces');
       btn.innerHTML = `<img src="${e.image}" title="${translate(e.name || type)}">`;
@@ -1103,12 +1110,26 @@ function selectAlmanacItem(id, category) {
     else if (e.healer) mechanicText = translate('mechanic_support');
     else if (e.stunAbility) mechanicText = translate('mechanic_annoying');
 
+    const target = typeof getPyceKillTarget === 'function' ? getPyceKillTarget(id) : 9999;
+    const killed = gameState.pycesKilled[id] || 0;
+    const isMaxed = killed >= target;
+    const progressBg = isMaxed ? 'rgba(255, 215, 0, 0.3)' : 'rgba(0,0,0,0.3)';
+    const barWidth = Math.min(100, (killed / target) * 100);
+
     details.innerHTML = `
       <img src="${e.image}" style="width:100px; height:100px; margin-bottom:10px; ${isBoss ? 'transform:scale(1.2);' : ''}">
       <h3 style="font-size: 1.5rem; ${titleStyle}">${translate(e.name || id)}</h3>
       ${e.desc ? `<p style="font-size:0.9rem; margin-top:5px; margin-bottom:10px;">${translate(e.desc)}</p>` : ''}
       <p style="font-size:0.95rem; color:#ffd700; font-weight:bold; margin-top:5px;">⭐ ${mechanicText}</p>
-      <div style="display:flex; justify-content:center; gap:15px; font-size:0.9rem; color:#ddd; margin-top:15px; background: rgba(0,0,0,0.3); padding:10px; border-radius:10px;">
+      
+      <div style="margin-top:15px; width:100%; max-width:300px; margin-left:auto; margin-right:auto; background:#222; border-radius:5px; padding:3px; position:relative;">
+        <div style="width:${barWidth}%; height:15px; background:${isMaxed ? '#ffd700' : '#4caf50'}; border-radius:3px; transition: width 0.3s;"></div>
+        <div style="position:absolute; width:100%; top:0; left:0; text-align:center; font-size:0.8rem; font-weight:bold; color:#fff; text-shadow:1px 1px 1px #000; line-height:15px;">
+          ${killed} / ${target}
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:15px; font-size:0.9rem; color:#ddd; margin-top:15px; background: ${progressBg}; padding:10px; border-radius:10px;">
         <span>${translate('almanac_hp')} ${e.health}</span>
         <span>${translate('almanac_speed')} ${e.speed}</span>
         <span>${translate('almanac_reward')}${e.reward}</span>
@@ -1185,6 +1206,39 @@ function bindEvents() {
       if (panel && panel.classList.contains('show')) {
         if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
           panel.classList.remove('show');
+        }
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      const upgradeMenu = document.getElementById('tower-upgrade-menu');
+      const isUpgradeOpen = upgradeMenu && upgradeMenu.style.display === 'flex';
+
+      if (key === 'u') {
+        if (isUpgradeOpen) {
+          const evolveBtn = document.getElementById('evolve-btn');
+          if (evolveBtn && !evolveBtn.disabled && evolveBtn.style.display !== 'none') {
+            evolveBtn.click();
+          }
+        } else if (gameState.selectedTowerType) {
+          const spot = gameState.towerSpots.find(s => !s.occupied && s.selected);
+          if (spot) {
+            placeTower(spot.id, gameState.selectedTowerType);
+          }
+        }
+      } else if (key === 'c') {
+        if (isUpgradeOpen) {
+          closeUpgradeMenu();
+        } else if (gameState.selectedTowerType) {
+          cancelTowerSelection();
+        }
+      } else if (key === 'v') {
+        if (isUpgradeOpen) {
+          const sellBtn = document.getElementById('sell-btn');
+          if (sellBtn && sellBtn.style.display !== 'none') {
+            sellBtn.click();
+          }
         }
       }
     });
@@ -1279,7 +1333,13 @@ function bindEvents() {
       'GALAXIUM': { py: 200, dp: 200, msg: '200 PyCoins + 200 DuckPass' },
       'MAYJUNE_RELEASE': { py: 100, dp: 100, xp: 100, msg: '100 PyCoins + 100 DuckPass + 100 XP' },
       'DELAYED_RELEASE': { py: 200, dp: 150, msg: '200 PyCoins + 150 DuckPass' },
-      'NITRODRAWS': { py: 50, dp: 25, msg: '50 PyCoins + 25 DuckPass' }
+      'NITRODRAWS': { py: 50, dp: 25, msg: '50 PyCoins + 25 DuckPass' },
+      'DREAMY_POYO': { py: 200, dp: 200, msg: '200 PyCoins + 200 DuckPass' },
+      'SANTI_THEGOAT': { py: 150, msg: '150 PyCoins' },
+      'FORGOTTEN': { py: 50, dp: 100, msg: '50 PyCoins + 100 DuckPass' },
+      'HAL-IS-ALL': { py: 100, dp: 150, msg: '100 PyCoins + 150 DuckPass' },
+      'COMUNITTY': { py: 50, dp: 100, msg: '50 PyCoins + 100 DuckPass' },
+      'JUNE-JUME': { py: 75, dp: 120, msg: '75 PyCoins + 120 DuckPass' }
     };
 
     if (rewards[code]) {
@@ -1300,7 +1360,17 @@ function bindEvents() {
       saveProgress();
     } else {
       gameState.failedCodeAttempts++;
-      showMessage(gameState.failedCodeAttempts >= 3 ? translate('look_defender') + " " + "B4D_P1GG13S" : translate('codeInvalid'), 'error');
+      if (gameState.failedCodeAttempts >= 3) {
+        const secretCodes = ['PINKWAVE', 'FORGOTTEN', 'HAL-IS-ALL', 'COMUNITTY', 'JUNE-JUME'];
+        let randomCode = secretCodes[Math.floor(Math.random() * secretCodes.length)];
+        if (gameState.lastCodeHint === randomCode) {
+           randomCode = secretCodes[(secretCodes.indexOf(randomCode) + 1) % secretCodes.length];
+        }
+        gameState.lastCodeHint = randomCode;
+        showMessage(translate('code_hint') + randomCode, 'error');
+      } else {
+        showMessage(translate('codeInvalid'), 'error');
+      }
     }
     input.value = '';
   };
@@ -1347,6 +1417,49 @@ function bindEvents() {
       }
     };
   });
+
+  const newMapText = document.getElementById('new-map-easter-egg');
+  if (newMapText) {
+    let clickCount = 0;
+    newMapText.onclick = () => {
+      clickCount++;
+      newMapText.style.transform = `translate(${Math.random() * 10 - 5}px, ${Math.random() * 10 - 5}px)`;
+      newMapText.style.filter = `hue-rotate(${Math.random() * 360}deg)`;
+      setTimeout(() => {
+        newMapText.style.transform = 'none';
+        newMapText.style.filter = 'none';
+      }, 100);
+
+      if (clickCount === 5) {
+        gameState.duckPassCurrency += 250;
+        showMessage("+250 DuckPass", "success");
+        updateMetaUI();
+        saveProgress();
+      } else if (clickCount > 5 && (clickCount - 5) % 10 === 0) {
+        gameState.pycoins += 20;
+        showMessage("+20 PyCoins", "success");
+        updateMetaUI();
+        saveProgress();
+      }
+    };
+
+    setInterval(() => {
+      if (gameState.unlockedInfinite && document.getElementById('mode-selection').style.display !== 'none') {
+        if (newMapText.style.display === 'none' && !newMapText.dataset.timerStarted) {
+          newMapText.dataset.timerStarted = 'true';
+          setTimeout(() => {
+            if (document.getElementById('mode-selection').style.display !== 'none') {
+              newMapText.style.display = 'block';
+            }
+          }, 5000); // Esperar 5s en la pantalla
+        }
+      } else {
+        newMapText.style.display = 'none';
+        delete newMapText.dataset.timerStarted;
+        clickCount = 0; // Reiniciar contador si sale
+      }
+    }, 1000);
+  }
 
   window.addEventListener('resize', applyScale);
 }
@@ -1849,8 +1962,8 @@ function buyUpgrade(id, cost, type) {
 function drawPass() {
   const container = document.getElementById('pass-rewards');
   if (!container) return; container.innerHTML = '';
-  [...SKINS_DATA['Global']].sort((a, b) => a.level - b.level).forEach(skin => {
-    const unlocked = gameState.duckPassLevel >= skin.level;
+  [...SKINS_DATA['Global']].sort((a, b) => (a.level || 999) - (b.level || 999)).forEach(skin => {
+    const unlocked = skin.id === 'pyce_morph' ? gameState.unlockedSkins.includes(skin.id) : gameState.duckPassLevel >= skin.level;
     const equipped = gameState.equippedSkins['Global'] === skin.id;
     const el = document.createElement('div');
     el.className = `meta-item ${unlocked ? 'unlocked' : 'locked'}`;
@@ -1858,7 +1971,11 @@ function drawPass() {
     if (unlocked) {
       btnHTML = equipped ? `<button disabled>${translate('equipped')}</button>` : `<button onclick="equipSkin('Global', '${skin.id}')">${translate('equip_btn')}</button>`;
     } else {
-      btnHTML = `<button disabled>${translate('req_level', { level: skin.level })}</button>`;
+      if (skin.id === 'pyce_morph') {
+        btnHTML = `<button disabled>${currentLanguage === 'es' ? 'Completa la Enciclopedia para obtenerlos a todos' : 'Complete the Encyclopedia to get them all'}</button>`;
+      } else {
+        btnHTML = `<button disabled>${translate('req_level', { level: skin.level })}</button>`;
+      }
     }
 
     el.innerHTML = `<div class="milestone-tag">${skin.buff ? translate('upgrade') : translate('milestone')}</div><h3>${translate(skin.name)}</h3><p>${translate(skin.desc)}</p>
@@ -1893,6 +2010,10 @@ function placeTower(spotId, type) {
   gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
   gameState.globsPlaced[type] = (gameState.globsPlaced[type] || 0) + 1;
   spot.occupied = true;
+  if (!tCfg.evolution && !gameState.maxedFamilies.includes(family)) {
+    gameState.maxedFamilies.push(family);
+  }
+  if (typeof checkEncyclopediaMaster === 'function') checkEncyclopediaMaster();
   updateUI(); drawTowerShop();
   updateAllTowerRanges();
 }
@@ -1902,17 +2023,23 @@ function selectTower(t) {
   const panel = document.getElementById('evolve-panel');
   panel.style.display = 'flex';
 
-  panel.style.left = `${t.x - 140}px`;
-  if (t.y < 350) {
-    panel.style.top = `${t.y + 60}px`;
-  } else {
-    panel.style.top = `${t.y - 200}px`;
-  }
-
   document.getElementById('tower-name').textContent = getTowerName(t);
   document.getElementById('tower-desc').innerHTML = translate(t.desc);
   updateEvolveButtons(t);
   drawRangePreview(t.x, t.y, t.range);
+
+  requestAnimationFrame(() => {
+    let leftPos = t.x - 140;
+    if (leftPos < 10) leftPos = 10;
+    if (leftPos + 280 > 950) leftPos = 950 - 280;
+    panel.style.left = `${leftPos}px`;
+    
+    if (t.y < 300) {
+      panel.style.top = `${t.y + 50}px`;
+    } else {
+      panel.style.top = `${t.y - panel.offsetHeight - 50}px`;
+    }
+  });
 }
 
 function getGTackName(family) {
@@ -2024,6 +2151,22 @@ function updateEvolveButtons(t) {
     sellBtn.innerHTML = `${translate('sell_tower')} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
     sellBtn.onclick = () => sellTower(t);
   }
+
+  requestAnimationFrame(() => {
+    const panel = document.getElementById('evolve-panel');
+    if (panel && panel.style.display !== 'none' && gameState.selectedTower === t) {
+      let leftPos = t.x - 140;
+      if (leftPos < 10) leftPos = 10;
+      if (leftPos + 280 > 950) leftPos = 950 - 280;
+      panel.style.left = `${leftPos}px`;
+      
+      if (t.y < 300) {
+        panel.style.top = `${t.y + 50}px`;
+      } else {
+        panel.style.top = `${t.y - panel.offsetHeight - 50}px`;
+      }
+    }
+  });
 }
 
 function evolveTower(tower, nextType) {
@@ -2036,7 +2179,13 @@ function evolveTower(tower, nextType) {
   Object.assign(tower, next);
   tower.damage *= gameState.towerBuffs.damage; tower.range += gameState.towerBuffs.range; tower.speed *= gameState.towerBuffs.speed;
   tower.el.style.backgroundImage = `url('${getTowerImage(nextType)}')`; applyTowerEffects(tower.el, nextType);
-  if (!next.evolution) unlockBadge('evolution');
+  if (!next.evolution) {
+    unlockBadge('evolution');
+    if (!gameState.maxedFamilies.includes(tower.family)) {
+      gameState.maxedFamilies.push(tower.family);
+    }
+  }
+  if (typeof checkEncyclopediaMaster === 'function') checkEncyclopediaMaster();
   updateAllTowerRanges();
   selectTower(tower); updateUI(); drawTowerShop();
 }
@@ -2075,6 +2224,41 @@ function startWave() {
   gameState.waveActive = true;
   gameState.spawningActive = true;
   gameState.wave = (gameState.wave || 0) + 1;
+
+  if (gameState.wave === 1) {
+    if (gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') {
+      setTimeout(() => {
+        const d = NARRATOR_DATA.bombot[currentLanguage].modes[gameState.mode];
+        if (d) showNarratorMsg('bombot', NARRATOR_DATA.bombot.img, NARRATOR_DATA.bombot[currentLanguage].name, d);
+      }, 7000);
+      
+      // Boss taunt at wave 1, but doesn't cut connection yet
+      setTimeout(() => {
+        if (gameState.mode === 'corrupto') {
+           const data = NARRATOR_DATA.moonstar;
+           const txt = currentLanguage === 'es' ? "Aún estás a tiempo de huir..." : "You still have time to flee...";
+           showNarratorMsg('moonstar', data.img, data[currentLanguage].name, txt);
+        } else if (gameState.mode === 'antiNormal') {
+           const data = NARRATOR_DATA.noeye;
+           const txt = currentLanguage === 'es' ? "N0 S0BR3V1V1R4S 4 L4 0SCUR1D4D..." : "Y0U W0N'7 SURV1V3 7H3 D4RKN3SS...";
+           showNarratorMsg('noeye', data.img, data[currentLanguage].name, txt);
+        }
+      }, 14000);
+    }
+  } else if (gameState.wave === maxWaves - 10) {
+    // Cut off connection 10 waves before the end
+    if (gameState.mode === 'corrupto') {
+      const data = NARRATOR_DATA.moonstar;
+      showNarratorMsg('moonstar', data.img, data[currentLanguage].name, data[currentLanguage].intercept);
+    } else if (gameState.mode === 'antiNormal') {
+      const data = NARRATOR_DATA.noeye;
+      showNarratorMsg('noeye', data.img, data[currentLanguage].name, data[currentLanguage].intercept);
+    } else {
+      checkWaveDialogues();
+    }
+  } else {
+    checkWaveDialogues();
+  }
   if (typeof updateUI === 'function') updateUI();
   if (typeof showMessage === 'function') showMessage((typeof translate === 'function') ? translate('waveStarted', { wave: gameState.wave }) : `¡Oleada ${gameState.wave}!`, 'info');
 
@@ -2164,7 +2348,9 @@ function startWave() {
 
       let baseCount = 4 + Math.floor(wave * 1.4);
       for (let i = 0; i < baseCount; i++) {
-        spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
+        let selected = pool[Math.floor(Math.random() * pool.length)];
+        if (selected === 'Stupid_GoldPyce' && Math.random() < 0.7) selected = 'Pyce2';
+        spawnList.push(selected);
       }
     }
 
@@ -2199,7 +2385,9 @@ function startWave() {
 
       let baseCount = 5 + Math.floor(wave * 1.7);
       for (let i = 0; i < baseCount; i++) {
-        spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
+        let selected = pool[Math.floor(Math.random() * pool.length)];
+        if (selected === 'Stupid_GoldPyce' && Math.random() < 0.7) selected = 'Pyce2';
+        spawnList.push(selected);
       }
     }
 
@@ -2238,7 +2426,9 @@ function startWave() {
       if (wave >= 4) pool.push('Flower_Pyce', 'Stupid_GoldPyce');
 
       for (let i = 0; i < baseCount; i++) {
-        spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
+        let selected = pool[Math.floor(Math.random() * pool.length)];
+        if (selected === 'Stupid_GoldPyce' && Math.random() < 0.8) selected = 'Pyce2';
+        spawnList.push(selected);
       }
     }
   }
@@ -2313,6 +2503,8 @@ function spawnEnemy(type, boss) {
 
   const name = (typeof translate === 'function' && translate('enemy_' + type + '_name')) || type;
 
+  checkEnemyDialogues(type);
+
   let mult = 1.0;
   if (gameState.mode === 'facil') mult = 0.7;
   else if (gameState.mode === 'normal') mult = 1.0;
@@ -2326,15 +2518,100 @@ function spawnEnemy(type, boss) {
   gameState.enemies.push(enemyObj);
 }
 
+let seenEnemyDialogues = {};
+
+function checkEnemyDialogues(type) {
+  if (seenEnemyDialogues[type] || document.getElementById('narrator-bubble')) return;
+  
+  const triggers = {
+    'Guest_Pyce': { speaker: 'bombot', index: 1 },
+    'Noob_Pyce': { speaker: 'glob', index: 3 },
+    'Symbol_Pyce': { speaker: 'bombot', index: 4 },
+    'SO_Pyce': { speaker: 'bombot', index: 5 }
+  };
+  
+  if (triggers[type]) {
+    seenEnemyDialogues[type] = true;
+    const t = triggers[type];
+    const data = NARRATOR_DATA[t.speaker];
+    const text = data[currentLanguage].msgs[t.index];
+    showNarratorMsg(t.speaker, data.img, data[currentLanguage].name, text);
+  } else if (type === 'Mimic_Pyce' || type === 'Stupid_GoldPyce') {
+    seenEnemyDialogues['Mimic_Pyce'] = true;
+    const data = NARRATOR_DATA.bombot;
+    showNarratorMsg('bombot', data.img, data[currentLanguage].name, data[currentLanguage].mimicWarning);
+  } else if (type === '1x1x1x1_Pyce') {
+    seenEnemyDialogues[type] = true;
+    const data = NARRATOR_DATA.one_x;
+    showNarratorMsg('one_x', data.img, data[currentLanguage].name, data[currentLanguage].msgs[0]);
+  } else if (type === 'NOeye_Pyce') {
+    seenEnemyDialogues[type] = true;
+    const data = NARRATOR_DATA.noeye;
+    showNarratorMsg('noeye', data.img, data[currentLanguage].name, data[currentLanguage].msgs[0]);
+  } else if (type === 'MoonStar_Pyce') {
+    seenEnemyDialogues[type] = true;
+    const data = NARRATOR_DATA.moonstar;
+    showNarratorMsg('moonstar', data.img, data[currentLanguage].name, data[currentLanguage].msgs[0]);
+  }
+}
+
+function checkWaveDialogues() {
+  if (document.getElementById('narrator-bubble')) return;
+  
+  // Base chance of 15% + 1% per wave
+  const waveChance = 0.15 + ((gameState.wave || 1) * 0.01);
+  if (Math.random() < waveChance) {
+    const mode = gameState.mode;
+    let speakers = [];
+    
+    let maxWaves = gameState.maxWaves || 20;
+    if (mode === 'pesadilla') maxWaves = 50;
+    const isCutoff = gameState.wave >= maxWaves - 10;
+    
+    if (mode === 'corrupto') {
+      speakers = isCutoff ? ['moonstar'] : ['bombot_corrupto', 'moonstar']; 
+    } else if (mode === 'antiNormal') {
+      speakers = isCutoff ? ['glob', 'noeye'] : ['bombot_antiNormal', 'glob', 'noeye'];
+    } else {
+      speakers = ['bombot', 'glob', 'stupid', 'pyce2'];
+    }
+    
+    if (gameState.enemies.some(e => e.type === '1x1x1x1_Pyce')) speakers.push('one_x');
+    if (gameState.enemies.some(e => e.type === 'NOeye_Pyce') && mode !== 'antiNormal') speakers.push('noeye');
+    if (gameState.enemies.some(e => e.type === 'MoonStar_Pyce') && mode !== 'corrupto') speakers.push('moonstar');
+    
+    const sId = speakers[Math.floor(Math.random() * speakers.length)];
+    
+    if (sId === 'bombot_corrupto') {
+      const data = NARRATOR_DATA.bombot;
+      const msgsArray = data[currentLanguage].corruptMsgs;
+      const text = msgsArray[Math.floor(Math.random() * msgsArray.length)];
+      showNarratorMsg('bombot', data.img, data[currentLanguage].name, text);
+    } else if (sId === 'bombot_antiNormal') {
+      const data = NARRATOR_DATA.bombot;
+      const msgsArray = data[currentLanguage].antiNormalMsgs;
+      const text = msgsArray[Math.floor(Math.random() * msgsArray.length)];
+      showNarratorMsg('bombot', data.img, data[currentLanguage].name, text);
+    } else {
+      const data = NARRATOR_DATA[sId];
+      if (data) {
+        const msgs = data[currentLanguage].msgs;
+        const text = msgs[Math.floor(Math.random() * msgs.length)];
+        showNarratorMsg(sId, data.img, data[currentLanguage].name, text);
+      }
+    }
+  }
+}
+
 let narratorTimeout = null;
-function showNarratorMsg(imgSrc, speakerName, text) {
+function showNarratorMsg(speakerId, imgSrc, speakerName, text) {
   const old = document.getElementById('narrator-bubble');
   if (old) old.remove();
   if (narratorTimeout) clearTimeout(narratorTimeout);
 
   const bubble = document.createElement('div');
   bubble.id = 'narrator-bubble';
-  bubble.className = 'narrator-bubble narrator-enter';
+  bubble.className = `narrator-bubble narrator-enter speaker-${speakerId}`;
   bubble.innerHTML = `
     <img src="${imgSrc}" class="narrator-portrait" onerror="this.style.display='none'">
     <div class="narrator-text-box">
@@ -2754,7 +3031,15 @@ function gameLoop() {
         }
       } else {
         const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;
-        if (!p.target || !targetArray.includes(p.target)) { p.el.remove(); gameState.projectiles.splice(i, 1); continue; }
+        if (!p.target || !targetArray.includes(p.target)) {
+          if (p.projectile === 'void_tracker') {
+            const nextTarget = targetArray.find(e => Math.hypot(e.x - p.x, e.y - p.y) < 300);
+            if (nextTarget) { p.target = nextTarget; }
+            else { p.el.remove(); gameState.projectiles.splice(i, 1); continue; }
+          } else {
+            p.el.remove(); gameState.projectiles.splice(i, 1); continue; 
+          }
+        }
         const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
         if (dist < 10) {
           applyProjectileHit(p, p.target);
@@ -2929,6 +3214,10 @@ function shoot(shooter, target, opts = {}) {
   // Specific tower type overrides
   const TYPE_COLORS = {
     'Glob': '#4CAF50',
+    'Dark_Glob': 'img/Dark_Glob.png',
+    'Demglob': 'img/Demglob.png',
+    'Void_Glob': 'img/Void Glob.png',
+    'Pyce_Glob': '#00ff88',
     'Poop_Glob': '#8B4513',
     'Golden_Glob': '#ffd700',
     'Rainbow_Glob': null,      // special: rainbow gradient
@@ -3027,6 +3316,56 @@ function shoot(shooter, target, opts = {}) {
   });
 }
 
+function getPyceKillTarget(type) {
+  const targets = {
+    'Stupid_Pyce': 250, 'Pyce2': 250, 'Symbol_Pyce': 250,
+    'Guest_Pyce': 200, 'Noob_Pyce': 200,
+    '4motions_Pyce': 225, 'Flower_Pyce': 225, 'SO_Pyce': 225,
+    '1x1x1x1_Pyce': 6, 'NOeye_Pyce': 5, 'MoonStar_Pyce': 4,
+    'Stupid_GoldPyce': 15, 'Mimic_Pyce': 3
+  };
+  return targets[type] || 9999;
+}
+
+function checkPyceMorphUnlock() {
+  if (!gameState.unlockedSkins.includes('pyce_morph')) {
+    const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce'];
+    let allMaxed = true;
+    for (const t of types) {
+      if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
+        allMaxed = false; break;
+      }
+    }
+    if (allMaxed) {
+      gameState.unlockedSkins.push('pyce_morph');
+      showMessage("🎁 ¡SKIN 'Pyce Randomizer' DESBLOQUEADA!", 'success');
+      saveProgress();
+    }
+  }
+  checkEncyclopediaMaster();
+}
+
+function checkEncyclopediaMaster() {
+  if (BADGES.encyclopediaMaster && BADGES.encyclopediaMaster.unlocked) return;
+  const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce'];
+  let allPycesMaxed = true;
+  for (const t of types) {
+    if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
+      allPycesMaxed = false; break;
+    }
+  }
+  const reqFamilies = ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Grey', 'Special'];
+  let allFamiliesMaxed = true;
+  for (const f of reqFamilies) {
+    if (!gameState.maxedFamilies.includes(f)) {
+      allFamiliesMaxed = false; break;
+    }
+  }
+  if (allPycesMaxed && allFamiliesMaxed) {
+    unlockBadge('encyclopediaMaster');
+  }
+}
+
 function die(e, idx) {
   if (e.poisonTimer && e.poisonTimer > 0) {
     gameState.enemies.forEach(other => {
@@ -3057,6 +3396,7 @@ function die(e, idx) {
   if (e.boss) unlockBadge('bossKiller');
   gameState.enemies.splice(idx, 1);
   gameState.pycesKilled[e.type] = (gameState.pycesKilled[e.type] || 0) + 1;
+  checkPyceMorphUnlock();
   updateUI();
 }
 
@@ -3090,6 +3430,16 @@ function updateUI() {
 }
 
 function translate(key, params = {}) {
+  if (key.startsWith('tower_') && key.endsWith('_name') && gameState.equippedSkins && gameState.equippedSkins['Global'] === 'pyce_morph') {
+    const type = key.substring(6, key.length - 5);
+    const pyceKeys = Object.keys(ENEMY_TYPES).filter(k => ENEMY_TYPES[k] && ENEMY_TYPES[k].image);
+    let hash = 0;
+    for (let i = 0; i < type.length; i++) hash += type.charCodeAt(i);
+    const pyceId = pyceKeys[hash % pyceKeys.length];
+    const e = ENEMY_TYPES[pyceId];
+    return (TRANSLATIONS[currentLanguage][e.name] || e.name || pyceId);
+  }
+
   let text = TRANSLATIONS[currentLanguage][key] || key;
   for (const [p, v] of Object.entries(params)) text = text.replace(`{${p}}`, v);
   return text;
@@ -3188,6 +3538,14 @@ function showEffect(x, y, text) {
 function getTowerImage(type) {
   const cfg = TOWER_TYPES[type];
   const family = cfg.family || type;
+
+  if (gameState.equippedSkins && gameState.equippedSkins['Global'] === 'pyce_morph') {
+    const pyceKeys = Object.keys(ENEMY_TYPES).filter(k => ENEMY_TYPES[k] && ENEMY_TYPES[k].image);
+    let hash = 0;
+    for (let i = 0; i < type.length; i++) hash += type.charCodeAt(i);
+    return ENEMY_TYPES[pyceKeys[hash % pyceKeys.length]].image;
+  }
+
   const equipped = gameState.equippedSkins[family];
   if (equipped && equipped !== 'default') {
     const skinSet = SKINS_DATA[family]?.find(s => s.id === equipped);
@@ -3454,6 +3812,8 @@ function drawStoryLogs() {
           <li>🖥️ <strong>Pyces</strong>: vida artificial evolutiva</li>
           <li>👁️ <strong>Entidades superiores</strong>: fuerzas que alteran o rompen el sistema</li>
         </ul>
+        <br>
+        <p style="color: #ffd700; font-style: italic;">⚠️ <strong>Nota de campo:</strong> Presta mucha atención a los diálogos durante tus defensas... a veces el entorno o sus habitantes ocultan sorpresas y pistas vitales.</p>
       `;
     } else {
       container.innerHTML = `
@@ -3499,6 +3859,8 @@ function drawStoryLogs() {
           <li>🖥️ <strong>Pyces</strong>: evolutionary artificial life</li>
           <li>👁️ <strong>Higher Entities</strong>: forces that alter or break the system</li>
         </ul>
+        <br>
+        <p style="color: #ffd700; font-style: italic;">⚠️ <strong>Field Note:</strong> Pay close attention to the dialogues during your defenses... sometimes the environment or its inhabitants hide surprises and vital clues.</p>
       `;
     }
   } else if (currentStoryTab === 'mechanics') {
@@ -3518,8 +3880,16 @@ function drawStoryLogs() {
         <ul>
           <li><strong>Mejoras de la base</strong>: Aumenta permanentemente la salud inicial de tu base hasta un máximo de +200 de salud.</li>
           <li><strong>Límites de Globs</strong>: Aumenta la cantidad máxima de torres de un tipo específico que puedes tener activas simultáneamente en el mapa.</li>
-          <li><strong>Duckgrades</strong>: Habilidades pasivas definitivas de cada familia de Globs. Desbloquéalas con Duck Pass Currency en la Tienda Meta.</li>
+          <li><strong>Duckgrades (Currency)</strong>: Habilidades pasivas definitivas de cada familia de Globs. Desbloquéalas con Duck Pass Currency en la Tienda Meta.</li>
+          <li><strong>G-Tacks</strong>: Habilidades activas poderosas (Definitivas) para torres de nivel máximo en combate. Desbloquéalas con PyCoins y Duck Pass Currency en la Tienda Meta.</li>
           <li><strong>Personalización de Aspectos</strong>: Desbloquea y equipa skins para tus familias de Globs para cambiar sus gráficos de combate y ataques especiales.</li>
+        </ul>
+
+        <h4>⌨️ Atajos de Teclado</h4>
+        <ul>
+          <li><strong>Tecla U</strong>: Sirve para Colocar una torre nueva o Mejorar/Evolucionar una seleccionada.</li>
+          <li><strong>Tecla V</strong>: Vende rápidamente la torre seleccionada.</li>
+          <li><strong>Tecla C</strong>: Cancela la selección de cualquier torre o cierra menús.</li>
         </ul>
       `;
     } else {
@@ -3538,14 +3908,35 @@ function drawStoryLogs() {
         <ul>
           <li><strong>Base Upgrades</strong>: Permanently increases your starting base health up to a maximum of +200 health.</li>
           <li><strong>Glob Limits</strong>: Increases the maximum number of towers of a specific type you can have active simultaneously on the map.</li>
-          <li><strong>Duckgrades</strong>: Ultimate passive skills for each Glob family. Unlock them with Duck Pass Currency in the Meta Shop.</li>
+          <li><strong>Duckgrades (Currency)</strong>: Ultimate passive skills for each Glob family. Unlock them with Duck Pass Currency in the Meta Shop.</li>
+          <li><strong>G-Tacks</strong>: Powerful active abilities (Ultimates) for max level towers in combat. Unlock them with PyCoins and Duck Pass Currency in the Meta Shop.</li>
           <li><strong>Aesthetics Customization</strong>: Unlock and equip skins for your Glob families to change their battle sprites and special attacks.</li>
+        </ul>
+
+        <h4>⌨️ Hotkeys / Controls</h4>
+        <ul>
+          <li><strong>Key U</strong>: Used to Place a new tower or Upgrade/Evolve a selected one.</li>
+          <li><strong>Key V</strong>: Quickly sells the selected tower.</li>
+          <li><strong>Key C</strong>: Cancels any tower selection or closes menus.</li>
         </ul>
       `;
     }
   } else if (currentStoryTab === 'logs') {
     if (currentLanguage === 'es') {
       container.innerHTML = `
+        <h3>📋 Historial de Actualizaciones (GD v3.2.0 - ENCICLOPEDIA DORADA Y ATAJOS)</h3>
+        <p>¡Más formas de jugar y recompensas por completar la enciclopedia!</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>⌨️ <strong>Atajos de Teclado</strong>: Ahora puedes usar <strong>U</strong> para mejorar/colocar, <strong>C</strong> para cancelar/cerrar y <strong>V</strong> para vender.</li>
+          <li>📖 <strong>Progreso en la Enciclopedia</strong>: Cada Pyce tiene ahora una barra de eliminaciones. Al completarlas todas, desbloquearás la skin global exclusiva <strong>Pyce Randomizer</strong>.</li>
+          <li>🌑 <strong>Void Glob</strong>: La evolución final de la línea Negra ha llegado. Sus oscuros proyectiles te perseguirán sin descanso.</li>
+          <li>⚖️ <strong>Balanceo</strong>: Se ha reducido drásticamente la probabilidad de aparición del Stupid GoldPyce.</li>
+          <li>🎁 <strong>Nuevas Skins y Secretos</strong>: Añadido el "Set de Ensueño" y el "Set Judicial" (Colaboración comunitaria). Y quizás, algún código haya despertado de sus sueños...</li>
+          <li>📝 <strong>Lore y Créditos</strong>: Textos y descripciones de las skins ajustadas en la tienda para hacer honor a sus creadores y dar más contexto.</li>
+          <li>💬 <strong>Rehabilitación de Diálogos</strong>: ¡Hemos añadido nuevos diálogos y dado un poco de lore oculto a los NPCs! Presta atención a lo que dicen durante las oleadas o cuando aparecen jefes.</li>
+        </ul>
+
         <h3>📋 Historial de Actualizaciones (GD v3.1.0 - ENCICLOPEDIA VIVIENTE Y PERSONALIDAD DIALOGADA)</h3>
         <p>¡Los enemigos cobran vida y los misterios del sistema se revelan!</p>
         
@@ -3568,67 +3959,24 @@ function drawStoryLogs() {
           <li>🎁 <strong>Muchos códigos nuevos</strong>: Encuéntralos por ahí ocultos o simplemente usa tu imaginación.</li>
         </ul>
 
-        <h3>📋 Historial de Actualizaciones (GD v2.2.0)</h3>
-        <p>¡El parche que devuelve la vida a los Pyces y reajusta todas las oleadas modo a modo!</p>
-
-        <h4>Novedades del Parche:</h4>
-        <ul>
-          <li>🐛 <strong>Corrección del Sistema de Oleadas</strong>: Se ha solucionado un fallo crítico donde las oleadas terminaban instantáneamente antes de que apareciera ningún enemigo. ¡La invasión Pyce ya funciona como se espera!</li>
-          <li>🌊 <strong>Oleadas Rebalanceadas por Modo</strong>: Cada modo ahora tiene su propia escala de amenaza bien diferenciada:
-            <ul>
-              <li>🌱 <strong>Fácil</strong>: Pocas amenazas al inicio, ideal para aprender. Los enemigos son lentos y escasos.</li>
-              <li>⚔️ <strong>Normal</strong>: Presión progresiva. La variedad de enemigos crece a partir de la oleada 3 y se intensifica hacia el final.</li>
-              <li>🔥 <strong>Difícil</strong>: Más enemigos desde la primera oleada, con tipos peligrosos apareciendo antes de lo esperado.</li>
-              <li>💀 <strong>Extremo</strong>: Sin piedad. Grandes hordas y múltiples jefes en puntos clave del recorrido.</li>
-              <li>🔒 <strong>Modos ocultos</strong>: Hay ciertos modos que el sistema preferiría que no existieran... Si los encuentras, ya sabes a lo que te enfrentas desde la primera oleada.</li>
-            </ul>
-          </li>
-          <li>🎁 <strong>¡Nuevo Código Activo!</strong> Por la espera y los inconvenientes:
-            <ul>
-              <li><code>DELAYED_RELEASE</code> → 200 PyCoins + 150 DuckPasses</li>
-            </ul>
-          </li>
-        </ul>
-
-        <h3>📋 Historial de Actualizaciones (GD v2.1.0)</h3>
-        <p>¡Nuevos desafíos, mejoras de accesibilidad y 11 nuevos Emblemas (Logros) únicos!</p>
-        
-        <h4>Novedades del Parche:</h4>
-        <ul>
-          <li>⚙️ <strong>Ajustes Accesibles</strong>: Corregido el z-index del botón de ajustes y los modales para que se muestren correctamente por encima de las pantallas de login y selección.</li>
-          <li>🤖 <strong>Desbloqueo de Work-Bombot</strong>: ¡Ahora se consigue al superar con éxito los desafiantes modos <strong>Anti-Normal</strong> o <strong>Corrupto</strong> en lugar de por nivel de Duck Pass!</li>
-          <li>🏅 <strong>11 Nuevos Emblemas Añadidos</strong>: Ataques directos, Una actu dorada, La alianza suprema, Artillería profunda, Meleapela, Efectos épicos, LETS GO GAMBLING!!, Ahorros profundos, Ni dios soportaría esto, LA FORTALEZA ANGELICAL y Edificio de titanio. ¡Búscalos en la sección de logros!</li>
-          <li>🎯 <strong>Corrección de Física de Combate</strong>: ¡Los efectos de <strong>Quemado (Burn)</strong> y <strong>Ralentizado (Slow)</strong> ahora se aplican e infligen daño/efecto correctamente a los enemigos!</li>
-        </ul>
-
-        <h3>📋 Historial de Actualizaciones (GD v2.0.0)</h3>
-        <p>¡Bienvenido a la gran actualización de la progresión y jugabilidad de Glob Defenders!</p>
- 
-        <h4>Novedades de la Versión:</h4>
-        <ul>
-          <li>🔥 <strong>¡Llegan las G-Tácticas (G-Tacks)!</strong> Desbloquea habilidades activas devastadoras para tus torres de nivel máximo en la Meta-Tienda. Úsalas en combate a cambio de Globetines.</li>
-          <li>⚖️ <strong>Actualización de Balance y Progresión</strong>:
-            <ul>
-              <li><strong>Requisitos de Nivel</strong>: Nivel 35 en el Duck Pass requerido para comprar Duckgrades y Nivel 50 para G-Tacks. Los candados se muestran visualmente en la tienda.</li>
-              <li><strong>Multiplicadores de Recompensa</strong>: Desbloquea bonificaciones pasivas de recursos: Nivel 60 (x1.5 PyCoins), Nivel 80 (x2.5 PyCoins), Nivel 100 (x3.0 PyCoins y x2.0 DuckPasses).</li>
-              <li><strong>Reset Multi-Cuenta</strong>: El botón de reset en ajustes ahora borra correctamente el progreso del usuario activo, además del progreso antiguo.</li>
-            </ul>
-          </li>
-          <li>🩶 <strong>Inmunidad de la Familia Gris</strong>: La mejora Duckgrade de la familia Gris ahora otorga inmunidad contra aturdimientos y ralentizaciones a todas las torres cercanas.</li>
-          <li>🛠️ <strong>¡Rediseño de la UI de las Torres!</strong> El menú de selección de torres es ahora un Dock inferior flotante y ultra accesible, optimizado para móvil y tablets en formato horizontal.</li>
-          <li>🎁 <strong>Códigos de Regalo Activos</strong>:
-            <ul>
-              <li><code>BETA_OPENING</code> (100 Duckpasses)</li>
-              <li><code>REWORKED</code> (100 Duckpasses + 100 Pycoins + 200 XP)</li>
-              <li><code>GLOBS_ATTACK</code> (100 Duckpasses + 100 XP)</li>
-              <li><code>GALAXIUM</code> (200 PyCoins + 200 DuckPasses)</li>
-            </ul>
-          </li>
-          <li>🎭 <strong>Narrativa Contextual</strong>: Disfruta de introducciones de historia únicas al iniciar los modos de juego <strong>Corrupto</strong> y <strong>AntiNormal</strong>, narradas por los antagonistas del sistema.</li>
-        </ul>
+        <h3>📋 Versiones Pre-Lanzamiento (v2.x.x y anteriores)</h3>
+        <p>Se realizaron múltiples pruebas durante la fase beta, añadiendo sistemas como G-Tacks, modos de historia, y reajustes del progreso general para dar forma a lo que hoy es Glob Defenders.</p>
       `;
     } else {
       container.innerHTML = `
+        <h3>📋 Update Logs (GD v3.2.0 - GOLDEN ENCYCLOPEDIA & HOTKEYS)</h3>
+        <p>More ways to play and rewards for completing the encyclopedia!</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>⌨️ <strong>Keyboard Hotkeys</strong>: You can now use <strong>U</strong> to upgrade/place, <strong>C</strong> to cancel/close and <strong>V</strong> to sell.</li>
+          <li>📖 <strong>Encyclopedia Progress</strong>: Each Pyce now has a kill tracker bar. Completing all of them unlocks the exclusive global skin <strong>Pyce Randomizer</strong>.</li>
+          <li>🌑 <strong>Void Glob</strong>: The final evolution of the Black family is here. Its dark projectiles will track you relentlessly.</li>
+          <li>⚖️ <strong>Balance</strong>: The spawn probability of the Stupid GoldPyce has been drastically reduced.</li>
+          <li>🎁 <strong>New Skins & Secrets</strong>: Added "Dreams Set" and "Judicial Set" (Community Collab). And maybe, a code has awakened from its dreams...</li>
+          <li>📝 <strong>Lore & Credits</strong>: Shop texts and skin descriptions have been adjusted to honor their creators and provide more context.</li>
+          <li>💬 <strong>Dialogue Rehabilitation</strong>: We added new dialogues and even some hidden lore from NPCs! Pay close attention to what they say during waves or when bosses appear.</li>
+        </ul>
+
         <h3>📋 Update Logs (GD v3.1.0 - LIVING ENCYCLOPEDIA AND DIALOGUED PERSONALITY)</h3>
         <p>The enemies come to life and the system's mysteries are revealed!</p>
         
@@ -3651,64 +3999,8 @@ function drawStoryLogs() {
           <li>🎁 <strong>Many new codes</strong>: Find them hidden around or simply use your imagination.</li>
         </ul>
 
-        <h3>📋 Update Logs (GD v2.2.0)</h3>
-        <p>The patch that brings the Pyces back and rebalances every wave, mode by mode!</p>
-
-        <h4>What's New in this Patch:</h4>
-        <ul>
-          <li>🐛 <strong>Wave System Fix</strong>: Fixed a critical bug where waves ended instantly before any enemy appeared on screen. The Pyce invasion is back on schedule!</li>
-          <li>🌊 <strong>Waves Rebalanced Per Mode</strong>: Each mode now has its own clearly distinct threat curve:
-            <ul>
-              <li>🌱 <strong>Easy</strong>: Few threats at first — great for learning. Enemies are slow and sparse.</li>
-              <li>⚔️ <strong>Normal</strong>: Progressive pressure. Enemy variety picks up from wave 3 and ramps toward the end.</li>
-              <li>🔥 <strong>Hard</strong>: More enemies from wave one, with dangerous types showing up sooner than you'd like.</li>
-              <li>💀 <strong>Extreme</strong>: No mercy. Massive hordes and multiple bosses at key points along the way.</li>
-              <li>🔒 <strong>Hidden modes</strong>: There are certain modes the system would rather didn't exist... If you find them, you already know what you're in for from wave one.</li>
-            </ul>
-          </li>
-          <li>🎁 <strong>New Active Code!</strong> For your patience and the inconvenience:
-            <ul>
-              <li><code>DELAYED_RELEASE</code> → 200 PyCoins + 150 DuckPasses</li>
-            </ul>
-          </li>
-        </ul>
-
-        <h3>📋 Update Logs (GD v2.1.0)</h3>
-        <p>New challenges, accessibility fixes, and 11 unique Achievements/Badges to unlock!</p>
-        
-        <h4>What's New in this Patch:</h4>
-        <ul>
-          <li>⚙️ <strong>Accessible Settings</strong>: Fixed the settings button z-index and modal layout to properly render on top of the login and selection screens.</li>
-          <li>🤖 <strong>Work-Bombot Unlock Challenge</strong>: Now unlocked by defeating the challenging <strong>Anti-Normal</strong> or <strong>Corrupt</strong> modes instead of the Duck Pass!</li>
-          <li>🏅 <strong>11 New Badges Added</strong>: Direct Attacks, A Golden Upgrade, The Supreme Alliance, Deep Artillery, Meleapela, Epic Effects, LETS GO GAMBLING!!, Deep Savings, Not Even God Can Stand This, THE ANGELIC FORTRESS, and Titanium Building. Check them out in your achievements tab!</li>
-          <li>🎯 <strong>Combat Physics Correction</strong>: <strong>Burn</strong> and <strong>Slow</strong> status effects now correctly apply and deal damage/effect to enemies!</li>
-        </ul>
-
-        <h3>📋 Update Logs (GD v2.0.0)</h3>
-        <p>Welcome to the major progression and gameplay update of Glob Defenders!</p>
- 
-        <h4>What's New in this Version:</h4>
-        <ul>
-          <li>🔥 <strong>G-Tacks (G-Tactics) Are Here!</strong> Unlock devastating active abilities for your max-level towers in the Meta Shop. Trigger them in-game by spending Globets.</li>
-          <li>⚖️ <strong>Balance & Progression Update</strong>:
-            <ul>
-              <li><strong>Level Requirements</strong>: Level 35 in Duck Pass is required to buy Duckgrades, and Level 50 to buy G-Tacks. Visual locks are displayed in the shop.</li>
-              <li><strong>Prestige Reward Multipliers</strong>: Unlock passive resource yield bonuses: Level 60 (x1.5 PyCoins), Level 80 (x2.5 PyCoins), Level 100 (x3.0 PyCoins and x2.0 DuckPasses).</li>
-              <li><strong>Multi-Account Progress Reset</strong>: Options reset button now wipes the active user's specific progress key in addition to legacy saves.</li>
-            </ul>
-          </li>
-          <li>🩶 <strong>Grey Family Immunity</strong>: The Grey family Duckgrade now grants immunity against stuns and slows to all nearby towers.</li>
-          <li>🛠️ <strong>Redesigned Tower UI!</strong> The tower selection panel is now a sleek, bottom-floating dock, optimized for landscape mobile and tablet gaming.</li>
-          <li>🎁 <strong>Active Promo Codes</strong>:
-            <ul>
-              <li><code>BETA_OPENING</code> (100 Duckpasses)</li>
-              <li><code>REWORKED</code> (100 Duckpasses + 100 Pycoins + 200 XP)</li>
-              <li><code>GLOBS_ATTACK</code> (100 Duckpasses + 100 XP)</li>
-              <li><code>GALAXIUM</code> (200 PyCoins + 200 DuckPasses)</li>
-            </ul>
-          </li>
-          <li>🎭 <strong>Contextual Story Narration</strong>: Enjoy custom lore intros when launching **Corrupt** and **AntiNormal** game modes, told directly by the system's cyber-antagonists.</li>
-        </ul>
+        <h3>📋 Pre-Launch Versions (v2.x.x and older)</h3>
+        <p>Multiple tests were performed during the beta phase, adding systems like G-Tacks, story modes, and overall progression rebalances to shape Glob Defenders into what it is today.</p>
       `;
     }
   }

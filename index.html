@@ -70,6 +70,7 @@
             </div>
             <button id="disable-antinormal-btn" class="meta-btn"
                 style="margin-top: 20px; width: 100%; display: none;">🛠️ Desactivar Glitch</button>
+            <div id="new-map-easter-egg" style="display: none; color: #2ecc71; margin-top: 15px; cursor: pointer; font-weight: bold; transition: all 0.2s; user-select: none;">¿Cuando viene el nuevo mapa?</div>
         </div>
     </div>
 
@@ -141,7 +142,7 @@
                         <button id="sell-tower-btn" class="sell-btn" onclick="sellTower()"></button>
                     </div>
                 </div>
-                <div id="game-messages"></div>
+
                 <div id="game-over" class="modal">
                     <div class="modal-content">
                         <h2 data-i18n="gameOver">💀 GAME OVER 💀</h2>
@@ -332,6 +333,7 @@
         </div>
     </div>
 
+    <div id="game-messages"></div>
     <div id="tooltip" class="tooltip" style="display: none;"></div>
 
     <script src="config.js"></script>

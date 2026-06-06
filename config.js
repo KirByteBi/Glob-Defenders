@@ -54,6 +54,7 @@ const TRANSLATIONS = {
     badge_maxGlobs_name: "Ni dios soportaría esto", badge_maxGlobs_desc: "Ten el máximo de Globs (con las expansiones de límite) en una partida",
     badge_angelicFortress_name: "LA FORTALEZA ANGELICAL", badge_angelicFortress_desc: "Ten el máximo de vida de la base",
     badge_titaniumBuilding_name: "Edificio de titanio", badge_titaniumBuilding_desc: "Pásate un mapa sin dañar la base",
+    badge_encyclopediaMaster_name: "Maestro de la Enciclopedia", badge_encyclopediaMaster_desc: "Completa la enciclopedia Pyce y sube todas las familias de torres al máximo nivel al menos una vez",
 
 
     // Nombres de Torres
@@ -143,6 +144,7 @@ const TRANSLATIONS = {
     prestige_duckpass: "¡Prestigio Duck Pass! +2 Ducky Pass",
     level_duckpass: "¡Nivel {level} del Duck Pass! +1 Ducky Pass",
     look_defender: "¿Qué miras, Defensor? 👉",
+    code_hint: "¡Vaya! Te veo un poco perdido. Prueba con este código: ",
     logo_press: "¿Por qué pulsas el logo?",
     stop_logo: "¡¡¡DEJA DE PULSAR EL DICHOSO LOGO!!!",
     logo_secret: "Esto no va a desbloquear nada... ¿O sí? 🤨",
@@ -198,23 +200,27 @@ const TRANSLATIONS = {
 
     // Sets de Skins
     skin_military_name: "Set Militar",
-    skin_military_desc: "Equipamiento táctico para la línea verde.",
+    skin_military_desc: "Una skin tipica de los defensores de torres, pero que no te confunda, que viene inspirada musicalmente.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
     skin_music_name: "Set Musical",
-    skin_music_desc: "¡Ritmo y fiesta para la línea roja!",
+    skin_music_desc: "Inspirada musicalmente junto la Militar. ¡Este set contiene musica que daña de cerca! ¿Se lo pueden creer? ¡La musica daña!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
     skin_abyssal_name: "Set Abismal",
-    skin_abyssal_desc: "¡Poder de las profundidades marinas!",
+    skin_abyssal_desc: "Set acuatico, de una pecera a un tiburon, y esa pecera ya estaba preparada junto los millones de Globs que estaban planeados.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
     skin_business_name: "Set Empresarial",
-    skin_business_desc: "De un puesto de gelatina a una gran fábrica.",
+    skin_business_desc: "De un puesto de gelatina a una gran fábrica.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
     skin_universolar_name: "Set Universolar",
-    skin_universolar_desc: "¡Poder estelar y elegancia espacial!",
+    skin_universolar_desc: "Un tema galactico simple, no tiene mucha logica detras, asi que mejor no se la busques.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
+    skin_robotibu_name: "RoboTibu",
+    skin_robotibu_desc: "Un tiburon metalico que dispara minas (o bombas), creo que me resulta familiar...",
+    skin_globsus_name: "GlobSus",
+    skin_globsus_desc: "Muy sospechoso... ¿Quien sabe? Alomejor es un impostor.",
     skin_turret_name: "Set Torreta",
-    skin_turret_desc: "¡Tecnología de defensa aérea e intergaláctica para la línea gris!",
+    skin_turret_desc: "¡Tecnología de defensa aérea e intergaláctica para la línea gris!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
     skin_corrupt_swords_name: "Espadas Corrompidas",
-    skin_corrupt_swords_desc: "Un set especial con ataques únicos por evolución.",
+    skin_corrupt_swords_desc: "Los supuestos amos de las espadas legendarias vistos hasta la DEMO 5.<br><span style='font-size:0.8em; color:#aaa;'>El derecho de los personajes vistos aqui les pertecene al equipo de Block Tales, los Globs a Kirb.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
     skin_starry_name: "Starry (Destellito)",
-    skin_starry_desc: "¡Colaboración especial con StarJump! Dispara estrellas cósmicas.",
+    skin_starry_desc: "¡Colaboración especial con StarJump! Dispara estrellas cósmicas.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
     skin_mimic_name: "Mimic set",
-    skin_mimic_desc: "Skin especial obtenida al derrotar al Mimic Pyce.",
+    skin_mimic_desc: "Skin especial obtenida al derrotar al Mimic Pyce.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
     upgrade_range_name: "Alcance Maestro",
     upgrade_range_desc: "+20 Alcance para todas las torres",
     upgrade_damage_name: "Poder del Pato",
@@ -352,8 +358,8 @@ const TRANSLATIONS = {
     pyceGlobUnlocked: "🌀 Pyce Glob unlocked!",
     adminMode: "ADMIN MODE",
     codeSuccess: "⭐ Code accepted: {name} unlocked",
-    codeInvalid: "â Œ Invalid code",
-    loginError: "â Œ Invalid username or password",
+    codeInvalid: "❌ Invalid code",
+    loginError: "❌ Invalid username or password",
     badge_survivor_name: "Survivor", badge_survivor_desc: "Reach wave 10",
     badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Have over 20,000 money",
     badge_evolution_name: "Biotechnologist", badge_evolution_desc: "Evolve a tower to the max",
@@ -390,6 +396,7 @@ const TRANSLATIONS = {
     badge_maxGlobs_name: "Not Even God Can Stand This", badge_maxGlobs_desc: "Have the maximum allowed number of Globs in a single match",
     badge_angelicFortress_name: "THE ANGELIC FORTRESS", badge_angelicFortress_desc: "Have the absolute maximum base health",
     badge_titaniumBuilding_name: "Titanium Building", badge_titaniumBuilding_desc: "Complete a map without taking base damage",
+    badge_encyclopediaMaster_name: "Encyclopedia Master", badge_encyclopediaMaster_desc: "Complete the Pyce encyclopedia and upgrade all tower families to max level at least once",
 
 
     // Tower Names
@@ -479,6 +486,7 @@ const TRANSLATIONS = {
     prestige_duckpass: "Duck Pass Prestige! +2 Ducky Pass",
     level_duckpass: "Duck Pass Level {level}! +1 Ducky Pass",
     look_defender: "What are you looking at, Defender? 👉",
+    code_hint: "Whoops! You seem a bit lost. Try this code: ",
     logo_press: "Why are you pressing the logo?",
     stop_logo: "STOP PRESSING THE DAMN LOGO!!!",
     logo_secret: "This won't unlock anything... Or will it? 🤨",
@@ -529,23 +537,27 @@ const TRANSLATIONS = {
 
     // Skin Sets
     skin_military_name: "Military Set",
-    skin_military_desc: "Tactical equipment for the green line.",
+    skin_military_desc: "A typical tower defense skin, but don't be confused, it's musically inspired.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
     skin_music_name: "Music Set",
-    skin_music_desc: "Rhythm and party for the red line!",
+    skin_music_desc: "Musically inspired alongside the Military set. This set contains music that damages up close! Can you believe it? Music hurts!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
     skin_abyssal_name: "Abyssal Set",
-    skin_abyssal_desc: "Power from the deep sea!",
+    skin_abyssal_desc: "Aquatic set, from a fishbowl to a shark, and that fishbowl was already prepared along with the millions of Globs that were planned.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
     skin_business_name: "Business Set",
-    skin_business_desc: "From a jelly stand to a giant factory.",
+    skin_business_desc: "From a jelly stand to a giant factory.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
     skin_universolar_name: "Universolar Set",
-    skin_universolar_desc: "Stellar power and spatial elegance!",
+    skin_universolar_desc: "A simple galactic theme, it doesn't have much logic behind it, so you'd better not look for it.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
+    skin_robotibu_name: "RoboTibu",
+    skin_robotibu_desc: "A metallic shark that shoots mines (or bombs), I think it looks familiar...",
+    skin_globsus_name: "GlobSus",
+    skin_globsus_desc: "Very suspicious... Who knows? Maybe it's an impostor.",
     skin_turret_name: "Turret Set",
-    skin_turret_desc: "Air defense and intergalactic technology for the grey line!",
+    skin_turret_desc: "Air defense and intergalactic technology for the grey line!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
     skin_corrupt_swords_name: "Corrupted Swords",
-    skin_corrupt_swords_desc: "A special set with unique attacks per evolution.",
+    skin_corrupt_swords_desc: "The supposed masters of the legendary swords seen up to DEMO 5.<br><span style='font-size:0.8em; color:#aaa;'>The rights to the characters seen here belong to the Block Tales team, the Globs to Kirb.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
     skin_starry_name: "Starry",
-    skin_starry_desc: "Special collaboration with StarJump! Shoots cosmic stars.",
+    skin_starry_desc: "Special collaboration with StarJump! Shoots cosmic stars.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
     skin_mimic_name: "Mimic Set",
-    skin_mimic_desc: "Special skin obtained by defeating the Mimic Pyce.",
+    skin_mimic_desc: "Special skin obtained by defeating the Mimic Pyce.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
     upgrade_range_name: "Master Range",
     upgrade_range_desc: "+20 Range for all towers",
     upgrade_damage_name: "Duck Power",
@@ -625,23 +637,23 @@ const TRANSLATIONS = {
     skin_buff_damage2_desc: "⚔️ +10% Extra Damage.",
 
     // Tower Descriptions
-    tower_Poop_Glob_desc: "Nacido en el Lago Gelatinoso, su extraña dieta le otorga una densidad abrumadora. Lanza fragmentos de su gelatina o proyectiles de barro con fuerza bruta.",
-    tower_Golden_Glob_desc: "Residente del Lago Gelatinoso bañado en riquezas. Dispara láseres dorados de pura energía o balas de oro que son letales y ultrarrápidas.",
-    tower_Rainbow_Glob_desc: "Leyenda del Lago Gelatinoso, trasciende los colores primarios para canalizar láseres prismáticos que lo destruyen todo.",
-    tower_Red_Glob_desc: "Habitante del Lago Gelatinoso cargado de adrenalina y furia. Prefiere el combate cuerpo a cuerpo lanzando fragmentos de gelatina con velocidad cegadora.",
-    tower_Molten_Glob_desc: "Moldeado en el Lago Gelatinoso, su cuerpo irradia calor intenso y lanza chorros de gelatina fundida que carbonizan a los enemigos.",
-    tower_Robotic_Glob_desc: "Cibernético del Lago Gelatinoso, actualizado con tecnología PixelStar, dispara láseres penetrantes a distancia.",
-    tower_Soap_Glob_desc: "Amante de la pureza del Lago Gelatinoso, sopla burbujas de gelatina resbaladiza que ralentizan a los enemigos.",
-    tower_Cotton_Glob_desc: "Suave habitante del Lago Gelatinoso, su campo de algodón estático frena casi por completo los ataques enemigos.",
-    tower_Ducky_Glob_desc: "El banquero del Lago Gelatinoso. No ataca, pero encuentra monedas brillantes para sostener la economía.",
-    tower_Golden_Ducky_Glob_desc: "Realeza financiera del Lago Gelatinoso. Su plumaje dorado bendice la tesorería generando fortunas.",
-    tower_Comet_Glob_desc: "Extraído de los cielos sobre el Lago Gelatinoso, este Glob es tanto gelatinoso como galáctico; usa sus propias estrellas como arma arrojadiza que van y vuelven para diezmar hordas.",
-    tower_Dark_Glob_desc: "Un Glob ruinico, sus símbolos y poder podrían romper la realidad; qué bueno que esté de tu lado.",
-    tower_Demglob_desc: "Perdido en lo más oscuro, este Glob demoniaco y vacío puede romper realidades enteras, así como desconectar Pyces rápidamente... Para algo es lo más caro del juego. ¿No?",
-    tower_Pyce_Glob_desc: "Una mezcla entre la elasticidad de Glob y el comportamiento y colores de un Pyce. Sus disparos son tan potentes que ni siquiera se consideran de este mundo. Posiblemente sean creados mediante Portalogia, el estudio de los Pyces. Possibly created via Portalogy, the study of the Pyces.",
-    tower_Old_Glob_desc: "Un Glob degradado en grises, nada le gustaría más que ser considerado un buen Glob, es por eso que sus disparos se dividen, es tan estático que ni sus disparos son tan certeros como para dar al Pyce.",
-    tower_Work_Bombot_desc: "Un robot que trabajó como demoledor; sus bombas provienen de esa labor. Al observar a los Globs y tras un accidente y fracaso en su trabajo, decidió ayudar a estas criaturas de gelatina, convirtiéndose en su guía y ofreciendo valiosos consejos. Algunos lo ven parecido a un Pyce, pues fue concebido como tal, pero luego se separó, pues no son lo mismo.",
-    tower_Glob_desc: "Un humilde habitante del Lago Gelatinoso. Lanza orbes verdes de energía para defender su hogar. Confiable y leal.",
+    tower_Poop_Glob_desc: "Born in the Gelatin Lake, its strange diet gives it overwhelming density. It throws fragments of its gelatin or mud projectiles with brute force.",
+    tower_Golden_Glob_desc: "Resident of the Gelatin Lake bathed in riches. It shoots golden lasers of pure energy or gold bullets that are lethal and ultra-fast.",
+    tower_Rainbow_Glob_desc: "Legend of the Gelatin Lake, it transcends primary colors to channel prismatic lasers that destroy everything.",
+    tower_Red_Glob_desc: "Inhabitant of the Gelatin Lake full of adrenaline and fury. Prefers close combat, throwing gelatin fragments with blinding speed.",
+    tower_Molten_Glob_desc: "Molded in the Gelatin Lake, its body radiates intense heat and it shoots streams of molten gelatin that carbonize enemies.",
+    tower_Robotic_Glob_desc: "Cybernetic from the Gelatin Lake, updated with PixelStar technology, it shoots penetrating lasers from a distance.",
+    tower_Soap_Glob_desc: "Lover of the purity of the Gelatin Lake, it blows slippery gelatin bubbles that slow down enemies.",
+    tower_Cotton_Glob_desc: "Soft inhabitant of the Gelatin Lake, its static cotton field almost completely stops enemy attacks.",
+    tower_Ducky_Glob_desc: "The banker of the Gelatin Lake. It doesn't attack, but finds shiny coins to sustain the economy.",
+    tower_Golden_Ducky_Glob_desc: "Financial royalty of the Gelatin Lake. Its golden plumage blesses the treasury, generating fortunes.",
+    tower_Comet_Glob_desc: "Extracted from the skies above the Gelatin Lake, this Glob is both gelatinous and galactic; it uses its own stars as a throwing weapon that goes back and forth to decimate hordes.",
+    tower_Dark_Glob_desc: "A ruinous Glob, its symbols and power could break reality; good thing it's on your side.",
+    tower_Demglob_desc: "Lost in the darkest depths, this demonic and empty Glob can break entire realities, as well as quickly disconnect Pyces... There's a reason it's the most expensive in the game, right?",
+    tower_Pyce_Glob_desc: "A mix between the elasticity of a Glob and the behavior and colors of a Pyce. Its shots are so powerful they aren't even considered from this world. Possibly created via Portalogy, the study of the Pyces.",
+    tower_Old_Glob_desc: "A grey degraded Glob, nothing would please it more than being considered a good Glob, which is why its shots divide, it is so static that not even its shots are accurate enough to hit the Pyce.",
+    tower_Work_Bombot_desc: "A robot that worked as a demolisher; its bombs come from that work. Upon observing the Globs and after an accident and failure in its work, it decided to help these gelatinous creatures, becoming their guide and offering valuable advice. Some see it as similar to a Pyce, as it was conceived as such, but later separated, because they are not the same.",
+    tower_Glob_desc: "A humble inhabitant of the Gelatin Lake. It throws green energy orbs to defend its home. Reliable and loyal.",
 
     easter_egg_warn_1: "What are you looking at, Defender? Stop pressing it.",
     easter_egg_warn_2: "STOP PRESSING THE DAMN LOGO!",
@@ -693,6 +705,7 @@ const IMAGE_PATHS = {
   'Comet_Glob': 'img/Comet_Glob.png',
   'Dark_Glob': 'img/Dark_Glob.png',
   'Demglob': 'img/Demglob.png',
+  'Void_Glob': 'img/Void_Glob.png',
   'Pyce_Glob': 'img/Pyce_Glob.png',
   'Old_Glob': 'img/Old_Glob.png',
   'Stupid_Pyce': 'img/Stupid_Pyce.png',
@@ -725,6 +738,25 @@ const NARRATOR_DATA = {
         "¿Un símbolo? Ah no, es un enemigo más.",
         "Dicen que los magos Pyces suelen acabar mal parados.",
         "¡Brrzzzttt! Mecachis, un resfriado."
+      ],
+      modes: {
+        'corrupto': "Transmisión desde Pixible... Las cosas se ven mal allí abajo. Os ayudaré con lo que pueda.",
+        'antiNormal': "Bitlands está decayendo últimamente. Los Pyces originales tuvieron que huir a buscar ayuda, por eso estos impostores campan a sus anchas."
+      },
+      mimicWarning: "¡Atención! Un Mimic Pyce acaba de aparecer. ¡Derríbenlo antes de que escape!",
+      corruptMsgs: [
+        "Las señales es-tzzz muy débiles.",
+        "¿Siguen ahí? La conexi- se pierde por momentos.",
+        "Detecto una masiva concentración de Materia Oscura-",
+        "Ese ente... no parece un Pyce... es-tzzz",
+        "No dejen que se acerquen al n-úcleo-"
+      ],
+      antiNormalMsgs: [
+        "Asegúrense de que los Globs estén a salvo con nosotros.",
+        "Por favor, protejan a todos los Globs que puedan.",
+        "Estamos en una versión inestable de Gelatin Lake... este mundo está creado puramente de maldad y oscuridad.",
+        "No se preocupen por los Pyces, ellos no mueren aquí... solo se desconectan.",
+        "La base de datos central de Pixible indica anomalías graves en la zona."
       ]
     }, en: {
       name: "Work Bombot", msgs: [
@@ -735,6 +767,25 @@ const NARRATOR_DATA = {
         "A symbol? Oh no, it's just another enemy.",
         "They say Pyce magicians usually end up badly.",
         "¡Brrzzzttt! Damn it, a cold."
+      ],
+      modes: {
+        'corrupto': "Transmission from Pixible... Things look bad down there. I'll help you with what I can.",
+        'antiNormal': "Bitlands is decaying lately. The original Pyces had to flee to seek help, that's why these impostors are roaming free."
+      },
+      mimicWarning: "Attention! A Mimic Pyce just appeared. Take it down before it escapes!",
+      corruptMsgs: [
+        "Signals ar-tzzz very weak.",
+        "Are you still there? Connec- is dropping constantly.",
+        "I detect a massive concentration of Dark Matter-",
+        "That entity... doesn't look like a Pyce... it's-tzzz",
+        "Don't let them get close to the c-ore-"
+      ],
+      antiNormalMsgs: [
+        "Make sure the Globs are safe with us.",
+        "Please, protect all the Globs you can.",
+        "We are in an unstable version of Gelatin Lake... this world is created purely of evil and darkness.",
+        "Don't worry about the Pyces, they don't die here... they just disconnect.",
+        "The central Pixible database indicates severe anomalies in the area."
       ]
     }
   },
@@ -797,7 +848,7 @@ const NARRATOR_DATA = {
   },
   noeye: {
     img: IMAGE_PATHS.NOeye_Pyce, es: {
-      name: "NOeye", msgs: [
+      name: "NOeye", intercept: "1N73RC3P74D0. 3S4 CH474RR4 N0 0S P0DR4 4YUD4R... 3S741S S0L0S 3N L4 0SCUR1D4D.", msgs: [
         "3S70Y H4R70 D3 QU3 M3 73N64N C0N7R0L4D0.",
         "3L P0D3R 3S 1NU71L CU4ND0 713N3S UN4 M4S4 D3 4L14D0S C0N7R0L4D0S.",
         "M3 4B4ND0N4R0N... ¡Y 4H0R4 3LL0S P464R4N!",
@@ -808,7 +859,7 @@ const NARRATOR_DATA = {
         "7H3 6L0BS S3R4N 3SCL4V0S D3 L4 M473R14 N36R4 4L6UN D14."
       ]
     }, en: {
-      name: "NOeye", msgs: [
+      name: "NOeye", intercept: "1N73RC3P73D. 7H47 SCR4P C4NN07 H3LP Y0U... Y0U 4R3 4L0N3 1N 7H3 D4RKN3SS.", msgs: [
         "1 4M 71R3D 0F B31N6 C0N7R0LL3D.",
         "P0W3R 1S US3L3SS W17H 4 M4SS 0F C0N7R0LL3D 4LL13S.",
         "7H3Y 4B4ND0N3D M3... N0W 7H3Y W1LL P4Y!",
@@ -822,7 +873,7 @@ const NARRATOR_DATA = {
   },
   moonstar: {
     img: IMAGE_PATHS.MoonStar_Pyce, es: {
-      name: "MoonStar", msgs: [
+      name: "MoonStar", intercept: "Pobre máquina obsoleta. Su conexión ha sido cortada, y sus planes... expuestos ante mis estrellas.", msgs: [
         "Es un honor contemplar vuestra inevitable caída, pequeños Globs.",
         "Vuestro esfuerzo es loable, pero el destino ya ha sido escrito por las estrellas.",
         "Dos vueltas al escenario para saborear vuestro miedo. ¡Qué delicia.",
@@ -833,7 +884,7 @@ const NARRATOR_DATA = {
         "Disfrutad vuestro triunfo... mientras dure la luz."
       ]
     }, en: {
-      name: "MoonStar", msgs: [
+      name: "MoonStar", intercept: "Poor obsolete machine. Its connection has been severed, and its plans... exposed to my stars.", msgs: [
         "It is an honor to behold your inevitable fall, little Globs.",
         "Your effort is laudable, but fate has already been written by the stars.",
         "Two laps around the stage to savor your fear. What a delight.",
@@ -859,6 +910,23 @@ const NARRATOR_DATA = {
         "Don't kill me, I just want to be your friend (and give you money)!"
       ]
     }
+  },
+  one_x: {
+    img: IMAGE_PATHS['1x1x1x1_Pyce'], es: {
+      name: "1x1x1x1 Pyce", msgs: [
+        "¿Creéis que podéis pararme? 01001001 01100100 01101001 01101111 01110100 01100001 01110011",
+        "El código es mío. Todo es mío.",
+        "01001101 01110101 01100101 01110010 01100101",
+        "Vuestra defensa es un error de sintaxis en mi mundo."
+      ]
+    }, en: {
+      name: "1x1x1x1 Pyce", msgs: [
+        "Do you think you can stop me? 01001001 01100100 01101001 01101111 01110100 01110011",
+        "The code is mine. Everything is mine.",
+        "01000100 01101001 01100101",
+        "Your defense is a syntax error in my world."
+      ]
+    }
   }
 };
 
@@ -880,7 +948,8 @@ const TOWER_TYPES = {
 
   'Comet_Glob': { name: 'tower_Comet_Glob_name', damage: 50, range: 250, speed: 0.25, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'star_boomerang', piercing: true, boomerang: true, desc: "tower_Comet_Glob_desc", family: 'Comet_Glob' },
   'Dark_Glob': { name: 'tower_Dark_Glob_name', damage: 80, range: 280, speed: 0.5, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'diamond_boomerang', piercing: true, boomerang: true, desc: "tower_Dark_Glob_desc", family: 'Comet_Glob' },
-  'Demglob': { name: 'tower_Demglob_name', damage: 200, range: 300, speed: 2.0, cost: 1000, image: IMAGE_PATHS.Demglob, projectile: 'laser_purple', piercing: true, burn: true, corruption: true, desc: "tower_Demglob_desc", family: 'Comet_Glob' },
+  'Demglob': { name: 'tower_Demglob_name', damage: 200, range: 300, speed: 2.0, cost: 1000, evolution: 'Void_Glob', image: IMAGE_PATHS.Demglob, projectile: 'laser_purple', desc: "tower_Demglob_desc", family: 'Comet_Glob' },
+  'Void_Glob': { name: 'tower_Void_Glob_name', damage: 500, range: 400, speed: 1.0, cost: 2500, image: IMAGE_PATHS.Void_Glob, projectile: 'void_tracker', tracking: true, desc: "tower_Void_Glob_desc", family: 'Comet_Glob' },
 
   'Pyce_Glob': { name: 'tower_Pyce_Glob_name', damage: 30, range: 180, speed: 4.5, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Grey' },
   'Old_Glob': { name: 'tower_Old_Glob_name', damage: 40, range: 200, speed: 3.5, cost: 200, evolution: 'Pyce_Glob', image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "tower_Old_Glob_desc", family: 'Grey' },
@@ -941,7 +1010,8 @@ const BADGES = {
   deepSavings: { key: 'deepSavings', icon: '💎', unlocked: false, reward: { pycoins: 500, xp: 250 } },
   maxGlobs: { key: 'maxGlobs', icon: '🌌', unlocked: false, reward: { pycoins: 600, xp: 300 } },
   angelicFortress: { key: 'angelicFortress', icon: '😇', unlocked: false, reward: { pycoins: 500, xp: 250 } },
-  titaniumBuilding: { key: 'titaniumBuilding', icon: '🛡️', unlocked: false, reward: { pycoins: 500, xp: 300 } }
+  titaniumBuilding: { key: 'titaniumBuilding', icon: '🛡️', unlocked: false, reward: { pycoins: 500, xp: 300 } },
+  encyclopediaMaster: { key: 'encyclopediaMaster', icon: '📖', unlocked: false, reward: { pycoins: 500, duckpass: 500, xp: 2000 } }
 };
 
 const RIVER_ZONES = [
@@ -1000,6 +1070,19 @@ const SKINS_DATA = {
         'Molten_Glob': 'img/Skins/Rojo Melee/Funky Glob (SK-EVO2).png',
         'Robotic_Glob': 'img/Skins/Rojo Melee/Party Glob (SK-EVO3).png'
       }
+    },
+    {
+      id: 'judicial_set', name: 'skin_judicial_name', desc: 'skin_judicial_desc', category: 'Colaboracion', subtitle: 'Glob Smash', isSpecial: true, isCommunity: true, cost: 550, duckpass_cost: 300, type: 'pycoin',
+      skins: {
+        'Red_Glob': 'img/Skins/Rojo Melee/Comunidad/Glob Smash/Juez Glob (SK-EVO1).png',
+        'Molten_Glob': 'img/Skins/Rojo Melee/Comunidad/Glob Smash/GatGlob (SK-EVO2).png',
+        'Robotic_Glob': 'img/Skins/Rojo Melee/Comunidad/Glob Smash/Tigrob (SK-EVO3).png'
+      },
+      names: {
+        'Red_Glob': 'Juez Glob',
+        'Molten_Glob': 'GatGlob',
+        'Robotic_Glob': 'Tigrob'
+      }
     }
   ],
   'Soap_Glob': [
@@ -1046,7 +1129,8 @@ const SKINS_DATA = {
       skins: {
         'Comet_Glob': 'img/Skins/Negro Supremo/Sunny Glob (SK-EVO1).png',
         'Dark_Glob': 'img/Skins/Negro Supremo/Sunlight Glob (SK-EVO2).png',
-        'Demglob': 'img/Skins/Negro Supremo/Nova Glob (SK-EVO3).png'
+        'Demglob': 'img/Skins/Negro Supremo/Nova Glob (SK-EVO3).png',
+        'Void_Glob': 'img/Skins/Negro Supremo/Supernova Glob (SK-EVO4).png'
       }
     },
     {
@@ -1054,12 +1138,29 @@ const SKINS_DATA = {
       skins: {
         'Comet_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png',
         'Dark_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Didic Pyce (SK-EVO2).png',
-        'Demglob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/NOmic Pyce (SK-EVO3).png'
+        'Demglob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/NOmic Pyce (SK-EVO3).png',
+        'Void_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Voidmic Pyce (SK-EVO4).png'
       },
       names: {
         'Comet_Glob': 'Mimic Pyce',
         'Dark_Glob': 'Dirty Mimic',
-        'Demglob': 'NOeye Mimic'
+        'Demglob': 'NOeye Mimic',
+        'Void_Glob': 'Golden MimicPyce'
+      }
+    },
+    {
+      id: 'dreams_set', name: 'skin_dreams_name', desc: 'skin_dreams_desc', isSpecial: true, cost: 777, duckpass_cost: 555, type: 'pycoin',
+      skins: {
+        'Comet_Glob': 'img/Skins/Negro Supremo/Dreams (SP)/Gummy Glob (SK-EVO1).png',
+        'Dark_Glob': 'img/Skins/Negro Supremo/Dreams (SP)/Loyal Glob (SK-EVO2).png',
+        'Demglob': 'img/Skins/Negro Supremo/Dreams (SP)/MetaGlob (SK-EVO3).png',
+        'Void_Glob': 'img/Skins/Negro Supremo/Dreams (SP)/Hammer Glob (SK-EVO4).png'
+      },
+      names: {
+        'Comet_Glob': 'Gummy Glob',
+        'Dark_Glob': 'Loyal Glob',
+        'Demglob': 'MetaGlob',
+        'Void_Glob': 'Hammer Glob'
       }
     }
   ],
@@ -1090,7 +1191,8 @@ const SKINS_DATA = {
     { id: 'recolor_void', name: 'skin_void_name', desc: 'skin_void_desc', type: 'duckpass_level', level: 70, filter: 'brightness(0.6) hue-rotate(250deg) saturate(2)' },
     { id: 'recolor_gold', name: 'skin_gold_name', desc: 'skin_gold_desc', type: 'duckpass_level', level: 85, filter: 'brightness(1.2) sepia(1) saturate(10) hue-rotate(-10deg)' },
     { id: 'pack_negative', name: 'skin_negative_name', desc: 'skin_negative_desc', type: 'duckpass_level', level: 95, class: 'skin-negative' },
-    { id: 'pack_rainbow', name: 'skin_rainbow_name', desc: 'skin_rainbow_desc', type: 'duckpass_level', level: 100, class: 'skin-rainbow' }
+    { id: 'pack_rainbow', name: 'skin_rainbow_name', desc: 'skin_rainbow_desc', type: 'duckpass_level', level: 100, class: 'skin-rainbow' },
+    { id: 'pyce_morph', name: 'skin_pyce_morph_name', desc: 'skin_pyce_morph_desc', cost: 0, type: 'free', isSpecial: true, pyce_morph: true }
   ],
   'Recolors': [
     { id: 'recolor_galactic', name: 'skin_galactic_name', desc: 'skin_galactic_desc', cost: 250, type: 'pycoin', filter: 'hue-rotate(280deg) saturate(2.5) brightness(1.1) drop-shadow(0 0 5px #9c27b0)' },
@@ -1115,26 +1217,42 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "waveStarted": "¡Oleada {wave}!",
   "waveCompleted": "¡Oleada {wave} superada!",
   "skin_corrupted_swords_name": "Espadas Corrompidas",
-  "skin_corrupted_swords_desc": "Set inspirado en Block Tales. ¡Llama a tus jefes favoritos para luchar en el campo con sus espadas!",
+  "skin_corrupted_swords_desc": "Los supuestos amos de las espadas legendarias vistos hasta la DEMO 5.<br><span style='font-size:0.8em; color:#aaa;'>El derecho de los personajes vistos aqui les pertecene al equipo de Block Tales, los Globs a Kirb.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
   "skin_military_name": "Set Militar",
-  "skin_military_desc": "Aspecto militar.",
+  "skin_military_desc": "Aspecto militar.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
   "skin_music_name": "Set Musical",
-  "skin_music_desc": "Aspecto con notas musicales.",
+  "skin_music_desc": "Aspecto con notas musicales.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
   "skin_abyssal_name": "Set Abismal",
-  "skin_abyssal_desc": "Aspecto abisal.",
+  "skin_abyssal_desc": "Aspecto abisal.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
   "skin_turret_name": "Set Torreta",
-  "skin_turret_desc": "¡Tecnología de defensa aérea e intergaláctica para la línea gris!",
+  "skin_turret_desc": "¡Tecnología de defensa aérea e intergaláctica para la línea gris!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
   "skin_sharkbot_name": "RoboTibu",
   "skin_sharkbot_desc": "Un tiburón robótico de acero con propulsión. <br><span style='color: #ff3333; font-weight: bold; text-shadow: 0 0 5px rgba(255,51,51,0.5);'>Crédito: Nitrogen</span>",
   "skin_globsus_name": "GlobSus",
-  "skin_globsus_desc": "Un Bombot bastante sospechoso. Creado por KirByte_Bi. <br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>"
+  "skin_globsus_desc": "Un Bombot bastante sospechoso. Creado por KirByte_Bi. <br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
+  "tower_Void_Glob_name": "Void Glob",
+  "tower_Void_Glob_desc": "El abismo en sí. Los proyectiles de este Glob oscuro se curvan en el aire persiguiendo al enemigo. Ha perdido todo efecto, pero la muerte es segura.",
+  "skin_pyce_morph_name": "Pyce Randomizer",
+  "skin_pyce_morph_desc": "¡Sorpresa! Cada nivel de tu torre adopta la apariencia de un Pyce al azar.",
+  "skin_dreams_name": "Set de Ensueño",
+  "skin_dreams_desc": "¿Son estos tus heroes? Yo diria que si, son un buen equipo de ensueño.<br><span style='font-size:0.8em; color:#aaa;'>Los personajes pertenecen a HAL Laboratory y a Nintendo, yo solo tengo el derecho de Globs y Pyces.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
+  "skin_judicial_name": "Set Judicial",
+  "skin_judicial_desc": "¡Que haya orden! Los Pyces no se mantendran andando mientras los Jueces y sus gatos anden sueltos!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>"
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_sharkbot_name": "SharkBot",
   "skin_sharkbot_desc": "A steel robotic shark with propulsion. <br><span style='color: #ff3333; font-weight: bold; text-shadow: 0 0 5px rgba(255,51,51,0.5);'>Credit: Nitrogen</span>",
   "skin_globsus_name": "GlobSus",
-  "skin_globsus_desc": "A very suspicious Bombot. Created by KirByte_Bi. <br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>"
+  "skin_globsus_desc": "A very suspicious Bombot. Created by KirByte_Bi. <br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
+  "tower_Void_Glob_name": "Void Glob",
+  "tower_Void_Glob_desc": "The abyss itself. The projectiles of this dark Glob curve in the air chasing the enemy. It has lost all effects, but death is certain.",
+  "skin_pyce_morph_name": "Pyce Randomizer",
+  "skin_pyce_morph_desc": "Surprise! Each level of your tower takes the appearance of a random Pyce.",
+  "skin_dreams_name": "Dreams Set",
+  "skin_dreams_desc": "Are these your heroes? I'd say yes, they are a good dream team.<br><span style='font-size:0.8em; color:#aaa;'>The characters belong to HAL Laboratory and Nintendo, I only have the rights to Globs and Pyces.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
+  "skin_judicial_name": "Judicial Set",
+  "skin_judicial_desc": "Let there be order! The Pyces won't keep walking while the Judges and their cats are on the loose!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>"
 });
 
 window.SKIN_META = window.SKIN_META || {};
