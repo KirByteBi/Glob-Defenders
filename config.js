@@ -705,7 +705,7 @@ const IMAGE_PATHS = {
   'Comet_Glob': 'img/Comet_Glob.png',
   'Dark_Glob': 'img/Dark_Glob.png',
   'Demglob': 'img/Demglob.png',
-  'Void_Glob': 'img/Void_Glob.png',
+  'Void_Glob': 'img/Void Glob.png',
   'Pyce_Glob': 'img/Pyce_Glob.png',
   'Old_Glob': 'img/Old_Glob.png',
   'Stupid_Pyce': 'img/Stupid_Pyce.png',
@@ -1139,7 +1139,7 @@ const SKINS_DATA = {
         'Comet_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png',
         'Dark_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Didic Pyce (SK-EVO2).png',
         'Demglob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/NOmic Pyce (SK-EVO3).png',
-        'Void_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Voidmic Pyce (SK-EVO4).png'
+        'Void_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Golden Pyce (SK-EVO4).png'
       },
       names: {
         'Comet_Glob': 'Mimic Pyce',
