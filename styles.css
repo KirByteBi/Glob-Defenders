@@ -107,12 +107,14 @@ body {
 }
 
 @media (max-height: 500px) {
-    #login-screen {
+    #login-screen, #map-selection, #mode-selection {
+        overflow-y: auto;
         justify-content: flex-start;
     }
     .login-box {
-        margin: 20px 0;
+        margin: 20px auto;
         padding: 20px;
+        transform: scale(0.9);
     }
     .login-logo {
         max-width: 150px;
@@ -181,7 +183,7 @@ body {
 }
 
 /* Decoraciones del Login */
-#login-decorations, #mode-decorations {
+#login-decorations, #mode-decorations, #map-decorations {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     overflow: hidden;
@@ -239,7 +241,7 @@ body {
     background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
 }
 
-#mode-selection {
+#map-selection, #mode-selection {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.9);
@@ -487,6 +489,15 @@ button.active {
     border-color: #8e24aa;
 }
 
+#game-area.anti-normal {
+    background-color: #1a0030;
+    background-image:
+        radial-gradient(circle at 20% 20%, rgba(180,0,255,0.15) 1%, transparent 1%),
+        radial-gradient(circle at 80% 70%, rgba(255,0,180,0.12) 1%, transparent 1%);
+    box-shadow: 0 0 60px rgba(200, 0, 255, 0.5);
+    border-color: #e040fb;
+}
+
 #forest-base {
     position: absolute;
     left: 0;
@@ -526,6 +537,18 @@ button.active {
     background: #f1c40f;
     margin: 5px;
     box-shadow: 0 0 10px #f1c40f;
+}
+
+/* Base de Urbanistic Road */
+.casino-base {
+    background: #e74c3c !important;
+    border-color: #f1c40f !important;
+    border-radius: 0 !important;
+}
+.casino-base .window {
+    background: #2ecc71 !important;
+    box-shadow: 0 0 15px #2ecc71 !important;
+    border-radius: 50% !important;
 }
 
 .river {
@@ -792,6 +815,12 @@ button.active {
     cursor: not-allowed;
     pointer-events: none;
 }
+
+/* Colores de auras para el panel de evolución */
+#evolve-panel.buff-white { border-color: #ffffff; box-shadow: 0 10px 30px rgba(255, 255, 255, 0.4); }
+#evolve-panel.buff-pink { border-color: #ff69b4; box-shadow: 0 10px 30px rgba(255, 105, 180, 0.4); }
+#evolve-panel.buff-both { border-color: #2ecc71; box-shadow: 0 10px 30px rgba(46, 204, 113, 0.4); }
+
 /* Position tower shop below the game area */
 #tower-shop {
     display: flex;
@@ -803,14 +832,37 @@ button.active {
 }
 /* Responsive adjustments for landscape mobile */
 @media (max-width: 900px) and (orientation: landscape) {
+    #game-container {
+        padding-left: 70px !important;
+        max-width: none !important;
+    }
+    #tower-shop {
+        position: fixed !important;
+        left: 0 !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: 85vh !important;
+        width: 65px !important;
+        background: rgba(0, 0, 0, 0.7) !important;
+        border-radius: 0 10px 10px 0 !important;
+        z-index: 1000 !important;
+        margin: 0 !important;
+        padding: 8px 4px !important;
+        gap: 5px !important;
+    }
     .tower-item {
-        width: 55px;
-        height: 55px;
-        font-size: 0.55rem;
+        width: 50px !important;
+        height: 50px !important;
+        min-height: 50px !important;
+        font-size: 0.55rem !important;
     }
     .tower-item img {
-        width: 30px;
-        height: 30px;
+        width: 25px !important;
+        height: 25px !important;
     }
 }
 /* ===================== PANEL DE EVOLUCIÓN MEJORADO ===================== */
@@ -1566,25 +1618,6 @@ input:checked + .slider:before {
     .stat-label {
         font-size: 0.5rem !important;
     }
-    #game-container {
-        padding: 2px !important;
-    }
-    #tower-shop {
-        margin-top: 4px !important;
-        padding: 4px !important;
-    }
-    .tower-item {
-        width: 50px !important;
-        height: 50px !important;
-        min-height: 50px !important;
-    }
-    .tower-item img {
-        width: 25px !important;
-        height: 25px !important;
-    }
-    .tower-item span {
-        font-size: 0.55rem !important;
-    }
 }
 
 /* ==========================================================================
@@ -1664,6 +1697,9 @@ input:checked + .slider:before {
 .narrator-bubble.speaker-noeye { border-color: #34495e; }
 .narrator-bubble.speaker-mimic { border-color: #f1c40f; }
 .narrator-bubble.speaker-one_x { border-color: #e74c3c; box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
+.narrator-bubble.speaker-arky { border-color: #8e44ad; box-shadow: 0 0 15px rgba(142, 68, 173, 0.5); }
+.narrator-bubble.speaker-crystarky { border-color: #00bcd4; box-shadow: 0 0 15px rgba(0, 188, 212, 0.4), 0 0 8px rgba(255, 100, 200, 0.3); }
+.narrator-bubble.speaker-arkyvoid { border-color: #9e9e9e; box-shadow: 0 0 15px rgba(180, 0, 180, 0.4), 0 0 8px rgba(200, 200, 200, 0.2); }
 
 .narrator-bubble {
     position: fixed;
@@ -1931,4 +1967,22 @@ input:checked + .slider:before {
     10% { opacity: 1; transform: translateY(0); }
     90% { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(-20px); }
-}
+}
+.urban-path { background-color: #333 !important; border: 1px solid #888 !important; }
+.urban-river { background-color: #3498db !important; }
+.tunnel-base {
+    background-color: #111 !important;
+    border: 6px solid #888 !important;
+    border-radius: 10px !important;
+}
+.tunnel-base .wormhole-inner { display: none !important; }
+
+.urban-spot {
+    background-color: #888 !important;
+    border: 3px solid #666 !important;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.8) !important;
+    border-radius: 8px !important;
+}
+.tunnel-base .wormhole-inner { display: none !important; }
+.urban-map { background: #555 !important; }
+

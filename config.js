@@ -43,6 +43,9 @@ const TRANSLATIONS = {
     badge_winDificil_name: "Guerrero", badge_winDificil_desc: "Vence en modo Difícil",
     badge_winExtremo_name: "Leyenda", badge_winExtremo_desc: "Vence en modo Extremo",
     badge_winCorrupto_name: "Purificador", badge_winCorrupto_desc: "Vence en modo Corrupto",
+    badge_una_por_cada_name: "Una por cada", badge_una_por_cada_desc: "Derrota cada variante de Bit y Byte en una misma ronda.",
+    badge_explosiones_por_doquier_name: "Explosiones por doquier", badge_explosiones_por_doquier_desc: "Explota al menos 100 veces un IEx en una ronda.",
+    badge_urba_complet1_name: "Complesionista Rango-Precio y Explosiones", badge_urba_complet1_desc: "Utiliza el maximo de torres permitidas (con las mejoras).",
     badge_gtackFirst_name: "Ataques directos", badge_gtackFirst_desc: "Compra tu primera G-tack",
     badge_duckgradeFirst_name: "Una actu dorada", badge_duckgradeFirst_desc: "Primera Duckgrade comprada",
     badge_supremeAlliance_name: "La alianza suprema", badge_supremeAlliance_desc: "Usa la G-tack de la familia roja y de la familia gris",
@@ -74,7 +77,13 @@ const TRANSLATIONS = {
     tower_Demglob_name: "Demglob",
     tower_Pyce_Glob_name: "Pyce Glob",
     tower_Old_Glob_name: "Glob Anciano",
-    tower_Work_Bombot_name: "Bombot de Trabajo",
+    tower_Work_Bombot_name: "Work-Bombot",
+    tower_Balloon_Glob_name: "Glob Globo",
+    tower_Heliglob_name: "Heliglob",
+    tower_Alien_Glob_name: "Glob Alien",
+    tower_Streamer_Glob_name: "Glob Streamer",
+    tower_Gamer_Glob_name: "Glob Gamer",
+    tower_Youtuber_Glob_name: "Glob Youtuber",
     tower_limit_increased: "Límite de {name} aumentado",
 
     // Nombres de Enemigos
@@ -91,6 +100,16 @@ const TRANSLATIONS = {
     enemy_MoonStar_Pyce_name: "MoonStar Pyce",
     enemy_Stupid_GoldPyce_name: "Stupid GoldPyce",
     enemy_Mimic_Pyce_name: "Mimic Pyce",
+    enemy_Bomb_Pyce_name: "Bomb Pyce",
+    enemy_Knight_Pyce_name: "Knight Pyce",
+    enemy_Cannon_Pycer_name: "Cannon Pycer",
+    enemy_Fireflies_name: "Fireflies",
+    enemy_Arky_name: "Arky",
+    enemy_CrystArky_name: "CrystArky",
+    enemy_ArkyVoid_name: "ArkyVoid",
+    enemy_HoloPyce_name: "HoloPyce",
+    enemy_Strechy_Pyce_name: "Strechy Pyce",
+    enemy_Rebel_Pyce_name: "Rebel Pyce",
 
     enemy_Stupid_Pyce_desc: "El primer enemigo del juego, es un Pyce desactualizado, pero que cumplio con su funcion de ser un heroe en sus tiempos.",
     enemy_Pyce2_desc: "Manejado por PixelStar Studios, fue actualizado para parecerse mas a un humano, aprendiendo de sus propios errores, siendo ahora lo mejor de Bitlands, aparte de la tableta Pixible, claro.",
@@ -105,15 +124,60 @@ const TRANSLATIONS = {
     enemy_MoonStar_Pyce_desc: "Un Pyce corrompido por el mal uso del Bitcore, ahora atiende al mal y al poder estelar descontrolado.",
     enemy_Stupid_GoldPyce_desc: "Un Stupid Pyce de oro que suele ser rápido.",
     enemy_Mimic_Pyce_desc: "Un Pyce 2.0 que se escondió en un cofre, no es que tenga miedo, quiere ser especial.",
+    enemy_Bomb_Pyce_desc: "Una bomba sin extremidades concebida como Pyce, pero su vida es corta y nunca dura lo suficiente.",
+    enemy_Knight_Pyce_desc: "Un soldado fiel a su rey, desterrado de su hogar por NOeye. Ha aguantado 3 años de retiro para renovarse y volver... Aunque no estuvo ni en Techspawn ni en Bitlands.",
+    enemy_Cannon_Pycer_desc: "Un Pyce rojo que utiliza un cañón de madera (o un tubo y dos ruedas, quién sabe)... Es fan de la dinamita, que en realidad es un barril de pólvora metido en cañones.",
+    enemy_Fireflies_desc: "Al contrario de lo que su nombre sugiere, son unas mariposas hechas de fuego, no unas luciernagas... Y no es para tanto, si no fuera por su resistencia hacia las quemaduras, que de hecho lo deberian curar... ¿Acaso si quiera se le puede quemar?",
+    enemy_Arky_desc: "Un jefe dentro de un casino que afirma servir como fuente de fortuna, pero siempre se lleva la parte mas grande de aquellos que juegan adentro, asi que puede ser que no sea tan bueno como parezca. ¡Pero es afortunado!",
+    enemy_CrystArky_desc: "Arky se imbuyo de tanto energia oscura y magica por los cielos nocturnos, tanto que le han crecido cristales y sus fichas de casino se volvieron gemas... Podria venderlas e irse del casino, pero los usa como simbolo de fortuna y riqueza.",
+    enemy_ArkyVoid_desc: "El lado perverso de Arky, junto un extraño y potente virus llamado 3RR0R lo transformaron y cambio su ruleta por un portal interdimensional, ademas de que ahora es un mago ¡Y robara toda la plata que pueda!",
+    enemy_HoloPyce_desc: "Un holograma de la olvidada 'True Form', una poderosa transformación antigua de los Pyces proveniente de Techspawn. Con el tiempo se oxidó y quedó en el olvido, siendo reemplazada por la Portalogía moderna de Bitlands.",
+    enemy_Strechy_Pyce_desc: "Un Pyce con forma de robloxiano que muy a pesar de dictar que NO SERIA un Pyce, pues lo acabo siendo, vistiendose como uno. ¿O acaso eso no son ropas? ¿Ah no, que es un Pyce y no un cosplay? Ayayay... En fin, es mas amable que cualquier Pyce supuestamente.",
+    enemy_Rebel_Pyce_desc: "Nacido en Bitlands como clon del Pyce 2.0, este rebelde pintarrajea y grafitea por la ciudad cuando se le da la gana y se escabulle... Para ser una copia, es muy distinto al original y no para quieto!",
+    enemy_Spyware_name: "Spyware",
+    enemy_Spyware_desc: "Pese a ser familiares de los Bits, la función de estos espías es simple, entrar en el casino y robar tanta información como puedan... Pertenecen a una organización un tanto dudosa, que crea distintos seres digitales a la realidad.",
+    enemy_Bit_name: "Bit",
+    enemy_Byte_name: "Byte",
+    enemy_BitY1_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Feliz)",
+    enemy_BitB4_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Enfadada)",
+    enemy_BitG2_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Tranquila)",
+    enemy_BitP3_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Mareada)",
+    enemy_Byte_desc: "Los Bytes son agrupaciones de 2 Bits, aun y eso se consideran Bytes por ser 4 formas de estas agrupaciones de 2 Bits, ya que 4x2 son 8... Y los Bytes se constituyen de 8 bits... ¿Cierto? Bueno. Yo no lo pondría en duda.",
+    tower_Bomb_Glob_name: "Bomb Glob",
+    tower_TNT_Glob_name: "TNT Glob",
+    tower_Nuclear_Glob_name: "Nuclear Glob",
+    tower_IEx_name: "Instantánea Explosiva",
+    tower_IEx1_desc: "Un Glob con una bomba en su cabeza, mas le vale tener cuidado! Una explosion y adios. Una torre que explota cuando alguien toca su área, desapareciendo después de eso. A más nivel, más grande la explosión.<br><br><span style=\"color: grey\">Diseñado por JustAUser. Planeado por KirByte_Bi.</span>",
+    tower_IEx2_desc: "Ahora con pequeñas dinamitas, pueden parecer poco, pero con una explosion basta para demostrar su poder en polvora. Explota al contacto, con mayor rango de explosión que su predecesora.<br><br><span style=\"color: grey\">Diseñado por JustAUser. Planeado por KirByte_Bi.</span>",
+    tower_IEx3_desc: "Una nuke bien hecha radica cualquier ser de la existencia... Y este lo conoce bien, tanto asi que su vida parece nula frente a los demas Globs. Desata una explosión colosal al contacto.<br><br><span style=\"color: grey\">Diseñado por JustAUser. Planeado por KirByte_Bi.</span>",
+    tower_Worker_Glob_name: "Worker Glob",
+    tower_Police_Glob_name: "Police Glob",
+    tower_Planked_Glob_name: "Planked Glob",
+    tower_DJ_Glob_name: "DJ Glob",
+    tower_Worker_Glob_desc: "Genera una valla normal en su radio, esta actúa como un escudo temporal con poca vida, al ser destruido, genera un poquísimo daño.<br><br><span style=\"color: #ff8c00\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
+    tower_Police_Glob_desc: "Genera una valla gelatinosa que ralentiza durante un poco tiempo al enemigo que la destruya, también hace un poco más de daño y tiene más rango, por lo que puede poner más vallas.<br><br><span style=\"color: #ff8c00\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
+    tower_Planked_Glob_desc: "Genera una valla atornillada que a parte de hacer bastante daño, hará un daño en área, es buena para parar hordas de enemigos fácilmente.<br><br><span style=\"color: #ff8c00\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
+    tower_DJ_Glob_desc: "Genera una valla de radio que no solo es muy potente a nivel defensivo y de ataque, sino que esta también tiene un radio de ataque que ralentiza y puede frenar al Pyce que tenga delante por unos segundos.<br><br><span style=\"color: #ff8c00\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
+    enc_tab_gambling: "Gambling Enemies",
+    tower_Balloon_Glob_desc: "Su gran sueño es llegar al espacio. En sus primeros intentos urbanos, utiliza simples globos para surcar los cielos de Urbanistic Road.",
+    tower_Heliglob_desc: "Para elevarse sobre los rascacielos, ha evolucionado para pilotar un helicóptero. Las estrellas están un poco más cerca.",
+    tower_Alien_Glob_desc: "¡Sueño cumplido! Ha alcanzado el cosmos y vuelto con tecnología alienígena, listo para dominar el campo de batalla urbano con poderes de otro mundo.",
+    tower_Streamer_Glob_desc: "Un Glob que sueña con volverse rico y de éxito. Empezó como un humilde streamer novato en su cuarto.",
+    tower_Gamer_Glob_desc: "Con el tiempo se convirtió en un gamer competitivo reconocido en toda la ciudad, pero la fama aún no era suficiente.",
+    tower_Youtuber_Glob_desc: "Finalmente alcanzó el éxito como un famoso Youtuber y tiene dinero para aventar... Aunque ya es hora de que deje el internet y busque un trabajo de verdad.",
 
     login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla",
+    select_map: "Seleccionar Mapa",
     select_mode: "Seleccionar Modo",
     backToModes: "Selección de Modo",
 
     btn_achievements: "🏆 Logros",
     btn_encyclopedia: "📖 Enciclopedia",
     enc_tab_globs: "Familias Glob",
+    enc_tab_enemies: "Enemigos",
     enc_tab_pyces: "Pyces",
+    enc_tab_other: "Otros Enemigos",
+    enc_tab_gambling: "Gambling Enemies",
     enc_tab_badges: "Emblemas",
 
     shop_title: "🛒 Tienda de Kirb",
@@ -242,6 +306,10 @@ const TRANSLATIONS = {
     duckgrade_bombot_desc: "Las bombas rebotan y explotan dos veces.",
     duckgrade_duck_name: "Pato Defensivo",
     duckgrade_duck_desc: "Genera dinero más rápido cerca de enemigos y hace daño de área.",
+    duckgrade_iex_name: "Detonación Tóxica/Ígnea",
+    duckgrade_iex_desc: "Las explosiones aplican quemaduras o tóxico dependiendo de la evolución.",
+    duckgrade_worker_name: "Re-trampa",
+    duckgrade_worker_desc: "Las trampas pueden ser activadas una segunda vez por un enemigo distinto.",
     max_reached: "NIVEL MÁXIMO",
 
     // G-Tacks
@@ -257,6 +325,10 @@ const TRANSLATIONS = {
     gtack_black_desc: "Hongo Venenoso: Al activarla en combate, la torre negra de nivel máximo aplica veneno DoT (calavera/seta) que se propaga entre enemigos al morir o tocarse. Cuesta 400 Globets activar. (¡MUY OP!)",
     gtack_grey_name: "Grey G-Tack: Amplificación",
     gtack_grey_desc: "Ampliación de Radar: Al activarla en combate, aumenta el rango de ataque de TODAS las torres del mapa en +50 por 10s. Cuesta 400 Globets activar.",
+    gtack_iex_name: "IEx G-Tack: Detonación en Cadena",
+    gtack_iex_desc: "Explota automáticamente todos los IEx y aumenta temporalmente la cadencia de disparo de las torres cercanas.",
+    gtack_worker_name: "Worker G-Tack: Actividad Policial",
+    gtack_worker_desc: "Activa todas las trampas brevemente y acelera su colocación.",
     gtack_buy: "Comprar",
     gtack_active: "Activo",
     gtack_req_lvl: "🔒 Req. Lvl 50",
@@ -317,6 +389,10 @@ const TRANSLATIONS = {
     tower_Pyce_Glob_desc: "Un Glob infectado por el mismo código que creó a los Pyces. Su inestabilidad genera ráfagas anómalas de alta velocidad.",
     tower_Old_Glob_desc: "El sabio ancestro. Conoce los secretos de la tierra y lanza rocas inquebrantables imbuídas de magia antigua.",
     tower_Work_Bombot_desc: "Un prototipo desechado que encontró su propósito. Desencadena explosiones devastadoras de área.",
+    tower_Worker_Glob_desc: "Genera una valla normal en su radio que actúa como escudo temporal con baja salud, causando ligero daño al destruirse.<br><br>Se dedicaba al mantenimiento urbano, aunque alguna actualizacion hacia, ahora solo crea vallas que alguna vez fueron pensadas para otro amigo suyo.<br><br><span style=\"color: #ff4500\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
+    tower_Police_Glob_desc: "Genera una valla gelatinosa que ralentiza a los enemigos por un corto tiempo al destruirse, causa más daño y tiene mayor rango para colocar más vallas.<br><br>Lejos de la contruccion, este se dedica a mantener el orden y la seguridad mientras es salpicado por otros Globs, pero lejos de estar furioso, este lo aprovecha para mejorar sus trampas.<br><br><span style=\"color: #ff4500\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
+    tower_Planked_Glob_desc: "Genera una valla atornillada que causa gran daño, incluyendo daño de área al destruirse. Genial para detener hordas fácilmente.<br><br>Da miedo verlo, ya no es tan bueno como parece, y lo que si parece es tener amistad con Molten Glob... Pero dudo que sea por su relacion, algo me dice que el color influye.<br><br><span style=\"color: #ff4500\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
+    tower_DJ_Glob_desc: "Genera una valla de radio muy poderosa ofensiva y defensivamente, y tiene un radio de ataque que ralentiza y puede detener al Pyce frente a ella por unos segundos.<br><br>Lejos de ser alguien dedicado a la musica, este usa altavoces como defensa, pero es amigo tanto de la familia rosa como de la blanca, animandolos y haciendo de la ciudad una discoteca urbana.<br><br><span style=\"color: #ff4500\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
     easter_egg_warn_1: "¿Qué miras, Defensor? Deja de presionarlo.",
     easter_egg_warn_2: "¡DEJA DE PRESIONAR EL MALDITO LOGO!",
     easter_egg_corrupt: "SISTEMA CORROMPIDO. MODO ANTI-NORMAL FORZADO.",
@@ -330,6 +406,7 @@ const TRANSLATIONS = {
     almanac_hp: "❤️ HP:",
     almanac_reward: "💰 +",
     mechanic_common: "Enemigo Común",
+    mechanic_spyware: "Spywares: Las primeras y segundas evos de las torres no lo pueden atacar, pero las trampas pueden dañarlo.",
     mechanic_mimic: "Cazatesoros: ¡Atrápalo rápido antes de que huya!",
     mechanic_boss: "Jefe Imparable: Altamente resistente al control de masas.",
     mechanic_tank: "Tanque: Absorbe grandes cantidades de daño.",
@@ -339,6 +416,14 @@ const TRANSLATIONS = {
     mechanic_guest: "Dicho Pyce puede usar la espada para aturdir tus torres si están cerca de él.",
     mechanic_gold: "¡¡Atrápalo para ganar recursos como Globetines o Pycoins!!",
     mechanic_mimic_special: "¡¡Derrotarlo hará que lo obtengas como skin para la familia negra!!",
+    mechanic_bomb: "Explota al ser desconectado (destruido), aturdiendo a los Globs cercanos.",
+    mechanic_cannon: "Molesto: Puede aturdir torres, reduciendo tu DPS.",
+    mechanic_knight: "Dicho Pyce puede usar la espada para aturdir tus torres si están cerca de él.",
+    mechanic_arky: "Inmunidad Cambiante: Cambia su inmunidad aleatoriamente entre quemaduras, veneno o ralentizaciones.",
+    mechanic_crystarky: "Inmunidad Cambiante + Escudo Cristalino: Posee un escudo inicial que duplica su vida base.",
+    mechanic_arkyvoid: "Inmunidad Cambiante + Brecha de Área: Reduce temporalmente en un 10% el rango de hasta 3 torres.",
+    mechanic_moonstar: "Escudo Cósmico: Posee un escudo inicial que duplica su vida base. Ignora el daño en la primera vuelta.",
+    mechanic_holo: "Intangible: Las primeras evoluciones de las torres no le pueden hacer daño, ¡usa trampas o torres mejoradas!",
     badge_unlocked: "¡DESBLOQUEADO!",
     badge_locked: "BLOQUEADO",
     badge_reward_label: "RECOMPENSA: "
@@ -379,12 +464,15 @@ const TRANSLATIONS = {
     badge_mimic4_name: "War Economy", badge_mimic4_desc: "Have 10 generating towers on the map",
     badge_corruptMimic_name: "Corrupt Gold", badge_corruptMimic_desc: "Find a Mimic in Corrupt mode",
     badge_mimicRevenge_name: "Betrayal", badge_mimicRevenge_desc: "Sell a max level tower",
-    badge_antiNormal_name: "Void Master", badge_antiNormal_desc: "Purify the Anti-Normal mode",
+    badge_antiNormal_name: "Void Master", badge_antiNormal_desc: "Purify the Un-Normal mode",
     badge_winFacil_name: "Beginner", badge_winFacil_desc: "Win in Easy mode",
     badge_winNormal_name: "Defender", badge_winNormal_desc: "Win in Normal mode",
     badge_winDificil_name: "Warrior", badge_winDificil_desc: "Win in Hard mode",
     badge_winExtremo_name: "Legend", badge_winExtremo_desc: "Win in Extreme mode",
     badge_winCorrupto_name: "Purifier", badge_winCorrupto_desc: "Win in Corrupt mode",
+    badge_una_por_cada_name: "One of each", badge_una_por_cada_desc: "Defeat each Bit and Byte variant in one round.",
+    badge_explosiones_por_doquier_name: "Explosions Everywhere", badge_explosiones_por_doquier_desc: "Explode at least 100 times an IEx in a round.",
+    badge_urba_complet1_name: "Completionist Range-Price and Explosions", badge_urba_complet1_desc: "Use the maximum allowed towers (with upgrades).",
     badge_gtackFirst_name: "Direct Attacks", badge_gtackFirst_desc: "Buy your first G-tack",
     badge_duckgradeFirst_name: "A Golden Upgrade", badge_duckgradeFirst_desc: "First Duckgrade purchased",
     badge_supremeAlliance_name: "The Supreme Alliance", badge_supremeAlliance_desc: "Use the G-tack of both the Red family and the Grey family",
@@ -409,6 +497,9 @@ const TRANSLATIONS = {
     tower_Robotic_Glob_name: "Robotic Glob",
     tower_Soap_Glob_name: "Soap Glob",
     tower_Cotton_Glob_name: "Cotton Glob",
+    tower_Bomb_Glob_name: "Bomb Glob",
+    tower_TNT_Glob_name: "TNT Glob",
+    tower_Nuclear_Glob_name: "Nuclear Glob",
     tower_Ducky_Glob_name: "Ducky Glob",
     tower_Golden_Ducky_Glob_name: "Golden Ducky",
     tower_Comet_Glob_name: "Comet Glob",
@@ -416,7 +507,13 @@ const TRANSLATIONS = {
     tower_Demglob_name: "Demglob",
     tower_Pyce_Glob_name: "Pyce Glob",
     tower_Old_Glob_name: "Elder Glob",
-    tower_Work_Bombot_name: "Work Bombot",
+    tower_Work_Bombot_name: "Work-Bombot",
+    tower_Balloon_Glob_name: "Balloon Glob",
+    tower_Heliglob_name: "Heliglob",
+    tower_Alien_Glob_name: "Alien Glob",
+    tower_Streamer_Glob_name: "Streamer Glob",
+    tower_Gamer_Glob_name: "Gamer Glob",
+    tower_Youtuber_Glob_name: "Youtuber Glob",
     tower_limit_increased: "{name} limit increased",
 
     // Enemy Names
@@ -447,16 +544,70 @@ const TRANSLATIONS = {
     enemy_MoonStar_Pyce_desc: "A Pyce corrupted by the misuse of the Bitcore, now serves evil and uncontrolled stellar power.",
     enemy_Stupid_GoldPyce_desc: "A golden Stupid Pyce that is usually fast.",
     enemy_Mimic_Pyce_desc: "A Pyce 2.0 that hid in a chest, not that it's scared, it just wants to be special.",
+    enemy_Bomb_Pyce_name: "Bomb Pyce",
+    enemy_Knight_Pyce_name: "Knight Pyce",
+    enemy_Cannon_Pycer_name: "Cannon Pycer",
+    enemy_Bomb_Pyce_desc: "A limbless bomb conceived as a Pyce, but its life is short and never lasts long enough.",
+    enemy_Knight_Pyce_desc: "A soldier loyal to his king, banished from his home by NOeye. He has endured 3 years of retirement to renew himself and return... Even though he was neither in Techspawn nor in Bitlands.",
+    enemy_Cannon_Pycer_desc: "A red Pyce that uses a wooden cannon (or a tube and two wheels, who knows)... It's a fan of dynamite, which is actually a gunpowder barrel stuffed into cannons.",
+    enemy_Fireflies_name: "Fireflies",
+    enemy_Fireflies_desc: "Contrary to what their name suggests, they are butterflies made of fire, not fireflies... And it's not a big deal, if it weren't for their resistance to burns, which actually should heal them... But can they even be burned?",
+    enemy_Arky_name: "Arky",
+    enemy_Arky_desc: "A boss inside the casino that claims to serve as a source of fortune, but always takes the lion's share of those who play inside, so maybe he's not as good as he seems. But he is a lucky one!",
+    enemy_CrystArky_name: "CrystArky",
+    enemy_CrystArky_desc: "Arky was imbued with both dark and magical energy from the night skies, so much so that crystals have grown on him and his casino chips turned into gems... He could sell them and leave the casino, but he uses them as a symbol of fortune and wealth.",
+    enemy_ArkyVoid_name: "ArkyVoid",
+    enemy_ArkyVoid_desc: "The evil side of Arky, along with a strange and potent virus called 3RR0R, transformed him and changed his roulette for an interdimensional portal, plus he is now a magician who will steal every bit of money he can!",
+    enemy_HoloPyce_name: "HoloPyce",
+    enemy_Strechy_Pyce_name: "Strechy Pyce",
+    enemy_Rebel_Pyce_name: "Rebel Pyce",
+    enemy_HoloPyce_desc: "A hologram of the forgotten 'True Form', an ancient powerful transformation of the Pyces from Techspawn. Over time, it rusted and was forgotten, entirely replaced by modern Bitlands Portalogy.",
+    enemy_Strechy_Pyce_desc: "A Pyce in the shape of a Robloxian that, despite dictating that it WOULD NOT BE a Pyce, ended up being one, dressing like one. Or are those not clothes? Oh, it's a Pyce and not a cosplay? Oh my... Anyway, it's supposedly friendlier than any Pyce.",
+    enemy_Rebel_Pyce_desc: "Born in Bitlands as a clone of Pyce 2.0, this rebel paints and graffitis around the city whenever it wants and sneaks away... For a copy, it's very different from the original and won't stay still!",
+    enemy_Spyware_name: "Spyware",
+    enemy_Spyware_desc: "Despite being related to Bits, the function of these spies is simple: enter the casino and steal as much information as they can... They belong to a somewhat dubious organization that creates different digital beings from reality.",
+    enemy_Bit_name: "Bit",
+    enemy_Byte_name: "Byte",
+    enemy_BitY1_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Happy Variant)",
+    enemy_BitB4_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Angry Variant)",
+    enemy_BitG2_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Calm Variant)",
+    enemy_BitP3_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Dizzy Variant)",
+    enemy_Byte_desc: "Bytes are groupings of 2 Bits, even so they are considered Bytes because there are 4 forms of these groupings of 2 Bits, since 4x2 is 8... And Bytes are made up of 8 bits... Right? Well. I wouldn't doubt it.",
+    tower_IEx_name: "Explosive Instant",
+    tower_IEx1_desc: "A Glob with a bomb on its head, it better be careful! One explosion and goodbye. A tower that explodes when someone touches its area, disappearing after that. The higher the level, the bigger the explosion.<br><br><span style=\"color: grey\">Designed by JustAUser. Planned by KirByte_Bi.</span>",
+    tower_IEx2_desc: "Now with small dynamites, they might seem like little, but one explosion is enough to demonstrate their gunpowder power. Explodes on contact, with a larger blast radius than its predecessor.<br><br><span style=\"color: grey\">Designed by JustAUser. Planned by KirByte_Bi.</span>",
+    tower_IEx3_desc: "A well-made nuke wipes any being from existence... And this one knows it well, so much so that its life seems null compared to other Globs. Unleashes a colossal explosion on contact.<br><br><span style=\"color: grey\">Designed by JustAUser. Planned by KirByte_Bi.</span>",
+    enc_tab_gambling: "Gambling Enemies",
+    tower_Balloon_Glob_desc: "His big dream is to reach space. In his first urban attempts, he uses simple balloons to soar the skies of Urbanistic Road.",
+    tower_Heliglob_desc: "To rise above the skyscrapers, he has evolved to pilot a helicopter. The stars are a little closer.",
+    tower_Alien_Glob_desc: "Dream fulfilled! He has reached the cosmos and returned with alien technology, ready to dominate the urban battlefield with otherworldly powers.",
+    tower_Streamer_Glob_desc: "A Glob dreaming of becoming rich and successful. He started as a humble rookie streamer in his room.",
+    tower_Gamer_Glob_desc: "Over time, he became a competitive gamer renowned throughout the city, but the fame was still not enough.",
+    tower_Youtuber_Glob_desc: "Finally, he achieved success as a famous Youtuber and has money to throw around... Although it's time he leaves the internet and gets a real job.",
+
+    tower_Worker_Glob_name: "Worker Glob",
+    tower_Police_Glob_name: "Police Glob",
+    tower_Planked_Glob_name: "Planked Glob",
+    tower_DJ_Glob_name: "DJ Glob",
+    tower_Worker_Glob_desc: "Generates a normal fence in its radius that acts as a temporary shield with low health, dealing slight damage when destroyed.<br><br>He used to do urban maintenance, though he did some updating, now he only creates fences that were once meant for another friend of his.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
+    tower_Police_Glob_desc: "Generates a jelly fence that slows enemies down for a short time when destroyed, deals more damage, and has higher range to place more fences.<br><br>Far from construction, he dedicates himself to maintaining order and security while being splashed by other Globs, but far from being furious, he uses it to improve his traps.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
+    tower_Planked_Glob_desc: "Generates a screwed fence that deals heavy damage, including area damage when destroyed. Great for stopping hordes easily.<br><br>He's scary to look at, he's not as good as he seems anymore, and what he does seem to have is a friendship with Molten Glob... But I doubt it's because of their relationship, something tells me the color influences it.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
+    tower_DJ_Glob_desc: "Generates a radio fence that's very powerful offensively and defensively, and has an attack radius that slows and can stop the Pyce in front of it for a few seconds.<br><br>Far from being someone dedicated to music, he uses speakers as defense, but he is friends with both the pink and white families, cheering them up and making the city an urban disco.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
 
     login_user: "Username", login_pass: "Password", login_btn: "Join the battle",
+    select_map: "Select Map",
     select_mode: "Select Mode",
     backToModes: "Mode Selection",
 
     btn_achievements: "🏆 Achievements",
     btn_encyclopedia: "📖 Encyclopedia",
     enc_tab_globs: "Glob Families",
+    enc_tab_enemies: "Enemies",
     enc_tab_pyces: "Pyces",
+    enc_tab_other: "Other Enemies",
+    enc_tab_gambling: "Gambling Enemies",
     enc_tab_badges: "Badges",
+    mechanic_spyware: "Spywares: The first and second evolutions of the towers cannot attack it, but traps can damage it.",
 
     shop_title: "🛒 Kirb Shop",
     pass_title: "🦆 Duck Pass",
@@ -466,7 +617,7 @@ const TRANSLATIONS = {
     system_unstable: "SY573M UN574BL3...",
     win_diff_required: "Win in {diff} mode or higher to unlock",
     system_restored: "SYSTEM RESTORED",
-    anti_normal_active: "4N71-N0RM4L M0D3 4C71V473D",
+    anti_normal_active: "4N71-N0RM4L M0D3 4C71V473D (UN-NORMAL)",
     corrupt_active: "CORRUPT SYSTEM ACTIVATED!",
     skin_unlocked: "Skin unlocked!",
     no_pycoins: "Not enough PyCoins",
@@ -505,7 +656,7 @@ const TRANSLATIONS = {
     shop_upgrades: "Upgrades",
     shop_skins: "Skins",
     mode_selected: "{mode} mode selected",
-    settings_title: "⚙�ï¸ Settings",
+    settings_title: "⚙ï¸  Settings",
     show_shop_desc: "Show description in shop",
     show_total_damage: "View total tower damage",
     show_ranges: "View tower range",
@@ -579,6 +730,10 @@ const TRANSLATIONS = {
     duckgrade_bombot_desc: "Bombs bounce and explode twice.",
     duckgrade_duck_name: "Defensive Duck",
     duckgrade_duck_desc: "Generates money faster near enemies and deals area damage.",
+    duckgrade_iex_name: "Toxic/Fiery Detonation",
+    duckgrade_iex_desc: "Explosions apply burn or toxic status depending on the evolution.",
+    duckgrade_worker_name: "Re-trap",
+    duckgrade_worker_desc: "Traps can be triggered a second time by a different enemy.",
     max_reached: "MAX LEVEL",
 
     // G-Tacks
@@ -594,6 +749,10 @@ const TRANSLATIONS = {
     gtack_black_desc: "Poison Mushroom: When activated in combat, the max-level black tower applies poison DoT (skull/mushroom) that spreads between enemies on death or contact. Costs 400 Globets to activate. (VERY OP!)",
     gtack_grey_name: "Grey G-Tack: Amplification",
     gtack_grey_desc: "Radar Expansion: When activated in combat, increases the attack range of ALL towers on the map by +50 for 10s. Costs 400 Globets to activate.",
+    gtack_iex_name: "IEx G-Tack: Chain Detonation",
+    gtack_iex_desc: "Automatically explodes all IEx towers and temporarily increases the fire rate of nearby towers.",
+    gtack_worker_name: "Worker G-Tack: Police Activity",
+    gtack_worker_desc: "Activates all traps briefly and speeds up their placement.",
     gtack_buy: "Buy",
     gtack_active: "Active",
     gtack_req_lvl: "🔒 Req. Lvl 50",
@@ -677,6 +836,14 @@ const TRANSLATIONS = {
     mechanic_guest: "This Pyce can use the sword to stun your towers if they are close to it.",
     mechanic_gold: "Catch it to earn resources like Globets or Pycoins!!",
     mechanic_mimic_special: "Defeating it will reward you with it as a skin for the black family!!",
+    mechanic_bomb: "Explodes upon being disconnected (destroyed), stunning nearby Globs.",
+    mechanic_cannon: "Annoying: Can stun towers, reducing your DPS temporarily.",
+    mechanic_knight: "This Pyce can use the sword to stun your towers if they are close to it.",
+    mechanic_arky: "Shifting Immunity: Randomly changes its immunity between burns, poison, or slows.",
+    mechanic_crystarky: "Shifting Immunity + Crystal Shield: Has an initial shield that doubles its base health.",
+    mechanic_arkyvoid: "Shifting Immunity + Void Rift: Temporarily reduces the range of up to 3 towers by 10%.",
+    mechanic_moonstar: "Cosmic Shield: Has an initial shield that doubles its base health. Ignores damage on the first lap.",
+    mechanic_holo: "Intangible: Base towers cannot damage it, use traps or upgraded towers!",
     badge_unlocked: "UNLOCKED!",
     badge_locked: "LOCKED",
     badge_reward_label: "REWARD: "
@@ -724,7 +891,47 @@ const IMAGE_PATHS = {
   'PyCoin': 'img/Tokens/PyCoin.png',
   'DuckyPass': 'img/Tokens/DuckPass.png',
   'Flower_Pyce': 'img/Flower_Pyce.png',
-  'Mimic_Pyce': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png'
+  'Mimic_Pyce': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png',
+  
+  // NEW URBANISTIC ROAD ASSETS
+  'Bomb_Pyce': 'Urbanistic Road (BIG UPDATE)/Enemigos/Pyces/Bomb Pyce.png',
+  'Cannon_Pycer': 'Urbanistic Road (BIG UPDATE)/Enemigos/Pyces/Cannon Pycer.png',
+  'Knight_Pyce': 'Urbanistic Road (BIG UPDATE)/Enemigos/Pyces/Knight Pyce.png',
+  'HoloPyce': 'Urbanistic Road (BIG UPDATE)/Enemigos/Pyces/HoloPyce.png',
+  'Strechy_Pyce': 'Urbanistic Road (BIG UPDATE)/Enemigos/Pyces/Strechy Pyce.png',
+  'Rebel_Pyce': 'Urbanistic Road (BIG UPDATE)/Enemigos/Pyces/Rebel Pyce.png',
+  'Spyware1': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/Spyware1.png',
+  'Spyware2': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/Spyware2.png',
+  'Spyware3': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/Spyware3.png',
+  'Worker_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Naranja/Worker Glob (EVO1).png',
+  'Police_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Naranja/Police Glob (EVO2).png',
+  'Planked_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Naranja/Planked Glob (EVO3).png',
+  'DJ_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Naranja/DJ Glob (EVO4).png',
+  'Worker_Trap': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Naranja/Trampas/Wood Fence (TR1).png',
+  'Police_Trap': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Naranja/Trampas/Glimmy Fence (TR2).png',
+  'Planked_Trap': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Naranja/Trampas/Planked Fence (TR3).png',
+  'DJ_Trap': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Naranja/Trampas/Disco Fence (TR4).png',
+  'Bomb_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Instantanea Explosiva/Bomb Glob (EVO1).png',
+  'TNT_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Instantanea Explosiva/TNT Glob (EVO2).png',
+  'Nuclear_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Instantanea Explosiva/Nuclear Glob (EVO3).png',
+  'BitB4': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/BitB4.png',
+  'BitG2': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/BitG2.png',
+  'BitP3': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/BitP3.png',
+  'BitY1': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/BitY1.png',
+  'ByteGB1': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/ByteGB1.png',
+  'BytePG3': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/BytePG3.png',
+  'ByteYB4': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/ByteYB4.png',
+  'ByteYP2': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/ByteYP2.png',
+  'Fireflies': 'Urbanistic Road (BIG UPDATE)/Enemigos/Gambling Enemies/Fireflies.png',
+  'Arky': 'Urbanistic Road (BIG UPDATE)/Enemigos/Jefes (Arky)/Arky (BOSS).png',
+  'CrystArky': 'Urbanistic Road (BIG UPDATE)/Enemigos/Jefes (Arky)/CrystArky (At-Nr).png',
+  'ArkyVoid': 'Urbanistic Road (BIG UPDATE)/Enemigos/Jefes (Arky)/ArkyVoid (Crpt).png',
+  'Balloon_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Blanca/Balloon Glob (EVO1).png',
+  'Heliglob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Blanca/Heliglob (EVO2).png',
+  'Alien_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Blanca/Alien Glob (EVO3).png',
+  'Streamer_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Rosa/Streamer Glob (EVO1).png',
+  'Gamer_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Rosa/Gamer Glob (EVO2).png',
+  'Youtuber_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Rosa/Youtuber Glob (EVO3).png'
 };
 
 const NARRATOR_DATA = {
@@ -921,10 +1128,109 @@ const NARRATOR_DATA = {
       ]
     }, en: {
       name: "1x1x1x1 Pyce", msgs: [
-        "Do you think you can stop me? 01001001 01100100 01101001 01101111 01110100 01110011",
+        "Do you think you can stop me? 01001001 01101001 01101001 01101111 01110100 01110011",
         "The code is mine. Everything is mine.",
-        "01000100 01101001 01100101",
+        "01000100 01101001 01101001",
         "Your defense is a syntax error in my world."
+      ]
+    }
+  },
+  arky: {
+    img: IMAGE_PATHS.Arky, es: {
+      name: "Arky", msgs: [
+        "¡Ja! ¡Nadie ha podido con el gran Arky en su propio casino!",
+        "Cada moneda que cae es MÍA. La fortuna siempre me sonríe... porque yo la controlo.",
+        "¿Defender vuestra base? Interesante apuesta... pero la casa siempre gana.",
+        "¡Vengan, vengan! ¡El gran Arky acepta todos los desafíos... y cobra todos los fracasos!",
+        "La suerte no existe. Existe Arky, y punto.",
+        "¿Cuántas torres tenéis? No importa. Mis Pyces han cruzado casinos más difíciles que esto.",
+        "Cada Glob caído es una moneda en mi bolsillo. ¡Seguid intentándolo, por favor!",
+        "Este casino tiene una sola regla: lo que entra... no siempre sale. ¡JA!",
+        "¿Creéis que vuestras torrecitas me asustan? He visto fichas de póker más intimidantes.",
+        "El gran Arky nunca pierde. Si parecéis ganar... es que aún no he apostado en serio.",
+        "¡Mis Pyces son mis mejores clientes! Siempre vuelven... porque yo se lo ordeno.",
+        "Cada oleada que supero es otra ronda de bebidas en mi mesa VIP. ¡Salud!"
+      ]
+    }, en: {
+      name: "Arky", msgs: [
+        "Ha! Nobody has ever bested the great Arky in his own casino!",
+        "Every coin that falls is MINE. Fortune always smiles on me... because I control it.",
+        "Defending your base? Interesting bet... but the house always wins.",
+        "Come, come! The great Arky accepts all challenges... and collects all failures!",
+        "Luck doesn't exist. Arky exists, period.",
+        "How many towers do you have? Doesn't matter. My Pyces have crossed harder casinos than this.",
+        "Every fallen Glob is a coin in my pocket. Please, keep trying!",
+        "This casino has one rule: what comes in... doesn't always come out. HA!",
+        "You think your little towers scare me? I've seen more intimidating poker chips.",
+        "The great Arky never loses. If you seem to be winning... I just haven't bet seriously yet.",
+        "My Pyces are my best customers! They always come back... because I order them to.",
+        "Every wave I survive is another round of drinks at my VIP table. Cheers!"
+      ]
+    }
+  },
+  crystarky: {
+    img: IMAGE_PATHS.CrystArky, es: {
+      name: "CrystArky", msgs: [
+        "las estrellas... hablan de vuestra caída desde hace mucho. solo escuchadlas.",
+        "el cielo nocturno me ha dado todo esto... gemas, poder... y la certeza de que acabará consumiéndonos a todos.",
+        "no es... que yo quiera haceros daño. es que los astros lo han decidido por mí.",
+        "he mirado el firmamento esta noche y... creo que ya sé cómo termina esto para vosotros.",
+        "las constelaciones no mienten. el fin se acerca lentamente, como la marea.",
+        "cada gema que llevo es un fragmento de estrella muerta. y vosotros... seréis lo siguiente.",
+        "a veces me pregunto si los Globs también brillan cuando desaparecen. supongo que pronto lo sabremos.",
+        "el universo es muy grande... y en él, vuestras torres son polvo entre el polvo.",
+        "no me malinterpretéis... admiráis el cielo, ¿verdad? yo también. por eso sé lo que viene.",
+        "hay algo hermoso en la inevitabilidad. como un cometa. bello... y destructor.",
+        "el casino brilla de noche como las estrellas. y las estrellas... tarde o temprano se apagan.",
+        "siento que os queda poco tiempo. no lo digo con crueldad... lo dicen los astros por mí."
+      ]
+    }, en: {
+      name: "CrystArky", msgs: [
+        "the stars... have spoken of your downfall for a long time. just listen to them.",
+        "the night sky gave me all of this... gems, power... and the certainty that it will end up consuming us all.",
+        "it's not... that i want to hurt you. it's that the heavens have decided for me.",
+        "i looked at the sky tonight and... i think i already know how this ends for you.",
+        "constellations don't lie. the end approaches slowly, like the tide.",
+        "every gem i carry is a fragment of a dead star. and you... will be next.",
+        "i sometimes wonder if Globs also shine when they disappear. i suppose we'll find out soon.",
+        "the universe is vast... and in it, your towers are dust among dust.",
+        "don't misunderstand me... you admire the sky, don't you? so do i. that's why i know what's coming.",
+        "there is something beautiful in inevitability. like a comet. beautiful... and destructive.",
+        "the casino glows at night like the stars. and stars... sooner or later go dark.",
+        "i sense you don't have much time left. i don't say it with cruelty... the stars say it for me."
+      ]
+    }
+  },
+  arkyvoid: {
+    img: IMAGE_PATHS.ArkyVoid, es: {
+      name: "ArkyVoid", msgs: [
+        "✨ El portal obedece... *krkr*... ¡y vosotros también lo haréis! 🎩",
+        "*fallo de señal* ...mi arte... *kzzt*... es incom-parable. ¡CONTEMPLADLO! ✨",
+        "🎩 Abracadabra... *zzzt*... ¡vuestras torres son ilusiones que... *krkr*... pronto desaparecerán!",
+        "El gran mago 3RR0R... *fallo*... ¡digo, ArkyVoid! ¡Os hará desaparecer con un chasquido! 💫",
+        "*interferencia* ...el dinero... el poder... todo... *kzzt*... será mío. ¡JA-JA-*krkr*-JA! 🌀",
+        "¡M1 C4S1N0... *zzzt*... N0 T13N3 F1N! ¡El portal lo expande... *krkr*... eternamente! 🌀",
+        "*corrupción detectada* ...mis Pyces... *kzzt*... son mi mejor truco de magia. ¡PUFF! ✨",
+        "🎩 Pensabais que era Arky... *fallo*... ¡PERO ERA YO, ARKYVOID, TODO EL TIEMPO! *krkr*",
+        "El v3rd4d3ro m4go... *interferencia*... nunca rev3la sus s3cr3tos. Ni yo tampoco. *zzzt* 💫",
+        "*señal perdida* ...la oscuridad del portal... *krkr*... os... os tragará... *kzzt*... a todos. 🌑",
+        "¿Un truco? *fallo de sistema* ...esto no es un truco... *zzzt*... esto es una CONDENA. 🎩",
+        "*krkr* ...veo vuestro futuro en el portal... *kzzt*... y no... no hay Globs en él. *interferencia* 💀"
+      ]
+    }, en: {
+      name: "ArkyVoid", msgs: [
+        "✨ The portal obeys... *krkr*... and so shall you! 🎩",
+        "*signal failure* ...my art... *kzzt*... is incom-parable. BEHOLD IT! ✨",
+        "🎩 Abracadabra... *zzzt*... your towers are illusions that... *krkr*... shall soon vanish!",
+        "The great mage 3RR0R... *glitch*... I mean, ArkyVoid! Will make you disappear with a snap! 💫",
+        "*interference* ...the money... the power... all of it... *kzzt*... will be mine. HA-HA-*krkr*-HA! 🌀",
+        "M1 C4S1N0... *zzzt*... H4S N0 3ND! The portal expands it... *krkr*... eternally! 🌀",
+        "*corruption detected* ...my Pyces... *kzzt*... are my best magic trick. POOF! ✨",
+        "🎩 You thought it was Arky... *glitch*... BUT IT WAS ME, ARKYVOID, ALL ALONG! *krkr*",
+        "The tr00 m4g1c1an... *interference*... never r3v34ls their s3cr3ts. Neither do I. *zzzt* 💫",
+        "*signal lost* ...the darkness of the portal... *krkr*... will... will swallow you... *kzzt*... all. 🌑",
+        "A trick? *system failure* ...this is not a trick... *zzzt*... this is a SENTENCE. 🎩",
+        "*krkr* ...i see your future in the portal... *kzzt*... and there are... no Globs in it. *interference* 💀"
       ]
     }
   }
@@ -936,9 +1242,9 @@ const TOWER_TYPES = {
   'Golden_Glob': { name: 'tower_Golden_Glob_name', damage: 45, range: 170, speed: 1.4, cost: 200, evolution: 'Rainbow_Glob', image: IMAGE_PATHS.Golden_Glob, projectile: 'gold', desc: "tower_Golden_Glob_desc", family: 'Glob' },
   'Rainbow_Glob': { name: 'tower_Rainbow_Glob_name', damage: 30, range: 180, speed: 1.8, cost: 400, image: IMAGE_PATHS.Rainbow_Glob, projectile: 'laser_rainbow', piercing: true, desc: "tower_Rainbow_Glob_desc", family: 'Glob' },
 
-  'Red_Glob': { name: 'tower_Red_Glob_name', damage: 20, range: 60, speed: 2.0, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "tower_Red_Glob_desc", family: 'Red_Glob' },
-  'Molten_Glob': { name: 'tower_Molten_Glob_name', damage: 15, range: 70, speed: 2.2, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "tower_Molten_Glob_desc", family: 'Red_Glob' },
-  'Robotic_Glob': { name: 'tower_Robotic_Glob_name', damage: 40, range: 200, speed: 1.5, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
+  'Red_Glob': { name: 'tower_Red_Glob_name', damage: 20, range: 85, speed: 2.0, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "tower_Red_Glob_desc", family: 'Red_Glob' },
+  'Molten_Glob': { name: 'tower_Molten_Glob_name', damage: 15, range: 95, speed: 2.2, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "tower_Molten_Glob_desc", family: 'Red_Glob' },
+  'Robotic_Glob': { name: 'tower_Robotic_Glob_name', damage: 40, range: 120, speed: 1.0, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
 
   'Soap_Glob': { name: 'tower_Soap_Glob_name', damage: 0, range: 120, speed: 0.3, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "tower_Soap_Glob_desc", family: 'Soap_Glob' },
   'Cotton_Glob': { name: 'tower_Cotton_Glob_name', damage: 5, range: 140, speed: 2.6, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "tower_Cotton_Glob_desc", family: 'Soap_Glob' },
@@ -953,7 +1259,28 @@ const TOWER_TYPES = {
 
   'Pyce_Glob': { name: 'tower_Pyce_Glob_name', damage: 30, range: 180, speed: 4.5, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Grey' },
   'Old_Glob': { name: 'tower_Old_Glob_name', damage: 40, range: 200, speed: 3.5, cost: 200, evolution: 'Pyce_Glob', image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "tower_Old_Glob_desc", family: 'Grey' },
-  'Work_Bombot': { name: 'tower_Work_Bombot_name', damage: 100, range: 150, speed: 0.6, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "tower_Work_Bombot_desc", family: 'Special' }
+  'Work_Bombot': { name: 'tower_Work_Bombot_name', damage: 100, range: 150, speed: 0.6, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "tower_Work_Bombot_desc", family: 'Special' },
+
+  // Familia Blanca
+  'Balloon_Glob': { name: 'tower_Balloon_Glob_name', damage: 0, range: 100, speed: 0, cost: 120, evolution: 'Heliglob', image: IMAGE_PATHS.Balloon_Glob, projectile: 'none', desc: "tower_Balloon_Glob_desc", family: 'White' },
+  'Heliglob': { name: 'tower_Heliglob_name', damage: 0, range: 150, speed: 0, cost: 250, evolution: 'Alien_Glob', image: IMAGE_PATHS.Heliglob, projectile: 'none', desc: "tower_Heliglob_desc", family: 'White' },
+  'Alien_Glob': { name: 'tower_Alien_Glob_name', damage: 0, range: 200, speed: 0, cost: 500, image: IMAGE_PATHS.Alien_Glob, projectile: 'none', desc: "tower_Alien_Glob_desc", family: 'White' },
+
+  // Familia Rosa
+  'Streamer_Glob': { name: 'tower_Streamer_Glob_name', damage: 0, range: 100, speed: 0, cost: 100, evolution: 'Gamer_Glob', image: IMAGE_PATHS.Streamer_Glob, projectile: 'none', desc: "tower_Streamer_Glob_desc", family: 'Pink' },
+  'Gamer_Glob': { name: 'tower_Gamer_Glob_name', damage: 0, range: 150, speed: 0, cost: 200, evolution: 'Youtuber_Glob', image: IMAGE_PATHS.Gamer_Glob, projectile: 'none', desc: "tower_Gamer_Glob_desc", family: 'Pink' },
+  'Youtuber_Glob': { name: 'tower_Youtuber_Glob_name', damage: 0, range: 200, speed: 0, cost: 400, image: IMAGE_PATHS.Youtuber_Glob, projectile: 'none', desc: "tower_Youtuber_Glob_desc", family: 'Pink' },
+
+  // Instantanea Explosiva
+  'Bomb_Glob': { name: 'tower_Bomb_Glob_name', damage: 50, range: 60, speed: 0, cost: 300, evolution: 'TNT_Glob', image: IMAGE_PATHS.Bomb_Glob, projectile: 'none', unlocked: false, desc: "tower_IEx1_desc", family: 'IEx' },
+  'TNT_Glob': { name: 'tower_TNT_Glob_name', damage: 100, range: 80, speed: 0, cost: 600, evolution: 'Nuclear_Glob', image: IMAGE_PATHS.TNT_Glob, projectile: 'none', desc: "tower_IEx2_desc", family: 'IEx' },
+  'Nuclear_Glob': { name: 'tower_Nuclear_Glob_name', damage: 300, range: 120, speed: 0, cost: 1200, image: IMAGE_PATHS.Nuclear_Glob, projectile: 'none', desc: "tower_IEx3_desc", family: 'IEx' },
+
+  // Worker Glob Family (Trampas)
+  'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 80, speed: 0.5, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: true },
+  'Police_Glob': { name: 'tower_Police_Glob_name', damage: 30, range: 100, speed: 0.6, cost: 300, evolution: 'Planked_Glob', image: IMAGE_PATHS.Police_Glob, trap: 'Police_Trap', desc: "tower_Police_Glob_desc", family: 'Worker_Glob' },
+  'Planked_Glob': { name: 'tower_Planked_Glob_name', damage: 70, range: 110, speed: 0.7, cost: 550, evolution: 'DJ_Glob', image: IMAGE_PATHS.Planked_Glob, trap: 'Planked_Trap', desc: "tower_Planked_Glob_desc", family: 'Worker_Glob' },
+  'DJ_Glob': { name: 'tower_DJ_Glob_name', damage: 120, range: 130, speed: 0.8, cost: 1200, image: IMAGE_PATHS.DJ_Glob, trap: 'DJ_Trap', desc: "tower_DJ_Glob_desc", family: 'Worker_Glob' }
 };
 
 const ENEMY_TYPES = {
@@ -968,10 +1295,36 @@ const ENEMY_TYPES = {
 
   '1x1x1x1_Pyce': { name: 'enemy_1x1x1x1_Pyce_name', desc: 'enemy_1x1x1x1_Pyce_desc', health: 500, speed: 0.5, reward: 500, image: IMAGE_PATHS['1x1x1x1_Pyce'], boss: true, bossStun: true, stunCooldown: 10 },
   'NOeye_Pyce': { name: 'enemy_NOeye_Pyce_name', desc: 'enemy_NOeye_Pyce_desc', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12 },
-  'MoonStar_Pyce': { name: 'enemy_MoonStar_Pyce_name', desc: 'enemy_MoonStar_Pyce_desc', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true },
+  'MoonStar_Pyce': { name: 'enemy_MoonStar_Pyce_name', desc: 'enemy_MoonStar_Pyce_desc', mechanic_key: 'mechanic_moonstar', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true },
 
   'Stupid_GoldPyce': { name: 'enemy_Stupid_GoldPyce_name', desc: 'enemy_Stupid_GoldPyce_desc', mechanic_key: 'mechanic_gold', health: 80, speed: 2.0, reward: 150, image: IMAGE_PATHS.Stupid_GoldPyce, mimic: true },
-  'Mimic_Pyce': { name: 'enemy_Mimic_Pyce_name', desc: 'enemy_Mimic_Pyce_desc', mechanic_key: 'mechanic_mimic_special', health: 500, speed: 1.8, reward: 1000, image: IMAGE_PATHS.Mimic_Pyce, mimic: true, isSpecialMimic: true }
+  'Mimic_Pyce': { name: 'enemy_Mimic_Pyce_name', desc: 'enemy_Mimic_Pyce_desc', mechanic_key: 'mechanic_mimic_special', health: 500, speed: 1.8, reward: 1000, image: IMAGE_PATHS.Mimic_Pyce, mimic: true, isSpecialMimic: true },
+  
+  // Nuevos Pyces
+  'Bomb_Pyce': { name: 'enemy_Bomb_Pyce_name', desc: 'enemy_Bomb_Pyce_desc', health: 100, speed: 1.5, reward: 30, image: IMAGE_PATHS.Bomb_Pyce, mechanic_key: 'mechanic_bomb' },
+  'Knight_Pyce': { name: 'enemy_Knight_Pyce_name', desc: 'enemy_Knight_Pyce_desc', mechanic_key: 'mechanic_knight', health: 250, speed: 1.0, reward: 60, image: IMAGE_PATHS.Knight_Pyce },
+  'Cannon_Pycer': { name: 'enemy_Cannon_Pycer_name', desc: 'enemy_Cannon_Pycer_desc', mechanic_key: 'mechanic_cannon', health: 300, speed: 0.8, reward: 70, image: IMAGE_PATHS.Cannon_Pycer, stunAbility: true, stunCooldown: 6 },
+  'HoloPyce': { name: 'enemy_HoloPyce_name', desc: 'enemy_HoloPyce_desc', health: 180, speed: 1.2, reward: 40, image: IMAGE_PATHS.HoloPyce, holo: true, mechanic_key: 'mechanic_holo' },
+  'Strechy_Pyce': { name: 'enemy_Strechy_Pyce_name', desc: 'enemy_Strechy_Pyce_desc', health: 220, speed: 1.1, reward: 50, image: IMAGE_PATHS.Strechy_Pyce },
+  'Rebel_Pyce': { name: 'enemy_Rebel_Pyce_name', desc: 'enemy_Rebel_Pyce_desc', health: 150, speed: 2.8, reward: 45, image: IMAGE_PATHS.Rebel_Pyce },
+  
+  // Gambling Enemies
+  'BitY1': { name: 'enemy_Bit_name', desc: 'enemy_BitY1_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitY1, category: 'gambling' },
+  'BitB4': { name: 'enemy_Bit_name', desc: 'enemy_BitB4_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitB4, category: 'gambling' },
+  'BitG2': { name: 'enemy_Bit_name', desc: 'enemy_BitG2_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitG2, category: 'gambling' },
+  'BitP3': { name: 'enemy_Bit_name', desc: 'enemy_BitP3_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitP3, category: 'gambling' },
+  'ByteGB1': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteGB1, category: 'gambling' },
+  'ByteYP2': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYP2, category: 'gambling' },
+  'BytePG3': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.BytePG3, category: 'gambling' },
+  'ByteYB4': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYB4, category: 'gambling' },
+  'Fireflies': { name: 'enemy_Fireflies_name', desc: 'enemy_Fireflies_desc', health: 30, speed: 1.8, reward: 20, image: IMAGE_PATHS.Fireflies, category: 'gambling' },
+  'Spyware': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling' },
+  'Spyware1': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling' },
+  'Spyware2': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware2, category: 'gambling' },
+  'Spyware3': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware3, category: 'gambling' },
+  'Arky': { name: 'enemy_Arky_name', desc: 'enemy_Arky_desc', mechanic_key: 'mechanic_arky', health: 1000, speed: 0.4, reward: 1000, image: IMAGE_PATHS.Arky, boss: true, arkyType: 'normal', category: 'gambling' },
+  'CrystArky': { name: 'enemy_CrystArky_name', desc: 'enemy_CrystArky_desc', mechanic_key: 'mechanic_crystarky', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.CrystArky, boss: true, arkyType: 'crystal', category: 'gambling' },
+  'ArkyVoid': { name: 'enemy_ArkyVoid_name', desc: 'enemy_ArkyVoid_desc', mechanic_key: 'mechanic_arkyvoid', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.ArkyVoid, boss: true, arkyType: 'void', category: 'gambling' }
 };
 
 const BADGES = {
@@ -996,8 +1349,11 @@ const BADGES = {
   mimicRevenge: { key: 'mimicRevenge', icon: '🔥', unlocked: false, reward: { pycoins: 500, xp: 200 } },
   antiNormal: { key: 'antiNormal', icon: '🌑', unlocked: false, reward: { duckpass: 100, xp: 2000 } },
   winFacil: { key: 'winFacil', icon: '🌱', unlocked: false, reward: { pycoins: 50, xp: 50 } },
-  winNormal: { key: 'winNormal', icon: '⚔️', unlocked: false, reward: { pycoins: 100, xp: 100 } },
-  winDificil: { key: 'winDificil', icon: '🔥', unlocked: false, reward: { pycoins: 200, xp: 200 } },
+  winNormal: { key: 'winNormal', icon: '🌲', unlocked: false, reward: { pycoins: 100, xp: 100 } },
+  una_por_cada: { key: 'una_por_cada', icon: '🎰', unlocked: false, reward: { pycoins: 200, duckpass: 150 } },
+  explosiones_por_doquier: { key: 'explosiones_por_doquier', icon: '💥', unlocked: false, reward: { pycoins: 350, duckpass: 250 } },
+  urba_complet1: { key: 'urba_complet1', icon: '🌆', unlocked: false, reward: { pycoins: 500, duckpass: 300 } },
+  winDificil: { key: 'winDificil', icon: '⚔️', unlocked: false, reward: { pycoins: 200, xp: 150 } },
   winExtremo: { key: 'winExtremo', icon: '💀', unlocked: false, reward: { pycoins: 500, xp: 500 } },
   winCorrupto: { key: 'winCorrupto', icon: '👾', unlocked: false, reward: { pycoins: 1000, xp: 1000 } },
   gtackFirst: { key: 'gtackFirst', icon: '🎯', unlocked: false, reward: { pycoins: 100, xp: 50 } },
@@ -1014,26 +1370,56 @@ const BADGES = {
   encyclopediaMaster: { key: 'encyclopediaMaster', icon: '📖', unlocked: false, reward: { pycoins: 500, duckpass: 500, xp: 2000 } }
 };
 
-const RIVER_ZONES = [
-  { x: 300, y: 0, w: 60, h: 600 }, // Río vertical
-  { x: 300, y: 200, w: 200, h: 60 } // Brazo de río
-];
-
-const PATH_SEGMENTS = [
-  { x: 0, y: 170, w: 200, h: 60 },
-  { x: 170, y: 170, w: 60, h: 200 },
-  { x: 170, y: 330, w: 300, h: 60 },
-  { x: 430, y: 150, w: 60, h: 240 },
-  { x: 430, y: 150, w: 300, h: 60 },
-  { x: 700, y: 150, w: 60, h: 200 },
-  { x: 700, y: 330, w: 300, h: 60 }
-];
-
-const ENEMY_PATH = [
-  { x: -30, y: 200 }, { x: 200, y: 200 }, { x: 200, y: 360 },
-  { x: 460, y: 360 }, { x: 460, y: 180 }, { x: 730, y: 180 },
-  { x: 730, y: 360 }, { x: 1030, y: 360 }
-];
+const MAPS = {
+  gelatin_lake: {
+    name: "Gelatin Lake",
+    riverZones: [
+      { x: 300, y: 0, w: 60, h: 600 },
+      { x: 300, y: 200, w: 200, h: 60 }
+    ],
+    pathSegments: [
+      { x: 0, y: 170, w: 200, h: 60 },
+      { x: 170, y: 170, w: 60, h: 200 },
+      { x: 170, y: 330, w: 300, h: 60 },
+      { x: 430, y: 150, w: 60, h: 240 },
+      { x: 430, y: 150, w: 300, h: 60 },
+      { x: 700, y: 150, w: 60, h: 200 },
+      { x: 700, y: 330, w: 300, h: 60 }
+    ],
+    enemyPath: [
+      { x: -30, y: 200 }, { x: 200, y: 200 }, { x: 200, y: 360 },
+      { x: 460, y: 360 }, { x: 460, y: 180 }, { x: 730, y: 180 },
+      { x: 730, y: 360 }, { x: 1030, y: 360 }
+    ]
+  },
+  urbanistic_road: {
+    name: "Urbanistic Road",
+    riverZones: [
+      { x: 500, y: 0, w: 80, h: 600 }
+    ],
+    pathSegments: [
+      { x: 0, y: 170, w: 360, h: 60 },
+      { x: 300, y: 30, w: 60, h: 200 },
+      { x: 300, y: 30, w: 360, h: 60 },
+      { x: 600, y: 30, w: 60, h: 360 },
+      { x: 600, y: 330, w: 400, h: 60 },
+      
+      { x: 300, y: 170, w: 60, h: 320 },
+      { x: 300, y: 430, w: 360, h: 60 },
+      { x: 600, y: 330, w: 60, h: 160 }
+    ],
+    enemyPaths: [
+      [
+        { x: -30, y: 200 }, { x: 330, y: 200 }, { x: 330, y: 60 },
+        { x: 630, y: 60 }, { x: 630, y: 360 }, { x: 1030, y: 360 }
+      ],
+      [
+        { x: -30, y: 200 }, { x: 330, y: 200 }, { x: 330, y: 460 },
+        { x: 630, y: 460 }, { x: 630, y: 360 }, { x: 1030, y: 360 }
+      ]
+    ]
+  }
+};
 
 const SKINS_DATA = {
   'Glob': [
@@ -1139,7 +1525,7 @@ const SKINS_DATA = {
         'Comet_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png',
         'Dark_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Didic Pyce (SK-EVO2).png',
         'Demglob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/NOmic Pyce (SK-EVO3).png',
-        'Void_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Golden Pyce (SK-EVO4).png'
+        'Void_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Golden MimicPyce (SK-EVO4).png'
       },
       names: {
         'Comet_Glob': 'Mimic Pyce',
@@ -1275,3 +1661,5 @@ Object.assign(window.SKIN_META, {
   }
 });
 /* --- END INSERTAR --- */
+
+

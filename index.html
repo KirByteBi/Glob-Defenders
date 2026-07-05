@@ -55,6 +55,17 @@
             </div>
         </div>
     </div>
+    <!-- Map Selection -->
+    <div id="map-selection" style="display: none;">
+        <div id="map-decorations"></div>
+        <div class="login-box">
+            <h2 data-i18n="select_map">Seleccionar Mapa</h2>
+            <div class="modes-grid" style="grid-template-columns: 1fr;">
+                <button class="mode-btn" data-map="gelatin_lake" onclick="selectMap('gelatin_lake')">🌲 Gelatin Lake</button>
+                <button class="mode-btn" data-map="urbanistic_road" onclick="selectMap('urbanistic_road')">🏙️ Urbanistic Road</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Mode Selection -->
     <div id="mode-selection" style="display: none;">
@@ -182,9 +193,9 @@
             <div class="modal-header">
                 <h2>📖 Enciclopedia</h2>
                 <div class="encyclopedia-tabs">
-                    <button class="encyclopedia-tab active" id="enc-tab-globs" onclick="switchEncyclopediaTab('globs')">Familias Glob</button>
-                    <button class="encyclopedia-tab" id="enc-tab-pyces" onclick="switchEncyclopediaTab('pyces')">Pyces</button>
-                    <button class="encyclopedia-tab" id="enc-tab-emblemas" onclick="switchEncyclopediaTab('emblemas')">Emblemas</button>
+                    <button class="encyclopedia-tab active" id="enc-tab-globs" onclick="switchEncyclopediaTab('globs')" data-i18n="enc_tab_globs">Familias Glob</button>
+                    <button class="encyclopedia-tab" id="enc-tab-enemies" onclick="switchEncyclopediaTab('enemies')" data-i18n="enc_tab_enemies">Enemigos</button>
+                    <button class="encyclopedia-tab" id="enc-tab-emblemas" onclick="switchEncyclopediaTab('emblemas')" data-i18n="enc_tab_badges">Emblemas</button>
                 </div>
                 <div class="header-btns">
                     <button class="close-btn" onclick="smartClose('encyclopedia-modal')">✖</button>
