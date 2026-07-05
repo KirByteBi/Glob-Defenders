@@ -1986,3 +1986,61 @@ input:checked + .slider:before {
 .tunnel-base .wormhole-inner { display: none !important; }
 .urban-map { background: #555 !important; }
 
+/* ==========================================================================
+   RESPONSIVE PARA VENTANA DIVIDIDA EN PC (700px – 1100px de ancho)
+   ========================================================================== */
+@media (max-width: 1100px) and (min-width: 700px) {
+    /* Reducir botones laterales de meta-controles */
+    .meta-btn {
+        font-size: 0.75rem !important;
+        padding: 6px 10px !important;
+        min-width: 0 !important;
+    }
+    #meta-controls {
+        top: 60px !important;
+        right: 8px !important;
+        gap: 6px !important;
+    }
+
+    /* Reducir cabecera HUD */
+    #game-ui {
+        padding: 4px 10px !important;
+        gap: 8px !important;
+    }
+    .stat-value { font-size: 0.9rem !important; }
+    .stat-label { font-size: 0.5rem !important; }
+    .game-logo { height: 30px !important; }
+
+    /* Modales más compactos */
+    .shop-content,
+    .pass-content,
+    .story-logs-content,
+    .encyclopedia-content {
+        width: 96% !important;
+        padding: 16px !important;
+    }
+
+    /* Tarjetas más pequeñas en el shop */
+    .meta-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+        gap: 12px !important;
+    }
+    .meta-item, .skin-item {
+        min-height: 200px !important;
+        padding: 14px !important;
+    }
+
+    /* Narrator bubble más estrecha */
+    .narrator-bubble {
+        width: 300px !important;
+        margin-left: -150px !important;
+        padding: 10px !important;
+    }
+    .narrator-portrait { width: 44px !important; height: 44px !important; }
+    .narrator-name { font-size: 0.9rem !important; }
+    .narrator-text { font-size: 0.82rem !important; }
+
+    /* Barra de balance más compacta */
+    .shop-balance { gap: 15px !important; padding: 8px !important; }
+    .balance-item { font-size: 0.8rem !important; gap: 5px !important; }
+}

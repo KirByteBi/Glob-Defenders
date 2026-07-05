@@ -61,7 +61,7 @@ let gameState = {
   baseHealthLevel: 0,
   towerLimits: {
     'Glob': 5, 'Red_Glob': 6, 'Soap_Glob': 3, 'Ducky_Glob': 3,
-    'Comet_Glob': 3, 'Old_Glob': 2, 'Work_Bombot': 1, 'White': 1, 'Pink': 1, 'IEx': 1
+    'Comet_Glob': 3, 'Old_Glob': 2, 'Work_Bombot': 1, 'White': 1, 'Pink': 1, 'IEx': 1, 'Worker_Glob': 2
   },
   usedCodes: {},
   towerCounts: {},
@@ -1834,6 +1834,11 @@ function isTowerOwned(t) {
   if (t === 'Work_Bombot' || t === 'Special') return !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked);
   if (t === 'Old_Glob' || t === 'Pyce_Glob' || t === 'Grey') return !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked);
   if (t === 'Comet_Glob') return !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked);
+  // Urbanistic Road families
+  if (t === 'Worker_Glob') return gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 15;
+  if (t === 'Balloon_Glob' || t === 'White') return gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 20;
+  if (t === 'Streamer_Glob' || t === 'Pink') return gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 25;
+  if (t === 'Bomb_Glob' || t === 'IEx') return gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 30;
   return false;
 }
 
@@ -1864,10 +1869,10 @@ function drawShop() {
     ];
     const MAX_LIMITS = {
       'Glob': 8, 'Red_Glob': 11, 'Soap_Glob': 5, 'Ducky_Glob': 8,
-      'Comet_Glob': 6, 'Old_Glob': 4, 'Work_Bombot': 2
+      'Comet_Glob': 6, 'Old_Glob': 4, 'Work_Bombot': 2, 'Worker_Glob': 4
     };
 
-    ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Old_Glob', 'Work_Bombot'].forEach(t => {
+    ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Old_Glob', 'Work_Bombot', 'Worker_Glob'].forEach(t => {
       const isUnlocked = isTowerOwned(t);
       const maxLim = MAX_LIMITS[t] || 10;
 
@@ -3332,6 +3337,8 @@ function gameLoop() {
       if (gameState.traps && gameState.traps.length > 0) {
         for (let j = gameState.traps.length - 1; j >= 0; j--) {
           let trap = gameState.traps[j];
+          // DJ_Trap is NOT contact-based — it has its own active loop below
+          if (trap.parentType === 'DJ_Glob') continue;
           if (trap.active && Math.hypot(e.x - trap.x, e.y - trap.y) <= (trap.radius || 40)) {
             let dmg = trap.damage;
             e.health -= dmg;
@@ -3345,10 +3352,6 @@ function gameLoop() {
                   otherE.health -= trap.damage * 0.5;
                 }
               });
-            } else if (trap.parentType === 'DJ_Glob') {
-              e.stunned = 1.5;
-              e.enemySlowTimer = 3;
-              e.enemySlowFactor = 0.6;
             }
             
             showEffect(trap.x, trap.y, "TRAP! 💥", "#f39c12");
@@ -3363,6 +3366,9 @@ function gameLoop() {
           }
         }
       }
+
+      // Stun immunity countdown
+      if (e.stunImmuneTimer && e.stunImmuneTimer > 0) e.stunImmuneTimer -= dt;
 
       if (e.poisonTimer && e.poisonTimer > 0) {
         e.poisonTimer -= dt;
@@ -3599,34 +3605,39 @@ function gameLoop() {
             }
           });
           
+          const isDJ = t.type === 'DJ_Glob';
+          const trapRadius = isDJ ? 80 : 40;
+          const trapSize  = isDJ ? 50 : 40;
+          const mapEl = document.getElementById('map');
+
           if (potentialSpots.length > 0) {
-            // Prioriza la posición más avanzada del camino disponible
+            // Coloca UNA valla por tick (el cooldown rápido llena el rango progresivamente)
+            // DJ_Glob tiene cooldown x3: tarda más pero su trampa es más poderosa
             potentialSpots.sort((a, b) => b.index - a.index);
             const spot = potentialSpots[0];
-            let trapDamage = t.damage;
-            let trapType = t.trap;
-            let trap = {
-              x: spot.x, y: spot.y, damage: trapDamage, trapType: trapType, parentType: t.type, active: true, radius: 40,
+            const trapType = t.trap;
+            const trap = {
+              x: spot.x, y: spot.y,
+              damage: t.damage,
+              trapType,
+              parentType: t.type,
+              active: true,
+              radius: trapRadius,
               el: document.createElement('div')
             };
             trap.el.className = 'trap-entity';
-            trap.el.style.left = `${spot.x}px`;
-            trap.el.style.top = `${spot.y}px`;
-            trap.el.style.width = '40px';
-            trap.el.style.height = '40px';
-            trap.el.style.position = 'absolute';
-            trap.el.style.transform = 'translate(-50%, -50%)';
-            trap.el.style.backgroundImage = `url('${encodeURI(IMAGE_PATHS[trapType])}')`;
-            trap.el.style.backgroundSize = 'contain';
-            trap.el.style.backgroundRepeat = 'no-repeat';
-            trap.el.style.backgroundPosition = 'center';
-            trap.el.style.zIndex = '5';
-            document.getElementById('map').appendChild(trap.el);
+            trap.el.style.cssText =
+              `position:absolute;` +
+              `left:${spot.x}px;top:${spot.y}px;` +
+              `width:${trapSize}px;height:${trapSize}px;` +
+              `transform:translate(-50%,-50%);` +
+              `background:url('${encodeURI(IMAGE_PATHS[trapType])}') center/contain no-repeat;` +
+              `z-index:5;`;
+            mapEl.appendChild(trap.el);
             gameState.traps.push(trap);
-            
           }
-          // Siempre reinicia el cooldown aunque no hubiera hueco libre
-          t.cooldown = 1 / workerSpeed;
+          // Cooldown: DJ Glob x3 más lento
+          t.cooldown = (1 / workerSpeed) * (isDJ ? 3 : 1);
         }
         return;
       }
@@ -3819,6 +3830,65 @@ function gameLoop() {
         });
       }
     }
+    // ── DJ_Trap active update loop ──
+    // DJ_Trap acts like a mini-tower: shoots stun waves periodically;
+    // on destruction it fires a final paralyzing pulse.
+    if (gameState.traps) {
+      for (let j = gameState.traps.length - 1; j >= 0; j--) {
+        const trap = gameState.traps[j];
+        if (!trap.active || trap.parentType !== 'DJ_Glob') continue;
+
+        // Init HP y cooldown de onda
+        if (trap.health === undefined) trap.health = 120 + gameState.wave * 8;
+        if (trap.waveCooldown === undefined) trap.waveCooldown = 0;
+
+        // Enemigos en radio dañan la valla (la destruyen al atacarla)
+        const inRange = gameState.enemies.filter(e =>
+          Math.hypot(e.x - trap.x, e.y - trap.y) <= trap.radius
+        );
+        if (inRange.length > 0) {
+          // Cada enemigo hace ~15 de daño por segundo a la valla
+          trap.health -= inRange.length * 15 * dt;
+        }
+
+        // Onda periódica de ataque mientras la valla sigue en pie
+        trap.waveCooldown -= dt;
+        if (trap.waveCooldown <= 0) {
+          if (inRange.length > 0) {
+            inRange.forEach(e => {
+              e.health -= trap.damage * 0.4;
+              if (!e.stunImmuneTimer || e.stunImmuneTimer <= 0) {
+                e.stunned = (e.stunned || 0) + 1.2;
+                e.enemySlowTimer = 2;
+                e.enemySlowFactor = 0.55;
+                e.stunImmuneTimer = 10;
+              }
+            });
+            showEffect(trap.x, trap.y, "♫", "#9b59b6");
+          }
+          trap.waveCooldown = 2.0;
+        }
+
+        // Destrucción: HP agotada → pulso final paralizador
+        if (trap.health <= 0) {
+          gameState.enemies.forEach(e => {
+            if (Math.hypot(e.x - trap.x, e.y - trap.y) <= trap.radius * 1.5) {
+              e.health -= trap.damage * 0.8;
+              if (!e.stunImmuneTimer || e.stunImmuneTimer <= 0) {
+                e.stunned = (e.stunned || 0) + 3.0;
+                e.enemySlowFactor = 0.0;
+                e.enemySlowTimer = 3;
+                e.stunImmuneTimer = 10;
+              }
+            }
+          });
+          showEffect(trap.x, trap.y, "♫ BOOM!", "#8e44ad");
+          if (trap.el && trap.el.parentNode) trap.el.parentNode.removeChild(trap.el);
+          gameState.traps.splice(j, 1);
+        }
+      }
+    }
+
 
     if (gameState.waveActive && !gameState.spawningActive && !gameState.enemies.length) {
       gameState.waveActive = false;
