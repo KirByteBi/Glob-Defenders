@@ -72,6 +72,7 @@ let gameState = {
   metaDamageLevel: 0,
   unlockedSkins: ['default'],
   equippedSkins: { 'Glob': 'default', 'Red_Glob': 'default', 'Soap_Glob': 'default', 'Ducky_Glob': 'default', 'Comet_Glob': 'default', 'Grey': 'default', 'Special': 'default', 'Global': 'default' },
+  equippedTowers: ['Glob', 'Red_Glob'],
   cheatedModeActive: false,
   cheatedBackup: null,
   adminMode: false,
@@ -164,6 +165,7 @@ function saveProgress() {
     usedCodes: gameState.usedCodes,
     unlockedSkins: gameState.unlockedSkins,
     equippedSkins: gameState.equippedSkins,
+    equippedTowers: gameState.equippedTowers,
     unlockedAntiNormal: gameState.unlockedAntiNormal,
     claimedRewards: gameState.claimedRewards,
     muted: gameState.muted,
@@ -247,6 +249,7 @@ function loadProgress(username) {
       if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = progress.unlockedOldGlob || false;
       if (TOWER_TYPES['Comet_Glob']) TOWER_TYPES['Comet_Glob'].unlocked = progress.unlockedCometGlob || false;
 
+      gameState.equippedTowers = progress.equippedTowers || ['Glob', 'Red_Glob'];
       gameState.globetines = Number(progress.globetines != null ? progress.globetines : 500);
       gameState.pycoins = Number(progress.pycoins || 0);
       gameState.totalDamage = Number(progress.totalDamage || 0);
@@ -852,18 +855,21 @@ function drawTowerShop() {
   if (!shopContainer) return;
   shopContainer.innerHTML = '';
 
-  const shopTowers = [
-    { type: 'Glob', unlocked: true },
-    { type: 'Red_Glob', unlocked: true },
-    { type: 'Soap_Glob', unlocked: gameState.duckPassLevel >= 3, req: 'lvl3' },
-    { type: 'Ducky_Glob', unlocked: gameState.duckPassLevel >= 6, req: 'lvl6' },
-    { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
-    { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
-    { type: 'Work_Bombot', unlocked: !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked), req: 'challenge' },
-    { type: 'Balloon_Glob', unlocked: gameState.map === 'urbanistic_road', req: 'urban' },
-    { type: 'Streamer_Glob', unlocked: gameState.map === 'urbanistic_road', req: 'urban' },
-    { type: 'Bomb_Glob', unlocked: gameState.map === 'urbanistic_road', req: 'urban' }
-  ];
+  const allShopTowers = {
+    'Glob': { type: 'Glob', unlocked: true },
+    'Red_Glob': { type: 'Red_Glob', unlocked: true },
+    'Soap_Glob': { type: 'Soap_Glob', unlocked: gameState.duckPassLevel >= 3, req: 'lvl3' },
+    'Ducky_Glob': { type: 'Ducky_Glob', unlocked: gameState.duckPassLevel >= 6, req: 'lvl6' },
+    'Comet_Glob': { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
+    'Old_Glob': { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
+    'Work_Bombot': { type: 'Work_Bombot', unlocked: !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked), req: 'challenge' },
+    'Worker_Glob': { type: 'Worker_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 15, req: 'urban' },
+    'Balloon_Glob': { type: 'Balloon_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 20, req: 'urban' },
+    'Streamer_Glob': { type: 'Streamer_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 25, req: 'urban' },
+    'Bomb_Glob': { type: 'Bomb_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 30, req: 'urban' }
+  };
+
+  const shopTowers = (gameState.equippedTowers || ['Glob', 'Red_Glob']).map(t => allShopTowers[t]).filter(Boolean);
 
   shopTowers.forEach(item => {
     const type = item.type;
@@ -1839,6 +1845,7 @@ function drawShop() {
       <button class="shop-tab-btn ${currentShopTab === 'upgrades' ? 'active' : ''}" onclick="switchShopTab('upgrades')">${translate('shop_upgrades')}</button>
       <button class="shop-tab-btn ${currentShopTab === 'duckgrades' ? 'active' : ''}" onclick="switchShopTab('duckgrades')">${translate('duckgrade_title')}</button>
       <button class="shop-tab-btn ${currentShopTab === 'gtacks' ? 'active' : ''}" onclick="switchShopTab('gtacks')">G-Tacks</button>
+      <button class="shop-tab-btn ${currentShopTab === 'equip' ? 'active' : ''}" onclick="switchShopTab('equip')">${translate('shop_equip')}</button>
       <button class="shop-tab-btn ${currentShopTab === 'skins' ? 'active' : ''}" onclick="switchShopTab('skins')">${translate('shop_skins')}</button>
     </div>
     <div class="shop-balance">
@@ -1961,7 +1968,9 @@ function drawShop() {
         ${buttonHTML}`;
       container.appendChild(el);
     });
-  } else {
+  } else if (currentShopTab === 'equip') {
+    drawEquipShop(container);
+  } else if (currentShopTab === 'skins') {
     Object.keys(SKINS_DATA).forEach(family => {
       if (family === 'Global') return;
       if (!isTowerOwned(family)) return;
@@ -2047,6 +2056,114 @@ function drawShop() {
       container.appendChild(spacer);
     }
   }
+}
+
+window.toggleEquipTower = function(type) {
+  if (!gameState.equippedTowers) gameState.equippedTowers = [];
+  const idx = gameState.equippedTowers.indexOf(type);
+  if (idx !== -1) {
+    gameState.equippedTowers.splice(idx, 1);
+    // Can't go into battle empty-handed!
+    if (gameState.equippedTowers.length === 0) {
+      gameState.equippedTowers = ['Glob'];
+      const msg = currentLanguage === 'es'
+        ? '¡No puedes ir al campo de batalla sin ninguna torre! 🟢 Glob equipado por defecto.'
+        : "You can't go into battle with no towers! 🟢 Glob equipped by default.";
+      showMessage(msg, 'warning');
+    }
+  } else {
+    if (gameState.equippedTowers.length >= 5) {
+      showMessage(currentLanguage === 'es' ? 'Solo puedes equipar hasta 5 torres.' : 'You can only equip up to 5 towers.', 'warning');
+      return;
+    }
+    gameState.equippedTowers.push(type);
+  }
+  saveProgress();
+  drawShop();
+  drawTowerShop();
+};
+
+function drawEquipShop(container) {
+  // ── Loadout Banner — mismo formato que la barra de currency ──
+  let slotsHTML = '';
+  for (let i = 0; i < 5; i++) {
+    if (i < gameState.equippedTowers.length) {
+      const t = gameState.equippedTowers[i];
+      slotsHTML += `<div style="width:36px;height:36px;flex-shrink:0;background:url('${encodeURI(getTowerImage(t))}') center/cover;border:2px solid #2ecc71;border-radius:6px;box-shadow:0 0 5px rgba(46,204,113,0.4);" title="${translate(TOWER_TYPES[t] ? TOWER_TYPES[t].name : t)}"></div>`;
+    } else {
+      slotsHTML += `<div style="width:36px;height:36px;flex-shrink:0;background:rgba(255,255,255,0.04);border:2px dashed #4a5568;border-radius:6px;"></div>`;
+    }
+  }
+
+  const equipHeader = document.createElement('div');
+  equipHeader.className = 'shop-balance';
+  equipHeader.style.cssText += 'grid-column: 1 / -1;';
+  equipHeader.innerHTML = `
+    <div class="balance-item">
+      <span style="font-size:1.2rem;">🎒</span>
+      <span>Loadout <strong style="color:#2ecc71;">${gameState.equippedTowers.length}/5</strong></span>
+    </div>
+    <div class="balance-item" style="gap:6px;">
+      ${slotsHTML}
+    </div>
+  `;
+  container.appendChild(equipHeader);
+
+  const shopTowers = [
+    { type: 'Glob', unlocked: true },
+    { type: 'Red_Glob', unlocked: true },
+    { type: 'Soap_Glob', unlocked: gameState.duckPassLevel >= 3, req: 'lvl3' },
+    { type: 'Ducky_Glob', unlocked: gameState.duckPassLevel >= 6, req: 'lvl6' },
+    { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
+    { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
+    { type: 'Work_Bombot', unlocked: !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked), req: 'challenge' },
+    { type: 'Worker_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 15, req: 'urban' },
+    { type: 'Balloon_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 20, req: 'urban' },
+    { type: 'Streamer_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 25, req: 'urban' },
+    { type: 'Bomb_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 30, req: 'urban' }
+  ];
+
+  shopTowers.forEach(item => {
+    const type = item.type;
+    const t = TOWER_TYPES[type];
+    if (!t) return;
+    
+    const isEquipped = gameState.equippedTowers.includes(type);
+    
+    const el = document.createElement('div');
+    el.className = 'meta-item ' + (item.unlocked ? 'unlocked' : 'locked');
+    
+    let btnHTML = '';
+    
+    if (item.unlocked) {
+      if (isEquipped) {
+        btnHTML = `<button class="meta-buy-btn" style="background:#e74c3c;" onclick="toggleEquipTower('${type}')">Desequipar</button>`;
+      } else {
+        btnHTML = `<button class="meta-buy-btn" style="background:#2ecc71;" onclick="toggleEquipTower('${type}')" ${gameState.equippedTowers.length >= 5 ? 'disabled' : ''}>Equipar</button>`;
+      }
+    } else {
+      let reqText = '';
+      if (item.req === 'lvl3') reqText = 'Req: Pass Lvl 3';
+      else if (item.req === 'lvl6') reqText = 'Req: Pass Lvl 6';
+      else if (item.req === 'challenge') reqText = 'Desafío/Challenge';
+      else if (item.req === 'shop') reqText = 'Tienda/Shop';
+      else if (item.req === 'urban') reqText = 'Urban / Pass';
+      btnHTML = `<button class="meta-buy-btn" disabled style="background:#95a5a6;">🔒 ${reqText}</button>`;
+    }
+    
+    el.innerHTML = `
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:40px; height:40px; background:url('${encodeURI(getTowerImage(type))}') center/cover; border-radius:5px; filter:${item.unlocked ? 'none' : 'grayscale(1)'};"></div>
+        <div style="flex-grow:1;">
+          <h3 style="margin:0;">${translate(t.name)}</h3>
+          <p style="margin:0; font-size:0.8em; line-height: 1.2;">${translate(t.desc) ? translate(t.desc).substring(0, 50) + '...' : ''}</p>
+        </div>
+      </div>
+      <div style="margin-top:10px;">${btnHTML}</div>
+    `;
+    
+    container.appendChild(el);
+  });
 }
 
 let currentShopTab = 'upgrades';
@@ -2228,7 +2345,11 @@ function selectTower(t) {
   else if (t.hasPinkBuff) panel.classList.add('buff-pink');
 
   document.getElementById('tower-name').textContent = getTowerName(t);
-  document.getElementById('tower-desc').innerHTML = translate(t.desc);
+  // Truncate description: strip HTML tags and limit to 90 chars
+  const rawDesc = translate(t.desc) || '';
+  const plainDesc = rawDesc.replace(/<[^>]*>/g, '').trim();
+  const shortDesc = plainDesc.length > 90 ? plainDesc.substring(0, 90) + '...' : plainDesc;
+  document.getElementById('tower-desc').textContent = shortDesc;
   updateEvolveButtons(t);
   drawRangePreview(t.x, t.y, t.range);
 
@@ -3452,7 +3573,7 @@ function gameLoop() {
       
       if (t.family === 'Worker_Glob') {
         t.cooldown -= dt;
-        let workerSpeed = currentSpeed;
+        let workerSpeed = t.speed || 0.5;  // usa la velocidad propia de la torre
         if (t.trapSpeedBuffTimer && t.trapSpeedBuffTimer > 0) {
           t.trapSpeedBuffTimer -= dt;
           workerSpeed *= 2;
@@ -3461,25 +3582,26 @@ function gameLoop() {
           if (!gameState.traps) gameState.traps = [];
           
           let potentialSpots = [];
-          const path = getSelectedPath();
-          if (path && path.length > 0) {
-            for (let i = 0; i < path.length; i++) {
-              let pt = path[i];
-              if (Math.hypot(pt.x - t.x, pt.y - t.y) <= t.range) {
-                let overlap = gameState.traps.some(tr => Math.hypot(tr.x - pt.x, tr.y - pt.y) < 30);
-                if (!overlap) potentialSpots.push({ x: pt.x, y: pt.y, index: i });
+          // Combine all available paths on the map
+          const allPaths = ENEMY_PATHS && ENEMY_PATHS.length > 0 ? ENEMY_PATHS : [];
+          allPaths.forEach(path => {
+            if (path && path.length > 0) {
+              for (let i = 0; i < path.length; i++) {
+                let pt = path[i];
+                if (Math.hypot(pt.x - t.x, pt.y - t.y) <= t.range) {
+                  // Colisión: ninguna trampa activa a menos de 50px (de cualquier evo)
+                  const occupied = gameState.traps.some(tr =>
+                    tr.active && Math.hypot(tr.x - pt.x, tr.y - pt.y) < 50
+                  );
+                  if (!occupied) potentialSpots.push({ x: pt.x, y: pt.y, index: i });
+                }
               }
             }
-          }
+          });
           
           if (potentialSpots.length > 0) {
-            potentialSpots.sort((a, b) => {
-              const mid = path.length / 2;
-              const distA = Math.abs(a.index - mid);
-              const distB = Math.abs(b.index - mid);
-              return distA - distB; 
-            });
-            
+            // Prioriza la posición más avanzada del camino disponible
+            potentialSpots.sort((a, b) => b.index - a.index);
             const spot = potentialSpots[0];
             let trapDamage = t.damage;
             let trapType = t.trap;
@@ -3502,8 +3624,9 @@ function gameLoop() {
             document.getElementById('map').appendChild(trap.el);
             gameState.traps.push(trap);
             
-            t.cooldown = 1 / workerSpeed;
           }
+          // Siempre reinicia el cooldown aunque no hubiera hueco libre
+          t.cooldown = 1 / workerSpeed;
         }
         return;
       }
@@ -4594,16 +4717,23 @@ function drawStoryLogs() {
   } else if (currentStoryTab === 'logs') {
     if (currentLanguage === 'es') {
       container.innerHTML = `
-        <h3>📋 Historial de Actualizaciones (GlD v4.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
-        <p>¡El mundo de los Globs se expande hacia nuevas zonas urbanas!</p>
+        <h3>📋 Historial de Actualizaciones (GlD v4.0.1 - TACTICAL LOADOUT)</h3>
+        <p>¡El sistema de equipación ha llegado para cambiar la estrategia por completo!</p>
         <h4>Novedades del Parche:</h4>
         <ul>
-          <li>🏙️ <strong>Nuevo Mapa: Urbanistic Road</strong>: Adéntrate en las calles y enfréntate a las hordas en un entorno totalmente nuevo y desafiante.</li>
-          <li>🗼 <strong>Familia Worker Glob</strong>: Cuatro nuevas torres especializadas en bloquear el paso enemigo con trampas (Worker Glob, Police Glob, Planked Glob, DJ Glob).</li>
-          <li>🤖 <strong>Jefes y Enemigos Inéditos</strong>: La triada de jefes Arky (Arky, CrystArky, ArkyVoid) y una gran variedad de enemigos nuevos y únicos.</li>
-          <li>👾 <strong>Otros Enemigos (No Pyces)</strong>: Nuevas entidades que no son Pyces entran en juego, como los Bits, Bytes y el escurridizo Spyware.</li>
-          <li>🦆 <strong>Pase Urbano (Nivel 200)</strong>: El Duck Pass se expande a 200 niveles con nuevas recompensas y progresión ajustada a la dificultad.</li>
-          <li>💥 <strong>Evolución de IEx</strong>: Ahora puedes hacer explotar las IEx en cadena y aplicar efectos de estado (quemaduras o tóxico) al detonar.</li>
+          <li>🎒 <strong>Sistema de Equipación</strong>: Se ha introducido una nueva pestaña "Equipación" en la tienda. Ahora, antes de entrar en combate, ¡deberás elegir tu mazo con un máximo de 5 torres!</li>
+          <li>⚙️ <strong>Menú Táctico</strong>: La barra de torres dentro del juego ahora se adapta para mostrar únicamente tu selección táctica.</li>
+        </ul>
+
+        <h3>📋 Historial de Actualizaciones (GlD v4.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
+        <p>¡Urbanistic Road, la nueva ciudad ha llegado!! Trayendo consigo varios Pyces, enemigos y Globs nuevos!!</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🏙️ <strong>NUEVOS PYCES</strong>: HoloPyce y Rebel Pyce (DESDE FtPy2 redibujados), Bomb Pyce, Knight Pyce, Cannon Pycer y Strechy Pyce.</li>
+          <li>👾 <strong>ENEMIGOS NUEVOS</strong>: Bits, Bytes, Spywares, Fireflies y la llegada de Arky a la ciudad, con sus variantes de corrupto y Anti-Normal.</li>
+          <li>🗼 <strong>Nuevos Globs</strong>: Han llegado Worker Glob (familia naranja), Balloon Glob (familia blanca), Streamer Glob (familia rosa) y un esperadísimo Bomb Glob, la primera torre instantánea del juego, que explotará cuando detecte un Pyce, todos ellos son criados en la ciudad y por ello necesitarás jugar dicho mapa para desbloquearlos... O desde el pase, una de dos.</li>
+          <li>📱 <strong>Mejoras</strong>: Cambios en los diálogos, bugs de la comunidad fixeados y una mayor responsividad en móvil, todo ello para garantizar su jugabilidad.</li>
+          <li>💎 <strong>Próximamente</strong>: Y quizás pronto lleguen las primeras skins para estas torres urbanas, pero démosle tiempo... Hay cristales en el horizonte que esperan caer muy pronto.</li>
         </ul>
 
         <h3>📋 Historial de Actualizaciones (GlD v3.2.0 - ENCICLOPEDIA DORADA Y ATAJOS)</h3>
@@ -4646,16 +4776,23 @@ function drawStoryLogs() {
       `;
     } else {
       container.innerHTML = `
-        <h3>📋 Update Logs (GlD v4.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
-        <p>The world of Globs expands into new urban zones!</p>
+        <h3>📋 Update Logs (GlD v4.0.1 - TACTICAL LOADOUT)</h3>
+        <p>The equipment system has arrived to completely change the strategy!</p>
         <h4>What's New in this Patch:</h4>
         <ul>
-          <li>🏙️ <strong>New Map: Urbanistic Road</strong>: Hit the streets and face the hordes in a completely new and challenging environment.</li>
-          <li>🗼 <strong>Worker Glob Family</strong>: Four new towers specialized in blocking enemy paths with traps (Worker Glob, Police Glob, Planked Glob, DJ Glob).</li>
-          <li>🤖 <strong>Brand New Bosses & Enemies</strong>: The Arky boss triad (Arky, CrystArky, ArkyVoid) and a wide variety of new and unique enemies.</li>
-          <li>👾 <strong>Other Enemies (Not Pyces)</strong>: New non-Pyce entities enter the fray, such as Bits, Bytes, and the elusive Spyware.</li>
-          <li>🦆 <strong>Urban Pass (Level 200)</strong>: The Duck Pass expands to 200 levels with new rewards and difficulty-scaled progression.</li>
-          <li>💥 <strong>IEx Evolution</strong>: You can now chain-detonate IEx towers and apply status effects (burn or toxic) upon explosion.</li>
+          <li>🎒 <strong>Equipment System</strong>: A new "Equip" tab has been introduced in the shop. Now, before going into battle, you must choose your loadout with a maximum of 5 towers!</li>
+          <li>⚙️ <strong>Tactical Menu</strong>: The in-game tower bar now adapts to show only your tactical selection.</li>
+        </ul>
+
+        <h3>📋 Update Logs (GlD v4.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
+        <p>Urbanistic Road, the new city has arrived!! Bringing with it several new Pyces, enemies, and Globs!!</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🏙️ <strong>NEW PYCES</strong>: HoloPyce and Rebel Pyce (redrawn FROM FtPy2), Bomb Pyce, Knight Pyce, Cannon Pycer, and Strechy Pyce.</li>
+          <li>👾 <strong>NEW ENEMIES</strong>: Bits, Bytes, Spywares, Fireflies, and the arrival of Arky to the city, along with his Corrupt and Anti-Normal variants.</li>
+          <li>🗼 <strong>New Globs</strong>: Worker Glob (orange family), Balloon Glob (white family), Streamer Glob (pink family), and a highly anticipated Bomb Glob have arrived! Bomb Glob is the first instant tower in the game, which will explode when it detects a Pyce. All of them are raised in the city, so you'll need to play that map to unlock them... Or get them from the pass, one of the two.</li>
+          <li>📱 <strong>Improvements</strong>: Dialogue changes, community bugs fixed, and greater mobile responsiveness, all to guarantee a better gameplay experience.</li>
+          <li>💎 <strong>Coming Soon</strong>: And maybe the first skins for these urban towers will arrive soon, but let's give it time... There are crystals on the horizon waiting to fall very soon.</li>
         </ul>
 
         <h3>📋 Update Logs (GlD v3.2.0 - GOLDEN ENCYCLOPEDIA & HOTKEYS)</h3>

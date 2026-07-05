@@ -228,6 +228,7 @@ const TRANSLATIONS = {
     shop_skins: "Skins",
     mode_selected: "Modo {mode} seleccionado",
     settings_title: "⚙ Ajustes",
+    shop_equip: "Equipación",
     show_shop_desc: "Mostrar descripción en tienda",
     show_total_damage: "Ver Daño Total de torres",
     show_ranges: "Ver Rango de torres",
@@ -657,6 +658,7 @@ const TRANSLATIONS = {
     shop_skins: "Skins",
     mode_selected: "{mode} mode selected",
     settings_title: "⚙ï¸  Settings",
+    shop_equip: "Equip",
     show_shop_desc: "Show description in shop",
     show_total_damage: "View total tower damage",
     show_ranges: "View tower range",
@@ -1277,10 +1279,10 @@ const TOWER_TYPES = {
   'Nuclear_Glob': { name: 'tower_Nuclear_Glob_name', damage: 300, range: 120, speed: 0, cost: 1200, image: IMAGE_PATHS.Nuclear_Glob, projectile: 'none', desc: "tower_IEx3_desc", family: 'IEx' },
 
   // Worker Glob Family (Trampas)
-  'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 80, speed: 0.5, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: true },
-  'Police_Glob': { name: 'tower_Police_Glob_name', damage: 30, range: 100, speed: 0.6, cost: 300, evolution: 'Planked_Glob', image: IMAGE_PATHS.Police_Glob, trap: 'Police_Trap', desc: "tower_Police_Glob_desc", family: 'Worker_Glob' },
-  'Planked_Glob': { name: 'tower_Planked_Glob_name', damage: 70, range: 110, speed: 0.7, cost: 550, evolution: 'DJ_Glob', image: IMAGE_PATHS.Planked_Glob, trap: 'Planked_Trap', desc: "tower_Planked_Glob_desc", family: 'Worker_Glob' },
-  'DJ_Glob': { name: 'tower_DJ_Glob_name', damage: 120, range: 130, speed: 0.8, cost: 1200, image: IMAGE_PATHS.DJ_Glob, trap: 'DJ_Trap', desc: "tower_DJ_Glob_desc", family: 'Worker_Glob' }
+  'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 110, speed: 0.5, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: true },
+  'Police_Glob': { name: 'tower_Police_Glob_name', damage: 30, range: 130, speed: 0.6, cost: 300, evolution: 'Planked_Glob', image: IMAGE_PATHS.Police_Glob, trap: 'Police_Trap', desc: "tower_Police_Glob_desc", family: 'Worker_Glob' },
+  'Planked_Glob': { name: 'tower_Planked_Glob_name', damage: 70, range: 140, speed: 0.7, cost: 550, evolution: 'DJ_Glob', image: IMAGE_PATHS.Planked_Glob, trap: 'Planked_Trap', desc: "tower_Planked_Glob_desc", family: 'Worker_Glob' },
+  'DJ_Glob': { name: 'tower_DJ_Glob_name', damage: 120, range: 160, speed: 0.8, cost: 1200, image: IMAGE_PATHS.DJ_Glob, trap: 'DJ_Trap', desc: "tower_DJ_Glob_desc", family: 'Worker_Glob' }
 };
 
 const ENEMY_TYPES = {
