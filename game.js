@@ -2089,7 +2089,7 @@ window.toggleEquipTower = function(type) {
 };
 
 function drawEquipShop(container) {
-  // ── Loadout Banner — mismo formato que la barra de currency ──
+  // ── Loadout Banner — mismo formato que la barra de currency ── FIXING
   let slotsHTML = '';
   for (let i = 0; i < 5; i++) {
     if (i < gameState.equippedTowers.length) {
@@ -3342,7 +3342,7 @@ function gameLoop() {
           if (trap.active && Math.hypot(e.x - trap.x, e.y - trap.y) <= (trap.radius || 40)) {
             let dmg = trap.damage;
             e.health -= dmg;
-            
+            // Deberia ser como las demas vallas, pero que vaya atacando mientras tengs un enemigo cerca, como una torreta (COD-637)
             if (trap.parentType === 'Police_Glob') {
               e.enemySlowTimer = 2;
               e.enemySlowFactor = 0.5;
