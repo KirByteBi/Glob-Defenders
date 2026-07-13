@@ -110,6 +110,15 @@ const TRANSLATIONS = {
     enemy_HoloPyce_name: "HoloPyce",
     enemy_Strechy_Pyce_name: "Strechy Pyce",
     enemy_Rebel_Pyce_name: "Rebel Pyce",
+    enemy_Leni_the_big_Hammer_name: "Leni the big Hammer",
+    enemy_Monster_name: "Monster",
+    enemy_Cristalized_Monster_name: "Cristalized Monster",
+    enemy_Lenistal_name: "Lenistal",
+    enemy_NOCrystEye_CB_name: "NO-CrystEye (CB)",
+    enemy_AstrorbOrbe_name: "AstrorbOrbe",
+    enemy_AstrorbContenido_name: "AstrorbContenido",
+    enemy_AstrorbTF_name: "AstrorbTF",
+    enemy_Crystal_Bombot_name: "Crystal-Bombot",
 
     enemy_Stupid_Pyce_desc: "El primer enemigo del juego, es un Pyce desactualizado, pero que cumplio con su funcion de ser un heroe en sus tiempos.",
     enemy_Pyce2_desc: "Manejado por PixelStar Studios, fue actualizado para parecerse mas a un humano, aprendiendo de sus propios errores, siendo ahora lo mejor de Bitlands, aparte de la tableta Pixible, claro.",
@@ -143,6 +152,18 @@ const TRANSLATIONS = {
     enemy_BitG2_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Tranquila)",
     enemy_BitP3_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Mareada)",
     enemy_Byte_desc: "Los Bytes son agrupaciones de 2 Bits, aun y eso se consideran Bytes por ser 4 formas de estas agrupaciones de 2 Bits, ya que 4x2 son 8... Y los Bytes se constituyen de 8 bits... ¿Cierto? Bueno. Yo no lo pondría en duda.",
+    
+    enemy_Leni_the_big_Hammer_desc: "Leni siempre lleva su martillo gigante listo para aplastar.",
+    enemy_Monster_desc: "Una criatura monstruosa de gran resistencia.",
+    enemy_Cristalized_Monster_desc: "El mismo Monster, pero alterado por la cristalización. Mucho más resistente y letal.",
+    enemy_Lenistal_desc: "Leni corrompido por la cristalización. Su martillo ahora desata energía cósmica pura.",
+    enemy_NOCrystEye_CB_desc: "Una versión aún más inestable y cristalizada de NOeye.",
+    enemy_AstrorbOrbe_desc: "Una forma defensiva y enigmática, como un cuerpo estelar dormido.",
+    enemy_AstrorbContenida_desc: "La energía cristalina liberada: más rápida y agresiva, pero más frágil.",
+    enemy_AstrorbContenido_desc: "La verdadera esencia escapando de su caparazón, rápida y evasiva.",
+    enemy_AstrorbTF_desc: "La perfección celestial en su True Form. Inmenso poder cósmico y paciencia eterna.",
+    enemy_Crystal_Bombot_desc: "Work-Bombot bajo el efecto de la cristalización. Lanza cristales que roban energía de tus torres.",
+
     tower_Bomb_Glob_name: "Bomb Glob",
     tower_TNT_Glob_name: "TNT Glob",
     tower_Nuclear_Glob_name: "Nuclear Glob",
@@ -286,6 +307,8 @@ const TRANSLATIONS = {
     skin_starry_desc: "¡Colaboración especial con StarJump! Dispara estrellas cósmicas.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
     skin_mimic_name: "Mimic set",
     skin_mimic_desc: "Skin especial obtenida al derrotar al Mimic Pyce.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
+    skin_cuby_name: "Cuby",
+    skin_cuby_desc: "¡Colaboración especial! Desbloqueada por superar la misión Interstellar Menace. Esta skin tiene animaciones únicas.",
     upgrade_range_name: "Alcance Maestro",
     upgrade_range_desc: "+20 Alcance para todas las torres",
     upgrade_damage_name: "Poder del Pato",
@@ -562,6 +585,16 @@ const TRANSLATIONS = {
     enemy_HoloPyce_name: "HoloPyce",
     enemy_Strechy_Pyce_name: "Strechy Pyce",
     enemy_Rebel_Pyce_name: "Rebel Pyce",
+    enemy_Leni_the_big_Hammer_name: "Leni the big Hammer",
+    enemy_Monster_name: "Monster",
+    enemy_Cristalized_Monster_name: "Cristalized Monster",
+    enemy_Lenistal_name: "Lenistal",
+    enemy_NOCrystEye_CB_name: "NO-CrystEye (CB)",
+    enemy_AstrorbOrbe_name: "AstrorbOrbe",
+    enemy_AstrorbContenido_name: "AstrorbContenido",
+    enemy_AstrorbTF_name: "AstrorbTF",
+    enemy_Crystal_Bombot_name: "Crystal-Bombot",
+
     enemy_HoloPyce_desc: "A hologram of the forgotten 'True Form', an ancient powerful transformation of the Pyces from Techspawn. Over time, it rusted and was forgotten, entirely replaced by modern Bitlands Portalogy.",
     enemy_Strechy_Pyce_desc: "A Pyce in the shape of a Robloxian that, despite dictating that it WOULD NOT BE a Pyce, ended up being one, dressing like one. Or are those not clothes? Oh, it's a Pyce and not a cosplay? Oh my... Anyway, it's supposedly friendlier than any Pyce.",
     enemy_Rebel_Pyce_desc: "Born in Bitlands as a clone of Pyce 2.0, this rebel paints and graffitis around the city whenever it wants and sneaks away... For a copy, it's very different from the original and won't stay still!",
@@ -574,6 +607,18 @@ const TRANSLATIONS = {
     enemy_BitG2_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Calm Variant)",
     enemy_BitP3_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Dizzy Variant)",
     enemy_Byte_desc: "Bytes are groupings of 2 Bits, even so they are considered Bytes because there are 4 forms of these groupings of 2 Bits, since 4x2 is 8... And Bytes are made up of 8 bits... Right? Well. I wouldn't doubt it.",
+    
+    enemy_Leni_the_big_Hammer_desc: "Leni always carries his giant hammer ready to smash.",
+    enemy_Monster_desc: "A monstrous creature with high resilience.",
+    enemy_Cristalized_Monster_desc: "The same Monster, but altered by crystallization. Much tougher and deadlier.",
+    enemy_Lenistal_desc: "Leni corrupted by crystallization. His hammer now unleashes pure cosmic energy.",
+    enemy_NOCrystEye_CB_desc: "An even more unstable and crystallized version of NOeye.",
+    enemy_AstrorbOrbe_desc: "A defensive and enigmatic form, like a sleeping stellar body.",
+    enemy_AstrorbContenida_desc: "The released crystal energy: faster and more aggressive, but more fragile.",
+    enemy_AstrorbContenido_desc: "The true essence escaping its shell, fast and evasive.",
+    enemy_AstrorbTF_desc: "Celestial perfection in its True Form. Immense cosmic power and eternal patience.",
+    enemy_Crystal_Bombot_desc: "Work-Bombot under the effect of crystallization. Throws crystals that steal energy from your towers.",
+
     tower_IEx_name: "Explosive Instant",
     tower_IEx1_desc: "A Glob with a bomb on its head, it better be careful! One explosion and goodbye. A tower that explodes when someone touches its area, disappearing after that. The higher the level, the bigger the explosion.<br><br><span style=\"color: grey\">Designed by JustAUser. Planned by KirByte_Bi.</span>",
     tower_IEx2_desc: "Now with small dynamites, they might seem like little, but one explosion is enough to demonstrate their gunpowder power. Explodes on contact, with a larger blast radius than its predecessor.<br><br><span style=\"color: grey\">Designed by JustAUser. Planned by KirByte_Bi.</span>",
@@ -711,6 +756,8 @@ const TRANSLATIONS = {
     skin_starry_desc: "Special collaboration with StarJump! Shoots cosmic stars.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
     skin_mimic_name: "Mimic Set",
     skin_mimic_desc: "Special skin obtained by defeating the Mimic Pyce.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
+    skin_cuby_name: "Cuby",
+    skin_cuby_desc: "Special collaboration! Unlocked by completing the Interstellar Menace mission. This skin has unique animations.",
     upgrade_range_name: "Master Range",
     upgrade_range_desc: "+20 Range for all towers",
     upgrade_damage_name: "Duck Power",
@@ -933,7 +980,21 @@ const IMAGE_PATHS = {
   'Alien_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Blanca/Alien Glob (EVO3).png',
   'Streamer_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Rosa/Streamer Glob (EVO1).png',
   'Gamer_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Rosa/Gamer Glob (EVO2).png',
-  'Youtuber_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Rosa/Youtuber Glob (EVO3).png'
+  'Youtuber_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Rosa/Youtuber Glob (EVO3).png',
+
+  // Interstellar Menace Assets
+  'Leni_the_big_Hammer': 'Interestelar Menace (COLLAB UPD)/Enemigos/Leni the big Hammer.png',
+  'Monster': 'Interestelar Menace (COLLAB UPD)/Enemigos/Monster.png',
+  'Cristalized_Monster': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Cristalized Monster.png',
+  'Lenistal': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Lenistal.png',
+  'NO_CrystEye_CB': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/NO-CrystEye (CB).png',
+  'AstrorbOrbe': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbOrbe.png',
+  'AstrorbContenida': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbContenido.png',
+  'AstrorbTF': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbTF.png',
+  'Cuby_BombotA1': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA1).png',
+  'Cuby_BombotA2': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA2).png',
+  'Cube_Bomb_CB': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cube Bomb (SK-CB).png',
+  'Crystal_Bombot': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Crystal-Bombot.png'
 };
 
 const NARRATOR_DATA = {
@@ -1326,7 +1387,18 @@ const ENEMY_TYPES = {
   'Spyware3': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware3, category: 'gambling' },
   'Arky': { name: 'enemy_Arky_name', desc: 'enemy_Arky_desc', mechanic_key: 'mechanic_arky', health: 1000, speed: 0.4, reward: 1000, image: IMAGE_PATHS.Arky, boss: true, arkyType: 'normal', category: 'gambling' },
   'CrystArky': { name: 'enemy_CrystArky_name', desc: 'enemy_CrystArky_desc', mechanic_key: 'mechanic_crystarky', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.CrystArky, boss: true, arkyType: 'crystal', category: 'gambling' },
-  'ArkyVoid': { name: 'enemy_ArkyVoid_name', desc: 'enemy_ArkyVoid_desc', mechanic_key: 'mechanic_arkyvoid', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.ArkyVoid, boss: true, arkyType: 'void', category: 'gambling' }
+  'ArkyVoid': { name: 'enemy_ArkyVoid_name', desc: 'enemy_ArkyVoid_desc', mechanic_key: 'mechanic_arkyvoid', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.ArkyVoid, boss: true, arkyType: 'void', category: 'gambling' },
+  
+  // Interstellar Menace Enemies
+  'Leni_the_big_Hammer': { name: 'enemy_Leni_the_big_Hammer_name', desc: 'enemy_Leni_the_big_Hammer_desc', health: 120, speed: 1.0, reward: 25, image: IMAGE_PATHS.Leni_the_big_Hammer, category: 'other' },
+  'Monster': { name: 'enemy_Monster_name', desc: 'enemy_Monster_desc', health: 250, speed: 0.8, reward: 40, image: IMAGE_PATHS.Monster, category: 'other' },
+  'Cristalized_Monster': { name: 'enemy_Cristalized_Monster_name', desc: 'enemy_Cristalized_Monster_desc', health: 500, speed: 0.8, reward: 80, image: IMAGE_PATHS.Cristalized_Monster, isCrystallized: true, category: 'other' },
+  'Lenistal': { name: 'enemy_Lenistal_name', desc: 'enemy_Lenistal_desc', health: 240, speed: 1.0, reward: 50, image: IMAGE_PATHS.Lenistal, isCrystallized: true, category: 'other' },
+  'Crystal_Bombot': { name: 'enemy_Crystal_Bombot_name', desc: 'enemy_Crystal_Bombot_desc', health: 1000, speed: 0.6, reward: 500, image: IMAGE_PATHS.Crystal_Bombot, isCrystallized: true, boss: true, category: 'other' },
+  'NO_CrystEye_CB': { name: 'enemy_NOCrystEye_CB_name', desc: 'enemy_NOCrystEye_CB_desc', health: 1200, speed: 0.4, reward: 800, image: IMAGE_PATHS.NO_CrystEye_CB, isCrystallized: true, boss: true, paralyzeLaser: true, stunCooldown: 12, category: 'other', crystEyeVariantOf: 'NOeye_Pyce' },
+  'AstrorbOrbe': { name: 'enemy_AstrorbOrbe_name', desc: 'enemy_AstrorbOrbe_desc', health: 800, speed: 1.2, reward: 0, image: IMAGE_PATHS.AstrorbOrbe, boss: true, category: 'other', astrorbGroup: true },
+  'AstrorbContenida': { name: 'enemy_AstrorbContenida_name', desc: 'enemy_AstrorbContenida_desc', health: 600, speed: 2.0, reward: 1000, image: IMAGE_PATHS.AstrorbContenida, boss: true, category: 'other', astrorbGroup: true, astrorbForm: 2 },
+  'AstrorbTF': { name: 'enemy_AstrorbTF_name', desc: 'enemy_AstrorbTF_desc', health: 3000, speed: 0.3, reward: 3000, image: IMAGE_PATHS.AstrorbTF, boss: true, instakill: true, doubleLap: true, category: 'other', astrorbGroup: true, astrorbForm: 3 }
 };
 
 const BADGES = {
@@ -1563,6 +1635,15 @@ const SKINS_DATA = {
       id: 'globsus_bombot', name: 'skin_globsus_name', desc: 'skin_globsus_desc', cost: 50, type: 'pycoin',
       skins: {
         'Work_Bombot': 'img/Skins/Work-Bombot/GlobSus (SK-EVO).png'
+      }
+    },
+    {
+      id: 'cuby_bombot', name: 'skin_cuby_name', desc: 'skin_cuby_desc', cost: 0, type: 'free', isSpecial: true, isCommunity: true,
+      skins: {
+        'Work_Bombot': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA1).png'
+      },
+      names: {
+        'Work_Bombot': 'Cuby'
       }
     }
   ],
