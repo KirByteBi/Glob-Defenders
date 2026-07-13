@@ -2102,6 +2102,7 @@ window.toggleEquipTower = function(type) {
 };
 
 function drawEquipShop(container) {
+  if (!gameState.equippedTowers) gameState.equippedTowers = ['Glob', 'Red_Glob'];
   // ── Loadout Banner — mismo formato que la barra de currency ── FIXING
   let slotsHTML = '';
   for (let i = 0; i < 5; i++) {
