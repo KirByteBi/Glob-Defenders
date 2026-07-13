@@ -118,10 +118,23 @@ loadUsers();
 function init() {
   console.log("Iniciando Glob Defenders...");
   try {
-    if (Math.random() < 0.15) {
+    const hasVisited = sessionStorage.getItem('visited_urban');
+    if (!hasVisited) {
       document.querySelectorAll('.login-logo, .game-logo').forEach(img => {
-        img.src = 'img/GlobDefendersImage.png';
+        img.src = 'img/Urban Road_Reborn Logo.png';
       });
+      sessionStorage.setItem('visited_urban', 'true');
+    } else {
+      const rand = Math.random();
+      if (rand < 0.15) {
+        document.querySelectorAll('.login-logo, .game-logo').forEach(img => {
+          img.src = 'img/GlobDefendersImage.png';
+        });
+      } else if (rand < 0.30) {
+        document.querySelectorAll('.login-logo, .game-logo').forEach(img => {
+          img.src = 'img/Urban Road_Reborn Logo.png';
+        });
+      }
     }
     updateLanguage();
     bindEvents();
@@ -479,7 +492,7 @@ function showModeSelection() {
     const btn = document.querySelector(`.mode-btn[data-mode="${m}"]`);
     if (btn && !gameState.adminMode) {
       const req = requirements[m];
-      if (!BADGES[req].unlocked) {
+      if (!BADGES[req].unlocked && !(gameState.antiNormalActive && m === 'normal')) {
         btn.disabled = true;
         btn.style.opacity = "0.4";
         btn.title = translate('win_diff_required', { diff: translate('badge_' + req + '_name') });
@@ -3048,11 +3061,15 @@ function checkEnemyDialogues(type) {
   if (triggers[type]) {
     seenEnemyDialogues[type] = true;
     const t = triggers[type];
+    let maxW = gameState.maxWaves || 20; if (gameState.mode === 'pesadilla') maxW = 50; const isDis = (gameState.wave >= maxW - 10) && (gameState.mode === 'corrupto' || gameState.mode === 'antiNormal' || (gameState.map || 'gelatin_lake') === 'urbanistic_road');
+    if (t.speaker === 'bombot' && isDis) return;
     const data = NARRATOR_DATA[t.speaker];
     const text = data[currentLanguage].msgs[t.index];
     showNarratorMsg(t.speaker, data.img, data[currentLanguage].name, text);
   } else if (type === 'Mimic_Pyce' || type === 'Stupid_GoldPyce') {
     seenEnemyDialogues['Mimic_Pyce'] = true;
+    let maxW2 = gameState.maxWaves || 20; if (gameState.mode === 'pesadilla') maxW2 = 50; const isDis2 = (gameState.wave >= maxW2 - 10) && (gameState.mode === 'corrupto' || gameState.mode === 'antiNormal' || (gameState.map || 'gelatin_lake') === 'urbanistic_road');
+    if (isDis2) return;
     const data = NARRATOR_DATA.bombot;
     showNarratorMsg('bombot', data.img, data[currentLanguage].name, data[currentLanguage].mimicWarning);
   } else if (type === '1x1x1x1_Pyce') {
@@ -3548,6 +3565,7 @@ function gameLoop() {
         const targets = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= t.range);
         if (targets.length > 0 || t.forceExplode) {
           showEffect(t.x, t.y, "BOOM!", "#ff0000");
+          createExplosion(t.x, t.y, t.range);
           gameState.roundIExExplosions = (gameState.roundIExExplosions || 0) + 1;
           if (gameState.roundIExExplosions >= 100) unlockBadge('explosiones_por_doquier');
           
@@ -3865,6 +3883,7 @@ function gameLoop() {
               }
             });
             showEffect(trap.x, trap.y, "♫", "#9b59b6");
+            createWaveEffect(trap.x, trap.y, trap.radius, '#9b59b6');
           }
           trap.waveCooldown = 2.0;
         }
@@ -3883,6 +3902,7 @@ function gameLoop() {
             }
           });
           showEffect(trap.x, trap.y, "♫ BOOM!", "#8e44ad");
+          createExplosion(trap.x, trap.y, trap.radius * 1.5, '#8e44ad');
           if (trap.el && trap.el.parentNode) trap.el.parentNode.removeChild(trap.el);
           gameState.traps.splice(j, 1);
         }
@@ -4951,6 +4971,58 @@ function toggleMusic() {
     initMusic();
   }
   saveProgress();
+}
+
+function createExplosion(x, y, radius, gradientStr = 'radial-gradient(circle, rgba(255,100,0,0.8) 0%, rgba(255,0,0,0) 70%)') {
+  const el = document.createElement('div');
+  el.style.position = 'absolute';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.width = '0px';
+  el.style.height = '0px';
+  el.style.borderRadius = '50%';
+  if (gradientStr.startsWith('#')) {
+    el.style.background = `radial-gradient(circle, ${gradientStr} 0%, rgba(255,255,255,0) 70%)`;
+  } else {
+    el.style.background = gradientStr;
+  }
+  el.style.transform = 'translate(-50%, -50%)';
+  el.style.zIndex = '10';
+  el.style.pointerEvents = 'none';
+  el.style.transition = 'width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out';
+  document.getElementById('map').appendChild(el);
+
+  requestAnimationFrame(() => {
+    el.style.width = (radius * 2) + 'px';
+    el.style.height = (radius * 2) + 'px';
+    el.style.opacity = '0';
+  });
+
+  setTimeout(() => { if (el.parentNode) el.remove(); }, 300);
+}
+
+function createWaveEffect(x, y, radius, color) {
+  const el = document.createElement('div');
+  el.style.position = 'absolute';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.width = '0px';
+  el.style.height = '0px';
+  el.style.borderRadius = '50%';
+  el.style.border = `4px solid ${color}`;
+  el.style.transform = 'translate(-50%, -50%)';
+  el.style.zIndex = '10';
+  el.style.pointerEvents = 'none';
+  el.style.transition = 'width 0.4s ease-out, height 0.4s ease-out, opacity 0.4s ease-out';
+  document.getElementById('map').appendChild(el);
+
+  requestAnimationFrame(() => {
+    el.style.width = (radius * 2) + 'px';
+    el.style.height = (radius * 2) + 'px';
+    el.style.opacity = '0';
+  });
+
+  setTimeout(() => { if (el.parentNode) el.remove(); }, 400);
 }
 
 window.onload = init;
