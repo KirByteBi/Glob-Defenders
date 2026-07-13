@@ -1130,20 +1130,44 @@ function switchEncyclopediaTab(tab) {
 
       let firstItem = null;
       
+      // Enemies that are sub-variants shown INSIDE another entry (not standalone buttons)
+      const HIDDEN_VARIANTS = ['NO_CrystEye_CB', 'AstrorbContenida', 'AstrorbTF',
+                               'Spyware1', 'Spyware2', 'Spyware3',
+                               'BitY1', 'BitG2', 'BitP3', 'BitB4',
+                               'ByteYP2', 'BytePG3', 'ByteYB4'];
+
       Object.keys(ENEMY_TYPES).forEach(type => {
         const e = ENEMY_TYPES[type];
+        const isOther = e.category === 'other';
         const isGambling = e.category === 'gambling';
-        if (subTab === 'pyces' && isGambling) return;
-        if (subTab === 'gambling' && !isGambling) return;
-        if (subTab === 'gambling' && !['BitY1', 'ByteGB1', 'Fireflies', 'Arky', 'CrystArky', 'ArkyVoid', 'Spyware'].includes(type)) return;
+        const isPyces = !isOther && !isGambling;
+
+        if (subTab === 'pyces' && (isOther || isGambling)) return;
+        if (subTab === 'gambling' && isPyces) return;
+
+        // In 'gambling' (Otros Enemigos) sub-tab, skip types that are hidden variants
+        if (subTab === 'gambling' && HIDDEN_VARIANTS.includes(type)) return;
+
+        // In 'pyces' sub-tab, skip types that are hidden variants
+        if (subTab === 'pyces' && HIDDEN_VARIANTS.includes(type)) return;
+
+        // In 'gambling' (otros), only show specific representative entries
+        if (subTab === 'gambling') {
+          const OTROS_ALLOWED = [
+            'Leni_the_big_Hammer', 'Monster', 'Cristalized_Monster',
+            'Lenistal', 'Crystal_Bombot', 'AstrorbOrbe',
+            'BitY1', 'ByteGB1', 'Fireflies', 'Arky', 'CrystArky', 'ArkyVoid', 'Spyware'
+          ];
+          if (!OTROS_ALLOWED.includes(type)) return;
+        }
         
         if (!firstItem) firstItem = type;
         const btn = document.createElement('div');
         btn.className = 'almanac-btn';
         let killed = gameState.pycesKilled[type] || 0;
-        if (type.startsWith('Bit')) {
+        if (type === 'BitY1' || type.startsWith('Bit')) {
           killed = ['BitY1', 'BitB4', 'BitG2', 'BitP3'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
-        } else if (type.startsWith('Byte')) {
+        } else if (type === 'ByteGB1' || type.startsWith('Byte')) {
           killed = ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
         }
         
@@ -1286,6 +1310,54 @@ function selectAlmanacItem(id, category) {
         }
       });
       variantsHTML += `</div>`;
+    } else if (id === 'NOeye_Pyce') {
+      // Show crystallized variant under NOeye
+      const cryst = ENEMY_TYPES['NO_CrystEye_CB'];
+      if (cryst) {
+        variantsHTML = `
+          <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
+            <p style="font-size:0.75rem; color:#aaa; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Variante Cristalizada</p>
+            <div class="evo-list" style="justify-content:center;">
+              <div class="evo-item" onclick="selectAlmanacItem('NO_CrystEye_CB', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; border:2px solid #cc44ff;">
+                <img src="${cryst.image}" style="width:55px; height:55px; border-radius:10px;" title="${translate(cryst.name || 'NO_CrystEye_CB')}">
+                <div style="font-size:0.7rem; color:#cc44ff; margin-top:4px;">${translate(cryst.name || 'NO_CrystEye_CB')}</div>
+              </div>
+            </div>
+          </div>`;
+      }
+    } else if (id === 'AstrorbOrbe' || id === 'AstrorbContenida' || id === 'AstrorbTF') {
+      // Show all 3 Astrorb forms grouped together, Orbe first
+      const forms = ['AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF'];
+      variantsHTML = `
+        <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
+          <p style="font-size:0.75rem; color:#aaa; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Formas de Astrorb</p>
+          <div class="evo-list" style="justify-content:center;">`;
+      forms.forEach(f => {
+        const fi = ENEMY_TYPES[f];
+        if (fi) {
+          variantsHTML += `
+            <div class="evo-item" onclick="selectAlmanacItem('${f}', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; ${f === id ? 'border:2px solid #ff00ff; box-shadow: 0 0 10px #ff00ff;' : 'opacity:0.7; border:1px solid rgba(255,0,255,0.3);'}">
+              <img src="${fi.image}" style="width:${f === 'AstrorbOrbe' ? '60' : '48'}px; height:${f === 'AstrorbOrbe' ? '60' : '48'}px; border-radius:10px;" title="${translate(fi.name || f)}">
+              <div style="font-size:0.65rem; color:#ff88ff; margin-top:3px;">${translate(fi.name || f)}</div>
+            </div>`;
+        }
+      });
+      variantsHTML += `</div></div>`;
+    } else if (id === 'Monster') {
+      // Show crystallized form under Monster
+      const cryst = ENEMY_TYPES['Cristalized_Monster'];
+      if (cryst) {
+        variantsHTML = `
+          <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
+            <p style="font-size:0.75rem; color:#aaa; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Variante Cristalizada</p>
+            <div class="evo-list" style="justify-content:center;">
+              <div class="evo-item" onclick="selectAlmanacItem('Cristalized_Monster', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; border:2px solid #44bbff;">
+                <img src="${cryst.image}" style="width:55px; height:55px; border-radius:10px;" title="${translate(cryst.name || 'Cristalized_Monster')}">
+                <div style="font-size:0.7rem; color:#44bbff; margin-top:4px;">${translate(cryst.name || 'Cristalized_Monster')}</div>
+              </div>
+            </div>
+          </div>`;
+      }
     }
 
     details.innerHTML = `

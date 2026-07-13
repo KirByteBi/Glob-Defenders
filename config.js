@@ -114,9 +114,9 @@ const TRANSLATIONS = {
     enemy_Monster_name: "Monster",
     enemy_Cristalized_Monster_name: "Cristalized Monster",
     enemy_Lenistal_name: "Lenistal",
-    enemy_NOCrystEye_CB_name: "NO-CrystEye (CB)",
+    enemy_NOCrystEye_CB_name: "NO-CrystEye",
     enemy_AstrorbOrbe_name: "AstrorbOrbe",
-    enemy_AstrorbContenido_name: "AstrorbContenido",
+    enemy_AstrorbContenida_name: "AstrorbContenida",
     enemy_AstrorbTF_name: "AstrorbTF",
     enemy_Crystal_Bombot_name: "Crystal-Bombot",
 
@@ -160,7 +160,7 @@ const TRANSLATIONS = {
     enemy_NOCrystEye_CB_desc: "Una versión aún más inestable y cristalizada de NOeye.",
     enemy_AstrorbOrbe_desc: "Una forma defensiva y enigmática, como un cuerpo estelar dormido.",
     enemy_AstrorbContenida_desc: "La energía cristalina liberada: más rápida y agresiva, pero más frágil.",
-    enemy_AstrorbContenido_desc: "La verdadera esencia escapando de su caparazón, rápida y evasiva.",
+    
     enemy_AstrorbTF_desc: "La perfección celestial en su True Form. Inmenso poder cósmico y paciencia eterna.",
     enemy_Crystal_Bombot_desc: "Work-Bombot bajo el efecto de la cristalización. Lanza cristales que roban energía de tus torres.",
 
@@ -589,9 +589,9 @@ const TRANSLATIONS = {
     enemy_Monster_name: "Monster",
     enemy_Cristalized_Monster_name: "Cristalized Monster",
     enemy_Lenistal_name: "Lenistal",
-    enemy_NOCrystEye_CB_name: "NO-CrystEye (CB)",
+    enemy_NOCrystEye_CB_name: "NO-CrystEye",
     enemy_AstrorbOrbe_name: "AstrorbOrbe",
-    enemy_AstrorbContenido_name: "AstrorbContenido",
+    enemy_AstrorbContenida_name: "AstrorbContenida",
     enemy_AstrorbTF_name: "AstrorbTF",
     enemy_Crystal_Bombot_name: "Crystal-Bombot",
 
@@ -615,7 +615,7 @@ const TRANSLATIONS = {
     enemy_NOCrystEye_CB_desc: "An even more unstable and crystallized version of NOeye.",
     enemy_AstrorbOrbe_desc: "A defensive and enigmatic form, like a sleeping stellar body.",
     enemy_AstrorbContenida_desc: "The released crystal energy: faster and more aggressive, but more fragile.",
-    enemy_AstrorbContenido_desc: "The true essence escaping its shell, fast and evasive.",
+    
     enemy_AstrorbTF_desc: "Celestial perfection in its True Form. Immense cosmic power and eternal patience.",
     enemy_Crystal_Bombot_desc: "Work-Bombot under the effect of crystallization. Throws crystals that steal energy from your towers.",
 
@@ -1744,5 +1744,6 @@ Object.assign(window.SKIN_META, {
   }
 });
 /* --- END INSERTAR --- */
+
 
 
