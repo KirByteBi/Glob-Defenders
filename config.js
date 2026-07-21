@@ -76,6 +76,10 @@ const TRANSLATIONS = {
     tower_Dark_Glob_name: "Glob Oscuro",
     tower_Demglob_name: "Demglob",
     tower_Pyce_Glob_name: "Pyce Glob",
+    tower_SpyGlob_name: "SpyGlob",
+    tower_Sprout_Glob_name: "Sprout Glob",
+    tower_Garden_Glob_name: "Garden Glob",
+    tower_Flower_Glob_name: "Flower Glob",
     tower_Old_Glob_name: "Glob Anciano",
     tower_Work_Bombot_name: "Work-Bombot",
     tower_Balloon_Glob_name: "Glob Globo",
@@ -221,6 +225,8 @@ const TRANSLATIONS = {
     bombot_unlocked: "¡HAS DESBLOQUEADO EL WORK-BOMBOT!",
     victory_title: "🏆 ¡VICTORIA MAGISTRAL! 🏆",
     victory_msg: "Has completado el modo <b>{mode}</b>.<br>¡Regresa para probar nuevos desafíos!",
+    interstellar_victory_title: "🌌 ¡MISIÓN CUMPLIDA! 🌌",
+    interstellar_victory_msg: "Has neutralizado la amenaza estelar en <b>Gelatin Lake</b>.<br>El cosmos te lo agradece, Defensor.",
     back_to_selection: "Selección de Modos",
     limit_reached: "Límite alcanzado para {name} (Máx: {limit})",
     next_upgrade: "Próxima Mejora: {name}",
@@ -281,6 +287,8 @@ const TRANSLATIONS = {
     upgrade_unlock_old_desc: "Permite comprar Old Globs en combate (150 PyCoins)",
     upgrade_unlock_comet_name: "Desbloquear Glob Cometa (Negra)",
     upgrade_unlock_comet_desc: "Permite comprar Globs Cometa en combate (250 PyCoins)",
+    upgrade_unlock_sprout_name: "Desbloquear Sprout Glob (Marrón)",
+    upgrade_unlock_sprout_desc: "Permite usar la familia de ralentización Marrón en combate (350 PyCoins)",
     upgrade_limit_name: "Límite: {name}",
     upgrade_limit_desc: "Aumenta límite de {name}",
 
@@ -328,12 +336,14 @@ const TRANSLATIONS = {
     duckgrade_old_desc: "Las torres en un radio cercano de una torre Gris son inmunes a aturdimientos y ralentizaciones.",
     duckgrade_bombot_name: "Bomba Saltarina",
     duckgrade_bombot_desc: "Las bombas rebotan y explotan dos veces.",
+    duckgrade_worker_name: "Trampas de Acero",
+    duckgrade_worker_desc: "Aumenta la vida de todas tus trampas desplegadas.",
+    duckgrade_brown_name: "Espinas Resecadas",
+    duckgrade_brown_desc: "Probabilidad de aturdir a los enemigos dentro del área.",
     duckgrade_duck_name: "Pato Defensivo",
     duckgrade_duck_desc: "Genera dinero más rápido cerca de enemigos y hace daño de área.",
     duckgrade_iex_name: "Detonación Tóxica/Ígnea",
     duckgrade_iex_desc: "Las explosiones aplican quemaduras o tóxico dependiendo de la evolución.",
-    duckgrade_worker_name: "Re-trampa",
-    duckgrade_worker_desc: "Las trampas pueden ser activadas una segunda vez por un enemigo distinto.",
     max_reached: "NIVEL MÁXIMO",
 
     // G-Tacks
@@ -353,6 +363,10 @@ const TRANSLATIONS = {
     gtack_iex_desc: "Explota automáticamente todos los IEx y aumenta temporalmente la cadencia de disparo de las torres cercanas.",
     gtack_worker_name: "Worker G-Tack: Actividad Policial",
     gtack_worker_desc: "Activa todas las trampas brevemente y acelera su colocación.",
+    gtack_comet_name: "Comet G-Tack: Agujero Negro",
+    gtack_comet_desc: "Invoca un agujero negro temporal que absorbe enemigos.",
+    gtack_brown_name: "Brown G-Tack: Florecimiento Amigable",
+    gtack_brown_desc: "Aumenta temporalmente la velocidad de ataque de las torres cercanas.",
     gtack_buy: "Comprar",
     gtack_active: "Activo",
     gtack_req_lvl: "🔒 Req. Lvl 50",
@@ -417,6 +431,10 @@ const TRANSLATIONS = {
     tower_Police_Glob_desc: "Genera una valla gelatinosa que ralentiza a los enemigos por un corto tiempo al destruirse, causa más daño y tiene mayor rango para colocar más vallas.<br><br>Lejos de la contruccion, este se dedica a mantener el orden y la seguridad mientras es salpicado por otros Globs, pero lejos de estar furioso, este lo aprovecha para mejorar sus trampas.<br><br><span style=\"color: #ff4500\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
     tower_Planked_Glob_desc: "Genera una valla atornillada que causa gran daño, incluyendo daño de área al destruirse. Genial para detener hordas fácilmente.<br><br>Da miedo verlo, ya no es tan bueno como parece, y lo que si parece es tener amistad con Molten Glob... Pero dudo que sea por su relacion, algo me dice que el color influye.<br><br><span style=\"color: #ff4500\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
     tower_DJ_Glob_desc: "Genera una valla de radio muy poderosa ofensiva y defensivamente, y tiene un radio de ataque que ralentiza y puede detener al Pyce frente a ella por unos segundos.<br><br>Lejos de ser alguien dedicado a la musica, este usa altavoces como defensa, pero es amigo tanto de la familia rosa como de la blanca, animandolos y haciendo de la ciudad una discoteca urbana.<br><br><span style=\"color: #ff4500\">Diseñado por Credible. Planeado por KirByte_Bi.</span>",
+    tower_SpyGlob_desc: "La última forma del gris. Dispara múltiples proyectiles a la vez, arrasando con todo a su paso.",
+    tower_Sprout_Glob_desc: "Un pequeño brote que ralentiza a los enemigos cercanos con tierra pegajosa.",
+    tower_Garden_Glob_desc: "Un jardín en crecimiento. Aumenta su alcance y el efecto de ralentización.",
+    tower_Flower_Glob_desc: "La naturaleza en su máximo esplendor. Gran alcance y ralentización severa.",
     easter_egg_warn_1: "¿Qué miras, Defensor? Deja de presionarlo.",
     easter_egg_warn_2: "¡DEJA DE PRESIONAR EL MALDITO LOGO!",
     easter_egg_corrupt: "SISTEMA CORROMPIDO. MODO ANTI-NORMAL FORZADO.",
@@ -530,6 +548,10 @@ const TRANSLATIONS = {
     tower_Dark_Glob_name: "Dark Glob",
     tower_Demglob_name: "Demglob",
     tower_Pyce_Glob_name: "Pyce Glob",
+    tower_SpyGlob_name: "SpyGlob",
+    tower_Sprout_Glob_name: "Sprout Glob",
+    tower_Garden_Glob_name: "Garden Glob",
+    tower_Flower_Glob_name: "Flower Glob",
     tower_Old_Glob_name: "Elder Glob",
     tower_Work_Bombot_name: "Work-Bombot",
     tower_Balloon_Glob_name: "Balloon Glob",
@@ -675,6 +697,8 @@ const TRANSLATIONS = {
     bombot_unlocked: "YOU UNLOCKED WORK-BOMBOT!",
     victory_title: "🏆 MASTER VICTORY! 🏆",
     victory_msg: "You have completed <b>{mode}</b> mode.<br>Come back for new challenges!",
+    interstellar_victory_title: "🌌 MISSION ACCOMPLISHED! 🌌",
+    interstellar_victory_msg: "You have neutralized the stellar threat in <b>Gelatin Lake</b>.<br>The cosmos thanks you, Defender.",
     back_to_selection: "Mode Selection",
     limit_reached: "Limit reached for {name} (Max: {limit})",
     next_upgrade: "Next Upgrade: {name}",
@@ -730,6 +754,8 @@ const TRANSLATIONS = {
     upgrade_unlock_old_desc: "Allows placing Old Globs in battle (150 PyCoins)",
     upgrade_unlock_comet_name: "Unlock Comet Glob (Black)",
     upgrade_unlock_comet_desc: "Allows placing Comet Globs in battle (250 PyCoins)",
+    upgrade_unlock_sprout_name: "Unlock Sprout Glob (Brown)",
+    upgrade_unlock_sprout_desc: "Allows using the Brown slow family in battle (350 PyCoins)",
     upgrade_limit_name: "Limit: {name}",
     upgrade_limit_desc: "Increase limit for {name}",
 
@@ -777,12 +803,14 @@ const TRANSLATIONS = {
     duckgrade_old_desc: "Towers in a close radius of a Grey family tower are immune to stuns and slows.",
     duckgrade_bombot_name: "Bouncing Bomb",
     duckgrade_bombot_desc: "Bombs bounce and explode twice.",
+    duckgrade_worker_name: "Steel Traps",
+    duckgrade_worker_desc: "Increases the health of all deployed traps.",
+    duckgrade_brown_name: "Dried Thorns",
+    duckgrade_brown_desc: "Chance to stun enemies within the area.",
     duckgrade_duck_name: "Defensive Duck",
     duckgrade_duck_desc: "Generates money faster near enemies and deals area damage.",
     duckgrade_iex_name: "Toxic/Fiery Detonation",
     duckgrade_iex_desc: "Explosions apply burn or toxic status depending on the evolution.",
-    duckgrade_worker_name: "Re-trap",
-    duckgrade_worker_desc: "Traps can be triggered a second time by a different enemy.",
     max_reached: "MAX LEVEL",
 
     // G-Tacks
@@ -802,6 +830,10 @@ const TRANSLATIONS = {
     gtack_iex_desc: "Automatically explodes all IEx towers and temporarily increases the fire rate of nearby towers.",
     gtack_worker_name: "Worker G-Tack: Police Activity",
     gtack_worker_desc: "Activates all traps briefly and speeds up their placement.",
+    gtack_comet_name: "Comet G-Tack: Black Hole",
+    gtack_comet_desc: "Summons a temporary black hole that absorbs enemies.",
+    gtack_brown_name: "Brown G-Tack: Friendly Bloom",
+    gtack_brown_desc: "Temporarily increases the attack speed of nearby towers.",
     gtack_buy: "Buy",
     gtack_active: "Active",
     gtack_req_lvl: "🔒 Req. Lvl 50",
@@ -857,9 +889,13 @@ const TRANSLATIONS = {
     tower_Golden_Ducky_Glob_desc: "Financial royalty of the Gelatin Lake. Its golden plumage blesses the treasury, generating fortunes.",
     tower_Comet_Glob_desc: "Extracted from the skies above the Gelatin Lake, this Glob is both gelatinous and galactic; it uses its own stars as a throwing weapon that goes back and forth to decimate hordes.",
     tower_Dark_Glob_desc: "A ruinous Glob, its symbols and power could break reality; good thing it's on your side.",
-    tower_Demglob_desc: "Lost in the darkest depths, this demonic and empty Glob can break entire realities, as well as quickly disconnect Pyces... There's a reason it's the most expensive in the game, right?",
-    tower_Pyce_Glob_desc: "A mix between the elasticity of a Glob and the behavior and colors of a Pyce. Its shots are so powerful they aren't even considered from this world. Possibly created via Portalogy, the study of the Pyces.",
-    tower_Old_Glob_desc: "A grey degraded Glob, nothing would please it more than being considered a good Glob, which is why its shots divide, it is so static that not even its shots are accurate enough to hit the Pyce.",
+    tower_Demglob_desc: "Ultimate dark evolution. Deadly beams.",
+    tower_Pyce_Glob_desc: "Infected by the enemy. Shoots glitch projectiles.",
+    tower_SpyGlob_desc: "The ultimate form of the grey glob. Shoots multiple projectiles at once, wiping out everything in its path.",
+    tower_Sprout_Glob_desc: "A small sprout that slows nearby enemies with sticky mud.",
+    tower_Garden_Glob_desc: "A growing garden. Increases range and slowing effect.",
+    tower_Flower_Glob_desc: "Nature at its finest. High range and severe slow.",
+    tower_Old_Glob_desc: "Throws heavy stones for massive damage.",
     tower_Work_Bombot_desc: "A robot that worked as a demolisher; its bombs come from that work. Upon observing the Globs and after an accident and failure in its work, it decided to help these gelatinous creatures, becoming their guide and offering valuable advice. Some see it as similar to a Pyce, as it was conceived as such, but later separated, because they are not the same.",
     tower_Glob_desc: "A humble inhabitant of the Gelatin Lake. It throws green energy orbs to defend its home. Reliable and loyal.",
 
@@ -994,7 +1030,14 @@ const IMAGE_PATHS = {
   'Cuby_BombotA1': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA1).png',
   'Cuby_BombotA2': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA2).png',
   'Cube_Bomb_CB': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cube Bomb (SK-CB).png',
-  'Crystal_Bombot': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Crystal-Bombot.png'
+  'Crystal_Bombot': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Crystal-Bombot.png',
+  
+  // New Additions
+  'SpyGlob': 'img/SpyGlob (EVO3).png',
+  'Sprout_Glob': 'Interestelar Menace (COLLAB UPD)/Torres/Familia Marron/Sprout_Glob.png',
+  'Garden_Glob': 'Interestelar Menace (COLLAB UPD)/Torres/Familia Marron/Garden_Glob.png',
+  'Flower_Glob': 'Interestelar Menace (COLLAB UPD)/Torres/Familia Marron/Flower_Glob.png',
+  'Spanish_Bombot': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Spanish-Bombot/Spanish-Bombot.png'
 };
 
 const NARRATOR_DATA = {
@@ -1320,7 +1363,8 @@ const TOWER_TYPES = {
   'Demglob': { name: 'tower_Demglob_name', damage: 200, range: 300, speed: 2.0, cost: 1000, evolution: 'Void_Glob', image: IMAGE_PATHS.Demglob, projectile: 'laser_purple', desc: "tower_Demglob_desc", family: 'Comet_Glob' },
   'Void_Glob': { name: 'tower_Void_Glob_name', damage: 500, range: 400, speed: 1.0, cost: 2500, image: IMAGE_PATHS.Void_Glob, projectile: 'void_tracker', tracking: true, desc: "tower_Void_Glob_desc", family: 'Comet_Glob' },
 
-  'Pyce_Glob': { name: 'tower_Pyce_Glob_name', damage: 30, range: 180, speed: 4.5, cost: 150, image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Grey' },
+  'Pyce_Glob': { name: 'tower_Pyce_Glob_name', damage: 30, range: 180, speed: 4.5, cost: 150, evolution: 'SpyGlob', image: IMAGE_PATHS.Pyce_Glob, projectile: 'glitch', unlocked: false, desc: "tower_Pyce_Glob_desc", family: 'Grey' },
+  'SpyGlob': { name: 'tower_SpyGlob_name', damage: 45, range: 220, speed: 6.0, cost: 350, image: IMAGE_PATHS.SpyGlob, projectile: 'spyglob_multi', unlocked: false, desc: "tower_SpyGlob_desc", family: 'Grey' },
   'Old_Glob': { name: 'tower_Old_Glob_name', damage: 40, range: 200, speed: 3.5, cost: 200, evolution: 'Pyce_Glob', image: IMAGE_PATHS.Old_Glob, projectile: 'stone', unlocked: false, desc: "tower_Old_Glob_desc", family: 'Grey' },
   'Work_Bombot': { name: 'tower_Work_Bombot_name', damage: 100, range: 150, speed: 0.6, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "tower_Work_Bombot_desc", family: 'Special' },
 
@@ -1343,7 +1387,12 @@ const TOWER_TYPES = {
   'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 110, speed: 0.5, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: true },
   'Police_Glob': { name: 'tower_Police_Glob_name', damage: 30, range: 130, speed: 0.6, cost: 300, evolution: 'Planked_Glob', image: IMAGE_PATHS.Police_Glob, trap: 'Police_Trap', desc: "tower_Police_Glob_desc", family: 'Worker_Glob' },
   'Planked_Glob': { name: 'tower_Planked_Glob_name', damage: 70, range: 140, speed: 0.7, cost: 550, evolution: 'DJ_Glob', image: IMAGE_PATHS.Planked_Glob, trap: 'Planked_Trap', desc: "tower_Planked_Glob_desc", family: 'Worker_Glob' },
-  'DJ_Glob': { name: 'tower_DJ_Glob_name', damage: 120, range: 160, speed: 0.8, cost: 1200, image: IMAGE_PATHS.DJ_Glob, trap: 'DJ_Trap', desc: "tower_DJ_Glob_desc", family: 'Worker_Glob' }
+  'DJ_Glob': { name: 'tower_DJ_Glob_name', damage: 120, range: 160, speed: 0.8, cost: 1200, image: IMAGE_PATHS.DJ_Glob, trap: 'DJ_Trap', desc: "tower_DJ_Glob_desc", family: 'Worker_Glob' },
+
+  // Familia Marron (Aura Ralentizadora)
+  'Sprout_Glob': { name: 'tower_Sprout_Glob_name', damage: 0, range: 120, speed: 0, cost: 80, evolution: 'Garden_Glob', image: IMAGE_PATHS.Sprout_Glob, projectile: 'none', slowAura: 0.1, desc: "tower_Sprout_Glob_desc", family: 'Brown', unlocked: false },
+  'Garden_Glob': { name: 'tower_Garden_Glob_name', damage: 0, range: 150, speed: 0, cost: 160, evolution: 'Flower_Glob', image: IMAGE_PATHS.Garden_Glob, projectile: 'none', slowAura: 0.2, desc: "tower_Garden_Glob_desc", family: 'Brown' },
+  'Flower_Glob': { name: 'tower_Flower_Glob_name', damage: 0, range: 180, speed: 0, cost: 320, image: IMAGE_PATHS.Flower_Glob, projectile: 'none', slowAura: 0.3, desc: "tower_Flower_Glob_desc", family: 'Brown' }
 };
 
 const ENEMY_TYPES = {
@@ -1498,6 +1547,15 @@ const MAPS = {
 const SKINS_DATA = {
   'Glob': [
     {
+      id: 'rewamped_green_set', name: 'skin_rewamped_green_name', desc: 'skin_rewamped_green_desc', cost: 200, duckpass_cost: 250, type: 'pycoin',
+      skins: {
+        'Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
+        'Poop_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO2.png',
+        'Golden_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO3.png',
+        'Rainbow_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO4.png'
+      }
+    },
+    {
       id: 'military_set', name: 'skin_military_name', desc: 'skin_military_desc', cost: 350, type: 'pycoin',
       skins: {
         'Glob': 'img/Skins/Verde Base/Untrained Glob (SK-EVO1).png',
@@ -1568,18 +1626,34 @@ const SKINS_DATA = {
       id: 'turret_set', name: 'skin_turret_name', desc: 'skin_turret_desc', cost: 250, type: 'pycoin',
       skins: {
         'Old_Glob': 'img/Skins/Gris Disperso/Turret Glob (SK-EVO1).png',
-        'Pyce_Glob': 'img/Skins/Gris Disperso/Spaceship Glob (SK-EVO2).png'
+        'Pyce_Glob': 'img/Skins/Gris Disperso/Spaceship Glob (SK-EVO2).png',
+        'SpyGlob': 'img/Skins/Gris Disperso/Laserbeam Glob (SK-EVO3).png'
       }
     },
     {
       id: 'starjump_set', name: 'skin_starry_name', desc: 'skin_starry_desc', cost: 777, duckpass_cost: 666, type: 'pycoin', isSpecial: true,
       skins: {
         'Old_Glob': 'img/Collabs (SJ)/Skin/Starry (SK-EVO1).png',
-        'Pyce_Glob': 'img/Collabs (SJ)/Skin/Astral_Starry (SK_EVO2).png'
+        'Pyce_Glob': 'img/Collabs (SJ)/Skin/Astral_Starry (SK_EVO2).png',
+        'SpyGlob': 'img/Collabs (SJ)/Skin/Posessed_Starry (SK_EVO3).png'
       },
       names: {
         'Old_Glob': { es: 'Destellito', en: 'Starry' },
-        'Pyce_Glob': { es: 'Destellito Angelical', en: 'Heroic Starry' }
+        'Pyce_Glob': { es: 'Destellito Angelical', en: 'Heroic Starry' },
+        'SpyGlob': { es: 'Destellito Poseído', en: 'Possessed Starry' }
+      }
+    },
+    {
+      id: 'astrorb_set', name: 'skin_astrorb_name', desc: 'skin_astrorb_desc', cost: 400, duckpass_cost: 350, type: 'pycoin', isSpecial: true, unlockCondition: 'astrorb_frame',
+      skins: {
+        'Old_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png',
+        'Pyce_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbContenida.png',
+        'SpyGlob': 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbTF.png'
+      },
+      names: {
+        'Old_Glob': { es: 'Astrorb (Orbe)', en: 'Astrorb (Orb)' },
+        'Pyce_Glob': { es: 'Astrorb (Contenida)', en: 'Astrorb (Contained)' },
+        'SpyGlob': { es: 'Astrorb (True Form)', en: 'Astrorb (True Form)' }
       }
     }
   ],
@@ -1645,8 +1719,24 @@ const SKINS_DATA = {
       names: {
         'Work_Bombot': 'Cuby'
       }
+    },
+    {
+      id: 'spanish_bombot', name: 'skin_spanish_bombot_name', desc: 'skin_spanish_bombot_desc', cost: 260, duckpass_cost: 450, type: 'pycoin', isSpecial: true,
+      skins: {
+        'Work_Bombot': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Spanish-Bombot/Spanish-Bombot.png'
+      },
+      names: {
+        'Work_Bombot': 'Spanish-Bombot'
+      }
+    },
+    {
+      id: 'crystal_bombot', name: 'skin_crystal_bombot_name', desc: 'skin_crystal_bombot_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_boss_frames',
+      skins: {
+        'Work_Bombot': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Crystal-Bombot.png'
+      }
     }
   ],
+
   'Global': [
     { id: 'recolor_emerald', name: 'skin_emerald_name', desc: 'skin_emerald_desc', type: 'duckpass_level', level: 5, filter: 'hue-rotate(100deg) saturate(2.5) brightness(0.9)' },
     { id: 'buff_damage_1', name: 'skin_buff_damage1_name', desc: 'skin_buff_damage1_desc', type: 'duckpass_level', level: 10, buff: { damage: 1.05 } },
@@ -1706,7 +1796,15 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_dreams_name": "Set de Ensueño",
   "skin_dreams_desc": "¿Son estos tus heroes? Yo diria que si, son un buen equipo de ensueño.<br><span style='font-size:0.8em; color:#aaa;'>Los personajes pertenecen a HAL Laboratory y a Nintendo, yo solo tengo el derecho de Globs y Pyces.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
   "skin_judicial_name": "Set Judicial",
-  "skin_judicial_desc": "¡Que haya orden! Los Pyces no se mantendran andando mientras los Jueces y sus gatos anden sueltos!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>"
+  "skin_judicial_desc": "¡Que haya orden! Los Pyces no se mantendran andando mientras los Jueces y sus gatos anden sueltos!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
+  "skin_rewamped_green_name": "Set Verde Remasterizado",
+  "skin_rewamped_green_desc": "Una versión mejorada visualmente de la familia verde original.",
+  "skin_spanish_bombot_name": "Spanish Bombot",
+  "skin_spanish_bombot_desc": "El Work-Bombot se preparó para la convención con un traje especial.",
+  "skin_astrorb_name": "Astrorb (Jefe)",
+  "skin_astrorb_desc": "Las misteriosas formas del poderoso Astrorb.",
+  "skin_crystal_bombot_name": "Crystal-Bombot",
+  "skin_crystal_bombot_desc": "La variante de cristal del Bombot."
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
@@ -1721,7 +1819,15 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_dreams_name": "Dreams Set",
   "skin_dreams_desc": "Are these your heroes? I'd say yes, they are a good dream team.<br><span style='font-size:0.8em; color:#aaa;'>The characters belong to HAL Laboratory and Nintendo, I only have the rights to Globs and Pyces.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
   "skin_judicial_name": "Judicial Set",
-  "skin_judicial_desc": "Let there be order! The Pyces won't keep walking while the Judges and their cats are on the loose!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>"
+  "skin_judicial_desc": "Let there be order! The Pyces won't keep walking while the Judges and their cats are on the loose!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
+  "skin_rewamped_green_name": "Remastered Green Set",
+  "skin_rewamped_green_desc": "A visually improved version of the original green family.",
+  "skin_spanish_bombot_name": "Spanish Bombot",
+  "skin_spanish_bombot_desc": "Work-Bombot dressed up for the convention with a special suit.",
+  "skin_astrorb_name": "Astrorb (Boss)",
+  "skin_astrorb_desc": "The mysterious forms of the powerful Astrorb.",
+  "skin_crystal_bombot_name": "Crystal-Bombot",
+  "skin_crystal_bombot_desc": "The crystal variant of the Bombot."
 });
 
 window.SKIN_META = window.SKIN_META || {};
@@ -1740,6 +1846,18 @@ Object.assign(window.SKIN_META, {
       1: { type: 'projectile', color: '#007BFF' }, // EVO1: Disparos azules
       2: { type: 'projectile', color: '#8B4513' }, // EVO2: Disparos marrones
       3: { type: 'blackwhite', palette: ['#000000', '#FFFFFF'] } // EVO3: agujero negro (negro/blanco)
+    }
+  },
+  "astrorb_set": {
+    attacks: {
+      1: { type: 'projectile', image: 'img/Proyectiles/Crystal Metor.png' },
+      2: { type: 'projectile', image: 'img/Proyectiles/Crystal Metor.png' },
+      3: { type: 'projectile', image: 'img/Proyectiles/Crystal Metor.png' }
+    }
+  },
+  "crystal_bombot": {
+    attacks: {
+      1: { type: 'projectile', image: 'img/Proyectiles/Crystal Metor.png' }
     }
   }
 });
