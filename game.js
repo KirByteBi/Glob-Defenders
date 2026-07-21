@@ -118,9 +118,14 @@ loadUsers();
 function init() {
   console.log("Iniciando Glob Defenders...");
   try {
-    if (Math.random() < 0.15) {
+    const logoRoll = Math.random();
+    if (logoRoll < 0.15) {
       document.querySelectorAll('.login-logo, .game-logo').forEach(img => {
         img.src = 'img/GlobDefendersImage.png';
+      });
+    } else if (logoRoll < 0.30) {
+      document.querySelectorAll('.login-logo, .game-logo').forEach(img => {
+        img.src = 'img/Urban Road_Reborn Logo.png';
       });
     }
     updateLanguage();
@@ -5279,6 +5284,9 @@ function activateGTack(t) {
         </ul>
 
         <h3>📋 Historial de Actualizaciones (GlD v4.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
+        <div style="text-align:center; margin: 10px 0;">
+          <img src="img/Urban Road_Reborn Logo.png" alt="Urban Road Reborn Logo" style="max-width:100%; max-height:220px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+        </div>
         <p>¡Urbanistic Road, la nueva ciudad ha llegado!! Trayendo consigo varios Pyces, enemigos y Globs nuevos!!</p>
         <h4>Novedades del Parche:</h4>
         <ul>
@@ -5338,6 +5346,9 @@ function activateGTack(t) {
         </ul>
 
         <h3>📋 Update Logs (GlD v4.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
+        <div style="text-align:center; margin: 10px 0;">
+          <img src="img/Urban Road_Reborn Logo.png" alt="Urban Road Reborn Logo" style="max-width:100%; max-height:220px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+        </div>
         <p>Urbanistic Road, the new city has arrived!! Bringing with it several new Pyces, enemies, and Globs!!</p>
         <h4>What's New in this Patch:</h4>
         <ul>
