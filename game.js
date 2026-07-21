@@ -151,10 +151,12 @@ function saveProgress() {
   const progress = {
     badges: Object.fromEntries(Object.entries(BADGES).map(([k, v]) => [k, v.unlocked])),
     unlockedInfinite: gameState.unlockedInfinite,
+    unlockedInterstellar: gameState.unlockedInterstellar || false,
     corruptWins: gameState.corruptWins,
     unlockedBombot: TOWER_TYPES['Work_Bombot'] ? TOWER_TYPES['Work_Bombot'].unlocked : false,
     unlockedOldGlob: TOWER_TYPES['Old_Glob'] ? TOWER_TYPES['Old_Glob'].unlocked : false,
     unlockedCometGlob: TOWER_TYPES['Comet_Glob'] ? TOWER_TYPES['Comet_Glob'].unlocked : false,
+    unlockedSproutGlob: TOWER_TYPES['Sprout_Glob'] ? TOWER_TYPES['Sprout_Glob'].unlocked : false,
     globetines: gameState.globetines,
     pycoins: gameState.pycoins,
     duckPassXP: gameState.duckPassXP,
@@ -231,7 +233,8 @@ function loadProgress(username) {
         console.log("Applying limits reset migration V5 for:", user);
         progress.towerLimits = {
           'Glob': 5, 'Red_Glob': 6, 'Soap_Glob': 3, 'Ducky_Glob': 3,
-          'Comet_Glob': 3, 'Old_Glob': 2, 'Work_Bombot': 1, 'White': 1, 'Pink': 1, 'IEx': 1
+          'Comet_Glob': 3, 'Old_Glob': 2, 'Work_Bombot': 1, 'White': 1, 'Pink': 1, 'IEx': 1,
+          'Worker_Glob': 2, 'Sprout_Glob': 3
         };
         progress.upgradesResetV5 = true;
         localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
@@ -243,11 +246,16 @@ function loadProgress(username) {
         });
       }
       gameState.unlockedInfinite = progress.unlockedInfinite || false;
+      gameState.unlockedInterstellar = progress.unlockedInterstellar || false;
       gameState.corruptWins = progress.corruptWins || 0;
       if (TOWER_TYPES['Work_Bombot']) TOWER_TYPES['Work_Bombot'].unlocked = progress.unlockedBombot || false;
       if (TOWER_TYPES['Old_Glob']) TOWER_TYPES['Old_Glob'].unlocked = progress.unlockedOldGlob || false;
       if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = progress.unlockedOldGlob || false;
+      if (TOWER_TYPES['SpyGlob']) TOWER_TYPES['SpyGlob'].unlocked = progress.unlockedOldGlob || false;
       if (TOWER_TYPES['Comet_Glob']) TOWER_TYPES['Comet_Glob'].unlocked = progress.unlockedCometGlob || false;
+      if (TOWER_TYPES['Sprout_Glob']) TOWER_TYPES['Sprout_Glob'].unlocked = progress.unlockedSproutGlob || false;
+      if (TOWER_TYPES['Garden_Glob']) TOWER_TYPES['Garden_Glob'].unlocked = progress.unlockedSproutGlob || false;
+      if (TOWER_TYPES['Flower_Glob']) TOWER_TYPES['Flower_Glob'].unlocked = progress.unlockedSproutGlob || false;
 
       gameState.equippedTowers = progress.equippedTowers || ['Glob', 'Red_Glob'];
       gameState.globetines = Number(progress.globetines != null ? progress.globetines : 500);
@@ -275,10 +283,10 @@ function loadProgress(username) {
       gameState.metaDamageLevel = progress.metaDamageLevel || 0;
       gameState.metaDamage = progress.metaDamage || 1;
       gameState.duckgrades = progress.duckgrades || {};
-      gameState.gtacks = progress.gtacks || {
+      gameState.gtacks = Object.assign({
         'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false,
-        'Comet_Glob': false, 'Old_Glob': false
-      };
+        'Comet_Glob': false, 'Old_Glob': false, 'Bomb_Glob': false, 'Worker_Glob': false, 'Brown': false
+      }, progress.gtacks || {});
       gameState.pycesKilled = progress.pycesKilled || {};
       gameState.globsPlaced = progress.globsPlaced || {};
       gameState.mimicSpawned = progress.mimicSpawned || 0;
@@ -4982,13 +4990,13 @@ function activateGTack(t) {
           gameState.pycoins += 400;
           gameState.duckPassCurrency += 500;
           showMessage("⭐ +400 PyCoins / +500 DuckPass", 'success');
-          // El skin Cuby se desbloquea comprándolo gratis, pero como es free, ya estará disponible
         } else {
           gameState.pycoins += 250;
           gameState.duckPassCurrency += 350;
           showMessage("⭐ +250 PyCoins / +350 DuckPass", 'success');
         }
         updateMetaUI();
+        saveProgress();
       }
 
       if (gameState.towers.length > 0) {
