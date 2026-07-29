@@ -318,10 +318,18 @@ function spawnDecorations(containerId) {
   try {
     const container = document.getElementById(containerId);
     if (!container) return;
-    const images = Object.values(IMAGE_PATHS);
+    const allImages = Object.values(IMAGE_PATHS);
+
+    // For login/mode screens, exclude collab assets (Interstellar Menace skins, special enemies, etc.)
+    const isLoginScreen = (containerId === 'login-decorations' || containerId === 'mode-decorations' || containerId === 'map-decorations');
+    const images = isLoginScreen
+      ? allImages.filter(p => !p.includes('Interestelar Menace') && !p.includes('Collabs') && !p.includes('Skins/') && !p.includes('Astrorb') && !p.includes('Crystal'))
+      : allImages;
+
+    const pool = images.length > 0 ? images : allImages;
 
     for (let i = 0; i < 15; i++) {
-      const imgPath = images[Math.floor(Math.random() * images.length)];
+      const imgPath = pool[Math.floor(Math.random() * pool.length)];
       const img = document.createElement('div');
       img.className = 'floating-char';
       img.style.backgroundImage = `url('${imgPath}')`;
@@ -425,12 +433,16 @@ function handleLogin() {
     }
   }
 
-  if (!gameState.unlockedAntiNormal) {
+  // Anti-Normal glitch only activates at Duck Pass level >= 30
+  if (!gameState.unlockedAntiNormal && gameState.duckPassLevel >= 30) {
     gameState.antiNormalActive = true;
     modeScreen.classList.add('glitch-state');
     const disableBtn = document.getElementById('disable-antinormal-btn');
     if (disableBtn) disableBtn.style.display = 'block';
     showMessage(translate('system_unstable'), 'error');
+  } else if (gameState.antiNormalActive && gameState.duckPassLevel < 30) {
+    // Reset if somehow triggered below level 30
+    gameState.antiNormalActive = false;
   }
 
   const infBtn = document.querySelector('.mode-btn[data-mode="infinito"]');
@@ -483,7 +495,12 @@ function showModeSelection() {
       btn.className = 'mode-btn dynamic-mode mode-btn-antinormal';
       btn.dataset.mode = 'antiNormal';
       btn.innerHTML = currentLanguage === 'en' ? '🌑 Un-Normal' : '🌑 Anti-Normal';
-      btn.onclick = () => selectMode('antiNormal');
+      btn.onclick = () => {
+        const msg = currentLanguage === 'en'
+          ? '⚠️ WARNING: Anti-Normal mode is extremely difficult.\nHealth cannot be recovered. NOeye dominates from wave 1.\n\nAre you SURE you want to play Anti-Normal?'
+          : '⚠️ ADVERTENCIA: El modo Anti-Normal es extremadamente difícil.\nLa vida no puede recuperarse. NOeye domina desde la ola 1.\n\n¿Estás SEGURO de querer jugar Anti-Normal?';
+        if (window.confirm(msg)) selectMode('antiNormal');
+      };
       grid.appendChild(btn);
     }
 
@@ -550,6 +567,11 @@ function selectMode(mode) {
   gameState.maxWaves = limits[mode] || 15;
 
   if (gameState.antiNormalActive && mode === 'normal') {
+    // Require confirmation before triggering Anti-Normal via the glitch path
+    const msg = currentLanguage === 'en'
+      ? '⚠️ WARNING: The system is unstable.\nSelecting NORMAL may trigger Anti-Normal mode — a hidden, extremely difficult mode with no health recovery.\n\nDo you wish to continue?'
+      : '⚠️ ADVERTENCIA: El sistema está inestable.\nSeleccionar NORMAL podría activar el modo Anti-Normal — un modo oculto, extremadamente difícil y sin recuperación de vida.\n\n¿Deseas continuar?';
+    if (!window.confirm(msg)) return;
     gameState.mode = 'antiNormal';
     gameState.maxWaves = 35;
     document.getElementById('game-area').classList.add('anti-normal');
@@ -884,17 +906,18 @@ function drawTowerShop() {
   shopContainer.innerHTML = '';
 
   const allShopTowers = {
-    'Glob': { type: 'Glob', unlocked: true },
-    'Red_Glob': { type: 'Red_Glob', unlocked: true },
-    'Soap_Glob': { type: 'Soap_Glob', unlocked: gameState.duckPassLevel >= 3, req: 'lvl3' },
-    'Ducky_Glob': { type: 'Ducky_Glob', unlocked: gameState.duckPassLevel >= 6, req: 'lvl6' },
-    'Comet_Glob': { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
-    'Old_Glob': { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
-    'Work_Bombot': { type: 'Work_Bombot', unlocked: !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked), req: 'challenge' },
-    'Worker_Glob': { type: 'Worker_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 15, req: 'urban' },
-    'Balloon_Glob': { type: 'Balloon_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 20, req: 'urban' },
-    'Streamer_Glob': { type: 'Streamer_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 25, req: 'urban' },
-    'Bomb_Glob': { type: 'Bomb_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 30, req: 'urban' }
+    'Glob':         { type: 'Glob', unlocked: true },
+    'Red_Glob':     { type: 'Red_Glob', unlocked: true },
+    'Soap_Glob':    { type: 'Soap_Glob', unlocked: true },
+    'Ducky_Glob':   { type: 'Ducky_Glob', unlocked: true },
+    'Comet_Glob':   { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
+    'Old_Glob':     { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
+    'Sprout_Glob':  { type: 'Sprout_Glob', unlocked: !!(TOWER_TYPES['Sprout_Glob'] && TOWER_TYPES['Sprout_Glob'].unlocked), req: 'shop' },
+    'Work_Bombot':  { type: 'Work_Bombot', unlocked: !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked), req: 'challenge' },
+    'Worker_Glob':  { type: 'Worker_Glob', unlocked: true },
+    'Balloon_Glob': { type: 'Balloon_Glob', unlocked: true },
+    'Streamer_Glob':{ type: 'Streamer_Glob', unlocked: true },
+    'Bomb_Glob':    { type: 'Bomb_Glob', unlocked: true }
   };
 
   const shopTowers = (gameState.equippedTowers || ['Glob', 'Red_Glob']).map(t => allShopTowers[t]).filter(Boolean);
@@ -1162,7 +1185,8 @@ function switchEncyclopediaTab(tab) {
       const HIDDEN_VARIANTS = ['NO_CrystEye_CB', 'AstrorbContenida', 'AstrorbTF',
         'Spyware1', 'Spyware2', 'Spyware3',
         'BitY1', 'BitG2', 'BitP3', 'BitB4',
-        'ByteYP2', 'BytePG3', 'ByteYB4'];
+        'ByteYP2', 'BytePG3', 'ByteYB4',
+        'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce'];
 
       Object.keys(ENEMY_TYPES).forEach(type => {
         const e = ENEMY_TYPES[type];
@@ -1199,13 +1223,20 @@ function switchEncyclopediaTab(tab) {
           killed = ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
         }
 
+        let imageToShow = e.image;
+        if (killed === 0) {
+          imageToShow = e.isCrystallized ? 'img/Sellos/AstralExclamation.png' : 'img/Sellos/MysteryBug.png';
+        }
+
         if (typeof getPyceKillTarget === 'function' && killed >= getPyceKillTarget(type)) {
           btn.style.boxShadow = '0 0 10px #ffd700';
           btn.style.borderColor = '#ffd700';
         }
         btn.id = 'almanac-btn-' + type;
         btn.onclick = () => selectAlmanacItem(type, 'enemies');
-        btn.innerHTML = `<img src="${e.image}" title="${translate(e.name || type)}">`;
+        
+        const isImportant = e.boss || e.isCrystallized || type === 'Mimic_Pyce' || type === 'Leni_the_big_Hammer' || type === 'Monster' || type === 'AstrorbOrbe';
+        btn.innerHTML = `<img src="${imageToShow}" title="${killed === 0 && isImportant ? '???' : translate(e.name || type)}">`;
         grid.appendChild(btn);
       });
       if (firstItem) selectAlmanacItem(firstItem, 'enemies');
@@ -1319,6 +1350,29 @@ function selectAlmanacItem(id, category) {
     const progressBg = isMaxed ? 'rgba(255, 215, 0, 0.3)' : 'rgba(0,0,0,0.3)';
     const barWidth = Math.min(100, (killed / target) * 100);
 
+    const isUndiscovered = killed === 0;
+    let displayImage = e.image;
+    let displayName = translate(e.name || id);
+    let displayDesc = e.desc ? translate(e.desc) : "";
+    let displayHealth = e.health;
+    let displaySpeed = e.speed;
+    let displayReward = e.reward;
+
+    if (isUndiscovered) {
+      displayImage = e.isCrystallized ? 'img/Sellos/AstralExclamation.png' : 'img/Sellos/MysteryBug.png';
+      
+      const isImportant = e.boss || e.isCrystallized || id === 'Mimic_Pyce' || id === 'Leni_the_big_Hammer' || id === 'Monster' || id === 'AstrorbOrbe';
+      
+      if (isImportant) {
+         displayName = "???";
+         displayDesc = displayDesc.replace(/./g, "#");
+      }
+      
+      displayHealth = "???";
+      displaySpeed = "???";
+      displayReward = "???";
+    }
+
     let variantsHTML = '';
     if (id.startsWith('Bit') || id.startsWith('Byte') || id.startsWith('Spyware')) {
       let variants = [];
@@ -1330,31 +1384,37 @@ function selectAlmanacItem(id, category) {
       variants.forEach(v => {
         const vi = ENEMY_TYPES[v] || { image: IMAGE_PATHS[v] };
         if (vi && vi.image) {
+          let vKilled = gameState.pycesKilled[v] || 0;
+          let vImage = vi.image;
+          if (vKilled === 0) {
+             vImage = vi.isCrystallized ? 'img/Sellos/AstralExclamation.png' : 'img/Sellos/MysteryBug.png';
+          }
           variantsHTML += `
             <div class="evo-item" onclick="selectAlmanacItem('${v}', 'enemies')" style="cursor:pointer; ${v === id || (id === 'Spyware' && v === 'Spyware1') ? 'border: 2px solid #fff;' : 'opacity: 0.7;'} border-radius: 10px; margin: 0 5px;">
-              <img src="${vi.image}" style="width:50px; height:50px; border-radius:10px;">
+              <img src="${vImage}" style="width:50px; height:50px; border-radius:10px;" title="${vKilled === 0 ? '???' : translate(vi.name || v)}">
             </div>
           `;
         }
       });
       variantsHTML += `</div>`;
     } else if (id === 'NOeye_Pyce') {
-      // Show crystallized variant under NOeye
       const cryst = ENEMY_TYPES['NO_CrystEye_CB'];
       if (cryst) {
+        let vKilled = gameState.pycesKilled['NO_CrystEye_CB'] || 0;
+        let vImage = vKilled === 0 ? 'img/Sellos/AstralExclamation.png' : cryst.image;
+        let vName = vKilled === 0 ? "???" : translate(cryst.name || 'NO_CrystEye_CB');
         variantsHTML = `
           <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
             <p style="font-size:0.75rem; color:#aaa; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Variante Cristalizada</p>
             <div class="evo-list" style="justify-content:center;">
               <div class="evo-item" onclick="selectAlmanacItem('NO_CrystEye_CB', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; border:2px solid #cc44ff;">
-                <img src="${cryst.image}" style="width:55px; height:55px; border-radius:10px;" title="${translate(cryst.name || 'NO_CrystEye_CB')}">
-                <div style="font-size:0.7rem; color:#cc44ff; margin-top:4px;">${translate(cryst.name || 'NO_CrystEye_CB')}</div>
+                <img src="${vImage}" style="width:55px; height:55px; border-radius:10px;" title="${vName}">
+                ${vKilled === 0 ? '' : `<div style="font-size:0.7rem; color:#cc44ff; margin-top:4px;">${vName}</div>`}
               </div>
             </div>
           </div>`;
       }
     } else if (id === 'AstrorbOrbe' || id === 'AstrorbContenida' || id === 'AstrorbTF') {
-      // Show all 3 Astrorb forms grouped together, Orbe first
       const forms = ['AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF'];
       variantsHTML = `
         <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
@@ -1363,25 +1423,54 @@ function selectAlmanacItem(id, category) {
       forms.forEach(f => {
         const fi = ENEMY_TYPES[f];
         if (fi) {
+          let vKilled = gameState.pycesKilled[f] || 0;
+          let vImage = vKilled === 0 ? 'img/Sellos/MysteryBug.png' : fi.image;
+          let vName = vKilled === 0 ? "???" : translate(fi.name || f);
           variantsHTML += `
             <div class="evo-item" onclick="selectAlmanacItem('${f}', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; ${f === id ? 'border:2px solid #ff00ff; box-shadow: 0 0 10px #ff00ff;' : 'opacity:0.7; border:1px solid rgba(255,0,255,0.3);'}">
-              <img src="${fi.image}" style="width:${f === 'AstrorbOrbe' ? '60' : '48'}px; height:${f === 'AstrorbOrbe' ? '60' : '48'}px; border-radius:10px;" title="${translate(fi.name || f)}">
-              <div style="font-size:0.65rem; color:#ff88ff; margin-top:3px;">${translate(fi.name || f)}</div>
+              <img src="${vImage}" style="width:${f === 'AstrorbOrbe' ? '60' : '48'}px; height:${f === 'AstrorbOrbe' ? '60' : '48'}px; border-radius:10px;" title="${vName}">
+              ${vKilled === 0 ? '' : `<div style="font-size:0.65rem; color:#ff88ff; margin-top:3px;">${vName}</div>`}
             </div>`;
         }
       });
       variantsHTML += `</div></div>`;
+    } else if (id === 'Stupid_Pyce' || id === 'Pyce2' || id === 'Bomb_Pyce') {
+      // Crystal variants shown as sub-versions
+      const crystalMap = {
+        'Stupid_Pyce': 'Crystal_Pyce',
+        'Pyce2': 'Dreamy_SPyce',
+        'Bomb_Pyce': 'Astral_BPyce'
+      };
+      const crystType = crystalMap[id];
+      const cryst = ENEMY_TYPES[crystType];
+      if (cryst) {
+        let vKilled = gameState.pycesKilled[crystType] || 0;
+        let vImage = vKilled === 0 ? 'img/Sellos/AstralExclamation.png' : cryst.image;
+        let vName = vKilled === 0 ? "???" : translate(cryst.name || crystType);
+        variantsHTML = `
+          <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
+            <p style="font-size:0.75rem; color:#aaa; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Variante Cristalizada</p>
+            <div class="evo-list" style="justify-content:center;">
+              <div class="evo-item" onclick="selectAlmanacItem('${crystType}', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; border:2px solid #44ddff; box-shadow:0 0 8px rgba(68,221,255,0.5);">
+                <img src="${vImage}" style="width:55px; height:55px; border-radius:10px;" title="${vName}">
+                ${vKilled === 0 ? '' : `<div style="font-size:0.7rem; color:#44ddff; margin-top:4px;">${vName}</div>`}
+              </div>
+            </div>
+          </div>`;
+      }
     } else if (id === 'Monster') {
-      // Show crystallized form under Monster
       const cryst = ENEMY_TYPES['Cristalized_Monster'];
       if (cryst) {
+        let vKilled = gameState.pycesKilled['Cristalized_Monster'] || 0;
+        let vImage = vKilled === 0 ? 'img/Sellos/AstralExclamation.png' : cryst.image;
+        let vName = vKilled === 0 ? "???" : translate(cryst.name || 'Cristalized_Monster');
         variantsHTML = `
           <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
             <p style="font-size:0.75rem; color:#aaa; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Variante Cristalizada</p>
             <div class="evo-list" style="justify-content:center;">
               <div class="evo-item" onclick="selectAlmanacItem('Cristalized_Monster', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; border:2px solid #44bbff;">
-                <img src="${cryst.image}" style="width:55px; height:55px; border-radius:10px;" title="${translate(cryst.name || 'Cristalized_Monster')}">
-                <div style="font-size:0.7rem; color:#44bbff; margin-top:4px;">${translate(cryst.name || 'Cristalized_Monster')}</div>
+                <img src="${vImage}" style="width:55px; height:55px; border-radius:10px;" title="${vName}">
+                ${vKilled === 0 ? '' : `<div style="font-size:0.7rem; color:#44bbff; margin-top:4px;">${vName}</div>`}
               </div>
             </div>
           </div>`;
@@ -1389,10 +1478,10 @@ function selectAlmanacItem(id, category) {
     }
 
     details.innerHTML = `
-      <img src="${e.image}" style="width:100px; height:100px; margin-bottom:10px; ${isBoss ? 'transform:scale(1.2);' : ''}">
-      <h3 style="font-size: 1.5rem; ${titleStyle}">${translate(e.name || id)}</h3>
-      ${e.desc ? `<p style="font-size:0.9rem; margin-top:5px; margin-bottom:10px;">${translate(e.desc)}</p>` : ''}
-      ${e.category === 'gambling' ? '' : `<p style="font-size:0.95rem; color:#ffd700; font-weight:bold; margin-top:5px;">⭐ ${mechanicText}</p>`}
+      <img src="${displayImage}" style="width:100px; height:100px; margin-bottom:10px; ${isBoss && !isUndiscovered ? 'transform:scale(1.2);' : ''}">
+      <h3 style="font-size: 1.5rem; ${titleStyle}">${displayName}</h3>
+      ${displayDesc ? `<p style="font-size:0.9rem; margin-top:5px; margin-bottom:10px; overflow-wrap: anywhere;">${displayDesc}</p>` : ''}
+      ${e.category === 'gambling' || isUndiscovered ? '' : `<p style="font-size:0.95rem; color:#ffd700; font-weight:bold; margin-top:5px;">⭐ ${mechanicText}</p>`}
       
       <div style="margin-top:15px; width:100%; max-width:300px; margin-left:auto; margin-right:auto; background:#222; border-radius:5px; padding:3px; position:relative;">
         <div style="width:${barWidth}%; height:15px; background:${isMaxed ? '#ffd700' : '#4caf50'}; border-radius:3px; transition: width 0.3s;"></div>
@@ -1402,9 +1491,9 @@ function selectAlmanacItem(id, category) {
       </div>
 
       <div style="display:flex; justify-content:center; gap:15px; font-size:0.9rem; color:#ddd; margin-top:15px; background: ${progressBg}; padding:10px; border-radius:10px;">
-        <span>${translate('almanac_hp')} ${e.health}</span>
-        <span>${translate('almanac_speed')} ${e.speed}</span>
-        <span>${translate('almanac_reward')}${e.reward}</span>
+        <span>${translate('almanac_hp')} ${displayHealth}</span>
+        <span>${translate('almanac_speed')} ${displaySpeed}</span>
+        <span>${translate('almanac_reward')}${displayReward}</span>
       </div>
       
       ${variantsHTML}
@@ -1577,6 +1666,24 @@ function bindEvents() {
     const code = input.value.trim().toUpperCase();
     if (!code) return;
 
+    // DEV_BUILD: special code only for dev users
+    if (code === 'DEV_BUILD') {
+      const username = localStorage.getItem('glob_username') || '';
+      const isDevUser = typeof DEV_USERS !== 'undefined' && DEV_USERS.has(username);
+      if (!isDevUser) {
+        showMessage('⛔ Código de desarrollo no disponible... ¿Qué pretendías?', 'error');
+        input.value = '';
+        return;
+      }
+      // Dev users get 9999 coins, unlimited use (no usedCodes tracking)
+      gameState.pycoins += 9999;
+      gameState.duckPassCurrency += 9999;
+      updateMetaUI();
+      showMessage('🛠️ DEV_BUILD: +9999 PyCoins y DuckPass cargados!', 'success');
+      input.value = '';
+      return;
+    }
+
     if (gameState.usedCodes[code] && code !== 'CR1-M3-CA+GLD') {
       showMessage(translate('code_already_used'), 'warning');
       input.value = '';
@@ -1682,9 +1789,54 @@ function bindEvents() {
   };
 
   document.getElementById('debug-toggle').onclick = () => {
-    gameState.adminMode = !gameState.adminMode;
-    document.getElementById('admin-indicator').style.display = gameState.adminMode ? 'block' : 'none';
-    if (gameState.adminMode) gameState.globetines += 10000;
+    const username = localStorage.getItem('glob_username') || '';
+    const isDevUser = typeof DEV_USERS !== 'undefined' && DEV_USERS.has(username);
+    if (!isDevUser) return; // Only dev users can use the debug button
+
+    if (!gameState.debugState) {
+      // First click: save snapshot & unlock everything
+      gameState.debugState = 'unlocked';
+      gameState.debugSnapshot = {
+        pycoins: gameState.pycoins,
+        duckPassCurrency: gameState.duckPassCurrency,
+        duckPassLevel: gameState.duckPassLevel,
+        unlockedSkins: [...(gameState.unlockedSkins || [])],
+        pycesKilled: JSON.parse(JSON.stringify(gameState.pycesKilled || {})),
+        towerTypes: JSON.parse(JSON.stringify(
+          Object.fromEntries(Object.keys(TOWER_TYPES).map(k => [k, { unlocked: TOWER_TYPES[k].unlocked }]))
+        ))
+      };
+      // Unlock all towers
+      Object.keys(TOWER_TYPES).forEach(k => { TOWER_TYPES[k].unlocked = true; });
+      // Unlock all skins
+      const allSkinIds = [];
+      Object.values(SKINS_DATA).forEach(arr => arr.forEach(s => allSkinIds.push(s.id)));
+      allSkinIds.forEach(id => { if (!gameState.unlockedSkins.includes(id)) gameState.unlockedSkins.push(id); });
+      // Reveal entire encyclopedia: max out all kill counters
+      Object.keys(ENEMY_TYPES).forEach(type => {
+        const target = typeof getPyceKillTarget === 'function' ? getPyceKillTarget(type) : 9999;
+        gameState.pycesKilled[type] = Math.max(gameState.pycesKilled[type] || 0, target);
+      });
+      showMessage('🛠️ DEBUG: Torres, skins y enciclopedia desbloqueadas. Pulsa de nuevo para restaurar.', 'success');
+      document.getElementById('admin-indicator').style.display = 'block';
+    } else {
+      // Second click: restore snapshot
+      const snap = gameState.debugSnapshot;
+      if (snap) {
+        Object.keys(TOWER_TYPES).forEach(k => {
+          if (snap.towerTypes[k] !== undefined) TOWER_TYPES[k].unlocked = snap.towerTypes[k].unlocked;
+        });
+        gameState.unlockedSkins = snap.unlockedSkins;
+        // Restore encyclopedia kill counters
+        if (snap.pycesKilled) gameState.pycesKilled = JSON.parse(JSON.stringify(snap.pycesKilled));
+      }
+      gameState.debugState = null;
+      gameState.debugSnapshot = null;
+      document.getElementById('admin-indicator').style.display = 'none';
+      showMessage('🔄 DEBUG: Estado restaurado al original.', 'warning');
+    }
+    drawShop();
+    drawLoadout();
     updateUI();
   };
 
@@ -1955,6 +2107,8 @@ function updateMetaUI() {
     document.getElementById('pass-level').textContent = gameState.duckPassLevel;
     document.getElementById('pass-xp').textContent = gameState.duckPassXP;
     document.getElementById('xp-fill').style.width = `${gameState.duckPassXP}%`;
+    const leftEl = document.getElementById('pass-xp-left');
+    if (leftEl) leftEl.textContent = 100 - gameState.duckPassXP;
   }
 }
 
@@ -2235,7 +2389,7 @@ function drawEquipShop(container) {
   for (let i = 0; i < 5; i++) {
     if (i < gameState.equippedTowers.length) {
       const t = gameState.equippedTowers[i];
-      slotsHTML += `<div style="width:36px;height:36px;flex-shrink:0;background:url('${encodeURI(getTowerImage(t))}') center/cover;border:2px solid #2ecc71;border-radius:6px;box-shadow:0 0 5px rgba(46,204,113,0.4);" title="${translate(TOWER_TYPES[t] ? TOWER_TYPES[t].name : t)}"></div>`;
+      slotsHTML += `<div style="width:36px;height:36px;flex-shrink:0;background:url('${encodeURI(getTowerImage(t))}') center/cover;border:2px solid #2ecc71;border-radius:6px;box-shadow:0 0 5px rgba(46,204,113,0.4); cursor:pointer;" title="Desequipar ${translate(TOWER_TYPES[t] ? TOWER_TYPES[t].name : t)}" onclick="toggleEquipTower('${t}')"></div>`;
     } else {
       slotsHTML += `<div style="width:36px;height:36px;flex-shrink:0;background:rgba(255,255,255,0.04);border:2px dashed #4a5568;border-radius:6px;"></div>`;
     }
@@ -2258,16 +2412,16 @@ function drawEquipShop(container) {
   const shopTowers = [
     { type: 'Glob', unlocked: true },
     { type: 'Red_Glob', unlocked: true },
-    { type: 'Soap_Glob', unlocked: gameState.duckPassLevel >= 3, req: 'lvl3' },
-    { type: 'Ducky_Glob', unlocked: gameState.duckPassLevel >= 6, req: 'lvl6' },
+    { type: 'Soap_Glob', unlocked: true },
+    { type: 'Ducky_Glob', unlocked: true },
     { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
     { type: 'Sprout_Glob', unlocked: !!(TOWER_TYPES['Sprout_Glob'] && TOWER_TYPES['Sprout_Glob'].unlocked), req: 'shop' },
     { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
     { type: 'Work_Bombot', unlocked: !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked), req: 'challenge' },
-    { type: 'Worker_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 15, req: 'urban' },
-    { type: 'Balloon_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 20, req: 'urban' },
-    { type: 'Streamer_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 25, req: 'urban' },
-    { type: 'Bomb_Glob', unlocked: gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 30, req: 'urban' }
+    { type: 'Worker_Glob', unlocked: true },
+    { type: 'Balloon_Glob', unlocked: true },
+    { type: 'Streamer_Glob', unlocked: true },
+    { type: 'Bomb_Glob', unlocked: true }
   ];
 
   shopTowers.forEach(item => {
@@ -2279,6 +2433,11 @@ function drawEquipShop(container) {
 
     const el = document.createElement('div');
     el.className = 'meta-item ' + (item.unlocked ? 'unlocked' : 'locked');
+    if (isEquipped) {
+      el.style.border = '2px solid #2ecc71';
+      el.style.background = '#0a1f3a';
+      el.style.boxShadow = '0 0 8px rgba(46, 204, 113, 0.4)';
+    }
 
     let btnHTML = '';
 
@@ -2414,24 +2573,42 @@ function buyUpgrade(id, cost, type) {
 function drawPass() {
   const container = document.getElementById('pass-rewards');
   if (!container) return; container.innerHTML = '';
+  
+  const isUrbanPass = gameState.duckPassLevel > 100;
+  container.className = `pass-timeline-container ${isUrbanPass ? 'urbanpass-theme' : 'duckpass-theme'}`;
+  
+  const title = document.getElementById('pass-title');
+  if (title) {
+     title.innerHTML = isUrbanPass ? `🏙️ Urban Pass` : `🦆 Duck Pass`;
+  }
+
   [...SKINS_DATA['Global']].sort((a, b) => (a.level || 999) - (b.level || 999)).forEach(skin => {
-    const unlocked = skin.id === 'pyce_morph' ? gameState.unlockedSkins.includes(skin.id) : gameState.duckPassLevel >= skin.level;
+    const unlocked = skin.id === 'pyce_morph' ? (BADGES.encyclopediaMaster && BADGES.encyclopediaMaster.unlocked) : gameState.duckPassLevel >= skin.level;
     const equipped = gameState.equippedSkins['Global'] === skin.id;
     const el = document.createElement('div');
-    el.className = `meta-item ${unlocked ? 'unlocked' : 'locked'}`;
+    el.className = `pass-node ${unlocked ? 'unlocked' : 'locked'}`;
+    
+    // Distinguish individual node colors if needed, but the timeline handles it
+    const isNodeUrban = skin.level > 100;
+    
     let btnHTML = "";
     if (unlocked) {
-      btnHTML = equipped ? `<button disabled>${translate('equipped')}</button>` : `<button onclick="equipSkin('Global', '${skin.id}')">${translate('equip_btn')}</button>`;
+      btnHTML = equipped ? `<button class="meta-buy-btn" disabled>${translate('equipped')}</button>` : `<button class="meta-buy-btn equip" onclick="equipSkin('Global', '${skin.id}')">${translate('equip_btn')}</button>`;
     } else {
       if (skin.id === 'pyce_morph') {
-        btnHTML = `<button disabled>${currentLanguage === 'es' ? 'Completa la Enciclopedia para obtenerlos a todos' : 'Complete the Encyclopedia to get them all'}</button>`;
+        btnHTML = `<button class="meta-buy-btn" disabled>${currentLanguage === 'es' ? 'Completa la Enciclopedia' : 'Complete the Encyclopedia'}</button>`;
       } else {
-        btnHTML = `<button disabled>${translate('req_level', { level: skin.level })}</button>`;
+        btnHTML = `<button class="meta-buy-btn" disabled>${translate('req_level', { level: skin.level })}</button>`;
       }
     }
 
-    el.innerHTML = `<div class="milestone-tag">${skin.buff ? translate('upgrade') : translate('milestone')}</div><h3>${translate(skin.name)}</h3><p>${translate(skin.desc)}</p>
-      ${skin.buff && unlocked ? `<b>${translate('active')}</b>` : btnHTML}`;
+    el.innerHTML = `
+      <div class="pass-level-badge">${skin.level ? 'LVL ' + skin.level : 'MAX'}</div>
+      <div class="pass-node-content">
+        <h3 style="font-size:1rem; margin-top:10px;">${translate(skin.name)}</h3>
+        <p style="font-size:0.8rem; color:#ccc; margin-bottom:10px;">${translate(skin.desc)}</p>
+      </div>
+      ${skin.buff && unlocked ? `<b style="color:#2ecc71;">${translate('active')}</b>` : btnHTML}`;
     container.appendChild(el);
   });
 }
@@ -2901,23 +3078,23 @@ function activateGTack(t) {
         pool = ['BitY1', 'ByteGB1', 'Leni_the_big_Hammer', 'Monster'];
         count = 5 + Math.floor(Math.random() * 2); // 5-6
         if (wave === 12) triggerDialog('nuevos', 'Work-Bombot', 'img/Towers/Evolutions/Work_Bombot.png', {
-          es: "Han aparecido nuevos enemigos. No pertenecen a este lugar... ten cuidado.",
-          en: "New enemies have appeared. They don't belong here... be careful."
+          es: "Han aparecido nuevos enemigos... No pertenecen a este lugar. Mantente alerta.",
+          en: "New enemies have appeared... They don't belong here. Stay alert."
         });
       } else if (wave >= 20 && wave <= 22) {
         pool = ['Lenistal', 'Cristalized_Monster', 'ByteGB1'];
         count = 5 + Math.floor(Math.random() * 2); // 5-6
         if (wave === 20) triggerDialog('cristales_int', 'Work-Bombot', 'img/Towers/Evolutions/Work_Bombot.png', {
-          es: "La energía de esos cristales... cada vez es más intensa...",
-          en: "The energy of those crystals... is getting more intense..."
+          es: "Esa energía cristalina... Cada vez es más intensa...",
+          en: "That crystal energy... It's getting more intense..."
         });
       } else if (wave === 23) {
         isBossWave = true;
         bossesToSpawn.push('Crystal_Bombot');
         for (let i = 0; i < 4; i++) spawnList.push(Math.random() > 0.5 ? 'Lenistal' : 'Cristalized_Monster');
         triggerDialog('wb_corrupted', 'Work-Bombot', 'img/Towers/Evolutions/Work_Bombot.png', {
-          es: "¿Qué...? N-no puedo... controlar...",
-          en: "What...? I-I can't... control..."
+          es: "¿Qué...? N-no... puedo... controlarlo...",
+          en: "What...? I-I can't... control it..."
         });
       } else if (wave === 24) {
         pool = ['Lenistal', 'Cristalized_Monster', 'ByteGB1'];
@@ -2926,64 +3103,87 @@ function activateGTack(t) {
         isBossWave = true;
         bossesToSpawn.push('AstrorbOrbe');
         triggerDialog('astrorb_intro', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
-          es: "La cristalización apenas ha comenzado.",
-          en: "The crystallization has barely begun."
+          es: "La cristalización... apenas ha comenzado.",
+          en: "The crystallization... has barely begun."
         });
-      } else if (wave >= 26 && wave <= 29) {
+      } else if (wave === 26) {
+        // ── OLEADA 26: NOeye aparece ───────────────────────────────────
         pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
-        count = 5 + Math.floor(Math.random() * 2); // 5-6
-        if (wave === 26) {
-          triggerDialog('noeye_intro', 'NOeye', 'img/Towers/Evolutions/Pyce_Glob.png', {
-            es: "Escúchame.", en: "Listen to me."
-          });
-        } else {
-          const msgs = [
-            { es: "Defiende ese frente.", en: "Defend that front." },
-            { es: "No desperdicies recursos.", en: "Don't waste resources." }
-          ];
-          const r = msgs[Math.floor(Math.random() * msgs.length)];
-          triggerDialog(`noeye_rep_${wave}`, 'NOeye', 'img/Towers/Evolutions/Pyce_Glob.png', r, 'repeat');
-        }
+        count = 5 + Math.floor(Math.random() * 2);
+        triggerDialog('noeye_w26', 'NOeye', 'img/NOeye_Pyce.png', {
+          es: "Escúchame.", en: "Listen to me."
+        });
+      } else if (wave === 27) {
+        // ── OLEADA 27: NOeye da órdenes ───────────────────────────────
+        pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
+        count = 5 + Math.floor(Math.random() * 2);
+        triggerDialog('noeye_w27', 'NOeye', 'img/NOeye_Pyce.png', {
+          es: "Defiende ese frente.", en: "Defend that front."
+        });
+      } else if (wave === 28) {
+        // ── OLEADA 28: Silencio ────────────────────────────────────────
+        pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
+        count = 5 + Math.floor(Math.random() * 2);
+      } else if (wave === 29) {
+        // ── OLEADA 29: NOeye avisa de recursos ───────────────────────
+        pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
+        count = 5 + Math.floor(Math.random() * 2);
+        triggerDialog('noeye_w29', 'NOeye', 'img/NOeye_Pyce.png', {
+          es: "No desperdicies recursos.", en: "Don't waste resources."
+        });
       } else if (wave === 30) {
+        // ── OLEADA 30: Jefe CrystArky / NOeye reacciona ──────────────
         isBossWave = true;
         bossesToSpawn.push('CrystArky');
-        triggerDialog('crystarky_intro', 'NOeye', 'img/Towers/Evolutions/Pyce_Glob.png', {
-          es: "Ese... ya no es él.",
-          en: "That... is no longer him."
+        triggerDialog('noeye_w30', 'NOeye', 'img/NOeye_Pyce.png', {
+          es: "Ese... ya no es él.", en: "That... is no longer him."
         });
       } else if (wave >= 31 && wave <= 34) {
+        // ── OLEADAS 31-34: Tensión / Oleada 32 tiene diálogo ─────────
         pool = ['Spyware', 'Lenistal', 'Cristalized_Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
-        count = 5 + Math.floor(Math.random() * 2); // 5-6
-        const msgs = [
-          { es: "No desperdicies recursos.", en: "Don't waste resources." },
-          { es: "Ese no es el verdadero peligro.", en: "That is not the real danger." }
-        ];
-        const r = msgs[Math.floor(Math.random() * msgs.length)];
-        triggerDialog(`noeye_rep2_${wave}`, 'NOeye', 'img/Towers/Evolutions/Pyce_Glob.png', r, 'repeat');
+        count = 5 + Math.floor(Math.random() * 2);
+        if (wave === 32) triggerDialog('noeye_w32', 'NOeye', 'img/NOeye_Pyce.png', {
+          es: "Ese no es el verdadero peligro.", en: "That is not the real danger."
+        });
       } else if (wave === 35) {
+        // ── OLEADA 35: Jefe NO_CrystEye_CB / NOeye corrompido ────────
         isBossWave = true;
         bossesToSpawn.push('NO_CrystEye_CB');
         for (let i = 0; i < 3; i++) spawnList.push(Math.random() > 0.5 ? 'Lenistal' : 'Cristalized_Monster');
-        triggerDialog('noeye_corrupted', 'NOeye', 'img/Towers/Evolutions/Pyce_Glob.png', {
-          es: "...No.",
-          en: "...No."
+        triggerDialog('noeye_w35', 'NOeye', 'img/NOeye_Pyce.png', {
+          es: "...No.", en: "...No."
         });
-      } else if (wave >= 36 && wave <= 39) {
+      } else if (wave === 36) {
+        // ── OLEADA 36: Astrorb toma la palabra ───────────────────────
         pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
-        count = 6 + Math.floor(Math.random() * 2); // 6-7
-        const msgs = [
-          { es: "Todo acabará cristalizado.", en: "Everything will end up crystallized." },
-          { es: "La resistencia es inútil.", en: "Resistance is futile." },
-          { es: "El cielo me pertenece.", en: "The sky belongs to me." }
-        ];
-        const r = msgs[Math.floor(Math.random() * msgs.length)];
-        triggerDialog(`astrorb_rep_${wave}`, 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', r, 'repeat');
+        count = 6 + Math.floor(Math.random() * 2);
+        triggerDialog('astrorb_w36', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+          es: "Todo acabará cristalizado.", en: "Everything will end up crystallized."
+        });
+      } else if (wave === 37) {
+        // ── OLEADA 37: Astrorb amenaza ───────────────────────────────
+        pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
+        count = 6 + Math.floor(Math.random() * 2);
+        triggerDialog('astrorb_w37', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+          es: "La resistencia es inútil.", en: "Resistance is futile."
+        });
+      } else if (wave === 38) {
+        // ── OLEADA 38: Silencio ────────────────────────────────────────
+        pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
+        count = 6 + Math.floor(Math.random() * 2);
+      } else if (wave === 39) {
+        // ── OLEADA 39: Astrorb reclama el cielo ──────────────────────
+        pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
+        count = 6 + Math.floor(Math.random() * 2);
+        triggerDialog('astrorb_w39', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+          es: "El cielo me pertenece.", en: "The sky belongs to me."
+        });
       } else if (wave === 40) {
+        // ── OLEADA 40: Combate final — Astrorb True Form ─────────────
         isBossWave = true;
         bossesToSpawn.push('AstrorbOrbe');
-        triggerDialog('astrorb_final', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
-          es: "Ya no queda nadie que pueda detenerme.",
-          en: "There is no one left to stop me."
+        triggerDialog('astrorb_w40', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+          es: "Ya no queda nadie capaz de detenerme.", en: "There is no one left capable of stopping me."
         });
       }
 
@@ -3004,114 +3204,118 @@ function activateGTack(t) {
         }
       }
     } else if (mode === 'facil') {
-      // Modo Fácil: Pocos enemigos, tutorial para asimilar conceptos. Termina en la oleada 10.
-      // Solo Stupid_Pyce, Pyce2, Guest_Pyce y Symbol_Pyce. Sin jefes.
-      let countStupid = 2 + Math.floor(wave * 0.6);
-      let countPyce2 = wave >= 2 ? 1 + Math.floor((wave - 1) * 0.5) : 0;
-      let countSymbol = wave >= 4 ? 1 + Math.floor((wave - 3) * 0.5) : 0;
-      let countGuest = wave >= 6 ? 1 + Math.floor((wave - 5) * 0.5) : 0;
-
-      for (let i = 0; i < countStupid; i++) spawnList.push('Stupid_Pyce');
-      for (let i = 0; i < countPyce2; i++) spawnList.push('Pyce2');
-      for (let i = 0; i < countSymbol; i++) spawnList.push('Symbol_Pyce');
-      for (let i = 0; i < countGuest; i++) spawnList.push('Guest_Pyce');
+      // HP Budget: starts small, grows gently. Only basic enemies. No bosses.
+      const hpBudget = 80 + wave * 55;
+      const pool = ['Stupid_Pyce'];
+      if (wave >= 2) pool.push('Pyce2');
+      if (wave >= 4) pool.push('Symbol_Pyce');
+      if (wave >= 6) pool.push('Guest_Pyce');
+      let remaining = hpBudget;
+      while (remaining > 0) {
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+        const hp = (ENEMY_TYPES[pick] || {}).health || 50;
+        if (hp > remaining && spawnList.length > 0) break;
+        spawnList.push(pick);
+        remaining -= hp;
+      }
 
     } else if (mode === 'normal') {
-      // Modo Normal: Enseña conceptos de Fácil, añade Noob_Pyce, 4motions_Pyce, SO_Pyce (Serious Outline).
-      // Jefe primerizo 1x1x1x1_Pyce en la oleada 10 (casi solo). Termina en la 15.
+      // HP Budget: moderate growth. Boss at wave 10.
       if (wave === 10) {
         isBossWave = true;
         bossesToSpawn.push('1x1x1x1_Pyce');
-        spawnList.push('Stupid_Pyce', 'Stupid_Pyce'); // 2 torpes de adorno
+        spawnList.push('Stupid_Pyce', 'Pyce2'); // light escort
       } else {
-        let pool = ['Stupid_Pyce'];
+        const hpBudget = 120 + wave * 80;
+        const pool = ['Stupid_Pyce'];
         if (wave >= 2) pool.push('Pyce2');
         if (wave >= 3) pool.push('Guest_Pyce', 'Symbol_Pyce');
         if (wave >= 5) pool.push('Noob_Pyce');
         if (wave >= 7) pool.push('4motions_Pyce', 'SO_Pyce');
-
-        // Pocos enemigos al inicio, escala moderado
-        let baseCount = 3 + Math.floor(wave * 1.1);
-        for (let i = 0; i < baseCount; i++) {
-          spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
+        let remaining = hpBudget;
+        while (remaining > 0) {
+          const pick = pool[Math.floor(Math.random() * pool.length)];
+          const hp = (ENEMY_TYPES[pick] || {}).health || 50;
+          if (hp > remaining && spawnList.length > 0) break;
+          spawnList.push(pick);
+          remaining -= hp;
         }
-
-        // Adición ocasional de Mimic o Gold
         if (wave >= 5 && Math.random() < 0.15) {
           spawnList.push(Math.random() < 0.5 ? 'Stupid_GoldPyce' : 'Flower_Pyce');
         }
       }
 
     } else if (mode === 'dificil') {
-      // Modo Difícil: Salen todos los básicos desde el inicio (gradual pero rápido).
-      // Jefe 1x1x1x1_Pyce en oleada 10 ACOMPAÑADO.
-      // Jefe 1x1x1x1_Pyce en la oleada 20 ACOMPAÑADO.
-      // Termina en 25 con final grandioso.
+      // HP Budget: faster growth. Bosses at 10, 20, 25.
       if (wave === 10) {
         isBossWave = true;
         bossesToSpawn.push('1x1x1x1_Pyce');
-        for (let i = 0; i < 3; i++) spawnList.push('Symbol_Pyce');
-        for (let i = 0; i < 2; i++) spawnList.push('Noob_Pyce');
+        spawnList.push('Symbol_Pyce', 'Symbol_Pyce', 'Noob_Pyce', 'Noob_Pyce');
       } else if (wave === 20) {
         isBossWave = true;
         bossesToSpawn.push('1x1x1x1_Pyce');
-        for (let i = 0; i < 4; i++) spawnList.push('SO_Pyce');
-        for (let i = 0; i < 2; i++) spawnList.push('Noob_Pyce');
+        for (let i = 0; i < 3; i++) spawnList.push('SO_Pyce');
+        spawnList.push('Noob_Pyce', 'Noob_Pyce');
       } else if (wave === 25) {
         isBossWave = true;
         bossesToSpawn.push('1x1x1x1_Pyce');
-        for (let i = 0; i < 6; i++) spawnList.push('SO_Pyce');
-        for (let i = 0; i < 4; i++) spawnList.push('Symbol_Pyce');
+        for (let i = 0; i < 4; i++) spawnList.push('SO_Pyce');
+        for (let i = 0; i < 3; i++) spawnList.push('Symbol_Pyce');
       } else {
-        let pool = ['Stupid_Pyce', 'Pyce2'];
+        const hpBudget = 200 + wave * 130;
+        const pool = ['Stupid_Pyce', 'Pyce2'];
         if (wave >= 2) pool.push('Guest_Pyce', 'Symbol_Pyce');
         if (wave >= 4) pool.push('Noob_Pyce', '4motions_Pyce');
         if (wave >= 6) pool.push('SO_Pyce');
-        if (wave >= 11) pool.push('Flower_Pyce', 'Stupid_GoldPyce');
-
-        let baseCount = 4 + Math.floor(wave * 1.4);
-        for (let i = 0; i < baseCount; i++) {
-          let selected = pool[Math.floor(Math.random() * pool.length)];
-          if (selected === 'Stupid_GoldPyce' && Math.random() < 0.7) selected = 'Pyce2';
-          spawnList.push(selected);
+        if (wave >= 11) pool.push('Flower_Pyce');
+        let remaining = hpBudget;
+        while (remaining > 0) {
+          let pick = pool[Math.floor(Math.random() * pool.length)];
+          const hp = (ENEMY_TYPES[pick] || {}).health || 50;
+          if (hp > remaining && spawnList.length > 0) break;
+          spawnList.push(pick);
+          remaining -= hp;
         }
+        if (wave >= 11 && Math.random() < 0.1) spawnList.push('Stupid_GoldPyce');
       }
 
     } else if (mode === 'extremo') {
-      // Modo Extremo: Como difícil, pero con más enemigos y escalado superior. Termina en 40.
-      // Bosses en 10 (1x1x1x1), 20 (NOeye), 30 (1x1x1x1 + NOeye), 40 (Todos los jefes permitidos: 1x1x1x1 + NOeye).
+      // HP Budget: aggressive growth. Bosses at 10, 20, 30, 40.
       if (wave === 10) {
         isBossWave = true;
         bossesToSpawn.push('1x1x1x1_Pyce');
-        for (let i = 0; i < 4; i++) spawnList.push('Noob_Pyce');
-        for (let i = 0; i < 2; i++) spawnList.push('SO_Pyce');
+        for (let i = 0; i < 3; i++) spawnList.push('Noob_Pyce');
+        spawnList.push('SO_Pyce', 'SO_Pyce');
       } else if (wave === 20) {
         isBossWave = true;
         bossesToSpawn.push('NOeye_Pyce');
-        for (let i = 0; i < 5; i++) spawnList.push('SO_Pyce');
-        for (let i = 0; i < 3; i++) spawnList.push('4motions_Pyce');
+        for (let i = 0; i < 4; i++) spawnList.push('SO_Pyce');
+        for (let i = 0; i < 2; i++) spawnList.push('4motions_Pyce');
       } else if (wave === 30) {
         isBossWave = true;
         bossesToSpawn.push('1x1x1x1_Pyce', 'NOeye_Pyce');
-        for (let i = 0; i < 6; i++) spawnList.push('4motions_Pyce');
-        for (let i = 0; i < 3; i++) spawnList.push('Flower_Pyce');
+        for (let i = 0; i < 4; i++) spawnList.push('4motions_Pyce');
+        for (let i = 0; i < 2; i++) spawnList.push('Flower_Pyce');
       } else if (wave === 40) {
         isBossWave = true;
         bossesToSpawn.push('1x1x1x1_Pyce', 'NOeye_Pyce');
-        for (let i = 0; i < 8; i++) spawnList.push('SO_Pyce');
-        for (let i = 0; i < 4; i++) spawnList.push('Flower_Pyce');
+        for (let i = 0; i < 5; i++) spawnList.push('SO_Pyce');
+        for (let i = 0; i < 3; i++) spawnList.push('Flower_Pyce');
       } else {
-        let pool = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce'];
+        const hpBudget = 350 + wave * 200;
+        const pool = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce'];
         if (wave >= 2) pool.push('Guest_Pyce', 'Noob_Pyce');
         if (wave >= 4) pool.push('4motions_Pyce', 'SO_Pyce');
-        if (wave >= 6) pool.push('Flower_Pyce', 'Stupid_GoldPyce');
-
-        let baseCount = 5 + Math.floor(wave * 1.7);
-        for (let i = 0; i < baseCount; i++) {
-          let selected = pool[Math.floor(Math.random() * pool.length)];
-          if (selected === 'Stupid_GoldPyce' && Math.random() < 0.7) selected = 'Pyce2';
-          spawnList.push(selected);
+        if (wave >= 6) pool.push('Flower_Pyce');
+        let remaining = hpBudget;
+        while (remaining > 0) {
+          const pick = pool[Math.floor(Math.random() * pool.length)];
+          const hp = (ENEMY_TYPES[pick] || {}).health || 50;
+          if (hp > remaining && spawnList.length > 0) break;
+          spawnList.push(pick);
+          remaining -= hp;
         }
+        if (wave >= 6 && Math.random() < 0.1) spawnList.push('Stupid_GoldPyce');
       }
 
     } else {
@@ -3166,6 +3370,20 @@ function activateGTack(t) {
       for (let i = 0; i < bombCount; i++) spawnList.push('Bomb_Pyce');
       for (let i = 0; i < knightCount; i++) spawnList.push('Knight_Pyce');
       for (let i = 0; i < cannonCount; i++) spawnList.push('Cannon_Pycer');
+
+      // Nuevos Pyces Cristalizados (Interstellar Menace / General)
+      if (wave >= 20) {
+        const crystalCount = Math.floor(wave * 0.15);
+        for (let i = 0; i < crystalCount; i++) spawnList.push('Crystal_Pyce');
+      }
+      if (wave >= 30) {
+        const dreamyCount = Math.floor(wave * 0.1);
+        for (let i = 0; i < dreamyCount; i++) spawnList.push('Dreamy_SPyce');
+      }
+      if (wave >= 35) {
+        const astralCount = Math.floor(wave * 0.1);
+        for (let i = 0; i < astralCount; i++) spawnList.push('Astral_BPyce');
+      }
 
       // Nuevos "Otros Enemigos" aparecen en Urbanistic Road
       if (isUrban) {
@@ -4522,17 +4740,21 @@ function activateGTack(t) {
 
   function getPyceKillTarget(type) {
     if (type === 'Spyware') return 150;
-    if (type.startsWith('Bit')) return 450;
-    if (type.startsWith('Byte')) return 350;
+    if (type.startsWith('Bit')) return 560;
+    if (type.startsWith('Byte')) return 500;
     const targets = {
-      'Stupid_Pyce': 250, 'Pyce2': 250, 'Symbol_Pyce': 250,
-      'Guest_Pyce': 200, 'Noob_Pyce': 200,
+      'Crystal_Pyce': 450, 'Dreamy_SPyce': 350, 'Astral_BPyce': 250,
+      'Stupid_Pyce': 560, 'Pyce2': 560, 'Symbol_Pyce': 500,
+      'Guest_Pyce': 450, 'Noob_Pyce': 400,
       '4motions_Pyce': 225, 'Flower_Pyce': 225, 'SO_Pyce': 225,
       '1x1x1x1_Pyce': 6, 'NOeye_Pyce': 5, 'MoonStar_Pyce': 4,
       'Stupid_GoldPyce': 15, 'Mimic_Pyce': 3,
-      'Bomb_Pyce': 255, 'Knight_Pyce': 175, 'Cannon_Pycer': 175,
+      'Bomb_Pyce': 450, 'Knight_Pyce': 250, 'Cannon_Pycer': 250,
       'Arky': 5, 'CrystArky': 3, 'ArkyVoid': 3, 'Fireflies': 250,
-      'HoloPyce': 175, 'Strechy_Pyce': 175, 'Rebel_Pyce': 175
+      'HoloPyce': 350, 'Strechy_Pyce': 250, 'Rebel_Pyce': 350,
+      'Leni_the_big_Hammer': 400, 'Monster': 250, 'Cristalized_Monster': 300,
+      'Lenistal': 300, 'Crystal_Bombot': 3, 'NO_CrystEye_CB': 3,
+      'AstrorbOrbe': 3, 'AstrorbContenida': 3, 'AstrorbTF': 3
     };
     return targets[type] || 9999;
   }
@@ -4548,7 +4770,7 @@ function activateGTack(t) {
       }
       if (allMaxed) {
         gameState.unlockedSkins.push('pyce_morph');
-        showMessage("🎁 ¡SKIN 'Pyce Randomizer' DESBLOQUEADA!", 'success');
+        showMessage(translate('skin_unlocked_pyce_randomizer'), 'success');
         saveProgress();
       }
     }
@@ -4567,7 +4789,7 @@ function activateGTack(t) {
       }
       if (allBossesMaxed && bosses.length > 0) {
         gameState.unlockedSkins.push('crystal_bombot');
-        showMessage("🎁 ¡SKIN 'Crystal-Bombot' DESBLOQUEADA!", 'success');
+        showMessage(translate('skin_unlocked_crystal_bombot'), 'success');
         saveProgress();
       }
     }
@@ -4586,7 +4808,7 @@ function activateGTack(t) {
       }
       if (allUpdateMaxed) {
         gameState.unlockedSkins.push('astrorb_set');
-        showMessage("🎁 ¡SKIN 'Astrorb' DESBLOQUEADA!", 'success');
+        showMessage(translate('skin_unlocked_astrorb'), 'success');
         saveProgress();
       }
     }
@@ -4594,13 +4816,35 @@ function activateGTack(t) {
 
   function checkEncyclopediaMaster() {
     if (BADGES.encyclopediaMaster && BADGES.encyclopediaMaster.unlocked) return;
-    const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce'];
+    const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce'];
     let allPycesMaxed = true;
     for (const t of types) {
       if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
         allPycesMaxed = false; break;
       }
     }
+    
+    // Check new badges: all crystals maxed, all 'other' maxed
+    let allCrystalsMaxed = true;
+    let allOthersMaxed = true;
+    let hasCrystals = false;
+    let hasOthers = false;
+    for (const key of Object.keys(ENEMY_TYPES)) {
+      const t = ENEMY_TYPES[key];
+      const kills = gameState.pycesKilled[key] || 0;
+      const target = getPyceKillTarget(key);
+      if (t.isCrystallized) {
+        hasCrystals = true;
+        if (kills < target) allCrystalsMaxed = false;
+      }
+      if (t.category === 'other') {
+        hasOthers = true;
+        if (kills < target) allOthersMaxed = false;
+      }
+    }
+    if (hasCrystals && allCrystalsMaxed) unlockBadge('crystalizing_break');
+    if (hasOthers && allOthersMaxed) unlockBadge('extended_marc');
+
     const reqFamilies = ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Grey', 'Special'];
     let allFamiliesMaxed = true;
     for (const f of reqFamilies) {
@@ -4615,7 +4859,7 @@ function activateGTack(t) {
 
   function die(e, idx) {
     if (e.type === 'AstrorbOrbe') {
-      showEffect(e.x, e.y, "CRISTAL ROTO!", "#ff00ff");
+      showEffect(e.x, e.y, translate('effect_broken_crystal'), "#ff00ff");
       spawnEnemy('AstrorbContenida', e.currentPath);
       const contenida = gameState.enemies[gameState.enemies.length - 1];
       if (contenida) {
@@ -4627,6 +4871,7 @@ function activateGTack(t) {
 
     if (e.type === 'AstrorbContenida') {
       if (gameState.wave === 40) {
+        // Oleada 40: Transformación a True Form
         showEffect(e.x, e.y, "TRUE FORM AWAKENED!", "#ff00ff");
         showNarratorMsg('astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? "Contemplad... la perfección celestial." : "Behold... celestial perfection.");
         spawnEnemy('AstrorbTF', e.currentPath);
@@ -4637,26 +4882,37 @@ function activateGTack(t) {
           tf.pathIndex = e.pathIndex;
         }
       } else if (gameState.mode === 'interstellar' && gameState.wave === 25) {
-        showNarratorMsg('astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? "Esto no ha terminado... nos veremos en Urbanistic Road." : "This is not over... see you in Urbanistic Road.");
+        // Oleada 25: Astrorb es derrotado por primera vez
+        showNarratorMsg('astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? "...Interesante... Aún no es mi momento." : "...Interesting... It is not my time yet.");
       }
     }
 
     if (e.type === 'AstrorbTF') {
       if (!gameState.unlockedSkins.includes('cuby_bombot')) {
         gameState.unlockedSkins.push('cuby_bombot');
-        showMessage("🎁 ¡SKIN CUBY (Work-Bombot) DESBLOQUEADA!", 'success');
+        showMessage(translate('skin_unlocked_cuby'), 'success');
       }
     }
 
     if (e.type === 'Bomb_Pyce') {
-      showEffect(e.x, e.y, "BOOM!", "#ff4d4d");
+      showEffect(e.x, e.y, translate('effect_boom'), "#ff4d4d");
       if (gameState.towers) {
         gameState.towers.forEach(t => {
           if (Math.hypot(t.x - e.x, t.y - e.y) < 150) {
             t.stunTimer = (t.stunTimer || 0) + 3;
-            showEffect(t.x, t.y - 20, "STUNNED!", "#ff0000");
+            showEffect(t.x, t.y - 20, translate('effect_stunned'), "#ff0000");
           }
         });
+      }
+    }
+
+    if (e.type === 'Astral_BPyce') {
+      showEffect(e.x, e.y, translate('effect_boom'), "#ff00ff");
+      if (gameState.towers && gameState.towers.length > 0) {
+        const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
+        if (typeof shoot === 'function') {
+           shoot(e, targetTower, { isEnemy: true, image: 'img/Proyectiles/Crystal Metor.png', speed: 3, stun: 3 });
+        }
       }
     }
 
@@ -4664,7 +4920,7 @@ function activateGTack(t) {
       gameState.enemies.forEach(other => {
         if (other !== e && !other.poisonTimer && Math.hypot(other.x - e.x, other.y - e.y) < 100) {
           other.poisonTimer = 3;
-          showEffect(other.x, other.y - 10, "CONTAGIO! 💀", "#9b59b6");
+          showEffect(other.x, other.y - 10, translate('effect_contagion'), "#9b59b6");
         }
       });
     }
@@ -4680,7 +4936,7 @@ function activateGTack(t) {
         if (gameState.mode === 'corrupto') unlockBadge('corruptMimic');
         if (!gameState.unlockedSkins.includes('mimic_set')) {
           gameState.unlockedSkins.push('mimic_set');
-          showMessage("🎁 ¡SKIN 'Mimic set' DESBLOQUEADA!", 'success');
+          showMessage(translate('skin_unlocked_mimic'), 'success');
           saveProgress();
         }
       }
@@ -4711,10 +4967,11 @@ function activateGTack(t) {
       unlockBadge('angelicFortress');
     }
 
-    if (gameState.towers.length > 0) {
+    if (gameState.towers.length > 0 && gameState.equippedTowers && gameState.equippedTowers.length > 0) {
       let allMaxed = true;
-      for (const [tKey, limit] of Object.entries(gameState.towerLimits)) {
-        if (isTowerOwned(tKey)) {
+      for (const tKey of gameState.equippedTowers) {
+        if (TOWER_TYPES[tKey]) {
+          const limit = gameState.towerLimits[tKey] || 3;
           const count = gameState.towerCounts[tKey] || 0;
           if (count < limit) {
             allMaxed = false;
@@ -4722,9 +4979,38 @@ function activateGTack(t) {
           }
         }
       }
-      if (allMaxed) {
+      // Require equipping at least 5 towers (or all available slots up to 5)
+      const expectedSlots = Math.min(5, Object.keys(TOWER_TYPES).length);
+      if (allMaxed && gameState.equippedTowers.length >= expectedSlots) {
         unlockBadge('maxGlobs');
-        unlockBadge('urba_complet1');
+      }
+    }
+
+    if (gameState.mode === 'interstellar') {
+      const mapEl = document.getElementById('map');
+      if (mapEl) {
+        let overlay = document.getElementById('interstellar-overlay');
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.id = 'interstellar-overlay';
+          overlay.style.position = 'absolute';
+          overlay.style.top = '0';
+          overlay.style.left = '0';
+          overlay.style.width = '100%';
+          overlay.style.height = '100%';
+          overlay.style.pointerEvents = 'none';
+          overlay.style.transition = 'background-color 2s ease';
+          overlay.style.zIndex = '0';
+          mapEl.insertBefore(overlay, mapEl.firstChild);
+        }
+        const maxW = gameState.maxWaves || 45;
+        if (gameState.wave >= maxW - 5) {
+          const progress = (gameState.wave - (maxW - 5)) / 5;
+          overlay.style.backgroundColor = `rgba(255, 0, 255, ${0.2 + 0.3 * progress})`;
+        } else {
+          const progress = gameState.wave / Math.max(1, (maxW - 5));
+          overlay.style.backgroundColor = `rgba(0, 0, 255, ${0.4 * progress})`;
+        }
       }
     }
 
@@ -4978,6 +5264,45 @@ function activateGTack(t) {
           if (gameState.corruptWins >= 4) unlockBadge('corrupt4');
           if (gameState.corruptWins >= 5) unlockBadge('corrupt5');
         }
+
+        // --- Skin unlock by victory condition ---
+        const isUrbanMap = (gameState.map || '') === 'urbanistic_road';
+
+        // Rewamped Green Set: free on winning Easy on Urbanistic Road
+        if (gameState.mode === 'facil' && isUrbanMap) {
+          if (!gameState.unlockedSkins.includes('rewamped_green_set')) {
+            gameState.unlockedSkins.push('rewamped_green_set');
+            const msg = currentLanguage === 'es'
+              ? '🎁 Set Verde Remasterizado desbloqueado y aplicado gratis! (Urbanistic Road - Fácil)'
+              : '🎁 Remastered Green Set unlocked for free! (Urbanistic Road - Easy)';
+            showMessage(msg, 'success');
+          }
+        }
+
+        // Spanish-Bombot: unlocked (but not free) on winning Normal or above
+        const modesNormalOrAbove = ['normal', 'dificil', 'extremo', 'corrupto', 'antiNormal'];
+        if (modesNormalOrAbove.includes(gameState.mode)) {
+          if (!gameState.unlockedSkins.includes('spanish_bombot')) {
+            gameState.unlockedSkins.push('spanish_bombot');
+            const msg = currentLanguage === 'es'
+              ? '🔓 Skin Spanish-Bombot desbloqueada! Ahora puedes comprarla en la tienda.'
+              : '🔓 Spanish-Bombot skin unlocked! You can now purchase it in the shop.';
+            showMessage(msg, 'success');
+          }
+        }
+
+        // Judicial Set: unlocked (but not free) on winning Extremo or above
+        const modesExtremoOrAbove = ['extremo', 'corrupto', 'antiNormal'];
+        if (modesExtremoOrAbove.includes(gameState.mode)) {
+          if (!gameState.unlockedSkins.includes('judicial_set')) {
+            gameState.unlockedSkins.push('judicial_set');
+            const msg = currentLanguage === 'es'
+              ? '🔓 Set Judicial desbloqueado! Ahora puedes comprarlo (400 PyCoins / 150 DuckPass).'
+              : '🔓 Judicial Set unlocked! You can now purchase it (400 PyCoins / 150 DuckPass).';
+            showMessage(msg, 'success');
+          }
+        }
+        // -----------------------------------------
       }
 
       // CORREGIDO: Work-Bombot SOLO se desbloquea al ganar modo corrupto o anti-normal COMPLETAMENTE
@@ -4990,6 +5315,7 @@ function activateGTack(t) {
       }
 
       if (gameState.mode === 'interstellar' && victory === true) {
+        unlockBadge('unmenaced');
         if (!gameState.unlockedInterstellar) {
           gameState.unlockedInterstellar = true;
           gameState.pycoins += 400;
@@ -5020,6 +5346,10 @@ function activateGTack(t) {
 
       if (!gameState.baseTookDamage) {
         unlockBadge('titaniumBuilding');
+      }
+
+      if (gameState.unlockedSkins && gameState.unlockedSkins.length >= 7) {
+        unlockBadge('skinllector');
       }
 
       saveProgress();
@@ -5275,6 +5605,20 @@ function activateGTack(t) {
     } else if (currentStoryTab === 'logs') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
+        <h3 style="color:#4fc3f7;">📋 Historial de Actualizaciones (GlD v4.1.0 - INTERSTELLAR MENACE)</h3>
+        <p style="color:#4fc3f7;">¡La amenaza cristalina ha llegado, y con ella una misión completamente nueva!</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🌌 <strong style="color:#4fc3f7;">NUEVA QUEST - PARTE 2</strong>: La segunda parte de la Quest está aquí. La amenaza cristalina se cierne sobre el universo Glob. ¡Prepárate para lo peor!</li>
+          <li>👾 <strong style="color:#4fc3f7;">NUEVOS ENEMIGOS</strong>: Llegan los Cristalizados: Crystal Pyce, Dreamy SPyce, Astral BPyce, Lenistal, Cristalized Monster, NO-CrystEye y el imponente Astrorb en todas sus formas.</li>
+          <li>🌱 <strong style="color:#4fc3f7;">FAMILIA MARRÓN (Sprout Glob)</strong>: Una nueva familia ha llegado al Meta-Shop. El Sprout Glob y sus evoluciones se unen a la batalla.</li>
+          <li>🎨 <strong style="color:#4fc3f7;">NUEVAS SKINS</strong>: Sets de recompensa por completar Urbanistic Road en distintas dificultades. Además, nuevas skins exclusivas del modo Interstellar.</li>
+          <li>🏅 <strong style="color:#4fc3f7;">NUEVOS EMBLEMAS</strong>: Desmenazado, Skinecionable, Descristalizando Amenazas y Enmarcación Extensa. ¡A por todos!</li>
+          <li>⚖️ <strong>Sistema de Oleadas Mejorado</strong>: Las oleadas ahora usan un sistema de presupuesto de HP para un desafío más balanceado y emocionante.</li>
+          <li>🎒 <strong>Ajustes de Progresión</strong>: Las familias de torres ya no tienen requisitos de desbloqueo especiales. Las skins ahora se desbloquean con victorias.</li>
+        </ul>
+        <p style="color:#ff69b4; font-size:0.82rem; margin-top:10px; font-style:italic;">🌐 Quizás para iniciar la misión necesites visitar cierto juego en agosto... <span id="interstellar-game-link"></span></p>
+
         <h3>📋 Historial de Actualizaciones (GlD v4.0.1 - TACTICAL LOADOUT)</h3>
         <p>¡El sistema de equipación ha llegado para cambiar la estrategia por completo!</p>
         <h4>Novedades del Parche:</h4>
@@ -5337,6 +5681,20 @@ function activateGTack(t) {
       `;
       } else {
         container.innerHTML = `
+        <h3 style="color:#4fc3f7;">📋 Update Logs (GlD v4.1.0 - INTERSTELLAR MENACE)</h3>
+        <p style="color:#4fc3f7;">The crystal threat has arrived, and with it a brand new quest!</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🌌 <strong style="color:#4fc3f7;">NEW QUEST - PART 2</strong>: The second part of the Quest is here. The crystalline menace looms over the Glob universe. Prepare for the worst!</li>
+          <li>👾 <strong style="color:#4fc3f7;">NEW ENEMIES</strong>: The Crystallized arrive: Crystal Pyce, Dreamy SPyce, Astral BPyce, Lenistal, Cristalized Monster, NO-CrystEye, and the imposing Astrorb in all its forms.</li>
+          <li>🌱 <strong style="color:#4fc3f7;">BROWN FAMILY (Sprout Glob)</strong>: A new family has arrived in the Meta-Shop. Sprout Glob and its evolutions join the battle.</li>
+          <li>🎨 <strong style="color:#4fc3f7;">NEW SKINS</strong>: Reward sets for completing Urbanistic Road at different difficulties. Plus new exclusive Interstellar mode skins.</li>
+          <li>🏅 <strong style="color:#4fc3f7;">NEW BADGES</strong>: Unmenaced, Skinllector, Crystalizing Break, and Extended Marc. Go get them all!</li>
+          <li>⚖️ <strong>Improved Wave System</strong>: Waves now use an HP-budget system for a more balanced and exciting challenge.</li>
+          <li>🎒 <strong>Progression Tweaks</strong>: Tower families no longer have special unlock requirements. Skins are now unlocked with victories.</li>
+        </ul>
+        <p style="color:#ff69b4; font-size:0.82rem; margin-top:10px; font-style:italic;">🌐 Maybe to start the mission you'll need to visit a certain game in August... <span id="interstellar-game-link-en"></span></p>
+
         <h3>📋 Update Logs (GlD v4.0.1 - TACTICAL LOADOUT)</h3>
         <p>The equipment system has arrived to completely change the strategy!</p>
         <h4>What's New in this Patch:</h4>

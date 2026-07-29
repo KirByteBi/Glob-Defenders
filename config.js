@@ -58,6 +58,10 @@ const TRANSLATIONS = {
     badge_angelicFortress_name: "LA FORTALEZA ANGELICAL", badge_angelicFortress_desc: "Ten el máximo de vida de la base",
     badge_titaniumBuilding_name: "Edificio de titanio", badge_titaniumBuilding_desc: "Pásate un mapa sin dañar la base",
     badge_encyclopediaMaster_name: "Maestro de la Enciclopedia", badge_encyclopediaMaster_desc: "Completa la enciclopedia Pyce y sube todas las familias de torres al máximo nivel al menos una vez",
+    badge_unmenaced_name: "Desmenazado", badge_unmenaced_desc: "Completa el modo Interstellar. ¡Buen trabajo defendiendo la amenaza cristalina!",
+    badge_skinllector_name: "Skinecionable", badge_skinllector_desc: "Consigue al menos 7 skins diferentes.",
+    badge_crystalizing_break_name: "Descristalizando Amenazas", badge_crystalizing_break_desc: "Enmarca todos los cristalizados.",
+    badge_extended_marc_name: "Enmarcacion Extensa", badge_extended_marc_desc: "Enmarca todos los enemigos de la categoria 'Otros Enemigos'.",
 
 
     // Nombres de Torres
@@ -157,16 +161,21 @@ const TRANSLATIONS = {
     enemy_BitP3_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Mareada)",
     enemy_Byte_desc: "Los Bytes son agrupaciones de 2 Bits, aun y eso se consideran Bytes por ser 4 formas de estas agrupaciones de 2 Bits, ya que 4x2 son 8... Y los Bytes se constituyen de 8 bits... ¿Cierto? Bueno. Yo no lo pondría en duda.",
     
-    enemy_Leni_the_big_Hammer_desc: "Leni siempre lleva su martillo gigante listo para aplastar.",
-    enemy_Monster_desc: "Una criatura monstruosa de gran resistencia.",
-    enemy_Cristalized_Monster_desc: "El mismo Monster, pero alterado por la cristalización. Mucho más resistente y letal.",
-    enemy_Lenistal_desc: "Leni corrompido por la cristalización. Su martillo ahora desata energía cósmica pura.",
-    enemy_NOCrystEye_CB_desc: "Una versión aún más inestable y cristalizada de NOeye.",
-    enemy_AstrorbOrbe_desc: "Una forma defensiva y enigmática, como un cuerpo estelar dormido.",
-    enemy_AstrorbContenida_desc: "La energía cristalina liberada: más rápida y agresiva, pero más frágil.",
-    
-    enemy_AstrorbTF_desc: "La perfección celestial en su True Form. Inmenso poder cósmico y paciencia eterna.",
-    enemy_Crystal_Bombot_desc: "Work-Bombot bajo el efecto de la cristalización. Lanza cristales que roban energía de tus torres.",
+    enemy_Leni_the_big_Hammer_desc: "Un amiguillo de Glob obsesionado con aplastar y destrozar. Junto a Glob y otros cinco compañeros forma parte de un equipo de investigación y defensa, aunque el resto de sus integrantes siguen siendo desconocidos. ¿Dónde estarán? ¿Quiénes serán?",
+    enemy_Monster_desc: "El inseparable amigo de Glob. Aunque durante mucho tiempo ambos discutieron por quién era el verdadero 'enemigo principal', hoy mantienen una buena amistad. Parece más tranquilo que antes... quizá porque llevaba años sin dejarse ver.",
+    enemy_Cristalized_Monster_desc: "La influencia de Astrorb ha despertado el lado más agresivo de Monster. Aquellas antiguas rivalidades que nunca pasaron de simples disputas ahora se han convertido en una auténtica amenaza.",
+    enemy_Lenistal_desc: "La cristalización ha llevado su obsesión al extremo. Astrorb ha convertido a Leni en una amenaza mucho más peligrosa; su martillo, ahora cubierto de afilados cristales, puede destrozar cualquier cosa que se cruce en su camino. Parece haber perdido por completo el control de sí mismo.",
+    enemy_NOCrystEye_CB_desc: "Incluso NOeye ha sucumbido a la cristalización. Astrorb ya no lo considera un simple obstáculo, sino un arma contra todo aquello que los Globs intentan proteger. Su nueva apariencia, junto a su pupila en forma de estrella, hacen pensar que siempre estuvo destinado a cargar con el papel de villano... quisiera o no.<br><br><strong>Mecánica:</strong> Lanza un láser paralizador continuo a las torres.",
+    enemy_AstrorbOrbe_desc: "El sello que mantenía encerrado a este astro rey acabó convirtiendo en una leyenda. Algunos aseguran que fueron los propios habitantes quienes lograron encerrarlo; otros hablan de seres muy superiores. Sea cual sea la verdad, Astrorb solo desea una cosa: volver a cristalizar el mundo.",
+    enemy_AstrorbContenida_desc: "Liberado de su sello, Astrorb recupera parte de su poder y puede desplazarse libremente por el mundo. Sin embargo, todavía necesita reunir más energía antes de alcanzar su auténtica forma.",
+    enemy_AstrorbTF_desc: "La verdadera forma del ser celestial. Ahora convertido en una figura humanoide, Astrorb pretende vengarse de quienes lo encerraron y eliminar cualquier amenaza para cumplir su misión. Para él, cristalizar el mundo no es maldad... sino el único camino posible.<br><br><strong>Mecánica:</strong> Destruye instantáneamente a cualquier torre y tiene Doble Vuelta (Ignora el daño en su primera pasada).",
+    enemy_Crystal_Bombot_desc: "Toda comunicación con Work-Bombot se ha perdido. Ahora utiliza cristales de tonos astrales como explosivos para atacar sin descanso. Astrorb ha dejado su marca sobre él: un ojo con forma de estrella roja que refleja el odio sembrado por la cristalización.<br><br><strong>Mecánica:</strong> Lanza cristales que roban energía a tus torres.",
+    enemy_Crystal_Pyce_name: "Crystal Pyce",
+    enemy_Crystal_Pyce_desc: "Un fragmento cristalino desprendido durante la llegada de Astrorb impactó sobre Pyce2, cristalizando solo parte de su cuerpo. Es uno de los pocos casos conocidos de cristalización parcial.",
+    enemy_Dreamy_SPyce_name: "Dreamy SPyce",
+    enemy_Dreamy_SPyce_desc: "Los sueños olvidados de los Pyces encontraron un recipiente perfecto en Symbol Pyce. Ahora, una misteriosa silueta onírica lo acompaña y utiliza ese poder para adormecer a sus enemigos.",
+    enemy_Astral_BPyce_name: "Astral BPyce",
+    enemy_Astral_BPyce_desc: "La energía astral de Astrorb terminó apoderándose del cuerpo de Bomb Pyce. Sin embargo, el verdadero Bomb Pyce aún permanece oculto en el pequeño ratón que arrastra consigo.",
 
     tower_Bomb_Glob_name: "Bomb Glob",
     tower_TNT_Glob_name: "TNT Glob",
@@ -468,7 +477,18 @@ const TRANSLATIONS = {
     mechanic_holo: "Intangible: Las primeras evoluciones de las torres no le pueden hacer daño, ¡usa trampas o torres mejoradas!",
     badge_unlocked: "¡DESBLOQUEADO!",
     badge_locked: "BLOQUEADO",
-    badge_reward_label: "RECOMPENSA: "
+    badge_reward_label: "RECOMPENSA: ",
+    skin_unlocked_pyce_randomizer: "🎁 ¡SKIN 'Pyce Randomizer' DESBLOQUEADA!",
+    skin_unlocked_crystal_bombot: "🎁 ¡SKIN 'Crystal-Bombot' DESBLOQUEADA!",
+    skin_unlocked_astrorb: "🎁 ¡SKIN 'Astrorb' DESBLOQUEADA!",
+    skin_unlocked_cuby: "🎁 ¡SKIN CUBY (Work-Bombot) DESBLOQUEADA!",
+    skin_unlocked_mimic: "🎁 ¡SKIN 'Mimic set' DESBLOQUEADA!",
+    effect_broken_crystal: "¡CRISTAL ROTO!",
+    effect_contagion: "¡CONTAGIO! 💀",
+    effect_boom: "¡BOOM!",
+    effect_stunned: "¡ATURDIDO!",
+    debug_towers_saved: "Torres guardadas permanentemente (Backup)",
+    debug_towers_restored: "Torres restauradas a como estaban (Backroll)"
   },
   en: {
     health: "Health", money: "Globets", wave: "Wave",
@@ -527,6 +547,10 @@ const TRANSLATIONS = {
     badge_angelicFortress_name: "THE ANGELIC FORTRESS", badge_angelicFortress_desc: "Have the absolute maximum base health",
     badge_titaniumBuilding_name: "Titanium Building", badge_titaniumBuilding_desc: "Complete a map without taking base damage",
     badge_encyclopediaMaster_name: "Encyclopedia Master", badge_encyclopediaMaster_desc: "Complete the Pyce encyclopedia and upgrade all tower families to max level at least once",
+    badge_unmenaced_name: "Unmenaced", badge_unmenaced_desc: "Complete Interstellar mode. Good job defending against the crystal threat!",
+    badge_skinllector_name: "Skinllector", badge_skinllector_desc: "Get at least 7 different skins.",
+    badge_crystalizing_break_name: "Crystalizing Break", badge_crystalizing_break_desc: "Frame all crystallized variants.",
+    badge_extended_marc_name: "Extended Marc", badge_extended_marc_desc: "Frame all enemies in the 'Other Enemies' category.",
 
 
     // Tower Names
@@ -630,16 +654,21 @@ const TRANSLATIONS = {
     enemy_BitP3_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Dizzy Variant)",
     enemy_Byte_desc: "Bytes are groupings of 2 Bits, even so they are considered Bytes because there are 4 forms of these groupings of 2 Bits, since 4x2 is 8... And Bytes are made up of 8 bits... Right? Well. I wouldn't doubt it.",
     
-    enemy_Leni_the_big_Hammer_desc: "Leni always carries his giant hammer ready to smash.",
-    enemy_Monster_desc: "A monstrous creature with high resilience.",
-    enemy_Cristalized_Monster_desc: "The same Monster, but altered by crystallization. Much tougher and deadlier.",
-    enemy_Lenistal_desc: "Leni corrupted by crystallization. His hammer now unleashes pure cosmic energy.",
-    enemy_NOCrystEye_CB_desc: "An even more unstable and crystallized version of NOeye.",
-    enemy_AstrorbOrbe_desc: "A defensive and enigmatic form, like a sleeping stellar body.",
-    enemy_AstrorbContenida_desc: "The released crystal energy: faster and more aggressive, but more fragile.",
-    
-    enemy_AstrorbTF_desc: "Celestial perfection in its True Form. Immense cosmic power and eternal patience.",
-    enemy_Crystal_Bombot_desc: "Work-Bombot under the effect of crystallization. Throws crystals that steal energy from your towers.",
+    enemy_Leni_the_big_Hammer_desc: "A little friend of Glob obsessed with smashing and destroying. Along with Glob and five other companions, he is part of a research and defense team, though the rest of its members remain unknown. Where could they be? Who are they?",
+    enemy_Monster_desc: "Glob's inseparable friend. Although for a long time they both argued over who was the real 'main enemy', today they share a good friendship. He seems calmer than before... perhaps because he hadn't been seen in years.",
+    enemy_Cristalized_Monster_desc: "Astrorb's influence has awakened Monster's most aggressive side. Those old rivalries that never went beyond simple disputes have now become a real threat.",
+    enemy_Lenistal_desc: "Crystallization has taken his obsession to the extreme. Astrorb has turned Leni into a far more dangerous threat; his hammer, now covered in sharp crystals, can smash anything that crosses his path. He seems to have completely lost control of himself.",
+    enemy_NOCrystEye_CB_desc: "Even NOeye has succumbed to crystallization. Astrorb no longer sees him as a mere obstacle, but as a weapon against everything the Globs try to protect. His new appearance, along with his star-shaped pupil, suggest he was always destined to bear the role of villain... whether he wanted to or not.<br><br><strong>Mechanic:</strong> Shoots a continuous paralyzing laser at towers.",
+    enemy_AstrorbOrbe_desc: "The seal that kept this star king imprisoned eventually became a legend. Some claim it was the inhabitants themselves who managed to lock him away; others speak of far superior beings. Whatever the truth, Astrorb desires only one thing: to crystallize the world once more.",
+    enemy_AstrorbContenida_desc: "Freed from his seal, Astrorb recovers part of his power and can move freely through the world. However, he still needs to gather more energy before reaching his true form.",
+    enemy_AstrorbTF_desc: "The true form of the celestial being. Now transformed into a humanoid figure, Astrorb seeks revenge on those who imprisoned him and aims to eliminate any threat standing in the way of his mission. For him, crystallizing the world is not evil... it is the only path forward.<br><br><strong>Mechanic:</strong> Instantly destroys any tower and has Double Lap (Ignores damage on its first pass).",
+    enemy_Crystal_Bombot_desc: "All communication with Work-Bombot has been lost. He now uses astral-toned crystals as explosives to attack relentlessly. Astrorb has left his mark on him: a red star-shaped eye that reflects the hatred sown by crystallization.<br><br><strong>Mechanic:</strong> Throws crystals that steal energy from your towers.",
+    enemy_Crystal_Pyce_name: "Crystal Pyce",
+    enemy_Crystal_Pyce_desc: "A crystalline fragment detached during Astrorb's arrival impacted Pyce2, crystallizing only part of its body. It is one of the few known cases of partial crystallization.",
+    enemy_Dreamy_SPyce_name: "Dreamy SPyce",
+    enemy_Dreamy_SPyce_desc: "The forgotten dreams of the Pyces found a perfect vessel in Symbol Pyce. Now, a mysterious dreamlike silhouette accompanies it and uses that power to put its enemies to sleep.",
+    enemy_Astral_BPyce_name: "Astral BPyce",
+    enemy_Astral_BPyce_desc: "The astral energy of Astrorb ended up taking over the body of Bomb Pyce. However, the true Bomb Pyce still remains hidden in the small mouse it drags along.",
 
     tower_IEx_name: "Explosive Instant",
     tower_IEx1_desc: "A Glob with a bomb on its head, it better be careful! One explosion and goodbye. A tower that explodes when someone touches its area, disappearing after that. The higher the level, the bigger the explosion.<br><br><span style=\"color: grey\">Designed by JustAUser. Planned by KirByte_Bi.</span>",
@@ -931,16 +960,31 @@ const TRANSLATIONS = {
     mechanic_holo: "Intangible: Base towers cannot damage it, use traps or upgraded towers!",
     badge_unlocked: "UNLOCKED!",
     badge_locked: "LOCKED",
-    badge_reward_label: "REWARD: "
+    badge_reward_label: "REWARD: ",
+    skin_unlocked_pyce_randomizer: "🎁 'Pyce Randomizer' SKIN UNLOCKED!",
+    skin_unlocked_crystal_bombot: "🎁 'Crystal-Bombot' SKIN UNLOCKED!",
+    skin_unlocked_astrorb: "🎁 'Astrorb' SKIN UNLOCKED!",
+    skin_unlocked_cuby: "🎁 CUBY (Work-Bombot) SKIN UNLOCKED!",
+    skin_unlocked_mimic: "🎁 'Mimic set' SKIN UNLOCKED!",
+    effect_broken_crystal: "BROKEN CRYSTAL!",
+    effect_contagion: "CONTAGION! 💀",
+    effect_boom: "BOOM!",
+    effect_stunned: "STUNNED!",
+    debug_towers_saved: "Towers permanently saved (Backup)",
+    debug_towers_restored: "Towers restored to previous state (Backroll)"
   }
 };
 
 let USERS = {
   "KirByteBi": "FTPY2",
+  "Glob_BUILD": "BUILD_DEV",
   "Admin": "ADgod",
   "AirRider": "PYCE",
   "Player": "1234"
 };
+
+// Users that are allowed to use DEV_BUILD code
+const DEV_USERS = new Set(['KirByteBi', 'Glob_BUILD']);
 
 const IMAGE_PATHS = {
   'Glob': 'img/Glob_DEF.png',
@@ -1031,6 +1075,9 @@ const IMAGE_PATHS = {
   'Cuby_BombotA2': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA2).png',
   'Cube_Bomb_CB': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cube Bomb (SK-CB).png',
   'Crystal_Bombot': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Crystal-Bombot.png',
+  'Crystal_Pyce': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Crystal Pyce.png',
+  'Dreamy_SPyce': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Dreamy SPyce.png',
+  'Astral_BPyce': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Astral BPyce.png',
   
   // New Additions
   'SpyGlob': 'img/SpyGlob (EVO3).png',
@@ -1348,7 +1395,7 @@ const TOWER_TYPES = {
   'Golden_Glob': { name: 'tower_Golden_Glob_name', damage: 45, range: 170, speed: 1.4, cost: 200, evolution: 'Rainbow_Glob', image: IMAGE_PATHS.Golden_Glob, projectile: 'gold', desc: "tower_Golden_Glob_desc", family: 'Glob' },
   'Rainbow_Glob': { name: 'tower_Rainbow_Glob_name', damage: 30, range: 180, speed: 1.8, cost: 400, image: IMAGE_PATHS.Rainbow_Glob, projectile: 'laser_rainbow', piercing: true, desc: "tower_Rainbow_Glob_desc", family: 'Glob' },
 
-  'Red_Glob': { name: 'tower_Red_Glob_name', damage: 20, range: 85, speed: 2.0, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "tower_Red_Glob_desc", family: 'Red_Glob' },
+  'Red_Glob': { name: 'tower_Red_Glob_name', damage: 20, range: 110, speed: 2.0, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "tower_Red_Glob_desc", family: 'Red_Glob' },
   'Molten_Glob': { name: 'tower_Molten_Glob_name', damage: 15, range: 95, speed: 2.2, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "tower_Molten_Glob_desc", family: 'Red_Glob' },
   'Robotic_Glob': { name: 'tower_Robotic_Glob_name', damage: 40, range: 120, speed: 1.0, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
 
@@ -1384,8 +1431,8 @@ const TOWER_TYPES = {
   'Nuclear_Glob': { name: 'tower_Nuclear_Glob_name', damage: 300, range: 120, speed: 0, cost: 1200, image: IMAGE_PATHS.Nuclear_Glob, projectile: 'none', desc: "tower_IEx3_desc", family: 'IEx' },
 
   // Worker Glob Family (Trampas)
-  'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 110, speed: 0.5, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: true },
-  'Police_Glob': { name: 'tower_Police_Glob_name', damage: 30, range: 130, speed: 0.6, cost: 300, evolution: 'Planked_Glob', image: IMAGE_PATHS.Police_Glob, trap: 'Police_Trap', desc: "tower_Police_Glob_desc", family: 'Worker_Glob' },
+  'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 110, speed: 0.25, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: true },
+  'Police_Glob': { name: 'tower_Police_Glob_name', damage: 30, range: 130, speed: 0.35, cost: 300, evolution: 'Planked_Glob', image: IMAGE_PATHS.Police_Glob, trap: 'Police_Trap', desc: "tower_Police_Glob_desc", family: 'Worker_Glob' },
   'Planked_Glob': { name: 'tower_Planked_Glob_name', damage: 70, range: 140, speed: 0.7, cost: 550, evolution: 'DJ_Glob', image: IMAGE_PATHS.Planked_Glob, trap: 'Planked_Trap', desc: "tower_Planked_Glob_desc", family: 'Worker_Glob' },
   'DJ_Glob': { name: 'tower_DJ_Glob_name', damage: 120, range: 160, speed: 0.8, cost: 1200, image: IMAGE_PATHS.DJ_Glob, trap: 'DJ_Trap', desc: "tower_DJ_Glob_desc", family: 'Worker_Glob' },
 
@@ -1444,6 +1491,9 @@ const ENEMY_TYPES = {
   'Cristalized_Monster': { name: 'enemy_Cristalized_Monster_name', desc: 'enemy_Cristalized_Monster_desc', health: 500, speed: 0.8, reward: 80, image: IMAGE_PATHS.Cristalized_Monster, isCrystallized: true, category: 'other' },
   'Lenistal': { name: 'enemy_Lenistal_name', desc: 'enemy_Lenistal_desc', health: 240, speed: 1.0, reward: 50, image: IMAGE_PATHS.Lenistal, isCrystallized: true, category: 'other' },
   'Crystal_Bombot': { name: 'enemy_Crystal_Bombot_name', desc: 'enemy_Crystal_Bombot_desc', health: 1000, speed: 0.6, reward: 500, image: IMAGE_PATHS.Crystal_Bombot, isCrystallized: true, boss: true, category: 'other' },
+  'Crystal_Pyce': { name: 'enemy_Crystal_Pyce_name', desc: 'enemy_Crystal_Pyce_desc', health: 105, speed: 1.4, reward: 30, image: IMAGE_PATHS.Crystal_Pyce, isCrystallized: true },
+  'Dreamy_SPyce': { name: 'enemy_Dreamy_SPyce_name', desc: 'enemy_Dreamy_SPyce_desc', health: 180, speed: 3.2, reward: 40, image: IMAGE_PATHS.Dreamy_SPyce, isCrystallized: true },
+  'Astral_BPyce': { name: 'enemy_Astral_BPyce_name', desc: 'enemy_Astral_BPyce_desc', mechanic_key: 'mechanic_bomb', health: 230, speed: 1.5, reward: 45, image: IMAGE_PATHS.Astral_BPyce, isCrystallized: true },
   'NO_CrystEye_CB': { name: 'enemy_NOCrystEye_CB_name', desc: 'enemy_NOCrystEye_CB_desc', health: 1200, speed: 0.4, reward: 800, image: IMAGE_PATHS.NO_CrystEye_CB, isCrystallized: true, boss: true, paralyzeLaser: true, stunCooldown: 12, category: 'other', crystEyeVariantOf: 'NOeye_Pyce' },
   'AstrorbOrbe': { name: 'enemy_AstrorbOrbe_name', desc: 'enemy_AstrorbOrbe_desc', health: 800, speed: 1.2, reward: 0, image: IMAGE_PATHS.AstrorbOrbe, boss: true, category: 'other', astrorbGroup: true },
   'AstrorbContenida': { name: 'enemy_AstrorbContenida_name', desc: 'enemy_AstrorbContenida_desc', health: 600, speed: 2.0, reward: 1000, image: IMAGE_PATHS.AstrorbContenida, boss: true, category: 'other', astrorbGroup: true, astrorbForm: 2 },
@@ -1490,7 +1540,11 @@ const BADGES = {
   maxGlobs: { key: 'maxGlobs', icon: '🌌', unlocked: false, reward: { pycoins: 600, xp: 300 } },
   angelicFortress: { key: 'angelicFortress', icon: '😇', unlocked: false, reward: { pycoins: 500, xp: 250 } },
   titaniumBuilding: { key: 'titaniumBuilding', icon: '🛡️', unlocked: false, reward: { pycoins: 500, xp: 300 } },
-  encyclopediaMaster: { key: 'encyclopediaMaster', icon: '📖', unlocked: false, reward: { pycoins: 500, duckpass: 500, xp: 2000 } }
+  encyclopediaMaster: { key: 'encyclopediaMaster', icon: '📖', unlocked: false, reward: { pycoins: 500, duckpass: 500, xp: 2000 } },
+  unmenaced: { key: 'unmenaced', icon: '🌠', unlocked: false, reward: { pycoins: 300, duckpass: 100 } },
+  skinllector: { key: 'skinllector', icon: '👗', unlocked: false, reward: { pycoins: 400, duckpass: 200 } },
+  crystalizing_break: { key: 'crystalizing_break', icon: '💎', unlocked: false, reward: { pycoins: 200, xp: 500 } },
+  extended_marc: { key: 'extended_marc', icon: '🖼️', unlocked: false, reward: { pycoins: 350, duckpass: 150 } }
 };
 
 const MAPS = {
@@ -1547,7 +1601,7 @@ const MAPS = {
 const SKINS_DATA = {
   'Glob': [
     {
-      id: 'rewamped_green_set', name: 'skin_rewamped_green_name', desc: 'skin_rewamped_green_desc', cost: 200, duckpass_cost: 250, type: 'pycoin',
+      id: 'rewamped_green_set', name: 'skin_rewamped_green_name', desc: 'skin_rewamped_green_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
         'Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
         'Poop_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO2.png',
@@ -1590,7 +1644,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'judicial_set', name: 'skin_judicial_name', desc: 'skin_judicial_desc', category: 'Colaboracion', subtitle: 'Glob Smash', isSpecial: true, isCommunity: true, cost: 550, duckpass_cost: 300, type: 'pycoin',
+      id: 'judicial_set', name: 'skin_judicial_name', desc: 'skin_judicial_desc', category: 'Colaboracion', subtitle: 'Glob Smash', isSpecial: true, isCommunity: true, cost: 400, duckpass_cost: 150, type: 'pycoin', unlockCondition: 'win_extremo',
       skins: {
         'Red_Glob': 'img/Skins/Rojo Melee/Comunidad/Glob Smash/Juez Glob (SK-EVO1).png',
         'Molten_Glob': 'img/Skins/Rojo Melee/Comunidad/Glob Smash/GatGlob (SK-EVO2).png',
@@ -1721,7 +1775,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'spanish_bombot', name: 'skin_spanish_bombot_name', desc: 'skin_spanish_bombot_desc', cost: 260, duckpass_cost: 450, type: 'pycoin', isSpecial: true,
+      id: 'spanish_bombot', name: 'skin_spanish_bombot_name', desc: 'skin_spanish_bombot_desc', cost: 260, duckpass_cost: 450, type: 'pycoin', isSpecial: true, unlockCondition: 'win_normal',
       skins: {
         'Work_Bombot': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Spanish-Bombot/Spanish-Bombot.png'
       },

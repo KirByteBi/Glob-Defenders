@@ -310,10 +310,10 @@
             <div class="pass-info">
                 <div class="pass-level-container">
                     <span data-i18n="level_label">Nivel <span id="pass-level">1</span></span>
-                    <div class="xp-bar-bg">
-                        <div id="xp-fill" class="xp-bar-fill"></div>
+                    <div class="xp-bar-bg" style="width: 100%; max-width: 300px; height: 15px; background: rgba(0,0,0,0.5); border-radius: 8px; overflow: hidden; margin: 10px 0;">
+                        <div id="xp-fill" class="xp-bar-fill" style="height: 100%; background: #2ecc71; width: 0%; transition: width 0.3s;"></div>
                     </div>
-                    <span><span id="pass-xp">0</span> / 100 XP</span>
+                    <span style="font-size: 0.9rem; color: #ccc;"><span id="pass-xp">0</span> / 100 XP (Faltan <span id="pass-xp-left">100</span> XP)</span>
                 </div>
             </div>
             <div id="pass-rewards" class="meta-grid"></div>
