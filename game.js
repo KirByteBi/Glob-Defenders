@@ -2268,14 +2268,15 @@ function drawShop() {
   } else if (currentShopTab === 'equip') {
     drawEquipShop(container);
   } else if (currentShopTab === 'skins') {
+    // ── Sección Normal ──
     Object.keys(SKINS_DATA).forEach(family => {
       if (family === 'Global') return;
       if (!isTowerOwned(family)) return;
       SKINS_DATA[family].forEach(skin => {
-        const isUnlocked = gameState.unlockedSkins.includes(skin.id);
-        const hiddenSkins = ['mimic_set', 'cuby_bombot', 'crystal_bombot', 'astrorb_set'];
-        if (hiddenSkins.includes(skin.id) && !isUnlocked) return;
+        const isSpecialUnlockable = ['mimic_set', 'pyce_morph', 'cuby_bombot', 'astrorb_set', 'crystal_bombot'].includes(skin.id);
+        if (skin.unlockCondition || isSpecialUnlockable) return; // Las que tienen condición van abajo
 
+        const isUnlocked = gameState.unlockedSkins.includes(skin.id);
         const isEquipped = gameState.equippedSkins[family] === skin.id;
         const el = document.createElement('div');
         el.className = `skin-item ${isEquipped ? 'equipped' : ''} ${skin.isSpecial ? 'special-skin' : ''}`;
@@ -2287,7 +2288,7 @@ function drawShop() {
         if (isUnlocked) {
           btnText = isEquipped ? translate('actual') : translate('equip_btn');
         } else if (skin.type === 'free') {
-          btnText = '🔒 Derrota al Mimic Pyce';
+          btnText = '🔒 Especial';
           costDisplay = `<div class="cost" style="color:#ffd700">🎁 Gratis (drop)</div>`;
         } else if (skin.duckpass_cost) {
           canBuy = gameState.pycoins >= skin.cost && gameState.duckPassCurrency >= skin.duckpass_cost;
@@ -2316,6 +2317,135 @@ function drawShop() {
         container.appendChild(el);
       });
     });
+
+    // ── Sección DESBLOQUEABLES ──
+    const unlockableSkins = {
+      mapa: [],
+      misiones: [],
+      otros: []
+    };
+
+    Object.keys(SKINS_DATA).forEach(family => {
+      SKINS_DATA[family].forEach(skin => {
+        if (family === 'Global' && skin.id !== 'pyce_morph') return;
+
+        const isSpecialDrop = ['mimic_set', 'pyce_morph', 'cuby_bombot', 'astrorb_set', 'crystal_bombot'].includes(skin.id);
+        if (!skin.unlockCondition && !isSpecialDrop) return;
+        
+        const isUnlocked = gameState.unlockedSkins.includes(skin.id);
+        const isAlwaysVisible = ['rewamped_green_set', 'rewamped_red_set', 'judicial_set'].includes(skin.id);
+
+        // Solo mostrar si está desbloqueada, o si es de las siempre visibles
+        if (!isUnlocked && !isAlwaysVisible) return;
+
+        // Categorizar
+        let category = 'otros';
+        if (['rewamped_green_set', 'rewamped_red_set', 'judicial_set', 'spanish_bombot'].includes(skin.id)) category = 'mapa';
+        else if (['astrorb_set', 'cuby_bombot'].includes(skin.id)) category = 'misiones';
+        else if (['mimic_set', 'pyce_morph', 'crystal_bombot'].includes(skin.id)) category = 'otros';
+        else if (skin.unlockCondition && skin.unlockCondition.includes('urban')) category = 'mapa';
+
+        unlockableSkins[category].push({ family, skin, isUnlocked });
+      });
+    });
+
+    const hasUnlockables = unlockableSkins.mapa.length > 0 || unlockableSkins.misiones.length > 0 || unlockableSkins.otros.length > 0;
+
+    if (hasUnlockables) {
+      const separator = document.createElement('div');
+      separator.style.cssText = 'grid-column:1/-1; text-align:center; padding:14px 0 6px; font-size:1.1rem; font-weight:bold; letter-spacing:2px; color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,0.5); border-top:1px solid rgba(255,215,0,0.25); margin-top:8px;';
+      separator.textContent = '✦ DESBLOQUEABLES';
+      container.appendChild(separator);
+
+      const subtext = document.createElement('div');
+      subtext.style.cssText = 'grid-column:1/-1; text-align:center; font-size:0.78rem; color:#aaa; margin-bottom:10px;';
+      subtext.textContent = currentLanguage === 'es'
+        ? 'Estas skins se desbloquean jugando — ¡sin coste adicional!'
+        : 'These skins are unlocked by playing — no extra cost!';
+      container.appendChild(subtext);
+
+      function getUnlockConditionText(skinId, condition) {
+        if (skinId === 'mimic_set') return currentLanguage === 'es' ? '🎁 Derrota a un Mimic Pyce Especial' : '🎁 Defeat a Special Mimic Pyce';
+        if (skinId === 'pyce_morph') return currentLanguage === 'es' ? '🎁 Recompensa Secreta' : '🎁 Secret Reward';
+        if (skinId === 'cuby_bombot') return currentLanguage === 'es' ? '👑 Derrota a Astrorb True Form' : '👑 Defeat Astrorb True Form';
+        
+        if (condition === 'win_facil_urban') return currentLanguage === 'es' ? '🗺️ Gana en modo Fácil en Urbanistic Road' : '🗺️ Win in Easy mode on Urbanistic Road';
+        if (condition === 'win_normal') return currentLanguage === 'es' ? '⚔️ Gana en modo Normal o superior' : '⚔️ Win in Normal mode or higher';
+        if (condition === 'win_extremo') return currentLanguage === 'es' ? '💀 Gana en modo Extremo o superior' : '💀 Win in Extreme mode or higher';
+        if (condition === 'astrorb_frame') return currentLanguage === 'es' ? '📖 Enmarca todos los Astrorb en la Enciclopedia' : '📖 Frame all Astrorb variants in the Encyclopedia';
+        if (condition === 'all_boss_frames') return currentLanguage === 'es' ? '💎 Enmarca todos los enemigos cristalizados' : '💎 Frame all crystallized enemies';
+        
+        return currentLanguage === 'es' ? '🔒 Condición especial' : '🔒 Special condition';
+      }
+
+      function renderCategory(list, title, colorHex) {
+        if (list.length === 0) return;
+        
+        const catHeader = document.createElement('div');
+        catHeader.style.cssText = `grid-column:1/-1; text-align:left; font-size:1rem; font-weight:bold; color:${colorHex}; margin-top:14px; margin-bottom:4px; padding-left:10px; border-left:4px solid ${colorHex}; background: linear-gradient(90deg, ${colorHex}22 0%, transparent 100%); padding-top:4px; padding-bottom:4px;`;
+        catHeader.textContent = title;
+        container.appendChild(catHeader);
+
+        list.forEach(({ family, skin, isUnlocked }) => {
+          const isEquipped = gameState.equippedSkins[family] === skin.id;
+          const el = document.createElement('div');
+          el.className = `skin-item special-skin unlockable-skin ${isEquipped ? 'equipped' : ''}`;
+          el.style.opacity = isUnlocked ? '1' : '0.85';
+          el.style.border = isUnlocked ? `1px solid ${colorHex}` : `1px solid ${colorHex}55`;
+
+          const previewImg = skin.skins ? (skin.skins[family] || Object.values(skin.skins)[0]) : (skin.pyce_morph ? 'img/Pyce Randomizer (ENEMY SKIN).png' : 'img/Glob_DEF.png');
+          const conditionText = getUnlockConditionText(skin.id, skin.unlockCondition);
+
+          let costDisplay = '';
+          let btnText = '';
+          let canBuy = false;
+          let onclickAction = '';
+
+          if (!isUnlocked) {
+            costDisplay = `<div class="cost" style="color:${colorHex}; font-size:0.78rem; margin-bottom:4px;">${currentLanguage === 'es' ? '🎁 Gratis al desbloquear' : '🎁 Free on unlock'}</div>`;
+            btnText = `🔒 ${currentLanguage === 'es' ? 'Bloqueada' : 'Locked'}`;
+            
+            el.innerHTML = `
+              <div class="special-badge" style="background:${colorHex}; color:#000;">🔓 DESBLOQUEABLE</div>
+              <div class="skin-preview" style="filter:grayscale(0.4) brightness(0.8)"><img src="${previewImg}" style="width:100%; height:100%;"></div>
+              <h3>${translate(skin.name)}</h3>
+              <p>${translate(skin.desc)}</p>
+              ${costDisplay}
+              <div style="font-size:0.75rem; color:#ccc; margin-bottom:8px; padding:4px 6px; background:rgba(0,0,0,0.2); border-radius:6px; border:1px dashed ${colorHex}55;">${conditionText}</div>
+              <button class="skin-buy-btn" disabled style="background:${colorHex}22; border:1px solid ${colorHex}55; color:${colorHex}; cursor:not-allowed;">${btnText}</button>`;
+          } else {
+            if (skin.type === 'free' || skin.cost === 0) {
+              btnText = isEquipped ? translate('actual') : translate('equip_btn');
+              onclickAction = `equipSkin('${family}', '${skin.id}')`;
+              canBuy = true;
+            } else {
+              btnText = translate('buy');
+              if (skin.duckpass_cost) {
+                canBuy = gameState.pycoins >= skin.cost && gameState.duckPassCurrency >= skin.duckpass_cost;
+                costDisplay = `<div class="cost"><img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}</div>`;
+              } else {
+                canBuy = gameState.pycoins >= skin.cost;
+                costDisplay = `<div class="cost"><img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost}</div>`;
+              }
+              onclickAction = `buySkin('${family}', '${skin.id}', ${skin.cost})`;
+            }
+
+            el.innerHTML = `
+              <div class="special-badge" style="background:${colorHex}; color:#000;">🌟 DESBLOQUEADA</div>
+              <div class="skin-preview ${skin.class || ''}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
+              <h3>${translate(skin.name)}</h3>
+              <p>${translate(skin.desc)}</p>
+              ${costDisplay}
+              <button class="skin-buy-btn ${skin.type === 'free' || skin.cost === 0 ? 'equip' : ''}" ${!canBuy && skin.type !== 'free' && skin.cost !== 0 ? 'disabled' : ''} onclick="${onclickAction}">${btnText}</button>`;
+          }
+          container.appendChild(el);
+        });
+      }
+
+      renderCategory(unlockableSkins.mapa, currentLanguage === 'es' ? '🗺️ Mapa' : '🗺️ Map', '#ffd700'); // Amarillo
+      renderCategory(unlockableSkins.misiones, currentLanguage === 'es' ? '🎯 Misiones / Collab' : '🎯 Missions / Collab', '#2ecc71'); // Verde
+      renderCategory(unlockableSkins.otros, currentLanguage === 'es' ? '🏆 Otros' : '🏆 Others', '#d2b48c'); // Marrón claro
+    }
 
     if (gameState.cheatedModeActive) {
       const oldBtn = document.getElementById('admin-playtest-btn');
