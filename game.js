@@ -2354,7 +2354,7 @@ function drawShop() {
     if (hasUnlockables) {
       const separator = document.createElement('div');
       separator.style.cssText = 'grid-column:1/-1; text-align:center; padding:14px 0 6px; font-size:1.1rem; font-weight:bold; letter-spacing:2px; color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,0.5); border-top:1px solid rgba(255,215,0,0.25); margin-top:8px;';
-      separator.textContent = '✦ DESBLOQUEABLES';
+      separator.textContent = currentLanguage === 'es' ? '✦ DESBLOQUEABLES' : '✦ UNLOCKABLES';
       container.appendChild(separator);
 
       const subtext = document.createElement('div');
@@ -2406,7 +2406,7 @@ function drawShop() {
             btnText = `🔒 ${currentLanguage === 'es' ? 'Bloqueada' : 'Locked'}`;
             
             el.innerHTML = `
-              <div class="special-badge" style="background:${colorHex}; color:#000;">🔓 DESBLOQUEABLE</div>
+              <div class="special-badge" style="background:${colorHex}; color:#000;">🔓 ${currentLanguage === 'es' ? 'DESBLOQUEABLE' : 'UNLOCKABLE'}</div>
               <div class="skin-preview" style="filter:grayscale(0.4) brightness(0.8)"><img src="${previewImg}" style="width:100%; height:100%;"></div>
               <h3>${translate(skin.name)}</h3>
               <p>${translate(skin.desc)}</p>
@@ -2431,7 +2431,7 @@ function drawShop() {
             }
 
             el.innerHTML = `
-              <div class="special-badge" style="background:${colorHex}; color:#000;">🌟 DESBLOQUEADA</div>
+              <div class="special-badge" style="background:${colorHex}; color:#000;">🌟 ${currentLanguage === 'es' ? 'DESBLOQUEADA' : 'UNLOCKED'}</div>
               <div class="skin-preview ${skin.class || ''}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
               <h3>${translate(skin.name)}</h3>
               <p>${translate(skin.desc)}</p>
@@ -2618,7 +2618,7 @@ function buyGTack(family, pyCost, dpCost) {
     drawShop();
     saveProgress();
     updateMetaUI();
-    showMessage("¡G-Tack Desbloqueada! 🌟", 'success');
+    showMessage(currentLanguage === 'es' ? "¡G-Tack Desbloqueada! 🌟" : "G-Tack Unlocked! 🌟", 'success');
   } else {
     showMessage(translate('notEnoughMoney') || "¡No tienes suficientes divisas!", 'error');
   }
