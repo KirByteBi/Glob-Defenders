@@ -1636,6 +1636,14 @@ const SKINS_DATA = {
   ],
   'Red_Glob': [
     {
+      id: 'rewamped_red_set', name: 'skin_rewamped_red_name', desc: 'skin_rewamped_red_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
+      skins: {
+        'Red_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO1.png',
+        'Molten_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO2.png',
+        'Robotic_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO3.png'
+      }
+    },
+    {
       id: 'music_set', name: 'skin_music_name', desc: 'skin_music_desc', cost: 300, type: 'pycoin',
       skins: {
         'Red_Glob': 'img/Skins/Rojo Melee/Music Glob (SK-EVO1).png',
@@ -1853,6 +1861,8 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_judicial_desc": "¡Que haya orden! Los Pyces no se mantendran andando mientras los Jueces y sus gatos anden sueltos!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
   "skin_rewamped_green_name": "Set Verde Remasterizado",
   "skin_rewamped_green_desc": "Una versión mejorada visualmente de la familia verde original.",
+  "skin_rewamped_red_name": "Set Rojo Remasterizado",
+  "skin_rewamped_red_desc": "Una versión mejorada visualmente de la familia roja original.",
   "skin_spanish_bombot_name": "Spanish Bombot",
   "skin_spanish_bombot_desc": "Las dos estrellas le pertenecen a España, y Bombot lo sabía! Se preparó tarde, pero pudo hacérselo.",
   "skin_astrorb_name": "Astrorb (Jefe)",
@@ -1876,6 +1886,8 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_judicial_desc": "Let there be order! The Pyces won't keep walking while the Judges and their cats are on the loose!<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
   "skin_rewamped_green_name": "Remastered Green Set",
   "skin_rewamped_green_desc": "A visually improved version of the original green family.",
+  "skin_rewamped_red_name": "Remastered Red Set",
+  "skin_rewamped_red_desc": "A visually improved version of the original red family.",
   "skin_spanish_bombot_name": "Spanish Bombot",
   "skin_spanish_bombot_desc": "The two stars belong to Spain, and Bombot knew it! He prepared late, but he managed to pull it off.",
   "skin_astrorb_name": "Astrorb (Boss)",

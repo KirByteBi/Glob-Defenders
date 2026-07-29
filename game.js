@@ -5279,6 +5279,17 @@ function activateGTack(t) {
           }
         }
 
+        // Rewamped Red Set: free on winning Easy on Urbanistic Road
+        if (gameState.mode === 'facil' && isUrbanMap) {
+          if (!gameState.unlockedSkins.includes('rewamped_red_set')) {
+            gameState.unlockedSkins.push('rewamped_red_set');
+            const msg = currentLanguage === 'es'
+              ? '🎁 Set Rojo Remasterizado desbloqueado y aplicado gratis! (Urbanistic Road - Fácil)'
+              : '🎁 Remastered Red Set unlocked for free! (Urbanistic Road - Easy)';
+            showMessage(msg, 'success');
+          }
+        }
+
         // Spanish-Bombot: unlocked (but not free) on winning Normal or above
         const modesNormalOrAbove = ['normal', 'dificil', 'extremo', 'corrupto', 'antiNormal'];
         if (modesNormalOrAbove.includes(gameState.mode)) {
