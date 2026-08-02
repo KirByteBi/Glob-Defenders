@@ -1501,50 +1501,59 @@ const ENEMY_TYPES = {
 };
 
 const BADGES = {
-  survivor: { key: 'survivor', icon: '🛡️', unlocked: false, reward: { pycoins: 100, xp: 50 } },
-  millionaire: { key: 'millionaire', icon: '💰', unlocked: false, reward: { pycoins: 500, xp: 100 } },
-  evolution: { key: 'evolution', icon: '🧬', unlocked: false, reward: { pycoins: 200, xp: 80 } },
-  bossKiller: { key: 'bossKiller', icon: '👑', unlocked: false, reward: { duckpass: 5, xp: 150 } },
-  secret: { key: 'secret', icon: '🔑', unlocked: false, reward: { pycoins: 50, xp: 30 } },
-  inf100: { key: 'inf100', icon: '💯', unlocked: false, reward: { duckpass: 10, xp: 200 } },
-  inf500: { key: 'inf500', icon: '🎖️', unlocked: false, reward: { duckpass: 25, xp: 500 } },
-  inf999: { key: 'inf999', icon: '🌌', unlocked: false, reward: { duckpass: 50, xp: 1000 } },
-  corrupt1: { key: 'corrupt1', icon: '👾', unlocked: false, reward: { pycoins: 300, xp: 150 } },
-  corrupt2: { key: 'corrupt2', icon: '👾', unlocked: false, reward: { pycoins: 400, xp: 200 } },
-  corrupt3: { key: 'corrupt3', icon: '👾', unlocked: false, reward: { pycoins: 500, xp: 250 } },
-  corrupt4: { key: 'corrupt4', icon: '👾', unlocked: false, reward: { pycoins: 600, xp: 300 } },
-  corrupt5: { key: 'corrupt5', icon: '👾', unlocked: false, reward: { duckpass: 20, xp: 500 } },
-  mimic1: { key: 'mimic1', icon: '🎁', unlocked: false, reward: { pycoins: 150, xp: 50 } },
-  mimic2: { key: 'mimic2', icon: '🎁', unlocked: false, reward: { pycoins: 300, xp: 100 } },
-  mimic3: { key: 'mimic3', icon: '🎁', unlocked: false, reward: { pycoins: 450, xp: 150 } },
-  mimic4: { key: 'mimic4', icon: '🎁', unlocked: false, reward: { duckpass: 15, xp: 300 } },
-  corruptMimic: { key: 'corruptMimic', icon: '💀', unlocked: false, reward: { pycoins: 1000, xp: 500 } },
-  mimicRevenge: { key: 'mimicRevenge', icon: '🔥', unlocked: false, reward: { pycoins: 500, xp: 200 } },
-  antiNormal: { key: 'antiNormal', icon: '🌑', unlocked: false, reward: { duckpass: 100, xp: 2000 } },
-  winFacil: { key: 'winFacil', icon: '🌱', unlocked: false, reward: { pycoins: 50, xp: 50 } },
-  winNormal: { key: 'winNormal', icon: '🌲', unlocked: false, reward: { pycoins: 100, xp: 100 } },
-  una_por_cada: { key: 'una_por_cada', icon: '🎰', unlocked: false, reward: { pycoins: 200, duckpass: 150 } },
-  explosiones_por_doquier: { key: 'explosiones_por_doquier', icon: '💥', unlocked: false, reward: { pycoins: 350, duckpass: 250 } },
-  urba_complet1: { key: 'urba_complet1', icon: '🌆', unlocked: false, reward: { pycoins: 500, duckpass: 300 } },
-  winDificil: { key: 'winDificil', icon: '⚔️', unlocked: false, reward: { pycoins: 200, xp: 150 } },
-  winExtremo: { key: 'winExtremo', icon: '💀', unlocked: false, reward: { pycoins: 500, xp: 500 } },
-  winCorrupto: { key: 'winCorrupto', icon: '👾', unlocked: false, reward: { pycoins: 1000, xp: 1000 } },
-  gtackFirst: { key: 'gtackFirst', icon: '🎯', unlocked: false, reward: { pycoins: 100, xp: 50 } },
-  duckgradeFirst: { key: 'duckgradeFirst', icon: '🦆', unlocked: false, reward: { pycoins: 150, xp: 80 } },
-  supremeAlliance: { key: 'supremeAlliance', icon: '🤝', unlocked: false, reward: { pycoins: 300, xp: 150 } },
-  deepArtillery: { key: 'deepArtillery', icon: '💣', unlocked: false, reward: { pycoins: 400, xp: 200 } },
-  meleeBlueRed: { key: 'meleeBlueRed', icon: '⚔️', unlocked: false, reward: { pycoins: 400, xp: 200 } },
-  epicEffects: { key: 'epicEffects', icon: '🌈', unlocked: false, reward: { pycoins: 500, xp: 300 } },
-  letsGoGambling: { key: 'letsGoGambling', icon: '🎰', unlocked: false, reward: { pycoins: 777, xp: 777 } },
-  deepSavings: { key: 'deepSavings', icon: '💎', unlocked: false, reward: { pycoins: 500, xp: 250 } },
-  maxGlobs: { key: 'maxGlobs', icon: '🌌', unlocked: false, reward: { pycoins: 600, xp: 300 } },
-  angelicFortress: { key: 'angelicFortress', icon: '😇', unlocked: false, reward: { pycoins: 500, xp: 250 } },
-  titaniumBuilding: { key: 'titaniumBuilding', icon: '🛡️', unlocked: false, reward: { pycoins: 500, xp: 300 } },
-  encyclopediaMaster: { key: 'encyclopediaMaster', icon: '📖', unlocked: false, reward: { pycoins: 500, duckpass: 500, xp: 2000 } },
-  unmenaced: { key: 'unmenaced', icon: '🌠', unlocked: false, reward: { pycoins: 300, duckpass: 100 } },
-  skinllector: { key: 'skinllector', icon: '👗', unlocked: false, reward: { pycoins: 400, duckpass: 200 } },
-  crystalizing_break: { key: 'crystalizing_break', icon: '💎', unlocked: false, reward: { pycoins: 200, xp: 500 } },
-  extended_marc: { key: 'extended_marc', icon: '🖼️', unlocked: false, reward: { pycoins: 350, duckpass: 150 } }
+  survivor: { key: 'survivor', icon: '🛡️', unlocked: false, reward: { pycoins: 100, xp: 50 }, category: 'modos' },
+  millionaire: { key: 'millionaire', icon: '💰', unlocked: false, reward: { pycoins: 500, xp: 100 }, category: 'economia' },
+  evolution: { key: 'evolution', icon: '🧬', unlocked: false, reward: { pycoins: 200, xp: 80 }, category: 'interacciones' },
+  bossKiller: { key: 'bossKiller', icon: '👑', unlocked: false, reward: { duckpass: 5, xp: 150 }, category: 'misiones' },
+  secret: { key: 'secret', icon: '🔑', unlocked: false, reward: { pycoins: 50, xp: 30 }, category: 'misiones' },
+  inf100: { key: 'inf100', icon: '💯', unlocked: false, reward: { duckpass: 10, xp: 200 }, category: 'modos' },
+  inf500: { key: 'inf500', icon: '🎖️', unlocked: false, reward: { duckpass: 25, xp: 500 }, category: 'modos' },
+  inf999: { key: 'inf999', icon: '🌌', unlocked: false, reward: { duckpass: 50, xp: 1000 }, category: 'modos' },
+  corrupt1: { key: 'corrupt1', icon: '👾', unlocked: false, reward: { pycoins: 300, xp: 150 }, category: 'modos' },
+  corrupt2: { key: 'corrupt2', icon: '👾', unlocked: false, reward: { pycoins: 400, xp: 200 }, category: 'modos' },
+  corrupt3: { key: 'corrupt3', icon: '👾', unlocked: false, reward: { pycoins: 500, xp: 250 }, category: 'modos' },
+  corrupt4: { key: 'corrupt4', icon: '👾', unlocked: false, reward: { pycoins: 600, xp: 300 }, category: 'modos' },
+  corrupt5: { key: 'corrupt5', icon: '👾', unlocked: false, reward: { duckpass: 20, xp: 500 }, category: 'modos' },
+  mimic1: { key: 'mimic1', icon: '🎁', unlocked: false, reward: { pycoins: 150, xp: 50 }, category: 'misiones' },
+  mimic2: { key: 'mimic2', icon: '🎁', unlocked: false, reward: { pycoins: 300, xp: 100 }, category: 'misiones' },
+  mimic3: { key: 'mimic3', icon: '🎁', unlocked: false, reward: { pycoins: 450, xp: 150 }, category: 'misiones' },
+  mimic4: { key: 'mimic4', icon: '🎁', unlocked: false, reward: { duckpass: 15, xp: 300 }, category: 'misiones' },
+  corruptMimic: { key: 'corruptMimic', icon: '💀', unlocked: false, reward: { pycoins: 1000, xp: 500 }, category: 'misiones' },
+  mimicRevenge: { key: 'mimicRevenge', icon: '🔥', unlocked: false, reward: { pycoins: 500, xp: 200 }, category: 'misiones' },
+  antiNormal: { key: 'antiNormal', icon: '🌑', unlocked: false, reward: { duckpass: 100, xp: 2000 }, category: 'modos' },
+  winFacil: { key: 'winFacil', icon: '🌱', unlocked: false, reward: { pycoins: 50, xp: 50 }, category: 'modos' },
+  winNormal: { key: 'winNormal', icon: '🌲', unlocked: false, reward: { pycoins: 100, xp: 100 }, category: 'modos' },
+  una_por_cada: { key: 'una_por_cada', icon: '🎰', unlocked: false, reward: { pycoins: 200, duckpass: 150 }, category: 'interacciones' },
+  explosiones_por_doquier: { key: 'explosiones_por_doquier', icon: '💥', unlocked: false, reward: { pycoins: 350, duckpass: 250 }, category: 'interacciones' },
+  urba_complet1: { key: 'urba_complet1', icon: '🌆', unlocked: false, reward: { pycoins: 500, duckpass: 300 }, category: 'misiones' },
+  winDificil: { key: 'winDificil', icon: '⚔️', unlocked: false, reward: { pycoins: 200, xp: 150 }, category: 'modos' },
+  winExtremo: { key: 'winExtremo', icon: '💀', unlocked: false, reward: { pycoins: 500, xp: 500 }, category: 'modos' },
+  winCorrupto: { key: 'winCorrupto', icon: '👾', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'modos' },
+  gtackFirst: { key: 'gtackFirst', icon: '🎯', unlocked: false, reward: { pycoins: 100, xp: 50 }, category: 'economia' },
+  duckgradeFirst: { key: 'duckgradeFirst', icon: '🦆', unlocked: false, reward: { pycoins: 150, xp: 80 }, category: 'economia' },
+  supremeAlliance: { key: 'supremeAlliance', icon: '🤝', unlocked: false, reward: { pycoins: 300, xp: 150 }, category: 'interacciones' },
+  deepArtillery: { key: 'deepArtillery', icon: '💣', unlocked: false, reward: { pycoins: 400, xp: 200 }, category: 'interacciones' },
+  meleeBlueRed: { key: 'meleeBlueRed', icon: '⚔️', unlocked: false, reward: { pycoins: 400, xp: 200 }, category: 'interacciones' },
+  epicEffects: { key: 'epicEffects', icon: '🌈', unlocked: false, reward: { pycoins: 500, xp: 300 }, category: 'interacciones' },
+  letsGoGambling: { key: 'letsGoGambling', icon: '🎰', unlocked: false, reward: { pycoins: 777, xp: 777 }, category: 'economia' },
+  deepSavings: { key: 'deepSavings', icon: '💎', unlocked: false, reward: { pycoins: 500, xp: 250 }, category: 'economia' },
+  maxGlobs: { key: 'maxGlobs', icon: '🌌', unlocked: false, reward: { pycoins: 600, xp: 300 }, category: 'interacciones' },
+  angelicFortress: { key: 'angelicFortress', icon: '😇', unlocked: false, reward: { pycoins: 500, xp: 250 }, category: 'modos' },
+  titaniumBuilding: { key: 'titaniumBuilding', icon: '🛡️', unlocked: false, reward: { pycoins: 500, xp: 300 }, category: 'modos' },
+  encyclopediaMaster: { key: 'encyclopediaMaster', icon: '📖', unlocked: false, reward: { pycoins: 500, duckpass: 500, xp: 2000 }, category: 'misiones' },
+  unmenaced: { key: 'unmenaced', icon: '🌠', unlocked: false, reward: { pycoins: 300, duckpass: 100 }, category: 'misiones' },
+  skinllector: { key: 'skinllector', icon: '👗', unlocked: false, reward: { pycoins: 400, duckpass: 200 }, category: 'misiones' },
+  crystalizing_break: { key: 'crystalizing_break', icon: '💎', unlocked: false, reward: { pycoins: 200, xp: 500 }, category: 'interacciones' },
+  extended_marc: { key: 'extended_marc', icon: '🖼️', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'misiones' },
+
+  fracstral_victory: { key: 'fracstral_victory', icon: '<img src="Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png" width="35" height="35" style="border-radius:6px; object-fit:contain;">', unlocked: false, reward: { pycoins: 500, xp: 500 }, category: 'misiones' },
+  chain_reaction: { key: 'chain_reaction', icon: '💥', unlocked: false, reward: { pycoins: 400, duckpass: 200 }, category: 'interacciones' },
+  fenced_kaboom: { key: 'fenced_kaboom', icon: '🚧', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'interacciones' },
+  wall_garden: { key: 'wall_garden', icon: '🧱', unlocked: false, reward: { pycoins: 300, xp: 400 }, category: 'interacciones' },
+  urban_king: { key: 'urban_king', icon: '👑', unlocked: false, reward: { pycoins: 600, duckpass: 400 }, category: 'misiones' },
+  urban_crystals: { key: 'urban_crystals', icon: '💎', unlocked: false, reward: { pycoins: 700, duckpass: 500 }, category: 'misiones' },
+  dangerous_set: { key: 'dangerous_set', icon: '⚠️', unlocked: false, reward: { pycoins: 800, xp: 1000 }, category: 'interacciones' },
+  globiscal_debt: { key: 'globiscal_debt', icon: '💸', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'economia' }
 };
 
 const MAPS = {
@@ -1760,6 +1769,21 @@ const SKINS_DATA = {
       }
     }
   ],
+  'IEx': [
+    {
+      id: 'fracstal_set', name: 'skin_fracstal_name', desc: 'skin_fracstal_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_interstellar_no_damage',
+      skins: {
+        'Bomb_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png',
+        'TNT_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Diamore Glob (SK-EVO2).png',
+        'Nuclear_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Fracstral Glob (SK-EVO3).png'
+      },
+      names: {
+        'Bomb_Glob': 'Cryscarrier Glob',
+        'TNT_Glob': 'Diamore Glob',
+        'Nuclear_Glob': 'Fracstral Glob'
+      }
+    }
+  ],
   'Special': [
     {
       id: 'sharkbot_bombot', name: 'skin_sharkbot_name', desc: 'skin_sharkbot_desc', cost: 50, type: 'pycoin',
@@ -1868,7 +1892,9 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_astrorb_name": "Astrorb (Jefe)",
   "skin_astrorb_desc": "Las misteriosas formas del poderoso Astrorb.",
   "skin_crystal_bombot_name": "Crystal-Bombot",
-  "skin_crystal_bombot_desc": "La variante de cristal del Bombot."
+  "skin_crystal_bombot_desc": "La variante de cristal del Bombot.",
+  "skin_fracstal_name": "Set Fracstral",
+  "skin_fracstal_desc": "Unos Globs que se cristalizaron, pero esto no los detiene de poder estallar mas fuerte gracias a su amplificacion de poder.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Creado por: Credible</span>"
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
@@ -1893,7 +1919,9 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_astrorb_name": "Astrorb (Boss)",
   "skin_astrorb_desc": "The mysterious forms of the powerful Astrorb.",
   "skin_crystal_bombot_name": "Crystal-Bombot",
-  "skin_crystal_bombot_desc": "The crystal variant of the Bombot."
+  "skin_crystal_bombot_desc": "The crystal variant of the Bombot.",
+  "skin_fracstal_name": "Fracstal Set",
+  "skin_fracstal_desc": "Some Globs that crystallized, but this does not stop them from being able to explode stronger thanks to their power amplification.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Created by: Credible</span>"
 });
 
 window.SKIN_META = window.SKIN_META || {};

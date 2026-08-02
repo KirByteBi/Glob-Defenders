@@ -995,29 +995,58 @@ function drawBadges() {
   const list = document.getElementById('badges-list');
   if (!list) return;
   list.innerHTML = '';
+  
+  const categoriesMap = {
+    'misiones': '📜 Misiones',
+    'modos': '🎮 Modos',
+    'interacciones': '💡 Interacciones',
+    'economia': '💸 Economía',
+    'otros': '🌐 Otros'
+  };
+  
+  const grouped = {};
   Object.values(BADGES).forEach(b => {
-    if (b.unlocked && !gameState.claimedRewards.includes(b.key)) {
-      grantBadgeReward(b);
-    }
-    const el = document.createElement('div');
-    el.className = `badge ${b.unlocked ? '' : 'locked'}`;
-    const name = translate(`badge_${b.key}_name`);
-    const desc = translate(`badge_${b.key}_desc`);
-
-    let rewardText = "";
-    if (b.reward.pycoins) rewardText = `💰+${b.reward.pycoins}`;
-    if (b.reward.duckpass) rewardText = `🦆+${b.reward.duckpass}`;
-    rewardText += ` ✨+${b.reward.xp}xp`;
-
-    el.innerHTML = `
-            <span class="badge-icon">${b.icon}</span>
-            <div class="badge-info">
-                <b>${name}</b><br>
-                <small>${desc}</small><br>
-                <b style="color:#ffd700; font-size:0.7rem">${rewardText}</b>
-            </div>
-        `;
-    list.appendChild(el);
+    const cat = b.category || 'otros';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(b);
+  });
+  
+  Object.keys(categoriesMap).forEach(cat => {
+    if (!grouped[cat] || grouped[cat].length === 0) return;
+    
+    const header = document.createElement('h3');
+    header.style.color = '#ffd700';
+    header.style.borderBottom = '1px solid #ffd700';
+    header.style.paddingBottom = '5px';
+    header.style.marginTop = '15px';
+    header.style.textAlign = 'left';
+    header.textContent = categoriesMap[cat];
+    list.appendChild(header);
+    
+    grouped[cat].forEach(b => {
+      if (b.unlocked && !gameState.claimedRewards.includes(b.key)) {
+        grantBadgeReward(b);
+      }
+      const el = document.createElement('div');
+      el.className = `badge ${b.unlocked ? '' : 'locked'}`;
+      const name = translate(`badge_${b.key}_name`);
+      const desc = translate(`badge_${b.key}_desc`);
+  
+      let rewardText = "";
+      if (b.reward.pycoins) rewardText = `💰+${b.reward.pycoins}`;
+      if (b.reward.duckpass) rewardText = `🦆+${b.reward.duckpass}`;
+      rewardText += ` ✨+${b.reward.xp}xp`;
+  
+      el.innerHTML = `
+              <span class="badge-icon">${b.icon}</span>
+              <div class="badge-info">
+                  <b>${name}</b><br>
+                  <small>${desc}</small><br>
+                  <b style="color:#ffd700; font-size:0.7rem">${rewardText}</b>
+              </div>
+          `;
+      list.appendChild(el);
+    });
   });
 }
 
@@ -1666,8 +1695,8 @@ function bindEvents() {
     const code = input.value.trim().toUpperCase();
     if (!code) return;
 
-    // DEV_BUILD: special code only for dev users
-    if (code === 'DEV_BUILD') {
+    // DEV_BUILD / GLOB_BUILD: special code only for dev users
+    if (code === 'DEV_BUILD' || code === 'GLOB_BUILD') {
       const username = localStorage.getItem('glob_username') || '';
       const isDevUser = typeof DEV_USERS !== 'undefined' && DEV_USERS.has(username);
       if (!isDevUser) {
@@ -1678,8 +1707,11 @@ function bindEvents() {
       // Dev users get 9999 coins, unlimited use (no usedCodes tracking)
       gameState.pycoins += 9999;
       gameState.duckPassCurrency += 9999;
+      // Also unlock all badges
+      Object.keys(BADGES).forEach(k => unlockBadge(k));
       updateMetaUI();
-      showMessage('🛠️ DEV_BUILD: +9999 PyCoins y DuckPass cargados!', 'success');
+      drawBadges();
+      showMessage('🛠️ GLOB_BUILD: +9999 PyCoins y DuckPass + Todos los emblemas desbloqueados!', 'success');
       input.value = '';
       return;
     }
@@ -2009,34 +2041,43 @@ const GAME_DESIGN_W = 1000;
 const GAME_DESIGN_H = 600;
 
 function applyScale() {
+  const container = document.getElementById('game-container');
+  if (!container) return;
+
   const area = document.getElementById('game-area');
   const wrapper = document.querySelector('.game-scale-wrapper');
-  if (!area || !wrapper) return;
+  if (area) {
+    area.style.transform = 'none';
+  }
+  if (wrapper) {
+    wrapper.style.height = GAME_DESIGN_H + 'px';
+  }
 
-  // Measure actual heights of surrounding elements
-  const header = document.getElementById('game-header');
-  const ui = document.getElementById('game-ui');
-  const shop = document.getElementById('tower-shop');
-  const footer = document.querySelector('.game-credit-footer');
+  container.style.transform = 'none';
+  container.style.marginTop = '0';
+  container.style.width = '1000px'; // Force PC layout width
 
-  const headerH = header ? header.offsetHeight : 0;
-  const uiH = ui ? ui.offsetHeight : 0;
-  const shopH = shop ? shop.offsetHeight : 0;
-  const footerH = footer ? footer.offsetHeight : 0;
+  // Force reflow
+  void container.offsetHeight;
 
-  const usedH = headerH + uiH + shopH + footerH + 30; // 30px breathing room
+  const cWidth = 1000;
+  const cHeight = container.scrollHeight;
+  const availW = window.innerWidth;
+  const availH = window.innerHeight;
 
-  const availW = window.innerWidth - 20;
-  const availH = Math.max(100, window.innerHeight - usedH);
-
-  const scaleW = availW / GAME_DESIGN_W;
-  const scaleH = availH / GAME_DESIGN_H;
-
-  const scale = Math.max(0.15, Math.min(scaleW, scaleH, 1.0));
-
-  area.style.transformOrigin = 'top center';
-  area.style.transform = `scale(${scale})`;
-  wrapper.style.height = (GAME_DESIGN_H * scale) + 'px';
+  const scaleW = availW / cWidth;
+  const scaleH = availH / cHeight;
+  
+  const scale = Math.min(scaleW, scaleH, 1.0);
+  
+  container.style.transformOrigin = 'top center';
+  container.style.transform = `scale(${scale})`;
+  
+  const scaledHeight = cHeight * scale;
+  if (availH > scaledHeight) {
+    const margin = (availH - scaledHeight) / 2;
+    container.style.marginTop = `${margin}px`;
+  }
 }
 
 function updateBuffs() {
@@ -2341,7 +2382,7 @@ function drawShop() {
         // Categorizar
         let category = 'otros';
         if (['rewamped_green_set', 'rewamped_red_set', 'judicial_set', 'spanish_bombot'].includes(skin.id)) category = 'mapa';
-        else if (['astrorb_set', 'cuby_bombot'].includes(skin.id)) category = 'misiones';
+        else if (['astrorb_set', 'cuby_bombot', 'fracstal_set'].includes(skin.id)) category = 'misiones';
         else if (['mimic_set', 'pyce_morph', 'crystal_bombot'].includes(skin.id)) category = 'otros';
         else if (skin.unlockCondition && skin.unlockCondition.includes('urban')) category = 'mapa';
 
@@ -2697,6 +2738,18 @@ function buyUpgrade(id, cost, type) {
     unlockBadge('duckgradeFirst');
   }
 
+  // urban_king: have all Urban Reborn families (Orange, White, Pink, IEx)
+  const urbanKingFamilies = ['Worker_Glob', 'Balloon_Glob', 'Streamer_Glob', 'IEx'];
+  const hasAllUrbanKing = urbanKingFamilies.every(fam =>
+    Object.values(TOWER_TYPES).some(t => (t.family === fam || t.type === fam) && t.unlocked)
+  );
+  if (hasAllUrbanKing) unlockBadge('urban_king');
+
+  // urban_crystals: also have Brown family
+  if (hasAllUrbanKing && Object.values(TOWER_TYPES).some(t => t.family === 'Brown' && t.unlocked)) {
+    unlockBadge('urban_crystals');
+  }
+
   updateMetaUI(); drawShop(); drawTowerShop(); saveProgress();
 }
 
@@ -2786,6 +2839,8 @@ function placeTower(spotId, type) {
   el.onclick = (e) => { e.stopPropagation(); selectTower(tower); };
   gameState.towers.push(tower);
   gameState.globetines -= cost;
+  gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
+  if (gameState.moneySpentThisGame >= 632007) unlockBadge('globiscal_debt');
   gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
   gameState.globsPlaced[type] = (gameState.globsPlaced[type] || 0) + 1;
   spot.occupied = true;
@@ -2852,6 +2907,8 @@ function activateGTack(t) {
   if (t.gTackCooldown && t.gTackCooldown > 0) return;
 
   gameState.globetines -= cost;
+  gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
+  if (gameState.moneySpentThisGame >= 632007) unlockBadge('globiscal_debt');
   t.gTackCooldown = 30;
 
   updateUI();
@@ -2993,6 +3050,8 @@ function activateGTack(t) {
     const cost = costOverride !== null ? costOverride : next.cost;
     if (gameState.globetines < cost) return;
     gameState.globetines -= cost;
+    gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
+    if (gameState.moneySpentThisGame >= 632007) unlockBadge('globiscal_debt');
     if (tower.type !== nextType) { gameState.towerCounts[tower.type]--; gameState.towerCounts[nextType] = (gameState.towerCounts[nextType] || 0) + 1; }
     tower.type = nextType;
     tower.evolution = next.evolution;
@@ -3853,6 +3912,7 @@ function activateGTack(t) {
     if (gameState.gameOver) return;
     try {
       const dt = 1 / 60;
+      gameState.simultaneousExplosions = 0;
 
       function isTowerProtected(tower) {
         if (!gameState.duckgrades.dg_Old_Glob) return false;
@@ -4030,6 +4090,14 @@ function activateGTack(t) {
                 trap.triggeredOnce = true;
                 trap.ignoreEnemyId = e.id || Math.random();
               } else {
+                // wall_garden: check if enemy slowed by Brown family when trap destroyed
+                let brownSlowing = false;
+                gameState.towers.forEach(bt => {
+                  if (TOWER_TYPES[bt.type] && TOWER_TYPES[bt.type].slowAura) {
+                    if (Math.hypot(bt.x - e.x, bt.y - e.y) <= TOWER_TYPES[bt.type].range) brownSlowing = true;
+                  }
+                });
+                if (brownSlowing) unlockBadge('wall_garden');
                 if (trap.el && trap.el.parentNode) trap.el.parentNode.removeChild(trap.el);
                 gameState.traps.splice(j, 1);
               }
@@ -4255,12 +4323,61 @@ function activateGTack(t) {
           const targets = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= t.range);
           if (targets.length > 0 || t.forceExplode) {
             showEffect(t.x, t.y, "BOOM!", "#ff0000");
+            
+            gameState.simultaneousExplosions++;
+            if (gameState.simultaneousExplosions >= 3) {
+              unlockBadge('chain_reaction');
+            }
+            
+            let expImg = 'img/Proyectiles/Explosion Effect.png';
+            if (gameState.equippedSkins['IEx'] === 'fracstal_set') {
+              if (t.type === 'Bomb_Glob') expImg = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystal Explosion (1).png';
+              else if (t.type === 'TNT_Glob') expImg = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystor Kaboom (2).png';
+              else if (t.type === 'Nuclear_Glob') expImg = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Nuclear Crystal (3).png';
+            }
+            
+            const expEl = document.createElement('div');
+            expEl.style.position = 'absolute';
+            expEl.style.left = t.x + 'px';
+            expEl.style.top = t.y + 'px';
+            let size = Math.max(120, t.range * 1.5);
+            if (gameState.equippedSkins['IEx'] === 'fracstal_set' && t.type === 'Nuclear_Glob') {
+              size *= 2.5;
+            }
+            expEl.style.width = size + 'px';
+            expEl.style.height = size + 'px';
+            expEl.style.transform = 'translate(-50%, -50%) scale(0.2)';
+            expEl.style.backgroundImage = `url('${encodeURI(expImg)}')`;
+            expEl.style.backgroundSize = 'contain';
+            expEl.style.backgroundRepeat = 'no-repeat';
+            expEl.style.backgroundPosition = 'center';
+            expEl.style.zIndex = '35';
+            expEl.style.pointerEvents = 'none';
+            expEl.style.transition = 'transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out 0.15s';
+            document.getElementById('map').appendChild(expEl);
+            
+            setTimeout(() => { expEl.style.transform = 'translate(-50%, -50%) scale(1)'; }, 10);
+            setTimeout(() => { expEl.style.opacity = '0'; }, 150);
+            setTimeout(() => { expEl.remove(); }, 500);
+
             gameState.roundIExExplosions = (gameState.roundIExExplosions || 0) + 1;
             if (gameState.roundIExExplosions >= 100) unlockBadge('explosiones_por_doquier');
 
             if (targets.length > 0) {
               targets.forEach(e => {
+                const wasAlive = e.health > 0;
                 e.health -= t.damage;
+                if (wasAlive && e.health <= 0 && !e.nonIExDamage) {
+                  const baseHealth = ENEMY_TYPES[e.type] ? ENEMY_TYPES[e.type].health : 0;
+                  const isTank = ['Armored_Pyce', 'Iron_Pyce', 'Titan_Pyce', 'Titan_Pyce2', 'King_Pyce', 'Cristalized_Monster', 'Lenistal'].includes(e.type) || 
+                                 (baseHealth >= 1500 && !(ENEMY_TYPES[e.type] && ENEMY_TYPES[e.type].boss));
+                  if (isTank) {
+                    const inTrap = gameState.traps && gameState.traps.some(trap => trap.active && Math.hypot(e.x - trap.x, e.y - trap.y) <= (trap.radius || 40));
+                    if (inTrap) {
+                      unlockBadge('fenced_kaboom');
+                    }
+                  }
+                }
                 if (gameState.duckgrades.dg_IEx) {
                   if (t.type === 'Bomb_Glob' || t.type === 'TNT_Glob') {
                     e.burnTimer = 3;
@@ -4454,7 +4571,10 @@ function activateGTack(t) {
           target.shield -= abs;
           dmg -= abs;
         }
-        if (dmg > 0) target.health -= dmg;
+        if (dmg > 0) {
+          target.health -= dmg;
+          if (p.family !== 'IEx') target.nonIExDamage = true;
+        }
         gameState.totalDamage += p.damage;
 
         if (gameState.duckgrades.dg_Work_Bombot && p.type === 'Work_Bombot' && !p.bounced) {
@@ -4590,6 +4710,16 @@ function activateGTack(t) {
             gameState.enemies.forEach(e => {
               if (Math.hypot(e.x - trap.x, e.y - trap.y) <= trap.radius * 1.5) {
                 e.health -= trap.damage * 0.8;
+                // wall_garden: check if enemy was being slowed by a Brown family tower
+                let brownSlowing = false;
+                gameState.towers.forEach(bt => {
+                  if (TOWER_TYPES[bt.type] && TOWER_TYPES[bt.type].slowAura) {
+                    if (Math.hypot(bt.x - e.x, bt.y - e.y) <= TOWER_TYPES[bt.type].range) {
+                      brownSlowing = true;
+                    }
+                  }
+                });
+                if (brownSlowing) unlockBadge('wall_garden');
                 if (!e.stunImmuneTimer || e.stunImmuneTimer <= 0) {
                   e.stunned = (e.stunned || 0) + 3.0;
                   e.enemySlowFactor = 0.0;
@@ -5485,8 +5615,27 @@ function activateGTack(t) {
         }
       }
 
+      // dangerous_set: win with all 5 required families in loadout (Normal or above)
+      const modesNormalOrAboveCheck = ['normal', 'dificil', 'extremo', 'corrupto', 'antiNormal'];
+      if (modesNormalOrAboveCheck.includes(gameState.mode) && gameState.equippedTowers && gameState.equippedTowers.length > 0) {
+        const equipped = gameState.equippedTowers;
+        const hasWorker = equipped.some(t => TOWER_TYPES[t] && TOWER_TYPES[t].family === 'Worker_Glob');
+        const hasGrey   = equipped.some(t => TOWER_TYPES[t] && TOWER_TYPES[t].family === 'Grey');
+        const hasPink   = equipped.some(t => TOWER_TYPES[t] && TOWER_TYPES[t].family === 'Pink');
+        const hasBrown  = equipped.some(t => TOWER_TYPES[t] && TOWER_TYPES[t].family === 'Brown');
+        const hasIEx    = equipped.some(t => TOWER_TYPES[t] && TOWER_TYPES[t].family === 'IEx');
+        if (hasWorker && hasGrey && hasPink && hasBrown && hasIEx) {
+          unlockBadge('dangerous_set');
+        }
+      }
+
       if (!gameState.baseTookDamage) {
         unlockBadge('titaniumBuilding');
+        if (gameState.mode === 'interstellar' && !gameState.unlockedSkins.includes('fracstal_set')) {
+          gameState.unlockedSkins.push('fracstal_set');
+          showMessage(translate('skin_fracstal_name') + ' ' + translate('skin_unlocked'), 'success');
+          unlockBadge('fracstral_victory');
+        }
       }
 
       if (gameState.unlockedSkins && gameState.unlockedSkins.length >= 7) {
