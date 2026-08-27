@@ -62,6 +62,14 @@ const TRANSLATIONS = {
     badge_skinllector_name: "Skinecionable", badge_skinllector_desc: "Consigue al menos 7 skins diferentes.",
     badge_crystalizing_break_name: "Descristalizando Amenazas", badge_crystalizing_break_desc: "Enmarca todos los cristalizados.",
     badge_extended_marc_name: "Enmarcacion Extensa", badge_extended_marc_desc: "Enmarca todos los enemigos de la categoria 'Otros Enemigos'.",
+    badge_fracstral_victory_name: "Victoria Fracstral", badge_fracstral_victory_desc: "Gana en modo Interstellar usando únicamente torres Fracstral.",
+    badge_chain_reaction_name: "Reacción en Cadena", badge_chain_reaction_desc: "Detona múltiples explosivos al mismo tiempo.",
+    badge_fenced_kaboom_name: "Kaboom vallado", badge_fenced_kaboom_desc: "Usa explosivos junto a trampas.",
+    badge_wall_garden_name: "Jardín de muros", badge_wall_garden_desc: "Construye una fortaleza defensiva.",
+    badge_urban_king_name: "Rey Urbano", badge_urban_king_desc: "Supera Urbanistic Road.",
+    badge_urban_crystals_name: "Cristales Urbanos", badge_urban_crystals_desc: "Sobrevive a la amenaza cristalina en la ciudad.",
+    badge_dangerous_set_name: "Conjunto peligroso", badge_dangerous_set_desc: "Equipa torres inestables al mismo tiempo.",
+    badge_globiscal_debt_name: "Deuda Globiscal", badge_globiscal_debt_desc: "Gasta una gran fortuna.",
 
 
     // Nombres de Torres
@@ -176,6 +184,62 @@ const TRANSLATIONS = {
     enemy_Dreamy_SPyce_desc: "Los sueños olvidados de los Pyces encontraron un recipiente perfecto en Symbol Pyce. Ahora, una misteriosa silueta onírica lo acompaña y utiliza ese poder para adormecer a sus enemigos.",
     enemy_Astral_BPyce_name: "Astral BPyce",
     enemy_Astral_BPyce_desc: "La energía astral de Astrorb terminó apoderándose del cuerpo de Bomb Pyce. Sin embargo, el verdadero Bomb Pyce aún permanece oculto en el pequeño ratón que arrastra consigo.",
+
+    // Nuevos Pyces de Sunlight Seaside
+    enemy_Axolotl_Pyce_name: "Axolotl Pyce",
+    enemy_Axolotl_Pyce_desc: "Un Pyce extremadamente tímido que ni siquiera sabe atacar. Prefiere esconderse a toda velocidad cuando detecta peligro, aunque suele convertirse en la víctima favorita de Shark Pyce. Su precioso tono rosado, además, hace que resulte difícil no enamorarse de él.<br><br><span style=\"color: yellow\">Creado por Luna1255.</span>",
+    enemy_Shark_Pyce_name: "Shark Pyce",
+    enemy_Shark_Pyce_desc: "Un Pyce voraz que siempre está al acecho de cualquier presa. Aunque su característica aleta dorsal ni siquiera es real, pues se la pegó él mismo con cinta adhesiva, a veces actúa como un auténtico tiburón. Sin embargo, cuando recupera su voluntad, vuelve para ayudar a quienes haya herido. Después de todo, sigue siendo un Pyce.<br><br><span style=\"color: yellow\">Creado por Luna1255.</span>",
+    enemy_Umbrella_Pyce_name: "Umbrella Pyce",
+    enemy_Umbrella_Pyce_desc: "Un paraguas convertido en Pyce que puede desplazarse dejándose llevar por las corrientes de aire o dando pequeños saltos, aunque ninguna de las dos opciones lo convierte en un gran combatiente. Siempre intenta mantenerse en los lugares más altos, pero la brisa marina acaba llevándolo hacia los puertos, algo que le enfada bastante. Su rostro es una nota pegada con cinta adhesiva que, además, está parcialmente rota.",
+
+    // Nuevos enemigos de Sunlight Seaside
+    enemy_Piz_name: "Piz",
+    enemy_Piz_desc: "Un pez completamente normal... salvo por un pequeño detalle: puede volar. Su color anaranjado le da un aspecto sorprendentemente leal, aunque sigue siendo un pez de agua que, por alguna razón, decidió conquistar también los cielos.",
+    enemy_Followishers_name: "Followishers",
+    enemy_Followishers_desc: "Un banco de peces azulados que sigue a un tiburón de su misma especie, el cual ha evolucionado hasta convertirse en su líder. Juntos pueden causar más de un problema, aunque cuando alguien necesita ayuda, el banco no tarda en acudir.<br><br>Eso sí, primero tendrá que estar de acuerdo el mayor.",
+    enemy_Creamplet_name: "Creamplet",
+    enemy_Creamplet_desc: "Un pequeño trío de helados cuya apariencia podría hacer pensar que han descendido directamente de algún lugar divino. La realidad es bastante menos impresionante: simplemente se están derritiendo.<br><br>Pero siguen siendo adorables.",
+
+    // Enemigos de Sunlight Seaside
+    enemy_Ren_name: "Ren",
+    enemy_Thunren_name: "Thunren",
+    enemy_Renibig_name: "Renibig",
+    enemy_Treeper_name: "Treeper",
+    enemy_Big_Treeper_name: "Big Treeper",
+    enemy_Stacked_Treepers_name: "Stacked Treepers",
+    enemy_Baby_Shrum_name: "Baby Shrum",
+    enemy_Shrum_name: "Shrum",
+    enemy_Old_Fungus_name: "Old Fungus",
+    enemy_Pysh_name: "Pysh",
+    enemy_Clown_Pysh_name: "Clown Pysh",
+    enemy_Ren_desc: "Pequeños pájaros hechos de nube que sobrevuelan los puertos como si fueran gaviotas. Suelen pasar el día revoloteando tranquilamente, aunque de vez en cuando deciden atacar los puertos sin motivo aparente.",
+    enemy_Thunren_desc: "Un Ren que tuvo la mala suerte de recibir el impacto de un trueno. Lejos de desaparecer, la electricidad quedó atrapada en su cuerpo, permitiéndole lanzar rayos desde el cielo. Por suerte, estos accidentes ocurren muy pocas veces.",
+    enemy_Renibig_desc: "El miembro de mayor tamaño de la bandada de Ren. Su cuerpo recuerda al de una paloma, aunque su apariencia blanda puede engañar: es mucho más resistente de lo que parece. Además, puede generar progresivamente nuevos Ren para acompañarlo.",
+    enemy_Treeper_desc: "Criaturas procedentes de los bosques más oscuros. Son troncos poseídos que protegen sus territorios con gran determinación. Nadie sabe todavía por qué han abandonado los bosques para aparecer en un puerto.",
+    enemy_Big_Treeper_desc: "Un Treeper que ha alcanzado la madurez y ha crecido hasta convertirse en un auténtico árbol andante. Las manzanas que lleva sobre sus ramas caen constantemente debido a sus movimientos descontrolados, aunque siempre vuelven a crecer.",
+    enemy_Stacked_Treepers_desc: "La forma más desarrollada de los Treepers: tres de ellos se han unido para formar una extraña agrupación. Incluso el segundo Treeper ha desarrollado parte de su cuerpo como un árbol, llegando a tener un pequeño gusano viviendo en una de sus manzanas. Los tres se entienden perfectamente, aunque el primero tiene la difícil tarea de cargar con los otros dos.",
+    enemy_Baby_Shrum_desc: "Pequeñas setas sin rostro nacidas en la oscuridad de los bosques. A pesar de carecer de visión, poseen una precisión sorprendente desde que nacen. Eso sí, necesitan algo de práctica antes de dominar completamente sus movimientos.",
+    enemy_Shrum_desc: "Un Shrum adulto y el miembro más común de su especie. Ha desarrollado una curiosa conexión con un largo hongo que utiliza como bate, aunque solo resulta útil a corta distancia. No necesitan ver para acertar: su precisión sigue siendo excepcional.",
+    enemy_Old_Fungus_desc: "El anciano más respetado entre los Shrums. Posee poderes psíquicos capaces de intimidar incluso a los enemigos más valientes, además de utilizar una enorme seta tanto como bate como varita.<br><br>A su lado crece un pequeño Shrum que todavía está desarrollándose y que tampoco parece tener problemas en atacar a los Globs. Pueden ser ciegos, y quizá incluso sordos, pero su presencia y su característico bigote amarillento hacen que nadie se atreva a subestimarlos.",
+    enemy_Pysh_desc: "Un pez Pyce cuyo nombre nace de la combinación de pez y Pyce. Originalmente habitaban en Bitlands, hasta que fueron transportados a Techspawn, su antiguo hogar. Recientemente han comenzado a aparecer también por los puertos de Sunlight Seaside, donde parecen disfrutar especialmente de la abundante luz solar.",
+    enemy_Clown_Pysh_desc: "Pyces con forma de pez payaso que comparten origen con los Pysh. Siguen habitando en Bitlands, aunque ahora parecen estar disfrutando de unas pequeñas vacaciones junto a sus congéneres en Sunlight Seaside.<br><br>Eso sí, son bastante más resistentes que los Pysh normales, que parecen no durar ni un segundo cuando empieza el combate.",
+    
+    // Leafy Beach Party Bosses & Enemies
+    enemy_PhantKeeper_name: "PhantKeeper",
+    enemy_PhantKeeper_desc: "Una gigantesca colmena viviente que esconde en su interior a un poderoso fantasma. Su miel resulta casi tan desagradable como un moco, aunque incluso los más valientes admiten que funciona sorprendentemente bien como pegamento.<br><br>A pesar de su aspecto pesado, controla el campo de batalla con facilidad, cubriendo zonas enteras con miel pegajosa que ralentiza los disparos de quienes intentan derribarlo.",
+    enemy_GlitchKeeper_name: "GlitchKeeper",
+    enemy_GlitchKeeper_desc: "La digitalización de una misteriosa corporación alcanzó incluso a PhantKeeper, deformando su colmena hasta convertirla en una versión mucho más peligrosa.<br><br>Su miel ahora brilla con un intenso color azul y conserva las mismas propiedades pegajosas, aunque potenciadas hasta un punto mucho mayor. En esencia sigue siendo PhantKeeper... solo que bastante más difícil de soportar.",
+    enemy_DarkSpirit_name: "DarkSpirit",
+    enemy_DarkSpirit_desc: "El alma más agresiva conocida hasta el momento, rivalizando incluso con Astrorbe en cuanto a presencia intimidante.<br><br>Su energía parece encontrarse completamente corrompida y basta con acercarse para notar cómo altera el comportamiento de quienes lo rodean. Es el hermano mayor de PhantKeeper y comparte ciertos rasgos con NOeye. Su mera presencia ralentiza los disparos enemigos.",
+    enemy_Bushi_Brella_name: "Bushi-Brella",
+    enemy_Bushi_Brella_desc: "Un paraguas playero convertido en guerrero por la corporación digitalizadora.<br><br>Sueña con comprarse ropa nueva gracias a las PyCoins que consigue reuniendo, aunque el problema es bastante evidente: va completamente desnudo y utiliza una simple chancla como arma principal. Puede que no tenga el mejor equipamiento del mundo, pero nadie puede decir que no le ponga intención.",
+
+    tower_Pirate_Glob_desc: "Una tripulación de Globs que protege los puertos. Envían balsas y barcos contra sus enemigos, convirtiendo el mar en su mejor arma.<br><br>Al evolucionar, equipan cañones piratas para bombardear con daño en área masivo.<br><br>Enfrentarse a su flota es como desafiar a un puerto entero.",
+    tower_Pirate_Glob_name: "Pirate Glob",
+    tower_PMate_Glob_name: "PMate Glob",
+    tower_BreathKing_Glob_name: "Breath-King Glob",
+    tower_Haunted_Pirate_Glob_name: "Haunted Pirate Glob",
 
     tower_Bomb_Glob_name: "Bomb Glob",
     tower_TNT_Glob_name: "TNT Glob",
@@ -551,6 +615,14 @@ const TRANSLATIONS = {
     badge_skinllector_name: "Skinllector", badge_skinllector_desc: "Get at least 7 different skins.",
     badge_crystalizing_break_name: "Crystalizing Break", badge_crystalizing_break_desc: "Frame all crystallized variants.",
     badge_extended_marc_name: "Extended Marc", badge_extended_marc_desc: "Frame all enemies in the 'Other Enemies' category.",
+    badge_fracstral_victory_name: "Fracstral Victory", badge_fracstral_victory_desc: "Win in Interstellar mode using only Fracstral towers.",
+    badge_chain_reaction_name: "Chain Reaction", badge_chain_reaction_desc: "Detonate multiple explosives at once.",
+    badge_fenced_kaboom_name: "Fenced Kaboom", badge_fenced_kaboom_desc: "Use explosives next to traps.",
+    badge_wall_garden_name: "Wall Garden", badge_wall_garden_desc: "Build a defensive fortress.",
+    badge_urban_king_name: "Urban King", badge_urban_king_desc: "Beat Urbanistic Road.",
+    badge_urban_crystals_name: "Urban Crystals", badge_urban_crystals_desc: "Survive the crystal threat in the city.",
+    badge_dangerous_set_name: "Dangerous Set", badge_dangerous_set_desc: "Equip unstable towers simultaneously.",
+    badge_globiscal_debt_name: "Globiscal Debt", badge_globiscal_debt_desc: "Spend a large fortune.",
 
 
     // Tower Names
@@ -669,6 +741,62 @@ const TRANSLATIONS = {
     enemy_Dreamy_SPyce_desc: "The forgotten dreams of the Pyces found a perfect vessel in Symbol Pyce. Now, a mysterious dreamlike silhouette accompanies it and uses that power to put its enemies to sleep.",
     enemy_Astral_BPyce_name: "Astral BPyce",
     enemy_Astral_BPyce_desc: "The astral energy of Astrorb ended up taking over the body of Bomb Pyce. However, the true Bomb Pyce still remains hidden in the small mouse it drags along.",
+
+    // New Pyces of Sunlight Seaside
+    enemy_Axolotl_Pyce_name: "Axolotl Pyce",
+    enemy_Axolotl_Pyce_desc: "An extremely shy Pyce that doesn't even know how to attack. It prefers to hide at full speed when it senses danger, though it tends to become Shark Pyce's favorite prey. Its beautiful pink hue also makes it very hard not to fall in love with it.<br><br><span style=\"color: yellow\">Created by Luna1255.</span>",
+    enemy_Shark_Pyce_name: "Shark Pyce",
+    enemy_Shark_Pyce_desc: "A voracious Pyce that is always on the lookout for any prey. Although its characteristic dorsal fin isn't even real — it attached it with adhesive tape — it sometimes acts like a true shark. However, when it regains its free will, it comes back to help those it has harmed. After all, it's still a Pyce.<br><br><span style=\"color: yellow\">Created by Luna1255.</span>",
+    enemy_Umbrella_Pyce_name: "Umbrella Pyce",
+    enemy_Umbrella_Pyce_desc: "An umbrella turned Pyce that can move by letting itself be carried by air currents or by taking small hops, though neither option makes it a great fighter. It always tries to stay in the highest places, but the sea breeze ends up carrying it toward the ports, something that annoys it quite a lot. Its face is a sticky note attached with adhesive tape that is also partially torn.",
+
+    // New enemies of Sunlight Seaside
+    enemy_Piz_name: "Piz",
+    enemy_Piz_desc: "A completely normal fish... except for one small detail: it can fly. Its orange color gives it a surprisingly loyal appearance, even though it's still a water fish that, for some reason, decided to conquer the skies as well.",
+    enemy_Followishers_name: "Followishers",
+    enemy_Followishers_desc: "A school of bluish fish that follows a shark of the same species, which has evolved into their leader. Together they can cause more than one problem, though when someone needs help, the school is quick to come.<br><br>Although first, the elder will have to agree.",
+    enemy_Creamplet_name: "Creamplet",
+    enemy_Creamplet_desc: "A small trio of ice creams whose appearance might make you think they descended directly from some divine place. The reality is considerably less impressive: they are simply melting.<br><br>But they're still adorable.",
+
+    // Sunlight Seaside Enemies
+    enemy_Ren_name: "Ren",
+    enemy_Thunren_name: "Thunren",
+    enemy_Renibig_name: "Renibig",
+    enemy_Treeper_name: "Treeper",
+    enemy_Big_Treeper_name: "Big Treeper",
+    enemy_Stacked_Treepers_name: "Stacked Treepers",
+    enemy_Baby_Shrum_name: "Baby Shrum",
+    enemy_Shrum_name: "Shrum",
+    enemy_Old_Fungus_name: "Old Fungus",
+    enemy_Pysh_name: "Pysh",
+    enemy_Clown_Pysh_name: "Clown Pysh",
+    enemy_Ren_desc: "Small cloud birds that fly over the ports like seagulls. They usually spend the day fluttering quietly, although from time to time they decide to attack the ports for no apparent reason.",
+    enemy_Thunren_desc: "A Ren who had the misfortune of being hit by lightning. Far from disappearing, electricity was trapped in its body, allowing it to shoot lightning from the sky. Luckily, these accidents rarely happen.",
+    enemy_Renibig_desc: "The largest member of the Ren flock. Its body resembles a pigeon, though its soft appearance can be deceiving: it's much tougher than it looks. Additionally, it can progressively generate new Rens to accompany it.",
+    enemy_Treeper_desc: "Creatures from the darkest forests. They are possessed logs that protect their territories with great determination. Nobody yet knows why they abandoned the forests to appear in a port.",
+    enemy_Big_Treeper_desc: "A Treeper that has reached maturity and grown to become a walking tree. The apples it carries constantly drop due to its uncontrolled movements, though they always grow back.",
+    enemy_Stacked_Treepers_desc: "The most developed form of Treepers: three of them have joined to form a strange cluster. The second Treeper has even developed part of its body like a tree, hosting a small worm in one of its apples. The three understand each other perfectly, although the first has the difficult task of carrying the other two.",
+    enemy_Baby_Shrum_desc: "Small faceless mushrooms born in the dark of the forests. Despite lacking vision, they have surprising precision from birth. However, they need some practice before fully mastering their movements.",
+    enemy_Shrum_desc: "An adult Shrum and the most common member of its species. It has developed a curious connection with a long mushroom that it uses as a bat, although it's only useful at close range. They don't need to see to hit: their accuracy remains exceptional.",
+    enemy_Old_Fungus_desc: "The most respected elder among the Shrums. Possesses psychic powers capable of intimidating even the bravest enemies, while using a huge mushroom as both a bat and a wand.<br><br>Beside it grows a small developing Shrum that also has no problem attacking Globs. They may be blind, and perhaps even deaf, but their presence and characteristic yellowish mustache ensure no one dares to underestimate them.",
+    enemy_Pysh_desc: "A Pyce fish whose name comes from the combination of fish and Pyce. They originally inhabited Bitlands until transported to Techspawn, their former home. Recently they've also started appearing around Sunlight Seaside's ports, seemingly enjoying the abundant sunlight.",
+    enemy_Clown_Pysh_desc: "Clownfish-shaped Pyces that share origins with Pysh. They still inhabit Bitlands, though they now seem to be enjoying a vacation with their peers in Sunlight Seaside.<br><br>However, they are much tougher than normal Pysh, which seem to not last a second once combat begins.",
+
+    // Leafy Beach Party Bosses & Enemies
+    enemy_PhantKeeper_name: "PhantKeeper",
+    enemy_PhantKeeper_desc: "A gigantic living hive hiding a powerful ghost inside. Its honey is almost as disgusting as a booger, though even the bravest admit it works surprisingly well as glue.<br><br>Despite its heavy appearance, it controls the battlefield with ease, covering entire areas with sticky honey that slows down the fire rate of those trying to bring it down.",
+    enemy_GlitchKeeper_name: "GlitchKeeper",
+    enemy_GlitchKeeper_desc: "The digitization of a mysterious corporation reached even PhantKeeper, deforming its hive into a much more dangerous version.<br><br>Its honey now glows with an intense blue color and retains the same sticky properties, although enhanced to a much greater degree. In essence it is still PhantKeeper... only much harder to bear.",
+    enemy_DarkSpirit_name: "DarkSpirit",
+    enemy_DarkSpirit_desc: "The most aggressive soul known so far, rivaling even Astrorb in intimidating presence.<br><br>Its energy seems completely corrupted and just getting close is enough to notice how it alters the behavior of those around it. It is PhantKeeper's older brother and shares some traits with NOeye. Its mere presence slows enemy fire.",
+    enemy_Bushi_Brella_name: "Bushi-Brella",
+    enemy_Bushi_Brella_desc: "A beach umbrella turned warrior by the digitizing corporation.<br><br>He dreams of buying new clothes with the PyCoins he gathers, although the problem is quite evident: he goes completely naked and uses a simple flip-flop as his main weapon. He may not have the best equipment in the world, but no one can say he doesn't put intention into it.",
+
+    tower_Pirate_Glob_desc: "A crew that fiercely protects the ports. They send rafts and boats against their enemies, making the sea their weapon.<br><br>Upon evolving, they equip real pirate cannons, bombarding the field with massive AoE damage.<br><br>Facing their fleet is like challenging an entire port.",
+    tower_Pirate_Glob_name: "Pirate Glob",
+    tower_PMate_Glob_name: "PMate Glob",
+    tower_BreathKing_Glob_name: "Breath-King Glob",
+    tower_Haunted_Pirate_Glob_name: "Haunted Pirate Glob",
 
     tower_IEx_name: "Explosive Instant",
     tower_IEx1_desc: "A Glob with a bomb on its head, it better be careful! One explosion and goodbye. A tower that explodes when someone touches its area, disappearing after that. The higher the level, the bigger the explosion.<br><br><span style=\"color: grey\">Designed by JustAUser. Planned by KirByte_Bi.</span>",
@@ -1084,7 +1212,44 @@ const IMAGE_PATHS = {
   'Sprout_Glob': 'Interestelar Menace (COLLAB UPD)/Torres/Familia Marron/Sprout_Glob.png',
   'Garden_Glob': 'Interestelar Menace (COLLAB UPD)/Torres/Familia Marron/Garden_Glob.png',
   'Flower_Glob': 'Interestelar Menace (COLLAB UPD)/Torres/Familia Marron/Flower_Glob.png',
-  'Spanish_Bombot': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Spanish-Bombot/Spanish-Bombot.png'
+  'Spanish_Bombot': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Spanish-Bombot/Spanish-Bombot.png',
+
+  // Sunlight Seaside / Leafy Beach Party Assets
+  // New Pyces
+  'Axolotl_Pyce': 'Leafy Beach Party/Pyces/Axolotl Pyce.png',
+  'Shark_Pyce': 'Leafy Beach Party/Pyces/Shark Pyce.png',
+  'Umbrella_Pyce': 'Leafy Beach Party/Pyces/Umbrella Pyce.png',
+  // New Sunlight Seaside enemies
+  'Piz': 'Leafy Beach Party/Enemigos nuevos/Piz.png',
+  'Followishers': 'Leafy Beach Party/Enemigos nuevos/Followishers.png',
+  'Creamplet': 'Leafy Beach Party/Enemigos nuevos/Creamplet.png',
+
+  // Sunlight Seaside / Leafy Beach Party Assets
+  'Ren': 'Leafy Beach Party/Enemigos nuevos/Ren.png',
+  'Thunren': 'Leafy Beach Party/Enemigos nuevos/ThunRen.png',
+  'Renibig': 'Leafy Beach Party/Enemigos nuevos/Renibig.png',
+  'Treeper': 'Leafy Beach Party/Enemigos nuevos/Treeper.png',
+  'Big_Treeper': 'Leafy Beach Party/Enemigos nuevos/Big Treeper.png',
+  'Stacked_Treepers': 'Leafy Beach Party/Enemigos nuevos/Stacked Treeper.png',
+  'Baby_Shrum': 'Leafy Beach Party/Enemigos nuevos/Baby Shrum.png',
+  'Shrum': 'Leafy Beach Party/Enemigos nuevos/Shrum (regular).png',
+  'Old_Fungus': 'Leafy Beach Party/Enemigos nuevos/Old Fungus.png',
+  'Pysh': 'Leafy Beach Party/Pyces/Pysh.png',
+  'Clown_Pysh': 'Leafy Beach Party/Pyces/Clown Pysh.png',
+  'PhantKeeper': 'Leafy Beach Party/Jefes/PhantKeeper.png',
+  'GlitchKeeper': 'Leafy Beach Party/Jefes/GlitchKeeper.png',
+  'DarkSpirit': 'Leafy Beach Party/Jefes/Darkspirit.png',
+  'Bushi_Brella': 'Leafy Beach Party/Enemigos nuevos/Mimic/Bushi-Brella.png',
+  'Pirate_Glob': 'Leafy Beach Party/Globs/F. Marina/Crew Glob (EVO1).png',
+  'PMate_Glob': 'Leafy Beach Party/Globs/F. Marina/PMate Glob (EVO2).png',
+  'BreathKing_Glob': 'Leafy Beach Party/Globs/F. Marina/Breath-King Glob (EVO3).png',
+  'Haunted_Pirate_Glob': 'Leafy Beach Party/Globs/F. Marina/Haunted Pirate Glob (EVO4).png',
+  'Boat_S1': 'Leafy Beach Party/Globs/F. Marina/Sunmons/Handcraft Raft (S1).png',
+  'Boat_S2': 'Leafy Beach Party/Globs/F. Marina/Sunmons/Nessy Boat (S2).png',
+  'Boat_S3': 'Leafy Beach Party/Globs/F. Marina/Sunmons/Woodwn Ship (S3).png',
+  'Boat_S4': 'Leafy Beach Party/Globs/F. Marina/Sunmons/Haunted Zip (S4).png',
+  'Boat_S1_Broken': 'Leafy Beach Party/Globs/F. Marina/Sunmons/(OGs)/Broken Boat (S1).png',
+  'Boat_S2_Destroyed': 'Leafy Beach Party/Globs/F. Marina/Sunmons/(OGs)/Destroyed Ship (S2).png'
 };
 
 const NARRATOR_DATA = {
@@ -1395,9 +1560,9 @@ const TOWER_TYPES = {
   'Golden_Glob': { name: 'tower_Golden_Glob_name', damage: 45, range: 170, speed: 1.4, cost: 200, evolution: 'Rainbow_Glob', image: IMAGE_PATHS.Golden_Glob, projectile: 'gold', desc: "tower_Golden_Glob_desc", family: 'Glob' },
   'Rainbow_Glob': { name: 'tower_Rainbow_Glob_name', damage: 30, range: 180, speed: 1.8, cost: 400, image: IMAGE_PATHS.Rainbow_Glob, projectile: 'laser_rainbow', piercing: true, desc: "tower_Rainbow_Glob_desc", family: 'Glob' },
 
-  'Red_Glob': { name: 'tower_Red_Glob_name', damage: 20, range: 110, speed: 2.0, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "tower_Red_Glob_desc", family: 'Red_Glob' },
-  'Molten_Glob': { name: 'tower_Molten_Glob_name', damage: 15, range: 95, speed: 2.2, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "tower_Molten_Glob_desc", family: 'Red_Glob' },
-  'Robotic_Glob': { name: 'tower_Robotic_Glob_name', damage: 40, range: 120, speed: 1.0, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
+  'Red_Glob': { name: 'tower_Red_Glob_name', damage: 35, range: 130, speed: 2.0, cost: 70, evolution: 'Molten_Glob', image: IMAGE_PATHS.Red_Glob, melee: true, desc: "tower_Red_Glob_desc", family: 'Red_Glob' },
+  'Molten_Glob': { name: 'tower_Molten_Glob_name', damage: 25, range: 120, speed: 2.2, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "tower_Molten_Glob_desc", family: 'Red_Glob' },
+  'Robotic_Glob': { name: 'tower_Robotic_Glob_name', damage: 65, range: 150, speed: 1.0, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
 
   'Soap_Glob': { name: 'tower_Soap_Glob_name', damage: 0, range: 120, speed: 0.3, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "tower_Soap_Glob_desc", family: 'Soap_Glob' },
   'Cotton_Glob': { name: 'tower_Cotton_Glob_name', damage: 5, range: 140, speed: 2.6, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "tower_Cotton_Glob_desc", family: 'Soap_Glob' },
@@ -1426,9 +1591,9 @@ const TOWER_TYPES = {
   'Youtuber_Glob': { name: 'tower_Youtuber_Glob_name', damage: 0, range: 200, speed: 0, cost: 400, image: IMAGE_PATHS.Youtuber_Glob, projectile: 'none', desc: "tower_Youtuber_Glob_desc", family: 'Pink' },
 
   // Instantanea Explosiva
-  'Bomb_Glob': { name: 'tower_Bomb_Glob_name', damage: 50, range: 60, speed: 0, cost: 300, evolution: 'TNT_Glob', image: IMAGE_PATHS.Bomb_Glob, projectile: 'none', unlocked: false, desc: "tower_IEx1_desc", family: 'IEx' },
-  'TNT_Glob': { name: 'tower_TNT_Glob_name', damage: 100, range: 80, speed: 0, cost: 600, evolution: 'Nuclear_Glob', image: IMAGE_PATHS.TNT_Glob, projectile: 'none', desc: "tower_IEx2_desc", family: 'IEx' },
-  'Nuclear_Glob': { name: 'tower_Nuclear_Glob_name', damage: 300, range: 120, speed: 0, cost: 1200, image: IMAGE_PATHS.Nuclear_Glob, projectile: 'none', desc: "tower_IEx3_desc", family: 'IEx' },
+  'Bomb_Glob': { name: 'tower_Bomb_Glob_name', damage: 100, range: 100, speed: 0, cost: 300, evolution: 'TNT_Glob', image: IMAGE_PATHS.Bomb_Glob, projectile: 'none', unlocked: false, desc: "tower_IEx1_desc", family: 'IEx' },
+  'TNT_Glob': { name: 'tower_TNT_Glob_name', damage: 250, range: 140, speed: 0, cost: 600, evolution: 'Nuclear_Glob', image: IMAGE_PATHS.TNT_Glob, projectile: 'none', desc: "tower_IEx2_desc", family: 'IEx' },
+  'Nuclear_Glob': { name: 'tower_Nuclear_Glob_name', damage: 800, range: 220, speed: 0, cost: 1200, image: IMAGE_PATHS.Nuclear_Glob, projectile: 'none', desc: "tower_IEx3_desc", family: 'IEx' },
 
   // Worker Glob Family (Trampas)
   'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 110, speed: 0.25, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: true },
@@ -1439,7 +1604,13 @@ const TOWER_TYPES = {
   // Familia Marron (Aura Ralentizadora)
   'Sprout_Glob': { name: 'tower_Sprout_Glob_name', damage: 0, range: 120, speed: 0, cost: 80, evolution: 'Garden_Glob', image: IMAGE_PATHS.Sprout_Glob, projectile: 'none', slowAura: 0.1, desc: "tower_Sprout_Glob_desc", family: 'Brown', unlocked: false },
   'Garden_Glob': { name: 'tower_Garden_Glob_name', damage: 0, range: 150, speed: 0, cost: 160, evolution: 'Flower_Glob', image: IMAGE_PATHS.Garden_Glob, projectile: 'none', slowAura: 0.2, desc: "tower_Garden_Glob_desc", family: 'Brown' },
-  'Flower_Glob': { name: 'tower_Flower_Glob_name', damage: 0, range: 180, speed: 0, cost: 320, image: IMAGE_PATHS.Flower_Glob, projectile: 'none', slowAura: 0.3, desc: "tower_Flower_Glob_desc", family: 'Brown' }
+  'Flower_Glob': { name: 'tower_Flower_Glob_name', damage: 0, range: 180, speed: 0, cost: 320, image: IMAGE_PATHS.Flower_Glob, projectile: 'none', slowAura: 0.3, desc: "tower_Flower_Glob_desc", family: 'Brown' },
+
+  // Familia Marina (Invocadores)
+  'Pirate_Glob': { name: 'tower_Pirate_Glob_name', damage: 50, range: 400, speed: 3.0, cost: 350, evolution: 'PMate_Glob', image: IMAGE_PATHS.Pirate_Glob, isSummoner: true, summonType: 'Boat_S1', desc: "tower_Pirate_Glob_desc", family: 'Pirate_Glob', unlocked: false },
+  'PMate_Glob': { name: 'tower_PMate_Glob_name', damage: 100, range: 450, speed: 2.5, cost: 600, evolution: 'BreathKing_Glob', image: IMAGE_PATHS.PMate_Glob, isSummoner: true, summonType: 'Boat_S2', desc: "tower_Pirate_Glob_desc", family: 'Pirate_Glob' },
+  'BreathKing_Glob': { name: 'tower_BreathKing_Glob_name', damage: 200, range: 500, speed: 2.0, cost: 1200, evolution: 'Haunted_Pirate_Glob', image: IMAGE_PATHS.BreathKing_Glob, isSummoner: true, summonType: 'Boat_S3', desc: "tower_Pirate_Glob_desc", family: 'Pirate_Glob' },
+  'Haunted_Pirate_Glob': { name: 'tower_Haunted_Pirate_Glob_name', damage: 400, range: 600, speed: 1.5, cost: 2500, image: IMAGE_PATHS.Haunted_Pirate_Glob, isSummoner: true, summonType: 'Boat_S4', desc: "tower_Pirate_Glob_desc", family: 'Pirate_Glob' }
 };
 
 const ENEMY_TYPES = {
@@ -1497,7 +1668,36 @@ const ENEMY_TYPES = {
   'NO_CrystEye_CB': { name: 'enemy_NOCrystEye_CB_name', desc: 'enemy_NOCrystEye_CB_desc', health: 1200, speed: 0.4, reward: 800, image: IMAGE_PATHS.NO_CrystEye_CB, isCrystallized: true, boss: true, paralyzeLaser: true, stunCooldown: 12, category: 'other', crystEyeVariantOf: 'NOeye_Pyce' },
   'AstrorbOrbe': { name: 'enemy_AstrorbOrbe_name', desc: 'enemy_AstrorbOrbe_desc', health: 800, speed: 1.2, reward: 0, image: IMAGE_PATHS.AstrorbOrbe, boss: true, category: 'other', astrorbGroup: true },
   'AstrorbContenida': { name: 'enemy_AstrorbContenida_name', desc: 'enemy_AstrorbContenida_desc', health: 600, speed: 2.0, reward: 1000, image: IMAGE_PATHS.AstrorbContenida, boss: true, category: 'other', astrorbGroup: true, astrorbForm: 2 },
-  'AstrorbTF': { name: 'enemy_AstrorbTF_name', desc: 'enemy_AstrorbTF_desc', health: 3000, speed: 0.3, reward: 3000, image: IMAGE_PATHS.AstrorbTF, boss: true, instakill: true, doubleLap: true, category: 'other', astrorbGroup: true, astrorbForm: 3 }
+  'AstrorbTF': { name: 'enemy_AstrorbTF_name', desc: 'enemy_AstrorbTF_desc', health: 3000, speed: 0.3, reward: 3000, image: IMAGE_PATHS.AstrorbTF, boss: true, instakill: true, doubleLap: true, category: 'other', astrorbGroup: true, astrorbForm: 3 },
+
+  // Sunlight Seaside Enemies
+  'Ren': { name: 'enemy_Ren_name', desc: 'enemy_Ren_desc', health: 60, speed: 1.5, reward: 15, image: IMAGE_PATHS.Ren, mapSource: 'sunlight_seaside', enemyClass: 'shooter' },
+  'Thunren': { name: 'enemy_Thunren_name', desc: 'enemy_Thunren_desc', health: 120, speed: 1.8, reward: 30, image: IMAGE_PATHS.Thunren, mapSource: 'sunlight_seaside', enemyClass: 'shooter' },
+  'Renibig': { name: 'enemy_Renibig_name', desc: 'enemy_Renibig_desc', health: 300, speed: 1.0, reward: 80, image: IMAGE_PATHS.Renibig, mapSource: 'sunlight_seaside', enemyClass: 'tank' },
+  'Treeper': { name: 'enemy_Treeper_name', desc: 'enemy_Treeper_desc', health: 150, speed: 1.0, reward: 20, image: IMAGE_PATHS.Treeper, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
+  'Big_Treeper': { name: 'enemy_Big_Treeper_name', desc: 'enemy_Big_Treeper_desc', health: 450, speed: 0.7, reward: 60, image: IMAGE_PATHS.Big_Treeper, mapSource: 'sunlight_seaside', enemyClass: 'tank' },
+  'Stacked_Treepers': { name: 'enemy_Stacked_Treepers_name', desc: 'enemy_Stacked_Treepers_desc', health: 800, speed: 0.5, reward: 120, image: IMAGE_PATHS.Stacked_Treepers, mapSource: 'sunlight_seaside', enemyClass: 'tank' },
+  'Baby_Shrum': { name: 'enemy_Baby_Shrum_name', desc: 'enemy_Baby_Shrum_desc', health: 40, speed: 2.0, reward: 10, image: IMAGE_PATHS.Baby_Shrum, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
+  'Shrum': { name: 'enemy_Shrum_name', desc: 'enemy_Shrum_desc', health: 100, speed: 1.2, reward: 25, image: IMAGE_PATHS.Shrum, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
+  'Old_Fungus': { name: 'enemy_Old_Fungus_name', desc: 'enemy_Old_Fungus_desc', health: 600, speed: 0.6, reward: 150, image: IMAGE_PATHS.Old_Fungus, boss: true, mapSource: 'sunlight_seaside', enemyClass: 'boss' },
+  'Pysh': { name: 'enemy_Pysh_name', desc: 'enemy_Pysh_desc', health: 80, speed: 1.6, reward: 20, image: IMAGE_PATHS.Pysh, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
+  'Clown_Pysh': { name: 'enemy_Clown_Pysh_name', desc: 'enemy_Clown_Pysh_desc', health: 200, speed: 1.4, reward: 50, image: IMAGE_PATHS.Clown_Pysh, mapSource: 'sunlight_seaside', enemyClass: 'tank' },
+  
+  // Nuevos Pyces de Sunlight Seaside
+  'Axolotl_Pyce': { name: 'enemy_Axolotl_Pyce_name', desc: 'enemy_Axolotl_Pyce_desc', health: 60, speed: 2.5, reward: 20, image: IMAGE_PATHS.Axolotl_Pyce, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
+  'Shark_Pyce': { name: 'enemy_Shark_Pyce_name', desc: 'enemy_Shark_Pyce_desc', health: 200, speed: 1.8, reward: 50, image: IMAGE_PATHS.Shark_Pyce, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
+  'Umbrella_Pyce': { name: 'enemy_Umbrella_Pyce_name', desc: 'enemy_Umbrella_Pyce_desc', health: 120, speed: 1.5, reward: 30, image: IMAGE_PATHS.Umbrella_Pyce, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
+
+  // Nuevos enemigos de Sunlight Seaside
+  'Piz': { name: 'enemy_Piz_name', desc: 'enemy_Piz_desc', health: 180, speed: 2.0, reward: 40, image: IMAGE_PATHS.Piz, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
+  'Followishers': { name: 'enemy_Followishers_name', desc: 'enemy_Followishers_desc', health: 350, speed: 1.3, reward: 80, image: IMAGE_PATHS.Followishers, mapSource: 'sunlight_seaside', enemyClass: 'tank' },
+  'Creamplet': { name: 'enemy_Creamplet_name', desc: 'enemy_Creamplet_desc', health: 90, speed: 1.4, reward: 25, image: IMAGE_PATHS.Creamplet, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
+
+  // Leafy Beach Party Bosses & Enemies
+  'PhantKeeper': { name: 'enemy_PhantKeeper_name', desc: 'enemy_PhantKeeper_desc', health: 3000, speed: 0.3, reward: 2000, image: IMAGE_PATHS.PhantKeeper, boss: true, mechanic_key: 'mechanic_boss', honeySlow: true, mapSource: 'sunlight_seaside' },
+  'GlitchKeeper': { name: 'enemy_GlitchKeeper_name', desc: 'enemy_GlitchKeeper_desc', health: 4500, speed: 0.35, reward: 2500, image: IMAGE_PATHS.GlitchKeeper, boss: true, mechanic_key: 'mechanic_boss', blueHoneySlow: true, mapSource: 'sunlight_seaside' },
+  'DarkSpirit': { name: 'enemy_DarkSpirit_name', desc: 'enemy_DarkSpirit_desc', health: 6000, speed: 0.4, reward: 3000, image: IMAGE_PATHS.DarkSpirit, boss: true, mechanic_key: 'mechanic_boss', darkAura: true, mapSource: 'sunlight_seaside' },
+  'Bushi_Brella': { name: 'enemy_Bushi_Brella_name', desc: 'enemy_Bushi_Brella_desc', health: 400, speed: 1.8, reward: 500, image: IMAGE_PATHS.Bushi_Brella, mimic: true, isSpecialMimic: true, mapSource: 'sunlight_seaside' }
 };
 
 const BADGES = {
@@ -1604,8 +1804,69 @@ const MAPS = {
         { x: 630, y: 460 }, { x: 630, y: 360 }, { x: 1030, y: 360 }
       ]
     ]
+  },
+  sunlight_seaside: {
+    name: "Sunlight Seaside",
+    // Everything is ocean - only paths and islands are solid ground
+    riverZones: [
+      { x: 0, y: 0, w: 1000, h: 600 }
+    ],
+    // Sandy islands where towers can be placed (excluded from collision with paths)
+    islandZones: [
+      // Left section (between top and bottom roads)
+      { x: 60,  y: 210, w: 100, h: 100 },
+      { x: 60,  y: 285, w: 100, h: 100 },
+      // Mid section (top) - large island
+      { x: 285, y: 135, w: 180, h: 100 },
+      // Mid section (bottom)
+      { x: 285, y: 285, w: 100, h: 100 },
+      // Right section (top) - large island
+      { x: 585, y: 135, w: 180, h: 100 },
+      // Right section (middle)
+      { x: 660, y: 210, w: 100, h: 100 },
+      // Far right
+      { x: 885, y: 210, w: 100, h: 100 },
+      // Below bottom road
+      { x: 135, y: 510, w: 100, h: 100 },
+      { x: 285, y: 510, w: 100, h: 100 },
+      { x: 660, y: 510, w: 100, h: 100 }
+    ],
+    pathSegments: [
+      // Horizontal top road
+      { x: 0,   y: 120, w: 560, h: 55 },
+      // Vertical left connector
+      { x: 200, y: 120, w: 55, h: 320 },
+      // Horizontal bottom road
+      { x: 0,   y: 420, w: 560, h: 55 },
+      // Vertical mid connector
+      { x: 505, y: 120, w: 55, h: 320 },
+      // Horizontal top-right
+      { x: 505, y: 120, w: 320, h: 55 },
+      // Vertical right connector
+      { x: 775, y: 120, w: 55, h: 185 },
+      // Horizontal center merge
+      { x: 775, y: 270, w: 225, h: 55 },
+      // Vertical right lower
+      { x: 775, y: 305, w: 55, h: 175 },
+      // Horizontal bottom-right
+      { x: 505, y: 420, w: 330, h: 55 }
+    ],
+    enemyPaths: [
+      // Path 1: top left → mid cross → top right → center merge → right
+      [
+        { x: -30, y: 148 }, { x: 232, y: 148 }, { x: 232, y: 448 },
+        { x: 532, y: 448 }, { x: 532, y: 148 }, { x: 803, y: 148 },
+        { x: 803, y: 298 }, { x: 1030, y: 298 }
+      ],
+      // Path 2: bottom left → mid cross → bottom right → center merge → right
+      [
+        { x: -30, y: 448 }, { x: 232, y: 448 }, { x: 232, y: 148 },
+        { x: 532, y: 148 }, { x: 532, y: 448 }, { x: 803, y: 448 },
+        { x: 803, y: 298 }, { x: 1030, y: 298 }
+      ]
+    ]
   }
-};
+}
 
 const SKINS_DATA = {
   'Glob': [
