@@ -439,8 +439,9 @@ button.active {
 
 #options-toggle {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 75px;
+    left: 20px;
+    right: auto;
     z-index: 10000;
     width: 45px;
     height: 45px;
@@ -709,6 +710,15 @@ button.active {
     z-index: 3;
     cursor: pointer;
     transition: all 0.3s;
+}
+
+#map.show-hitboxes .tower-spot {
+    background: rgba(46, 204, 113, 0.4);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+#map.show-hitboxes .tower-spot.occupied {
+    background: rgba(231, 76, 60, 0.4);
 }
 
 .range-indicator {
@@ -1147,17 +1157,73 @@ button.active {
 }
 
 .options-content {
-    max-width: 400px !important;
+    max-width: 460px !important;
+    padding: 30px 28px !important;
+    overflow-y: auto;
+    max-height: 88vh;
+}
+
+/* Settings Sections */
+.settings-section {
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.settings-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: linear-gradient(90deg, rgba(100,100,200,0.15), transparent);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.settings-section-icon {
+    font-size: 1.1rem;
+}
+
+.settings-section-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #a0b4e0;
+}
+
+.settings-section-body {
+    padding: 6px 14px;
+}
+
+.settings-section-body .option-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.option-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #e0e0e0;
+}
+
+.option-icon {
+    font-size: 1rem;
+    width: 22px;
+    text-align: center;
 }
 
 .option-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 10px 2px;
+    margin-bottom: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     color: white;
+    gap: 12px;
 }
 
 /* Switch */
@@ -2286,3 +2352,107 @@ body.fullscreen-map #meta-controls {
     position: relative !important;
     z-index: 10 !important;
 }
+
+/* ===================== LOADING SCREEN ===================== */
+#loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    animation: fadeInUp 0.5s ease;
+}
+
+.loading-logo {
+    width: 260px;
+    filter: drop-shadow(0 0 18px rgba(46, 204, 113, 0.5));
+    animation: logoPulse 2s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+    0%, 100% { filter: drop-shadow(0 0 18px rgba(46, 204, 113, 0.5)); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 30px rgba(46, 204, 113, 0.8)); transform: scale(1.04); }
+}
+
+.loading-glob-spinner {
+    width: 72px;
+    height: 72px;
+    background: url('img/Glob_DEF.png') center/contain no-repeat;
+    animation: globSpin 1.2s linear infinite;
+    transform-origin: center center;
+}
+
+@keyframes globSpin {
+    0%   { transform: rotate(0deg) scale(1); }
+    25%  { transform: rotate(90deg) scale(1.1); }
+    50%  { transform: rotate(180deg) scale(1); }
+    75%  { transform: rotate(270deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+.loading-text {
+    color: #a0e0c0;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    opacity: 0.8;
+    animation: blinkText 1.4s ease-in-out infinite;
+}
+
+@keyframes blinkText {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 0.3; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================== TOWER IDLE & ATTACK ANIMATIONS ===================== */
+
+/* Classic globs: bounce/jump */
+@keyframes idleJump {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0px) scaleX(1) scaleY(1); }
+    20%       { transform: translate(-50%, -50%) translateY(-8px) scaleX(0.95) scaleY(1.08); }
+    40%       { transform: translate(-50%, -50%) translateY(-12px) scaleX(0.92) scaleY(1.1); }
+    60%       { transform: translate(-50%, -50%) translateY(-8px) scaleX(0.95) scaleY(1.05); }
+    80%       { transform: translate(-50%, -50%) translateY(-2px) scaleX(1.02) scaleY(0.98); }
+}
+
+/* New globs (balloon, streamer, worker, bomb, sprout, pirate family): sway left-right */
+@keyframes idleWobble {
+    0%, 100% { transform: translate(-50%, -50%) translateX(0px) rotate(0deg); }
+    25%       { transform: translate(-50%, -50%) translateX(-5px) rotate(-3deg); }
+    75%       { transform: translate(-50%, -50%) translateX(5px) rotate(3deg); }
+}
+
+/* Attack flash pulse */
+@keyframes attackPulse {
+    0%   { transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
+    30%  { transform: translate(-50%, -50%) scale(1.18); filter: brightness(1.5); }
+    60%  { transform: translate(-50%, -50%) scale(0.95); filter: brightness(1.2); }
+    100% { transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
+}
+
+.tower.idle-jump {
+    animation: idleJump 1.6s ease-in-out infinite;
+}
+
+.tower.idle-wobble {
+    animation: idleWobble 2.2s ease-in-out infinite;
+}
+
+.tower.attacking {
+    animation: attackPulse 0.25s ease forwards !important;
+}
+

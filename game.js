@@ -348,11 +348,38 @@ function spawnDecorations(containerId) {
     if (!container) return;
     const allImages = Object.values(IMAGE_PATHS);
 
-    // For login/mode screens, exclude collab assets (Interstellar Menace skins, special enemies, etc.)
+    // For login/mode screens, exclude collab assets and check unlocks
     const isLoginScreen = (containerId === 'login-decorations' || containerId === 'mode-decorations' || containerId === 'map-decorations');
-    const images = isLoginScreen
-      ? allImages.filter(p => !p.includes('Interestelar Menace') && !p.includes('Collabs') && !p.includes('Skins/') && !p.includes('Astrorb') && !p.includes('Crystal'))
-      : allImages;
+    let images = allImages;
+    if (isLoginScreen) {
+      images = allImages.filter(p => {
+        if (p.includes('Interestelar Menace') || p.includes('Collabs') || p.includes('Skins/') || p.includes('Astrorb') || p.includes('Crystal')) return false;
+        
+        // Find the key in IMAGE_PATHS for this path
+        const key = Object.keys(IMAGE_PATHS).find(k => IMAGE_PATHS[k] === p);
+        if (!key) return true;
+
+        // Simple enemies always appear
+        const simpleEnemies = ['Stupid_Pyce', 'Guest_Pyce', 'Noob_Pyce', 'Pyce2', 'Flower_Pyce', 'Symbol_Pyce', 'SO_Pyce'];
+        if (simpleEnemies.includes(key)) return true;
+
+        // 1st & 2nd Evo Globs always appear
+        const basicGlobs = ['Glob', 'Poop_Glob', 'Red_Glob', 'Molten_Glob', 'Soap_Glob', 'Cotton_Glob', 'Ducky_Glob', 'Golden_Ducky_Glob', 'Comet_Glob', 'Dark_Glob', 'Pyce_Glob', 'Old_Glob'];
+        if (basicGlobs.includes(key)) return true;
+
+        // Other enemies check if killed > 0
+        if (key.includes('Pyce') || key.includes('Bit') || key.includes('Byte')) {
+          return (gameState.pycesKilled && gameState.pycesKilled[key] > 0);
+        }
+
+        // Other globs check if unlocked
+        if (TOWER_TYPES[key]) {
+          return TOWER_TYPES[key].unlocked;
+        }
+
+        return false;
+      });
+    }
 
     const pool = images.length > 0 ? images : allImages;
 
@@ -445,8 +472,37 @@ function handleLogin() {
   } catch (e) { }
 
   document.getElementById('login-screen').style.display = 'none';
-  const mapScreen = document.getElementById('map-selection');
-  if (mapScreen) mapScreen.style.display = 'flex';
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.style.display = 'flex';
+    // Pick a glob the user has unlocked for the spinner
+    const loadingGlob = document.getElementById('loading-glob');
+    if (loadingGlob) {
+      const ownedTowers = Object.keys(TOWER_TYPES).filter(k => TOWER_TYPES[k].unlocked);
+      const spinImgKey = ownedTowers[Math.floor(Math.random() * ownedTowers.length)] || 'Glob';
+      const spinImg = IMAGE_PATHS[spinImgKey] || 'img/Glob_DEF.png';
+      loadingGlob.style.backgroundImage = `url('${spinImg}')`;
+    }
+    // Cycle loading text
+    const loadingTexts = currentLanguage === 'es'
+      ? ['Cargando...', 'Preparando las defensas...', '¡Aquí vienen los Pyces!', 'Cargando progreso...']
+      : ['Loading...', 'Preparing defenses...', 'Here come the Pyces!', 'Loading progress...'];
+    let ltIdx = 0;
+    const ltEl = document.getElementById('loading-text');
+    const ltInterval = setInterval(() => {
+      ltIdx = (ltIdx + 1) % loadingTexts.length;
+      if (ltEl) ltEl.textContent = loadingTexts[ltIdx];
+    }, 600);
+    setTimeout(() => {
+      clearInterval(ltInterval);
+      loadingScreen.style.display = 'none';
+      const mapScreen = document.getElementById('map-selection');
+      if (mapScreen) mapScreen.style.display = 'flex';
+    }, 2500);
+  } else {
+    const mapScreen = document.getElementById('map-selection');
+    if (mapScreen) mapScreen.style.display = 'flex';
+  }
   const modeScreen = document.getElementById('mode-selection');
 
   const metaControls = document.getElementById('meta-controls');
@@ -524,10 +580,7 @@ function showModeSelection() {
       btn.dataset.mode = 'antiNormal';
       btn.innerHTML = currentLanguage === 'en' ? '🌑 Un-Normal' : '🌑 Anti-Normal';
       btn.onclick = () => {
-        const msg = currentLanguage === 'en'
-          ? '⚠️ WARNING: Anti-Normal mode is extremely difficult.\nHealth cannot be recovered. NOeye dominates from wave 1.\n\nAre you SURE you want to play Anti-Normal?'
-          : '⚠️ ADVERTENCIA: El modo Anti-Normal es extremadamente difícil.\nLa vida no puede recuperarse. NOeye domina desde la ola 1.\n\n¿Estás SEGURO de querer jugar Anti-Normal?';
-        if (window.confirm(msg)) selectMode('antiNormal');
+        showAntiNormalWarning(() => selectMode('antiNormal'));
       };
       grid.appendChild(btn);
     }
@@ -876,8 +929,12 @@ function openOptions() {
   if (hitboxCheck) hitboxCheck.checked = showHitbox;
 
   const cheatedRow = document.getElementById('admin-cheated-row');
+  const adminSection = document.getElementById('admin-section');
   if (cheatedRow) {
     cheatedRow.style.display = gameState.adminMode ? 'flex' : 'none';
+  }
+  if (adminSection) {
+    adminSection.style.display = gameState.adminMode ? 'block' : 'none';
   }
   const cheatedCheck = document.getElementById('opt-cheated');
   if (cheatedCheck) {
@@ -888,6 +945,120 @@ function openOptions() {
 function closeOptions() {
   document.getElementById('options-modal').style.display = 'none';
   saveProgress();
+}
+
+function showAntiNormalWarning(onConfirm) {
+  // Remove old if exists
+  const old = document.getElementById('antinormal-warning-overlay');
+  if (old) old.remove();
+
+  const isEs = currentLanguage === 'es';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'antinormal-warning-overlay';
+  overlay.style.cssText = `
+    position: fixed; inset: 0; z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(20,0,40,0.97) 0%, rgba(0,0,0,0.99) 100%);
+    backdrop-filter: blur(8px);
+    animation: antinormal-fadein 0.3s ease;
+  `;
+
+  const box = document.createElement('div');
+  box.style.cssText = `
+    background: linear-gradient(145deg, #0d0d1a 0%, #1a0a2e 50%, #0d1a1a 100%);
+    border: 2px solid rgba(150,0,255,0.5);
+    border-radius: 20px;
+    padding: 36px 40px 30px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(100,0,200,0.4), 0 0 120px rgba(0,200,200,0.1), inset 0 0 40px rgba(50,0,100,0.3);
+    position: relative;
+    overflow: hidden;
+    animation: antinormal-slidein 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+  `;
+
+  // Glitch lines decoration
+  const glitch1 = document.createElement('div');
+  glitch1.style.cssText = `
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, #9b00ff, #00ffee, transparent);
+    animation: antinormal-scan 2s linear infinite;
+  `;
+  box.appendChild(glitch1);
+
+  const icon = document.createElement('div');
+  icon.style.cssText = `font-size: 3.5rem; margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(150,0,255,0.8)); animation: antinormal-pulse 1.5s ease-in-out infinite;`;
+  icon.textContent = '🌑';
+  box.appendChild(icon);
+
+  const title = document.createElement('div');
+  title.style.cssText = `font-size: 1.05rem; font-weight: 900; letter-spacing: 3px; color: #c060ff; text-transform: uppercase; text-shadow: 0 0 20px rgba(150,0,255,0.9); margin-bottom: 6px;`;
+  title.textContent = isEs ? '⚠ MODO ANTI-NORMAL ⚠' : '⚠ ANTI-NORMAL MODE ⚠';
+  box.appendChild(title);
+
+  const divider = document.createElement('div');
+  divider.style.cssText = `width: 60%; height: 1px; background: linear-gradient(90deg, transparent, rgba(150,0,255,0.6), transparent); margin: 10px auto 18px;`;
+  box.appendChild(divider);
+
+  const desc = document.createElement('p');
+  desc.style.cssText = `font-size: 0.92rem; color: #d0c0e8; line-height: 1.6; margin-bottom: 8px;`;
+  desc.textContent = isEs
+    ? 'El modo Anti-Normal es un modo complicado. Si quieres tirar hacia atrás, aún puedes hacerlo.'
+    : 'Anti-Normal mode is a complicated mode. If you want to back out, you still can.';
+  box.appendChild(desc);
+
+  const question = document.createElement('p');
+  question.style.cssText = `font-size: 1.05rem; font-weight: 800; color: #ffffff; text-shadow: 0 0 12px rgba(255,80,80,0.8); margin: 14px 0 24px;`;
+  question.textContent = isEs ? '¿Estás SEGURO de iniciar Anti-Normal?' : 'Are you SURE you want to start Anti-Normal?';
+  box.appendChild(question);
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = `display: flex; gap: 14px; justify-content: center;`;
+
+  const btnConfirm = document.createElement('button');
+  btnConfirm.style.cssText = `
+    padding: 12px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 800; letter-spacing: 1px;
+    background: linear-gradient(135deg, #7b00ff, #c000c0);
+    color: #fff; box-shadow: 0 0 20px rgba(120,0,255,0.6); transition: all 0.2s; text-transform: uppercase;
+  `;
+  btnConfirm.textContent = isEs ? 'Aceptar' : 'Accept';
+  btnConfirm.onmouseenter = () => { btnConfirm.style.transform = 'scale(1.07)'; btnConfirm.style.boxShadow = '0 0 30px rgba(150,0,255,0.9)'; };
+  btnConfirm.onmouseleave = () => { btnConfirm.style.transform = ''; btnConfirm.style.boxShadow = '0 0 20px rgba(120,0,255,0.6)'; };
+  btnConfirm.onclick = () => { overlay.remove(); onConfirm(); };
+
+  const btnCancel = document.createElement('button');
+  btnCancel.style.cssText = `
+    padding: 12px 30px; border: 1px solid rgba(150,150,200,0.4); border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 700;
+    background: rgba(255,255,255,0.07); color: #aaa; transition: all 0.2s;
+  `;
+  btnCancel.textContent = isEs ? 'Cancelar' : 'Cancel';
+  btnCancel.onmouseenter = () => { btnCancel.style.background = 'rgba(255,255,255,0.14)'; btnCancel.style.color = '#fff'; };
+  btnCancel.onmouseleave = () => { btnCancel.style.background = 'rgba(255,255,255,0.07)'; btnCancel.style.color = '#aaa'; };
+  btnCancel.onclick = () => overlay.remove();
+
+  btnRow.appendChild(btnConfirm);
+  btnRow.appendChild(btnCancel);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
+
+  // Inject keyframes if not present
+  if (!document.getElementById('antinormal-styles')) {
+    const style = document.createElement('style');
+    style.id = 'antinormal-styles';
+    style.textContent = `
+      @keyframes antinormal-fadein { from { opacity:0 } to { opacity:1 } }
+      @keyframes antinormal-slidein { from { transform:scale(0.7) translateY(30px); opacity:0 } to { transform:scale(1) translateY(0); opacity:1 } }
+      @keyframes antinormal-scan { 0%{opacity:0;transform:translateX(-100%)} 50%{opacity:1} 100%{opacity:0;transform:translateX(100%)} }
+      @keyframes antinormal-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 
 function activateCheatedMode() {
@@ -1980,20 +2151,29 @@ function bindEvents() {
     // DEV_BUILD / GLOB_BUILD: special code only for dev users
     if (code === 'DEV_BUILD' || code === 'GLOB_BUILD') {
       const username = localStorage.getItem('glob_username') || '';
-      const isDevUser = typeof DEV_USERS !== 'undefined' && DEV_USERS.has(username);
-      if (!isDevUser) {
+      const role = typeof getUserRole !== 'undefined' ? getUserRole(username) : 'USER';
+      if (role !== 'OWNER' && role !== 'DEVBUILD') {
         showMessage('⛔ Código de desarrollo no disponible... ¿Qué pretendías?', 'error');
         input.value = '';
         return;
       }
-      // Dev users get 9999 coins, unlimited use (no usedCodes tracking)
-      gameState.pycoins += 9999;
-      gameState.duckPassCurrency += 9999;
-      // Also unlock all badges
-      Object.keys(BADGES).forEach(k => unlockBadge(k));
+      if (role === 'OWNER') {
+        gameState.pycoins += 9999;
+        gameState.duckPassCurrency += 9999;
+        gameState.duckPassLevel += 100;
+        Object.keys(BADGES).forEach(k => unlockBadge(k));
+        Object.keys(TOWER_TYPES).forEach(t => TOWER_TYPES[t].unlocked = true);
+        Object.keys(SKIN_META).forEach(s => {
+            if(!gameState.unlockedSkins.includes(s)) gameState.unlockedSkins.push(s);
+        });
+        showMessage('👑 OWNER: +9999 PyCoins/DuckPass, todas las torres, skins y emblemas!', 'success');
+      } else if (role === 'DEVBUILD') {
+        gameState.pycoins += 500;
+        gameState.duckPassCurrency += 500;
+        showMessage('🛠️ DEVBUILD: +500 PyCoins y DuckPass', 'success');
+      }
       updateMetaUI();
       drawBadges();
-      showMessage('🛠️ GLOB_BUILD: +9999 PyCoins y DuckPass + Todos los emblemas desbloqueados!', 'success');
       input.value = '';
       return;
     }
@@ -2106,8 +2286,8 @@ function bindEvents() {
 
   document.getElementById('debug-toggle').onclick = () => {
     const username = localStorage.getItem('glob_username') || '';
-    const isDevUser = typeof DEV_USERS !== 'undefined' && DEV_USERS.has(username);
-    if (!isDevUser) return; // Only dev users can use the debug button
+    const role = typeof getUserRole !== 'undefined' ? getUserRole(username) : 'USER';
+    if (role !== 'OWNER' && role !== 'DEVBUILD') return; // Only DEV users can use the debug button
 
     if (!gameState.debugState) {
       // First click: save snapshot & unlock everything
@@ -2716,7 +2896,7 @@ function drawShop() {
         // Categorizar
         let category = 'otros';
         if (['rewamped_green_set', 'rewamped_red_set', 'judicial_set', 'spanish_bombot'].includes(skin.id)) category = 'mapa';
-        else if (['astrorb_set', 'cuby_bombot', 'fracstal_set'].includes(skin.id)) category = 'misiones';
+        else if (['astrorb_set', 'cuby_bombot', 'fracstal_set', 'froggy_set'].includes(skin.id)) category = 'misiones';
         else if (['mimic_set', 'pyce_morph', 'crystal_bombot'].includes(skin.id)) category = 'otros';
         else if (skin.unlockCondition && skin.unlockCondition.includes('urban')) category = 'mapa';
 
@@ -2743,6 +2923,7 @@ function drawShop() {
         if (skinId === 'mimic_set') return currentLanguage === 'es' ? '🎁 Derrota a un Mimic Pyce Especial' : '🎁 Defeat a Special Mimic Pyce';
         if (skinId === 'pyce_morph') return currentLanguage === 'es' ? '🎁 Recompensa Secreta' : '🎁 Secret Reward';
         if (skinId === 'cuby_bombot') return currentLanguage === 'es' ? '👑 Derrota a Astrorb True Form' : '👑 Defeat Astrorb True Form';
+        if (skinId === 'froggy_set') return currentLanguage === 'es' ? '🏖️ Puedes obtenerla gratis superando Sunlight Summer en Anti-Normal' : '🏖️ You can get it for free by beating Sunlight Summer in Anti-Normal';
         
         if (condition === 'win_facil_urban') return currentLanguage === 'es' ? '🗺️ Gana en modo Fácil en Urbanistic Road' : '🗺️ Win in Easy mode on Urbanistic Road';
         if (condition === 'win_normal') return currentLanguage === 'es' ? '⚔️ Gana en modo Normal o superior' : '⚔️ Win in Normal mode or higher';
@@ -3236,7 +3417,10 @@ function placeTower(spotId, type) {
   if (gameState.globetines < cost) return showMessage(translate('notEnoughMoney'), 'error');
 
   const el = document.createElement('div');
-  el.className = 'tower'; el.style.left = `${spot.x}px`; el.style.top = `${spot.y}px`;
+  const newGlobFamilies = ['Balloon_Glob', 'Streamer_Glob', 'Worker_Glob', 'Bomb_Glob', 'Sprout_Glob', 'Pirate_Glob'];
+  const towerFamily = tCfg.family || type;
+  const idleClass = newGlobFamilies.includes(towerFamily) ? 'idle-wobble' : 'idle-jump';
+  el.className = `tower ${idleClass}`; el.style.left = `${spot.x}px`; el.style.top = `${spot.y}px`;
   el.style.backgroundImage = `url('${encodeURI(getTowerImage(type))}')`;
   // Fallback: si la imagen falla, usar color de fondo visible
   el.onerror = function () { el.style.backgroundColor = '#9b59b6'; el.style.backgroundImage = 'none'; };
@@ -4758,6 +4942,9 @@ function activateGTack(t) {
             expEl.style.transform = 'translate(-50%, -50%) scale(0.2)';
             expEl.style.backgroundImage = `url('${encodeURI(expImg)}')`;
             expEl.style.backgroundSize = 'contain';
+            if (gameState.equippedSkins['IEx'] === 'froggy_set') {
+              expEl.style.filter = 'hue-rotate(120deg) saturate(1.5)';
+            }
             expEl.style.backgroundRepeat = 'no-repeat';
             expEl.style.backgroundPosition = 'center';
             expEl.style.zIndex = '35';
@@ -4887,6 +5074,20 @@ function activateGTack(t) {
             return Math.hypot(e.x - t.x, e.y - t.y) <= t.range;
           });
           if (targets.length || (t.isSummoner && gameState.enemies.length > 0)) {
+            // Trigger attack animation on the tower element
+            if (t.el) {
+              const wasJump = t.el.classList.contains('idle-jump');
+              const wasWobble = t.el.classList.contains('idle-wobble');
+              t.el.classList.remove('idle-jump', 'idle-wobble');
+              t.el.classList.add('attacking');
+              setTimeout(() => {
+                if (t.el) {
+                  t.el.classList.remove('attacking');
+                  if (wasJump) t.el.classList.add('idle-jump');
+                  else if (wasWobble) t.el.classList.add('idle-wobble');
+                }
+              }, 260);
+            }
             let dmg = t.damage;
             if (gameState.duckgrades.dg_Red_Glob && t.family === 'Red_Glob') {
               const redCount = gameState.towers.filter(rt => rt.family === 'Red_Glob').length;
@@ -5065,7 +5266,11 @@ function activateGTack(t) {
 
                 if (isSpecial) {
                   b.normalShotsCount = 0;
-                  shoot({ x: b.x, y: b.y, damage: specialDmg, speed: 2, projectile: 'tumble_bomb' }, targets[0], { image: projImg });
+                  let pOpts = { image: projImg };
+                  if (gameState.equippedSkins['Pirate_Glob'] === 'froggy_set') {
+                    pOpts.filter = 'hue-rotate(120deg) saturate(1.5)';
+                  }
+                  shoot({ x: b.x, y: b.y, damage: specialDmg, speed: 2, projectile: 'tumble_bomb' }, targets[0], pOpts);
                 } else {
                   b.normalShotsCount++;
                   shoot({ x: b.x, y: b.y, damage: b.damage * 0.5, speed: 4, projectile: 'stone' }, targets[0]);
@@ -5312,7 +5517,11 @@ function activateGTack(t) {
       el.style.backgroundPosition = 'center';
       el.style.width = '30px';
       el.style.height = '30px';
-    } else if (gameState.equippedSkins[shooter.family] === 'corrupt_swords_set') {
+    }
+    if (opts.filter) {
+      el.style.filter = opts.filter;
+    }
+    if (!opts.image && gameState.equippedSkins[shooter.family] === 'corrupt_swords_set') {
       projClass = 'slash';
       if (shooter.type === 'Glob') opts.color = '#00FFFF';
       else if (shooter.type === 'Poop_Glob') opts.color = '#39FF14';
@@ -6001,7 +6210,27 @@ function activateGTack(t) {
       if (gameState.antiNormalActive) {
         unlockBadge('antiNormal');
         gameState.unlockedAntiNormal = true;
+        // Sunlight Seaside Anti-Normal badge & froggy_set
+        if ((gameState.map || '') === 'sunlight_seaside') {
+          unlockBadge('sunlight_anti_normal');
+          if (!gameState.unlockedSkins.includes('froggy_set')) {
+            gameState.unlockedSkins.push('froggy_set');
+            const msg = currentLanguage === 'es'
+              ? '🐸 ¡Froggy Set desbloqueado gratis! Superaste Sunlight Seaside en Anti-Normal.'
+              : '🐸 Froggy Set unlocked for free! You beat Sunlight Seaside in Anti-Normal.';
+            showMessage(msg, 'success');
+          }
+        }
       } else {
+        // Sunlight Seaside specific badges
+        const isSunlightMap = (gameState.map || '') === 'sunlight_seaside';
+        if (isSunlightMap) {
+          if (gameState.mode === 'facil') unlockBadge('sunlight_facil');
+          else if (gameState.mode === 'normal') unlockBadge('sunlight_normal');
+          else if (gameState.mode === 'dificil') unlockBadge('sunlight_dificil');
+          else if (gameState.mode === 'extremo') unlockBadge('sunlight_extremo');
+        }
+
         if (gameState.mode === 'facil') unlockBadge('winFacil');
         else if (gameState.mode === 'normal') unlockBadge('winNormal');
         else if (gameState.mode === 'dificil') unlockBadge('winDificil');
@@ -6067,13 +6296,31 @@ function activateGTack(t) {
         // -----------------------------------------
       }
 
-      // CORREGIDO: Work-Bombot SOLO se desbloquea al ganar modo corrupto o anti-normal COMPLETAMENTE
       if ((gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') && victory === true) {
         if (TOWER_TYPES['Work_Bombot'] && !TOWER_TYPES['Work_Bombot'].unlocked) {
           TOWER_TYPES['Work_Bombot'].unlocked = true;
           showMessage("🤖 ¡TORRE WORK-BOMBOT DESBLOQUEADA!", 'success');
           saveProgress();
         }
+      }
+
+      if (gameState.mode === 'antiNormal' && victory === true) {
+        gameState.pycoins += 500;
+        gameState.duckPassCurrency += 450;
+        // XP equivalent to a high difficulty mode
+        addXP(500);
+        const rewardMsg = currentLanguage === 'es'
+          ? '🌑 +500 PyCoins / +450 DuckPass + XP por superar Anti-Normal!'
+          : '🌑 +500 PyCoins / +450 DuckPass + XP for beating Anti-Normal!';
+        showMessage(rewardMsg, 'success');
+        // Sunlight Seaside: also give 50 DuckPasses extra for the badge
+        if ((gameState.map || '') === 'sunlight_seaside') {
+          gameState.duckPassCurrency += 50;
+          const sunMsg = currentLanguage === 'es' ? '🌑 +50 DuckPass bonus por Sunlight Seaside Anti-Normal!' : '🌑 +50 DuckPass bonus for Sunlight Seaside Anti-Normal!';
+          showMessage(sunMsg, 'success');
+        }
+        updateMetaUI();
+        saveProgress();
       }
 
       if (gameState.mode === 'interstellar' && victory === true) {

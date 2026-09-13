@@ -55,6 +55,18 @@
             </div>
         </div>
     </div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: none;">
+        <div class="loading-content">
+            <img src="img/GlobDefendersLogo.png" alt="Glob Defenders" class="loading-logo">
+            <div id="loading-glob-wrap">
+                <div id="loading-glob" class="loading-glob-spinner"></div>
+            </div>
+            <p id="loading-text" class="loading-text">Loading...</p>
+        </div>
+    </div>
+
     <!-- Map Selection -->
     <div id="map-selection" style="display: none;">
         <div id="map-decorations"></div>
@@ -212,93 +224,157 @@
         <div class="modal-content options-content">
             <h2 data-i18n="settings_title">⚙️ Ajustes</h2>
 
-            <h3 class="settings-category" style="margin-top: 15px; border-bottom: 1px solid #444; padding-bottom: 5px;">🎮 Gameplay</h3>
-            
-            <div class="option-row">
-                <span>📍 Mostrar Hitbox de torres</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-show-hitbox" onchange="updateSettings()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <div class="option-row">
-                <span data-i18n="show_ranges">Ver Rango de torres</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-show-ranges" onchange="updateSettings()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            
-            <div class="option-row">
-                <span data-i18n="show_total_damage">Ver Daño Total de torres</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-show-damage" onchange="updateSettings()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <h3 class="settings-category" style="margin-top: 15px; border-bottom: 1px solid #444; padding-bottom: 5px;">🖥️ Fluidez y Gráficos</h3>
-            
-            <div class="option-row">
-                <span>Mapa a Pantalla Completa</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-fullscreen-map" onchange="updateSettings()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <h3 class="settings-category" style="margin-top: 15px; border-bottom: 1px solid #444; padding-bottom: 5px;">🖼️ Interfaz y Otros</h3>
-            
-            <div class="option-row audio-row">
-                <span>🎵 Audio</span>
-                <div class="audio-controls">
-                    <button id="music-toggle-btn">🎵 Música ON</button>
-                    <button id="effects-toggle-btn">🔊 Efectos ON</button>
+            <!-- SECCIÓN: Gameplay -->
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <span class="settings-section-icon">🎮</span>
+                    <span class="settings-section-title">Gameplay</span>
+                </div>
+                <div class="settings-section-body">
+                    <div class="option-row">
+                        <div class="option-label">
+                            <span class="option-icon">📍</span>
+                            <span>Mostrar Hitbox de torres</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-show-hitbox" onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">
+                            <span class="option-icon">🎯</span>
+                            <span data-i18n="show_ranges">Ver Rango de torres</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-show-ranges" onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">
+                            <span class="option-icon">📊</span>
+                            <span data-i18n="show_total_damage">Ver Daño Total de torres</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-show-damage" onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
-            <div class="option-row">
-                <span>Auto-English (Auto-Ingles)</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-auto-english" onchange="updateSettings()">
-                    <span class="slider"></span>
-                </label>
+            <!-- SECCIÓN: Gráficos -->
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <span class="settings-section-icon">🖥️</span>
+                    <span class="settings-section-title">Fluidez y Gráficos</span>
+                </div>
+                <div class="settings-section-body">
+                    <div class="option-row">
+                        <div class="option-label">
+                            <span class="option-icon">🗺️</span>
+                            <span>Mapa a Pantalla Completa</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-fullscreen-map" onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
-            <div class="option-row">
-                <span data-i18n="show_shop_desc">Mostrar descripción en tienda</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-show-desc" checked onchange="updateSettings()">
-                    <span class="slider"></span>
-                </label>
+            <!-- SECCIÓN: Audio -->
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <span class="settings-section-icon">🎵</span>
+                    <span class="settings-section-title">Audio</span>
+                </div>
+                <div class="settings-section-body">
+                    <div class="option-row audio-row">
+                        <div class="option-label">
+                            <span class="option-icon">🔊</span>
+                            <span>Sonido</span>
+                        </div>
+                        <div class="audio-controls">
+                            <button id="music-toggle-btn">🎵 Música ON</button>
+                            <button id="effects-toggle-btn">🔊 Efectos ON</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="option-row">
-                <span>Solo Emojis en Meta Botones</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-meta-emojis" onchange="updateSettings()">
-                    <span class="slider"></span>
-                </label>
+            <!-- SECCIÓN: Interfaz -->
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <span class="settings-section-icon">🖼️</span>
+                    <span class="settings-section-title">Interfaz</span>
+                </div>
+                <div class="settings-section-body">
+                    <div class="option-row">
+                        <div class="option-label">
+                            <span class="option-icon">🌐</span>
+                            <span>Auto-English (Auto-Ingles)</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-auto-english" onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">
+                            <span class="option-icon">📝</span>
+                            <span data-i18n="show_shop_desc">Mostrar descripción en tienda</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-show-desc" checked onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">
+                            <span class="option-icon">✨</span>
+                            <span>Solo Emojis en Meta Botones</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-meta-emojis" onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">
+                            <span class="option-icon">🏆</span>
+                            <span>Logros Antiguos</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-old-achievements" onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
-            <div class="option-row">
-                <span>Logros Antiguos</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-old-achievements" onchange="updateSettings()">
-                    <span class="slider"></span>
-                </label>
+            <!-- SECCIÓN: Admin (oculta por defecto) -->
+            <div class="settings-section" id="admin-section" style="display:none;">
+                <div class="settings-section-header" style="background: linear-gradient(90deg, rgba(255,160,0,0.15), transparent);">
+                    <span class="settings-section-icon">🔒</span>
+                    <span class="settings-section-title" style="color:#ffaa00;">Admin</span>
+                </div>
+                <div class="settings-section-body">
+                    <div class="option-row" id="admin-cheated-row" style="display: none;">
+                        <div class="option-label">
+                            <span class="option-icon">⚠️</span>
+                            <span>Cheated Mode</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-cheated" onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
-            <div class="option-row" id="admin-cheated-row" style="display: none;">
-                <span>⚠️ Cheated Mode</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-cheated" onchange="updateSettings()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <hr>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 16px 0 12px;">
             <button id="reset-btn" onclick="confirmReset()" class="reset-btn">🧨 Resetear Todo el Progreso</button>
             <button onclick="closeOptions()" class="close-btn">Guardar y Cerrar</button>
         </div>

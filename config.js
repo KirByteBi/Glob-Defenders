@@ -1111,8 +1111,16 @@ let USERS = {
   "Player": "1234"
 };
 
-// Users that are allowed to use DEV_BUILD code
-const DEV_USERS = new Set(['KirByteBi', 'Glob_BUILD']);
+const ROLES = {
+  'KirByteBi': 'OWNER',
+  'Devbuild': 'DEVBUILD',
+  'Glob_BUILD': 'DEVBUILD',
+  'admin': 'ADMIN',
+  'Admin': 'ADMIN'
+};
+function getUserRole(user) {
+  return ROLES[user] || 'USER';
+}
 
 const IMAGE_PATHS = {
   'Glob': 'img/Glob_DEF.png',
@@ -1753,7 +1761,14 @@ const BADGES = {
   urban_king: { key: 'urban_king', icon: '👑', unlocked: false, reward: { pycoins: 600, duckpass: 400 }, category: 'misiones' },
   urban_crystals: { key: 'urban_crystals', icon: '💎', unlocked: false, reward: { pycoins: 700, duckpass: 500 }, category: 'misiones' },
   dangerous_set: { key: 'dangerous_set', icon: '⚠️', unlocked: false, reward: { pycoins: 800, xp: 1000 }, category: 'interacciones' },
-  globiscal_debt: { key: 'globiscal_debt', icon: '💸', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'economia' }
+  globiscal_debt: { key: 'globiscal_debt', icon: '💸', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'economia' },
+
+  // Sunlight Seaside difficulty badges
+  sunlight_facil: { key: 'sunlight_facil', icon: '🌱', unlocked: false, reward: { pycoins: 150, xp: 100 }, category: 'modos' },
+  sunlight_normal: { key: 'sunlight_normal', icon: '🌊', unlocked: false, reward: { pycoins: 300, xp: 200 }, category: 'modos' },
+  sunlight_dificil: { key: 'sunlight_dificil', icon: '🔥', unlocked: false, reward: { pycoins: 500, xp: 400 }, category: 'modos' },
+  sunlight_extremo: { key: 'sunlight_extremo', icon: '💀', unlocked: false, reward: { pycoins: 800, xp: 700 }, category: 'modos' },
+  sunlight_anti_normal: { key: 'sunlight_anti_normal', icon: '🌑', unlocked: false, reward: { duckpass: 50, xp: 1500 }, category: 'modos' }
 };
 
 const MAPS = {
@@ -2043,6 +2058,10 @@ const SKINS_DATA = {
         'TNT_Glob': 'Diamore Glob',
         'Nuclear_Glob': 'Fracstral Glob'
       }
+    },
+    {
+      id: 'froggy_set', name: 'skin_froggy_name', desc: 'skin_froggy_desc', cost: 1500, type: 'pycoin', isSpecial: true, unlockCondition: 'win_sunlight_summer_anti_normal',
+      filter: 'hue-rotate(120deg) saturate(1.5)'
     }
   ],
   'Special': [
@@ -2080,6 +2099,28 @@ const SKINS_DATA = {
       id: 'crystal_bombot', name: 'skin_crystal_bombot_name', desc: 'skin_crystal_bombot_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_boss_frames',
       skins: {
         'Work_Bombot': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Crystal-Bombot.png'
+      }
+    }
+  ],
+
+  'Pirate_Glob': [
+    {
+      id: 'froggy_set', name: 'skin_froggy_name', desc: 'skin_froggy_desc', cost: 1500, type: 'pycoin', isSpecial: true, unlockCondition: 'win_sunlight_summer_anti_normal',
+      skins: {
+        'Pirate_Glob': 'img/skins/Tadpole Glob (SK-EVO1).png',
+        'PMate_Glob': 'img/skins/Froggy Glob (SK-EVO2).png',
+        'BreathKing_Glob': 'img/skins/Frogold Glob (SK-EVO3).png',
+        'Haunted_Pirate_Glob': 'img/skins/King Frog Glob (SK-EVO4).png',
+        'Boat_S1': 'img/skins/Lillypad (SK-S1).png',
+        'Boat_S2': 'img/skins/Lillypad (SK-S1).png',
+        'Boat_S3': 'img/skins/Flowered Lillypad (SK-S3).png',
+        'Boat_S4': 'img/skins/Flowered Lillypad (SK-S3).png'
+      },
+      names: {
+        'Pirate_Glob': 'Tadpole Glob',
+        'PMate_Glob': 'Froggy Glob',
+        'BreathKing_Glob': 'Frogold Glob',
+        'Haunted_Pirate_Glob': 'King Frog Glob'
       }
     }
   ],
@@ -2155,7 +2196,9 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_crystal_bombot_name": "Crystal-Bombot",
   "skin_crystal_bombot_desc": "La variante de cristal del Bombot.",
   "skin_fracstal_name": "Set Fracstral",
-  "skin_fracstal_desc": "Unos Globs que se cristalizaron, pero esto no los detiene de poder estallar mas fuerte gracias a su amplificacion de poder.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Creado por: Credible</span>"
+  "skin_fracstal_desc": "Unos Globs que se cristalizaron, pero esto no los detiene de poder estallar mas fuerte gracias a su amplificacion de poder.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Creado por: Credible</span>",
+  "skin_froggy_name": "Froggy Set",
+  "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>"
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
@@ -2182,7 +2225,9 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_crystal_bombot_name": "Crystal-Bombot",
   "skin_crystal_bombot_desc": "The crystal variant of the Bombot.",
   "skin_fracstal_name": "Fracstal Set",
-  "skin_fracstal_desc": "Some Globs that crystallized, but this does not stop them from being able to explode stronger thanks to their power amplification.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Created by: Credible</span>"
+  "skin_fracstal_desc": "Some Globs that crystallized, but this does not stop them from being able to explode stronger thanks to their power amplification.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Created by: Credible</span>",
+  "skin_froggy_name": "Froggy Set",
+  "skin_froggy_desc": "Frogs that fish and grow... But their lily pads do deal damage!<br><span style='font-size:0.8em; color: teal;'>Skin designed and drawn by \"Victorillo\", current artwork by KirByte_Bi.</span>"
 });
 
 window.SKIN_META = window.SKIN_META || {};
