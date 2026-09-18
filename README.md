@@ -24,7 +24,7 @@ You can play on PC, mobile and tablet. The game is designed to work horizontally
 
 ## 💰 Currencies
 
-### 🟡 Globets / Globetines
+### 🎫 Globets / Globetines
 
 The currency used during a match.
 
