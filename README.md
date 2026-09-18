@@ -1,11 +1,12 @@
 # 🌟 GLOB DEFENDERS - OFFICIAL GUIDE 🌐
+
 Welcome to **Glob Defenders**!
 
-A tower defense game where you use the Globs to defend your base against the Pyces.
+A tower defense game where you use the Globs to defend your base against the Pyces or other enemies on the way.
 
 Place your towers, evolve them, use their abilities and try to survive as many waves as possible.
 
-But be careful... the Pyces don't always play fair.
+But be careful... the Pyces don't always play fair and there's more than just Pyces wanting to end you.
 
 ---
 
@@ -17,13 +18,13 @@ But be careful... the Pyces don't always play fair.
 * Click on a tower to see its evolutions and upgrades.
 * Defend the base and don't let the Pyces reach it!
 
-You can play on PC, mobile and tablet. The game is designed to work horizontally on cell devices.
+You can play on PC, mobile and tablet. The game is designed to work horizontally on mobile devices.
 
 ---
 
 ## 💰 Currencies
 
-### 🟡 Globets/Globetines
+### 🟡 Globets / Globetines
 
 The currency used during a match.
 
@@ -47,7 +48,7 @@ You can obtain them through the Duck Pass, codes and other rewards.
 
 Each family has its own style of combat.
 
-Some are focused on damage, others on support, money or special effects.
+Some focus on damage, while others focus on support, money or special effects.
 
 ### 🟢 Green Glob
 
@@ -75,25 +76,27 @@ A support family that slows enemies using bubbles.
 
 It has short range, but can help other towers deal with enemies more easily.
 
-### ⚫ Comet Glob
+### ⚫ Comet Glob
 
-A family with a more unusual style and special mechanics.
+A family based around high damage and returning projectiles.
 
-Its evolutions focus on different types of attacks and effects.
+Its attacks and evolutions use different star-based mechanics, including projectiles that can return like boomerangs.
 
 ### ⚪ Old Glob
 
 An old family connected to the history of the Globs.
 
-It uses different projectile mechanics and has its own special evolutions.
+It uses its own projectile mechanics and has several special evolutions.
 
 ---
 
-## 🛠️ Support Families (Urban Reborn, Interstellar Menace & Leafy Beach Party added Globs)
+## 🛠️ Support Families
+
+### Urban Reborn, Interstellar Menace & Leafy Beach Party added Globs
 
 Not every Glob needs to deal direct damage.
 
-Some are designed to help the other towers.
+Some are designed to help the other towers or deal with enemies in different ways.
 
 ### 🟠 Worker Glob
 
@@ -111,22 +114,31 @@ However, towers inside the area also have a higher cooldown.
 
 ### 🩷 Streamer Glob
 
-The diacounter Glob that makes ur towers cheaper while also decreasing their own damage/attack.
+The **diacounter Glob**.
+
+It makes your towers cheaper, but also reduces their own damage and attack speed.
 
 ### 💥 Bomb Glob
 
-Explodes when an enemy enters its range.
+Explodes when an enemy enters its range, then it disappears.
 
 Its evolutions improve the explosion's damage and area, with different effects such as burning or poison.
+
 **Made by JustAUser and supervised by Kirb.**
 
 ### 🌱 Sprout Glob
 
-This Globs can decrease the speed of the enemies that stand in ther range, the speed decrease may vary from one evolution to another, making it better each evo you buy.
+This Glob can decrease the speed of enemies inside its range.
+
+The amount of slow can vary between evolutions, becoming stronger as you buy more evolutions.
 
 ### 🏴‍☠️ Crewmate Glob
 
-The first summoner Glob, use their ships as a shield to your base, some even launch cannonballs (or they own bombs like Bomb Glob)!!
+The first summoner Glob.
+
+It uses ships as shields for your base, while some of them can also attack with cannonballs.
+
+Some can even use bombs similar to Bomb Glob!
 
 ---
 
@@ -157,7 +169,7 @@ They are useful when a wave becomes difficult or when several towers can benefit
 
 ---
 
-***If the glob's familly doesn't have a G-Tack or a Duckgrade, please contact to KirByte. Sometimes when adding a Glob it matters more to work rather than the abillities it can have.***
+***If a Glob family doesn't have a G-Tack or a Duckgrade, please contact KirByte. Sometimes, when adding a new Glob, it is more important to make the Glob itself work properly than to give it extra abilities.***
 
 ---
 
@@ -167,24 +179,31 @@ They are useful when a wave becomes difficult or when several towers can benefit
 
 The valley where the Globs originated.
 
-It contains the jelly lake and is one of the first places defended by the Globs. It also named **GL**.
+It contains the jelly lake and is one of the first places defended by the Globs.
+
+It is also known as **GL**.
 
 ### 🏙️ Urbanistic Road
 
 A more developed area with roads, a river and different paths.
 
-The enemies use the roads to reach the base, so you must place your towers carefully. It's also named** UR**, mostly meaning that you are something more. It lated got answered with** Insterstellar Menace** begin** IM** because of** *****Astrorb***.
+The enemies use the roads to reach the base, so you must place your towers carefully.
+
+It is also known as **UR**, mainly meaning that you are becoming something more.
+
+This was later answered by **Interstellar Menace**, known as **IM**, because of **Astrorb**.
 
 ### ☀️ Sunlight Seaside
 
 A beach and port area located south of Urbanistic Road.
 
-The path divides into three curved routes before joining together again and ending at a boat. Mostly like a 8, two paths that connect at one point but they still going after that.
+The path looks mostly like an 8. Two paths connect at one point, but both continue afterwards before reaching the boat.
 
 The enemies want to sink the boat.
 
 Work-Bombot orders the Globs to defend it, since the port and boat will be needed to reach other places that are being attacked.
-The map's also named** SS**.
+
+The map is also known as **SS**.
 
 ---
 
@@ -192,20 +211,20 @@ The map's also named** SS**.
 
 Each difficulty changes the number of waves and the enemies that appear.
 
-| Difficulty           | Waves |
-| -------------------- | ----: |
-| Easy                 |    10 |
-| Normal               |    15 |
-| Hard                 |    25 |
-| Extreme              |    40 |
-| Corrupt              |    40 |
-| Unnormal/Anti-Normal |    35 |
+| Difficulty             | Waves |
+| ---------------------- | ----: |
+| Easy                   |    10 |
+| Normal                 |    15 |
+| Hard                   |    25 |
+| Extreme                |    40 |
+| Corrupt                |    40 |
+| Unnormal / Anti-Normal |    35 |
 
 Higher difficulties don't only increase enemy health.
 
 They also introduce more enemies, different combinations and harder wave spikes.
 
-**Unnormal **is especially unusual. It follows its own logic... when it feels like it.
+**Unnormal** is especially unusual. It follows its own logic... when it feels like it.
 
 ---
 
@@ -222,7 +241,7 @@ Some bosses you may encounter include:
 * **NOeye**
 * **Arky**
 * **PhantKeeper**
-* **Astrorb** (only in the collab quest of **IM**).
+* **Astrorb** — only in the **IM** collaboration quest.
 
 Be prepared. Bosses are not just bigger enemies.
 
@@ -273,8 +292,9 @@ The **Show Hitbox** option can be useful if you want to understand the range and
 
 Glob Defenders can include collaborations with other creators and projects.
 
-One example is the collaboration with **Star Jump**, which introduced the Starry skin for the **Gray family**.
-The second collaboration was with** Cube Adventure**, including the **Interstellar Menace** update as a whole quest between both** CA** and** GlD**.
+One example is the collaboration with **StarJump**, which introduced the Starry skin for the **Gray family**.
+
+The second collaboration was with **Cube Adventure**, which introduced the **Interstellar Menace** update as a full quest between **CA** and **GlD**.
 
 Thanks to everyone who helps make the game possible!
 
@@ -286,19 +306,25 @@ Thanks to everyone who helps make the game possible!
 
 Check the requirements in the game. Some towers and families require specific achievements or game progress.
 
-If theres no clues, try doing Corrupt or Unnormal.
+If there are no clues, try completing **Corrupt** or **Unnormal**.
 
 ### What are PyCoins used for?
 
-PyCoins are used for unlocking content, skins and other improvements outside of matches. Check it on the shop because sometimes you will need PyCoins and Duckpasses.
+PyCoins are used for unlocking content, skins and other improvements outside of matches.
+
+Check the shop, because some things require both **PyCoins** and **Duckpasses**.
 
 ### Can I play on mobile?
 
-Yes! The game supports horizontal mobile gameplay. (For the moment it's begin worked on it's responsabillity)
+Yes! The game supports horizontal mobile gameplay.
 
-### What happens if a Pyce/enemy reaches the base?
+Mobile responsiveness is still being worked on, so some things may not work perfectly yet.
 
-You lose base health. If the base runs out of health, the match ends.
+### What happens if a Pyce or enemy reaches the base?
+
+You lose base health.
+
+If the base runs out of health, the match ends.
 
 ---
 
@@ -306,12 +332,12 @@ You lose base health. If the base runs out of health, the match ends.
 
 **Development:** KirByte_Bi
 
-**Glob Creators:** JustAUser and Credible
+**Glob Creators:** JustAUser and Credible
 
-**Skin Creators:** KirByte_Bi, Nitrogen and Credible.
+**Skin Creators:** KirByte_Bi, Nitrogen and Credible
 
 Thanks to everyone who plays, tests and supports Glob Defenders.
 
 And remember:
 
-# Never let the Globs fail you, or withness the bad corporations take over the immortallity.
+# Never let the Globs fail you, or witness the bad corporations take over immortality.
