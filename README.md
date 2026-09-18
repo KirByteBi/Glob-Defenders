@@ -1,4 +1,4 @@
-# 🌟 GLOB DEFENDERS - GUÍA OFICIAL 🌐
+# 🌟 GLOB DEFENDERS - OFFICIAL GUIDE 🌐
 Welcome to **Glob Defenders**!
 
 A tower defense game where you use the Globs to defend your base against the Pyces.
