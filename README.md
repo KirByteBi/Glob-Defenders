@@ -30,13 +30,13 @@ The currency used during a match.
 
 You earn them by defeating enemies and use them to place and upgrade Globs.
 
-### 🟣 PyCoins
+### 🪙 PyCoins
 
 The main currency outside of matches.
 
 You can use them to unlock new families, buy skins and improve your progress.
 
-### 🦆 Duckpasses
+### 💳🦆 Duckpasses
 
 Special cards used for Duckgrades and certain skins.
 
