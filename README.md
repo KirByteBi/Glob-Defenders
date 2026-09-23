@@ -292,9 +292,9 @@ The **Show Hitbox** option can be useful if you want to understand the range and
 
 Glob Defenders can include collaborations with other creators and projects.
 
-One example is the collaboration with **StarJump**, which introduced the Starry skin for the **Gray family**.
+One example is the collaboration with **Star Jump**, which introduced the Starry skin for the **Gray family**.
 
-The second collaboration was with **Cube Adventure**, which introduced the **Interstellar Menace** update as a full quest between **CA** and **GlD**.
+The second collaboration was with **Cube Adventure** (by Eithancrea), which introduced the **Interstellar Menace** update as a full quest between **CA** and **GlD**.
 
 Thanks to everyone who helps make the game possible!
 
@@ -335,6 +335,8 @@ If the base runs out of health, the match ends.
 **Glob Creators:** JustAUser and Credible
 
 **Skin Creators:** KirByte_Bi, Nitrogen and Credible
+
+**Collaborators** Eithancrea
 
 Thanks to everyone who plays, tests and supports Glob Defenders.
 
