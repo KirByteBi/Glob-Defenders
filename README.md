@@ -336,7 +336,7 @@ If the base runs out of health, the match ends.
 
 **Skin Creators:** KirByte_Bi, Nitrogen and Credible
 
-**Collaborators** Eithancrea
+**Collaborators:** Eithancrea
 
 Thanks to everyone who plays, tests and supports Glob Defenders.
 
