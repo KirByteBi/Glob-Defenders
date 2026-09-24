@@ -222,6 +222,15 @@
             <strong>Diálogo personalizado</strong>
             <input id="debug-speaker-search" type="search" placeholder="Busca personaje o imagen..." autocomplete="off">
             <div id="debug-speaker-results" class="debug-search-results"></div>
+            <div id="debug-mysterybug-options" class="debug-mysterybug-options" hidden>
+                <label>Nombre de ??? <input id="debug-mysterybug-name" type="text" maxlength="32" value="???"></label>
+                <label>Icono
+                    <select id="debug-mysterybug-image">
+                        <option value="img/Sellos/MysteryBug.png">MysteryBug</option>
+                        <option value="img/Sellos/AstralExclamation.png">Astral Exclamation</option>
+                    </select>
+                </label>
+            </div>
             <textarea id="debug-dialogue-text" rows="3" placeholder="Escribe lo que quieres que diga..."></textarea>
             <button type="button" id="debug-show-dialogue" disabled>Mostrar diálogo</button>
         </div>

@@ -1556,6 +1556,7 @@ function getDebugPathTerms(path) {
 }
 
 function debugSearchScore(query, values) {
+  if (String(query || '').trim() === '???' && values.some(value => String(value || '').trim() === '???')) return 1001;
   const needle = normalizeDebugSearch(query);
   if (!needle) return 0;
   const haystack = values.map(normalizeDebugSearch).join(' ');
@@ -1672,8 +1673,19 @@ function setupOwnerDebugTools() {
   const speakerResults = document.getElementById('debug-speaker-results');
   const dialogueText = document.getElementById('debug-dialogue-text');
   const showDialogueButton = document.getElementById('debug-show-dialogue');
+  const mysteryBugOptions = document.getElementById('debug-mysterybug-options');
+  const mysteryBugName = document.getElementById('debug-mysterybug-name');
+  const mysteryBugImage = document.getElementById('debug-mysterybug-image');
   let selectedEnemy = null;
   let selectedSpeaker = null;
+  const savedMysteryBugName = localStorage.getItem('glob_mysterybug_name');
+  const savedMysteryBugImage = localStorage.getItem('glob_mysterybug_image');
+  if (mysteryBugName && savedMysteryBugName) mysteryBugName.value = savedMysteryBugName;
+  if (mysteryBugImage && ['img/Sellos/MysteryBug.png', 'img/Sellos/AstralExclamation.png'].includes(savedMysteryBugImage)) {
+    mysteryBugImage.value = savedMysteryBugImage;
+  }
+
+  setupOwnerDebugPanelDrag();
 
   const searchEnemies = () => {
     const query = enemySearch.value;
@@ -1703,12 +1715,18 @@ function setupOwnerDebugTools() {
     const registeredSpeakers = Object.entries(narratorData)
       .map(([id, data]) => {
         const languageData = data[currentLanguage] || data.es || data.en || {};
+        const mysteryBugLabel = mysteryBugName?.value.trim() || '???';
         return {
           id,
-          image: data.img,
-          label: languageData.name || id,
+          image: id === 'mysterybug' ? (mysteryBugImage?.value || data.img) : data.img,
+          label: id === 'mysterybug' ? mysteryBugLabel : (languageData.name || id),
           isFallback: false,
-          score: debugSearchScore(query, getSpeakerDebugAliases(id, data, languageData))
+          score: debugSearchScore(
+            query,
+            id === 'mysterybug'
+              ? [...getSpeakerDebugAliases(id, data, languageData), mysteryBugLabel]
+              : getSpeakerDebugAliases(id, data, languageData)
+          )
         };
       });
     const registeredSpeakerImages = new Set(
@@ -1744,9 +1762,11 @@ function setupOwnerDebugTools() {
     renderDebugSearchResults(speakerResults, results, result => {
       selectedSpeaker = result;
       showDialogueButton.disabled = false;
+      mysteryBugOptions.hidden = selectedSpeaker.id !== 'mysterybug';
       renderDebugSearchResults(speakerResults, results, value => {
         selectedSpeaker = value;
         showDialogueButton.disabled = false;
+        mysteryBugOptions.hidden = selectedSpeaker.id !== 'mysterybug';
         searchSpeakers();
       }, selectedSpeaker.id);
     }, selectedSpeaker && selectedSpeaker.id);
@@ -1754,6 +1774,8 @@ function setupOwnerDebugTools() {
 
   enemySearch?.addEventListener('input', searchEnemies);
   speakerSearch?.addEventListener('input', searchSpeakers);
+  mysteryBugName?.addEventListener('input', searchSpeakers);
+  mysteryBugImage?.addEventListener('change', searchSpeakers);
   spawnEnemyButton?.addEventListener('click', () => {
     if (!isOwnerDebugUser() || !selectedEnemy) return;
     spawnEnemy(selectedEnemy.id);
@@ -1767,13 +1789,85 @@ function setupOwnerDebugTools() {
       dialogueText.focus();
       return;
     }
+
     if (selectedSpeaker.isFallback) {
       showNarratorMsg(selectedSpeaker.id, selectedSpeaker.image, selectedSpeaker.label, text, 'speaker-fallback');
       return;
     }
     const data = NARRATOR_DATA[selectedSpeaker.id];
     const languageData = data[currentLanguage] || data.es || data.en || {};
+    if (selectedSpeaker.id === 'mysterybug') {
+      const name = mysteryBugName?.value.trim() || '???';
+      const image = mysteryBugImage?.value || data.img;
+      localStorage.setItem('glob_mysterybug_name', name);
+      localStorage.setItem('glob_mysterybug_image', image);
+      showNarratorMsg(selectedSpeaker.id, image, name, text);
+      return;
+    }
     showNarratorMsg(selectedSpeaker.id, data.img, languageData.name || selectedSpeaker.label, text);
+  });
+}
+
+function setupOwnerDebugPanelDrag() {
+  const panel = document.getElementById('owner-debug-panel');
+  const header = panel?.querySelector('.owner-debug-header');
+  if (!panel || !header) return;
+
+  const savedPosition = localStorage.getItem('glob_owner_debug_position');
+  if (savedPosition) {
+    const [left, top] = savedPosition.split(',').map(Number);
+    if (Number.isFinite(left) && Number.isFinite(top)) {
+      panel.style.left = `${left}px`;
+      panel.style.top = `${top}px`;
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+    }
+  }
+
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  let isDragging = false;
+
+  const movePanel = event => {
+    if (!isDragging) return;
+    const maxLeft = Math.max(0, window.innerWidth - panel.offsetWidth);
+    const maxTop = Math.max(0, window.innerHeight - panel.offsetHeight);
+    const left = Math.min(maxLeft, Math.max(0, event.clientX - dragOffsetX));
+    const top = Math.min(maxTop, Math.max(0, event.clientY - dragOffsetY));
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+  };
+
+  header.addEventListener('pointerdown', event => {
+    if (event.target.closest('button')) return;
+    const rect = panel.getBoundingClientRect();
+    dragOffsetX = event.clientX - rect.left;
+    dragOffsetY = event.clientY - rect.top;
+    isDragging = true;
+    header.setPointerCapture(event.pointerId);
+    panel.classList.add('is-dragging');
+  });
+
+  header.addEventListener('pointermove', movePanel);
+  header.addEventListener('pointerup', event => {
+    if (!isDragging) return;
+    isDragging = false;
+    header.releasePointerCapture(event.pointerId);
+    panel.classList.remove('is-dragging');
+    localStorage.setItem('glob_owner_debug_position', `${panel.offsetLeft},${panel.offsetTop}`);
+  });
+  header.addEventListener('pointercancel', () => {
+    isDragging = false;
+    panel.classList.remove('is-dragging');
+  });
+  window.addEventListener('resize', () => {
+    if (!panel.style.left || !panel.style.top) return;
+    const maxLeft = Math.max(0, window.innerWidth - panel.offsetWidth);
+    const maxTop = Math.max(0, window.innerHeight - panel.offsetHeight);
+    const left = Math.min(maxLeft, Math.max(0, panel.offsetLeft));
+    const top = Math.min(maxTop, Math.max(0, panel.offsetTop));
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
   });
 }
 

@@ -1306,6 +1306,21 @@ const IMAGE_PATHS = {
 };
 
 const NARRATOR_DATA = {
+  mysterybug: {
+    img: 'img/Sellos/MysteryBug.png', es: {
+      name: "???", msgs: [
+        "No deberías poder verme aquí.",
+        "¿Has venido a buscarme?",
+        "Este lugar no estaba preparado para un NPC como yo."
+      ]
+    }, en: {
+      name: "???", msgs: [
+        "You should not be able to see me here.",
+        "Did you come looking for me?",
+        "This place was not prepared for an NPC like me."
+      ]
+    }
+  },
   bombot: {
     img: IMAGE_PATHS.Work_Bombot, es: {
       name: "Bombot de Trabajo", msgs: [
