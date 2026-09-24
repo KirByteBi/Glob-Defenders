@@ -2677,11 +2677,14 @@ function updateResponsiveGameLayout() {
   const viewport = window.visualViewport;
   const viewportWidth = viewport ? viewport.width : document.documentElement.clientWidth;
   const viewportHeight = viewport ? viewport.height : document.documentElement.clientHeight;
-  const touchDevice = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
-  const compactLayout = (viewportWidth <= 1400 || touchDevice) && viewportWidth > viewportHeight;
+  const mobileAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const shortestSide = Math.min(viewportWidth, viewportHeight);
+  const mobileLayout = mobileAgent && shortestSide <= 500;
+  const tabletLayout = mobileAgent && shortestSide > 500 && shortestSide <= 1100;
+  const compactLayout = (mobileLayout || tabletLayout) && viewportWidth > viewportHeight;
   if (!compactLayout) return;
 
-  const sideWidth = 76;
+  const sideWidth = mobileLayout ? 76 : 100;
   const topOffset = 42;
   const availableWidth = Math.max(320, viewportWidth - (sideWidth * 2) - 8);
   const availableHeight = Math.max(220, viewportHeight - topOffset - 4);
@@ -2693,6 +2696,24 @@ function updateResponsiveGameLayout() {
   gameArea.style.width = '1000px';
   gameArea.style.height = '600px';
   gameArea.style.transform = `scale(${scale})`;
+
+  const towerShop = document.getElementById('tower-shop');
+  const languageToggle = document.getElementById('language-toggle');
+  const optionsToggle = document.getElementById('options-toggle');
+  const metaControls = document.getElementById('meta-controls');
+  towerShop?.style.setProperty('position', 'fixed', 'important');
+  towerShop?.style.setProperty('left', '3px', 'important');
+  towerShop?.style.setProperty('right', 'auto', 'important');
+  towerShop?.style.setProperty('top', `${topOffset}px`, 'important');
+  languageToggle?.style.setProperty('left', 'auto', 'important');
+  languageToggle?.style.setProperty('right', '4px', 'important');
+  languageToggle?.style.setProperty('top', '4px', 'important');
+  optionsToggle?.style.setProperty('left', 'auto', 'important');
+  optionsToggle?.style.setProperty('right', '4px', 'important');
+  optionsToggle?.style.setProperty('top', '50px', 'important');
+  metaControls?.style.setProperty('left', 'auto', 'important');
+  metaControls?.style.setProperty('right', '4px', 'important');
+  metaControls?.style.setProperty('top', '92px', 'important');
 }
 
 const GAME_DESIGN_W = 1000;
@@ -2705,9 +2726,14 @@ function applyScale() {
   const viewport = window.visualViewport;
   const viewportWidth = viewport ? viewport.width : document.documentElement.clientWidth;
   const viewportHeight = viewport ? viewport.height : document.documentElement.clientHeight;
-  const touchDevice = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
-  const compactLayout = (viewportWidth <= 1400 || touchDevice) && viewportWidth > viewportHeight;
-  document.body.classList.toggle('touch-landscape', compactLayout && touchDevice);
+  const mobileAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const shortestSide = Math.min(viewportWidth, viewportHeight);
+  const mobileLayout = mobileAgent && shortestSide <= 500;
+  const tabletLayout = mobileAgent && shortestSide > 500 && shortestSide <= 1100;
+  const compactLayout = (mobileLayout || tabletLayout) && viewportWidth > viewportHeight;
+  document.body.classList.toggle('touch-landscape', compactLayout);
+  document.body.classList.toggle('mobile-landscape', mobileLayout && compactLayout);
+  document.body.classList.toggle('tablet-landscape', tabletLayout && compactLayout);
 
   if (compactLayout) {
     container.style.transform = 'none';
@@ -2716,6 +2742,12 @@ function applyScale() {
     updateResponsiveGameLayout();
     return;
   }
+
+  ['tower-shop', 'language-toggle', 'options-toggle', 'meta-controls'].forEach(id => {
+    const element = document.getElementById(id);
+    if (!element) return;
+    ['position', 'left', 'right', 'top'].forEach(property => element.style.removeProperty(property));
+  });
 
   const area = document.getElementById('game-area');
   const wrapper = document.querySelector('.game-scale-wrapper');
