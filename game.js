@@ -533,14 +533,22 @@ const LOADING_TIPS = {
       'No te obsesiones con el daño: a veces la mejor jugada es controlar el campo.',
       'Revisa tus torres con frecuencia; un buen posicionamiento salva partidas difíciles.',
       'Los mapas largos te premian con paciencia y con rutas bien protegidas.',
-      'Antes de gastar todo, asegúrate de que tus defensas sostienen la siguiente oleada.'
+      'Antes de gastar todo, asegúrate de que tus defensas sostienen la siguiente oleada.',
+      'Utiliza torres grises cerca de dos caminos para quitarte de encima a enemigos débiles, pero no aguantarán mucho contra los grandes.',
+      'Las familias negras deben ir detrás y acompañadas de una familia rosa para reducir su coste.',
+      'Procura elegir bien tu equipo; muchas veces lo importante no es el ataque sino el equilibrio.',
+      'El modo corrupto y el modo Anti-Normal son modos secretos. ¡Intenta descubrirlos!',
+      'Prueba a clicar el icono de vida... ¡A ver qué te espera!'
     ],
     enemy: [
       'Los Pyces rápidos te obligan a reaccionar antes de que te corten la presión.',
       'Los enemigos con mucha salud necesitan más de una línea de daño o apoyo.',
       'Si ves enemigos con escudos o resistencia, cambia el enfoque de tu defensa.',
       'Los Pyces con comportamiento especial suelen venir en grupos más peligrosos.',
-      'Los oleajes más altos no siempre piden más daño: a veces necesitas más control.'
+      'Los oleajes más altos no siempre piden más daño: a veces necesitas más control.',
+      'Los enemigos no tienen una meta fija; si ves que alguno se te escapa, ponle una torre barata que ataque y elimínalo.',
+      'Hay jefes que vienen acompañados, pero puedes eliminar al jefe primero y luego al resto.',
+      'Los jefes con escudos suelen ser invulnerables a paralizaciones.'
     ],
     families: {
       Glob: [
@@ -679,7 +687,10 @@ const LOADING_TIPS = {
 
 function getLoadingTips(language) {
   const locale = LOADING_TIPS[language] || LOADING_TIPS.es;
-  const familyPool = Object.entries(locale.families || {}).flatMap(([family, tips]) => tips.map(tip => `${family}: ${tip}`));
+  const familyPool = Object.entries(locale.families || {}).flatMap(([family, tips]) => {
+    const cleanFamily = String(family).replace(/_/g, ' ');
+    return tips.map(tip => `${cleanFamily}: ${tip}`);
+  });
   const generalLabel = language === 'es' ? 'General' : 'General';
   const enemyLabel = language === 'es' ? 'Enemigo' : 'Enemy';
   const generalPool = (locale.general || []).map(tip => `${generalLabel}: ${tip}`);
