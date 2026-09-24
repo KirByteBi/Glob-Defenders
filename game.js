@@ -2839,7 +2839,9 @@ function drawShop() {
         let canBuy = false;
 
         if (isUnlocked) {
-          btnText = isEquipped ? translate('actual') : translate('equip_btn');
+          canBuy = true;
+          btnText = isEquipped ? (currentLanguage === 'es' ? 'Desequipar' : 'Unequip') : translate('equip_btn');
+          onclickAction = isEquipped ? `equipSkin('${family}', 'default')` : `equipSkin('${family}', '${skin.id}')`;
         } else if (skin.type === 'free') {
           btnText = '🔒 Especial';
           costDisplay = `<div class="cost" style="color:#ffd700">🎁 Gratis (drop)</div>`;
@@ -2959,8 +2961,8 @@ function drawShop() {
               previewImg = skin.skins[family] || Object.values(skin.skins)[0];
             }
           } else if (skin.pyce_morph) {
-            // Pyce Randomizer: show Pyce2 as preview
-            previewImg = IMAGE_PATHS['Pyce2'] || 'img/Pyce Randomizer (ENEMY SKIN).png';
+            // All-Stars Randomizer: show Pyce2 as preview
+            previewImg = IMAGE_PATHS['Pyce2'] || 'img/All-Stars Randomizer (ENEMY SKIN).png';
           } else {
             previewImg = 'img/Glob_DEF.png';
           }
@@ -2986,8 +2988,8 @@ function drawShop() {
               <button class="skin-buy-btn" disabled style="background:${colorHex}22; border:1px solid ${colorHex}55; color:${colorHex}; cursor:not-allowed;">${btnText}</button>`;
           } else {
             if (skin.type === 'free' || skin.cost === 0) {
-              btnText = isEquipped ? translate('actual') : translate('equip_btn');
-              onclickAction = `equipSkin('${family}', '${skin.id}')`;
+              btnText = isEquipped ? (currentLanguage === 'es' ? 'Desequipar' : 'Unequip') : translate('equip_btn');
+              onclickAction = isEquipped ? `equipSkin('${family}', 'default')` : `equipSkin('${family}', '${skin.id}')`;
               canBuy = true;
             } else {
               btnText = translate('buy');
@@ -3358,18 +3360,37 @@ function drawPass() {
      title.innerHTML = isUrbanPass ? `🏙️ Urban Pass` : `🦆 Duck Pass`;
   }
 
-  [...SKINS_DATA['Global']].sort((a, b) => (a.level || 999) - (b.level || 999)).forEach(skin => {
+  [...SKINS_DATA['Global']].sort((a, b) => (a.level || 999) - (b.level || 999)).forEach((skin, index, arr) => {
+    // Check if this is the first Urban Pass item (level > 100)
+    const isNodeUrban = skin.level > 100;
+    const prevSkin = index > 0 ? arr[index - 1] : null;
+    if (isNodeUrban && (!prevSkin || prevSkin.level <= 100)) {
+      const sep = document.createElement('div');
+      sep.className = 'pass-separator';
+      sep.innerHTML = `<h2 style="color: ${isUrbanPass ? '#3498db' : '#777'}; text-align: center; margin: 20px 0;">🏙️ URBAN PASS 🏙️</h2>`;
+      if (!isUrbanPass) {
+        sep.innerHTML += `<p style="color: #ff4444; text-align: center; margin-bottom: 20px;">${currentLanguage === 'es' ? 'Solo se desbloquea completando el DuckPass (Nivel 100)' : 'Only unlocks by completing the DuckPass (Level 100)'}</p>`;
+      }
+      container.appendChild(sep);
+    }
+
     const unlocked = skin.id === 'pyce_morph' ? (BADGES.encyclopediaMaster && BADGES.encyclopediaMaster.unlocked) : gameState.duckPassLevel >= skin.level;
     const equipped = gameState.equippedSkins['Global'] === skin.id;
     const el = document.createElement('div');
-    el.className = `pass-node ${unlocked ? 'unlocked' : 'locked'}`;
     
-    // Distinguish individual node colors if needed, but the timeline handles it
-    const isNodeUrban = skin.level > 100;
+    let nodeClasses = `pass-node ${unlocked ? 'unlocked' : 'locked'}`;
+    if (isNodeUrban && !isUrbanPass) {
+      nodeClasses += ' urban-locked-grey';
+    }
+    el.className = nodeClasses;
     
     let btnHTML = "";
     if (unlocked) {
-      btnHTML = equipped ? `<button class="meta-buy-btn" disabled>${translate('equipped')}</button>` : `<button class="meta-buy-btn equip" onclick="equipSkin('Global', '${skin.id}')">${translate('equip_btn')}</button>`;
+      if (equipped) {
+        btnHTML = `<button class="meta-buy-btn" style="background:#e74c3c;" onclick="equipSkin('Global', 'default')">${currentLanguage === 'es' ? 'Desequipar' : 'Unequip'}</button>`;
+      } else {
+        btnHTML = `<button class="meta-buy-btn equip" onclick="equipSkin('Global', '${skin.id}')">${translate('equip_btn')}</button>`;
+      }
     } else {
       if (skin.id === 'pyce_morph') {
         btnHTML = `<button class="meta-buy-btn" disabled>${currentLanguage === 'es' ? 'Completa la Enciclopedia' : 'Complete the Encyclopedia'}</button>`;
@@ -6088,9 +6109,9 @@ function activateGTack(t) {
 
     if (gameState.equippedSkins && gameState.equippedSkins['Global'] === 'pyce_morph') {
       const pyceKeys = Object.keys(ENEMY_TYPES).filter(k => ENEMY_TYPES[k] && ENEMY_TYPES[k].image);
-      let hash = 0;
-      for (let i = 0; i < type.length; i++) hash += type.charCodeAt(i);
-      return ENEMY_TYPES[pyceKeys[hash % pyceKeys.length]].image;
+      const towerKeys = Object.keys(TOWER_TYPES);
+      const idx = towerKeys.indexOf(type);
+      return ENEMY_TYPES[pyceKeys[idx % pyceKeys.length]].image;
     }
 
     const equipped = gameState.equippedSkins[family];
@@ -6108,6 +6129,12 @@ function activateGTack(t) {
     if (globalSkin !== 'default') {
       const data = SKINS_DATA['Global'].find(s => s.id === globalSkin);
       if (data?.class) el.classList.add(data.class);
+    }
+    // All-Stars Randomizer: enemies face right (→), Globs face left (←), so flip horizontally
+    if (globalSkin === 'pyce_morph') {
+      el.classList.add('enemy-skin-flipped');
+    } else {
+      el.classList.remove('enemy-skin-flipped');
     }
   }
 
@@ -6633,6 +6660,21 @@ function activateGTack(t) {
     } else if (currentStoryTab === 'logs') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
+        <h3 style="color:#7ec850;">📋 Historial de Actualizaciones (GlD v4.2.1 - LEAFY BEACH PARTY HOTFIX)</h3>
+        <p style="color:#7ec850;">Correcciones, mejoras de animación y actualizaciones visuales sin nuevas salas.</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🐸 <strong style="color:#7ec850;">NUEVA SKIN — Froggy Set</strong>: Derrota el modo Anti-Normal en Sunlight Seaside para hacerte con esta skin de la familia Pirata. Ilustrada originalmente por <em>Victorillo</em> y redibujada por <em>KirByte_Bi</em>.</li>
+          <li>🎲 <strong>All-Stars Randomizer</strong>: La skin de la Enciclopedia ahora se llama All-Stars Randomizer y abarca <em>todos</em> los enemigos del juego, no solo los Pyces. Además, los sprites se voltean automáticamente para mirar en la dirección correcta.</li>
+          <li>🔓 <strong>Desequipar skins</strong>: Ya puedes desequipar cualquier skin desde la tienda o desde el DuckPass pulsando el nuevo botón <em>Desequipar</em>.</li>
+          <li>🌆 <strong>Urban Pass visible desde el DuckPass</strong>: Al llegar al final del DuckPass podrás ver el Urban Pass bloqueado y gris, con su aviso de desbloqueo.</li>
+          <li>✨ <strong>Animaciones de Globs</strong>: Los Globs ahora se animan en reposo (salto o balanceo según la familia) y parpadean al atacar.</li>
+          <li>⏳ <strong>Pantalla de carga en el login</strong>: Ahora hay una breve pantalla de carga animada con el logo del juego y un Glob girando antes de entrar al mapa.</li>
+          <li>🛠️ <strong>Corrección de rutas de imagen</strong>: Arreglados los 404 de AstrorbTF.png y Tadpole Glob (SK-EVO1).png al corregir las carpetas de los sets Astrorb y Froggy.</li>
+          <li>⚙️ <strong>Roles de usuario</strong>: Sistema de roles (OWNER / DEVBUILD / ADMIN) aplicado correctamente a las cuentas de desarrollo.</li>
+          <li>🎮 <strong>Recompensas Anti-Normal</strong>: Todos los modos Anti-Normal ahora dan 500 PyCoins, 450 DuckPasses y XP. En Sunlight Seaside, además, +50 DuckPasses extra.</li>
+        </ul>
+
         <h3 style="color:#e3c08d;">📋 Historial de Actualizaciones (GlD v4.2.0 - LEAFY BEACH PARTY - BIG UPD4)</h3>
         <p style="color:#e3c08d;">¡El verano llega con la gran playa soleada y una temática pirata inigualable!</p>
         <h4>Novedades del Parche:</h4>
@@ -6692,7 +6734,7 @@ function activateGTack(t) {
         <h4>Novedades del Parche:</h4>
         <ul>
           <li>⌨️ <strong>Atajos de Teclado</strong>: Ahora puedes usar <strong>U</strong> para mejorar/colocar, <strong>C</strong> para cancelar/cerrar y <strong>V</strong> para vender.</li>
-          <li>📖 <strong>Progreso en la Enciclopedia</strong>: Cada Pyce tiene ahora una barra de eliminaciones. Al completarlas todas, desbloquearás la skin global exclusiva <strong>Pyce Randomizer</strong>.</li>
+          <li>📖 <strong>Progreso en la Enciclopedia</strong>: Cada Pyce tiene ahora una barra de eliminaciones. Al completarlas todas, desbloquearás la skin global exclusiva <strong>All-Stars Randomizer</strong>.</li>
           <li>🌑 <strong>Void Glob</strong>: La evolución final de la línea Negra ha llegado. Sus oscuros proyectiles te perseguirán sin descanso.</li>
           <li>⚖️ <strong>Balanceo</strong>: Se ha reducido drásticamente la probabilidad de aparición del Stupid GoldPyce.</li>
           <li>🎁 <strong>Nuevas Skins y Secretos</strong>: Añadido el "Set de Ensueño" y el "Set Judicial" (Colaboración comunitaria). Y quizás, algún código haya despertado de sus sueños...</li>
@@ -6728,6 +6770,21 @@ function activateGTack(t) {
       `;
       } else {
         container.innerHTML = `
+        <h3 style="color:#7ec850;">📋 Update Logs (GlD v4.2.1 - LEAFY BEACH PARTY HOTFIX)</h3>
+        <p style="color:#7ec850;">Fixes, animation improvements and visual updates — no new stages.</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🐸 <strong style="color:#7ec850;">NEW SKIN — Froggy Set</strong>: Beat Anti-Normal mode on Sunlight Seaside to unlock this Pirate family skin. Originally designed and drawn by <em>Victorillo</em>, redrawn by <em>KirByte_Bi</em>.</li>
+          <li>🎲 <strong>All-Stars Randomizer</strong>: The Encyclopedia skin has been renamed All-Stars Randomizer and now covers <em>every</em> enemy in the game, not just Pyces. Enemy sprites are also auto-flipped to face the correct direction.</li>
+          <li>🔓 <strong>Unequip skins</strong>: You can now unequip any skin directly from the Shop or the DuckPass using the new <em>Unequip</em> button.</li>
+          <li>🌆 <strong>Urban Pass preview in DuckPass</strong>: Scrolling past level 100 in the DuckPass now reveals the locked Urban Pass in greyscale with an unlock warning.</li>
+          <li>✨ <strong>Glob animations</strong>: Globs now animate while idle (jump or wobble depending on family) and flash when attacking.</li>
+          <li>⏳ <strong>Login loading screen</strong>: A short animated loading screen with the game logo and a spinning Glob now appears before entering the map.</li>
+          <li>🛠️ <strong>Image path fixes</strong>: Fixed 404 errors for AstrorbTF.png and Tadpole Glob (SK-EVO1).png by correcting the Astrorb and Froggy Set folder paths.</li>
+          <li>⚙️ <strong>User roles</strong>: Role system (OWNER / DEVBUILD / ADMIN) correctly applied to development accounts.</li>
+          <li>🎮 <strong>Anti-Normal rewards</strong>: All Anti-Normal modes now award 500 PyCoins, 450 DuckPasses and XP. On Sunlight Seaside an additional +50 DuckPasses are granted.</li>
+        </ul>
+
         <h3 style="color:#e3c08d;">📋 Update Logs (GlD v4.2.0 - LEAFY BEACH PARTY - BIG UPD4)</h3>
         <p style="color:#e3c08d;">Summer arrives with the great sunny beach and an unparalleled pirate theme!</p>
         <h4>What's New in this Patch:</h4>
@@ -6787,7 +6844,7 @@ function activateGTack(t) {
         <h4>What's New in this Patch:</h4>
         <ul>
           <li>⌨️ <strong>Keyboard Hotkeys</strong>: You can now use <strong>U</strong> to upgrade/place, <strong>C</strong> to cancel/close and <strong>V</strong> to sell.</li>
-          <li>📖 <strong>Encyclopedia Progress</strong>: Each Pyce now has a kill tracker bar. Completing all of them unlocks the exclusive global skin <strong>Pyce Randomizer</strong>.</li>
+          <li>📖 <strong>Encyclopedia Progress</strong>: Each Pyce now has a kill tracker bar. Completing all of them unlocks the exclusive global skin <strong>All-Stars Randomizer</strong>.</li>
           <li>🌑 <strong>Void Glob</strong>: The final evolution of the Black family is here. Its dark projectiles will track you relentlessly.</li>
           <li>⚖️ <strong>Balance</strong>: The spawn probability of the Stupid GoldPyce has been drastically reduced.</li>
           <li>🎁 <strong>New Skins & Secrets</strong>: Added "Dreams Set" and "Judicial Set" (Community Collab). And maybe, a code has awakened from its dreams...</li>

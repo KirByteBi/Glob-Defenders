@@ -2456,3 +2456,31 @@ body.fullscreen-map #meta-controls {
     animation: attackPulse 0.25s ease forwards !important;
 }
 
+
+/* ===================== URBAN PASS SEPARATOR ===================== */
+.pass-separator { width: 100%; grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; border-top: 2px dashed #555; padding-top: 20px; }
+.urban-locked-grey { filter: grayscale(100%); opacity: 0.6; }
+
+
+/* All-Stars Randomizer: flip enemy images to face left (←) like Globs do */
+@keyframes idleJumpFlipped {
+    0%, 100% { transform: translate(-50%, -50%) scaleX(-1) translateY(0px); filter: brightness(1); }
+    50%       { transform: translate(-50%, -50%) scaleX(-1) translateY(-7px); filter: brightness(1.05); }
+}
+
+@keyframes idleWobbleFlipped {
+    0%, 100% { transform: translate(-50%, -50%) scaleX(-1) translateX(0px) rotate(0deg); }
+    25%       { transform: translate(-50%, -50%) scaleX(-1) translateX(-5px) rotate(3deg); }
+    75%       { transform: translate(-50%, -50%) scaleX(-1) translateX(5px) rotate(-3deg); }
+}
+
+@keyframes attackPulseFlipped {
+    0%   { transform: translate(-50%, -50%) scaleX(-1) scale(1); filter: brightness(1); }
+    30%  { transform: translate(-50%, -50%) scaleX(-1) scale(1.18); filter: brightness(1.5); }
+    60%  { transform: translate(-50%, -50%) scaleX(-1) scale(0.95); filter: brightness(1.2); }
+    100% { transform: translate(-50%, -50%) scaleX(-1) scale(1); filter: brightness(1); }
+}
+
+.tower.enemy-skin-flipped.idle-jump   { animation-name: idleJumpFlipped; }
+.tower.enemy-skin-flipped.idle-wobble { animation-name: idleWobbleFlipped; }
+.tower.enemy-skin-flipped.attacking   { animation: attackPulseFlipped 0.25s ease forwards !important; }

@@ -542,7 +542,7 @@ const TRANSLATIONS = {
     badge_unlocked: "¡DESBLOQUEADO!",
     badge_locked: "BLOQUEADO",
     badge_reward_label: "RECOMPENSA: ",
-    skin_unlocked_pyce_randomizer: "🎁 ¡SKIN 'Pyce Randomizer' DESBLOQUEADA!",
+    skin_unlocked_pyce_randomizer: "🎁 ¡SKIN 'All-Stars Randomizer' DESBLOQUEADA!",
     skin_unlocked_crystal_bombot: "🎁 ¡SKIN 'Crystal-Bombot' DESBLOQUEADA!",
     skin_unlocked_astrorb: "🎁 ¡SKIN 'Astrorb' DESBLOQUEADA!",
     skin_unlocked_cuby: "🎁 ¡SKIN CUBY (Work-Bombot) DESBLOQUEADA!",
@@ -1089,7 +1089,7 @@ const TRANSLATIONS = {
     badge_unlocked: "UNLOCKED!",
     badge_locked: "LOCKED",
     badge_reward_label: "REWARD: ",
-    skin_unlocked_pyce_randomizer: "🎁 'Pyce Randomizer' SKIN UNLOCKED!",
+    skin_unlocked_pyce_randomizer: "🎁 'All-Stars Randomizer' SKIN UNLOCKED!",
     skin_unlocked_crystal_bombot: "🎁 'Crystal-Bombot' SKIN UNLOCKED!",
     skin_unlocked_astrorb: "🎁 'Astrorb' SKIN UNLOCKED!",
     skin_unlocked_cuby: "🎁 CUBY (Work-Bombot) SKIN UNLOCKED!",
@@ -1993,9 +1993,9 @@ const SKINS_DATA = {
     {
       id: 'astrorb_set', name: 'skin_astrorb_name', desc: 'skin_astrorb_desc', cost: 400, duckpass_cost: 350, type: 'pycoin', isSpecial: true, unlockCondition: 'astrorb_frame',
       skins: {
-        'Old_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png',
-        'Pyce_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbContenida.png',
-        'SpyGlob': 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbTF.png'
+        'Old_Glob': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbOrbe.png',
+        'Pyce_Glob': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbContenido.png',
+        'SpyGlob': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbTF.png'
       },
       names: {
         'Old_Glob': { es: 'Astrorb (Orbe)', en: 'Astrorb (Orb)' },
@@ -2107,14 +2107,14 @@ const SKINS_DATA = {
     {
       id: 'froggy_set', name: 'skin_froggy_name', desc: 'skin_froggy_desc', cost: 1500, type: 'pycoin', isSpecial: true, unlockCondition: 'win_sunlight_summer_anti_normal',
       skins: {
-        'Pirate_Glob': 'img/skins/Tadpole Glob (SK-EVO1).png',
-        'PMate_Glob': 'img/skins/Froggy Glob (SK-EVO2).png',
-        'BreathKing_Glob': 'img/skins/Frogold Glob (SK-EVO3).png',
-        'Haunted_Pirate_Glob': 'img/skins/King Frog Glob (SK-EVO4).png',
-        'Boat_S1': 'img/skins/Lillypad (SK-S1).png',
-        'Boat_S2': 'img/skins/Lillypad (SK-S1).png',
-        'Boat_S3': 'img/skins/Flowered Lillypad (SK-S3).png',
-        'Boat_S4': 'img/skins/Flowered Lillypad (SK-S3).png'
+        'Pirate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Tadpole Glob (SK-EVO1).png',
+        'PMate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Froggy Glob (SK-EVO2).png',
+        'BreathKing_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Frogold Glob (SK-EVO3).png',
+        'Haunted_Pirate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/King Frog Glob (SK-EVO4).png',
+        'Boat_S1': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Lillypad (SK-S1).png',
+        'Boat_S2': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Lillypad (SK-S1).png',
+        'Boat_S3': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Flowered Lillypad (SK-S3).png',
+        'Boat_S4': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Flowered Lillypad (SK-S3).png'
       },
       names: {
         'Pirate_Glob': 'Tadpole Glob',
@@ -2179,8 +2179,8 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_globsus_desc": "Un Bombot bastante sospechoso. Creado por KirByte_Bi. <br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
   "tower_Void_Glob_name": "Void Glob",
   "tower_Void_Glob_desc": "El abismo en sí. Los proyectiles de este Glob oscuro se curvan en el aire persiguiendo al enemigo. Ha perdido todo efecto, pero la muerte es segura.",
-  "skin_pyce_morph_name": "Pyce Randomizer",
-  "skin_pyce_morph_desc": "¡Sorpresa! Cada nivel de tu torre adopta la apariencia de un Pyce al azar.",
+  "skin_pyce_morph_name": "All-Stars Randomizer",
+  "skin_pyce_morph_desc": "¡Sorpresa! Cada nivel de tu torre adopta la apariencia de un enemigo al azar... ¡incluidos los más temibles!",
   "skin_dreams_name": "Set de Ensueño",
   "skin_dreams_desc": "¿Son estos tus heroes? Yo diria que si, son un buen equipo de ensueño.<br><span style='font-size:0.8em; color:#aaa;'>Los personajes pertenecen a HAL Laboratory y a Nintendo, yo solo tengo el derecho de Globs y Pyces.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
   "skin_judicial_name": "Set Judicial",
@@ -2208,8 +2208,8 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_globsus_desc": "A very suspicious Bombot. Created by KirByte_Bi. <br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
   "tower_Void_Glob_name": "Void Glob",
   "tower_Void_Glob_desc": "The abyss itself. The projectiles of this dark Glob curve in the air chasing the enemy. It has lost all effects, but death is certain.",
-  "skin_pyce_morph_name": "Pyce Randomizer",
-  "skin_pyce_morph_desc": "Surprise! Each level of your tower takes the appearance of a random Pyce.",
+  "skin_pyce_morph_name": "All-Stars Randomizer",
+  "skin_pyce_morph_desc": "Surprise! Each level of your tower takes the appearance of a random enemy... including the most fearsome ones!",
   "skin_dreams_name": "Dreams Set",
   "skin_dreams_desc": "Are these your heroes? I'd say yes, they are a good dream team.<br><span style='font-size:0.8em; color:#aaa;'>The characters belong to HAL Laboratory and Nintendo, I only have the rights to Globs and Pyces.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
   "skin_judicial_name": "Judicial Set",
