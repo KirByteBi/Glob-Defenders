@@ -243,6 +243,12 @@ body {
     background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
 }
 
+#create-account-btn {
+    width: 100%;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+}
+
 #map-selection, #mode-selection {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -3116,6 +3122,10 @@ body.fullscreen-map #meta-controls {
     border: 1px solid rgba(255, 105, 180, 0.35);
     border-radius: 7px;
     background: rgba(255, 105, 180, 0.08);
+}
+
+.debug-mysterybug-options[hidden] {
+    display: none !important;
 }
 
 .debug-mysterybug-options label {

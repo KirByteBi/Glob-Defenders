@@ -641,6 +641,32 @@ function handleLogin() {
   }
 }
 
+function handleCreateAccount() {
+  const nameInput = document.getElementById('username-input');
+  const passInput = document.getElementById('password-input');
+  const msgEl = document.getElementById('login-msg');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const password = passInput ? passInput.value : '';
+
+  if (!name || !password) {
+    if (msgEl) msgEl.textContent = currentLanguage === 'es'
+      ? 'Introduce un usuario y una contraseña para crear la cuenta.'
+      : 'Enter a username and password to create the account.';
+    return;
+  }
+
+  if (USERS[name]) {
+    if (msgEl) msgEl.textContent = currentLanguage === 'es'
+      ? 'Esta cuenta ya existe. Inicia sesión.'
+      : 'This account already exists. Log in instead.';
+    return;
+  }
+
+  USERS[name] = password;
+  saveUsers();
+  handleLogin();
+}
+
 function selectMap(mapId) {
   gameState.map = mapId;
   const mapScreen = document.getElementById('map-selection');
@@ -1684,6 +1710,20 @@ function setupOwnerDebugTools() {
   if (mysteryBugImage && ['img/Sellos/MysteryBug.png', 'img/Sellos/AstralExclamation.png'].includes(savedMysteryBugImage)) {
     mysteryBugImage.value = savedMysteryBugImage;
   }
+  const updateMysteryBugOptions = () => {
+    const mysteryBugData = typeof NARRATOR_DATA === 'object' ? NARRATOR_DATA.mysterybug : null;
+    const currentMysteryBugName = mysteryBugName?.value.trim() || '???';
+    const currentMysteryBugImage = mysteryBugImage?.value || mysteryBugData?.img;
+    const hasMysteryBugSelected = Boolean(
+      speakerSearch?.value.trim() &&
+      selectedSpeaker &&
+      selectedSpeaker.id === 'mysterybug' &&
+      !selectedSpeaker.isFallback &&
+      selectedSpeaker.label === currentMysteryBugName &&
+      selectedSpeaker.image === currentMysteryBugImage
+    );
+    mysteryBugOptions.hidden = !hasMysteryBugSelected;
+  };
 
   setupOwnerDebugPanelDrag();
 
@@ -1763,17 +1803,17 @@ function setupOwnerDebugTools() {
     if (!results.some(result => result.id === (selectedSpeaker && selectedSpeaker.id))) {
       selectedSpeaker = null;
       showDialogueButton.disabled = true;
-      mysteryBugOptions.hidden = true;
     }
+    updateMysteryBugOptions();
 
     renderDebugSearchResults(speakerResults, results, result => {
       selectedSpeaker = result;
       showDialogueButton.disabled = false;
-      mysteryBugOptions.hidden = selectedSpeaker.id !== 'mysterybug';
+      updateMysteryBugOptions();
       renderDebugSearchResults(speakerResults, results, value => {
         selectedSpeaker = value;
         showDialogueButton.disabled = false;
-        mysteryBugOptions.hidden = selectedSpeaker.id !== 'mysterybug';
+        updateMysteryBugOptions();
         searchSpeakers();
       }, selectedSpeaker.id);
     }, selectedSpeaker && selectedSpeaker.id);
@@ -1781,8 +1821,15 @@ function setupOwnerDebugTools() {
 
   enemySearch?.addEventListener('input', searchEnemies);
   speakerSearch?.addEventListener('input', searchSpeakers);
-  mysteryBugName?.addEventListener('input', searchSpeakers);
-  mysteryBugImage?.addEventListener('change', searchSpeakers);
+  mysteryBugName?.addEventListener('input', () => {
+    searchSpeakers();
+    updateMysteryBugOptions();
+  });
+  mysteryBugImage?.addEventListener('change', () => {
+    searchSpeakers();
+    updateMysteryBugOptions();
+  });
+  updateMysteryBugOptions();
   spawnEnemyButton?.addEventListener('click', () => {
     if (!isOwnerDebugUser() || !selectedEnemy) return;
     spawnEnemy(selectedEnemy.id);
@@ -2811,6 +2858,8 @@ function selectAlmanacItem(id, category) {
 
 function bindEvents() {
   document.getElementById('login-btn').onclick = handleLogin;
+  const createAccountButton = document.getElementById('create-account-btn');
+  if (createAccountButton) createAccountButton.onclick = handleCreateAccount;
   const nameInput = document.getElementById('username-input');
   if (nameInput) {
     nameInput.addEventListener('input', () => {
