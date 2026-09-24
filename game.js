@@ -3190,7 +3190,6 @@ function drawShop() {
         if (isUnlocked) {
           canBuy = true;
           btnText = isEquipped ? (currentLanguage === 'es' ? 'Desequipar' : 'Unequip') : translate('equip_btn');
-          onclickAction = isEquipped ? `equipSkin('${family}', 'default')` : `equipSkin('${family}', '${skin.id}')`;
         } else if (skin.type === 'free') {
           btnText = '🔒 Especial';
           costDisplay = `<div class="cost" style="color:#ffd700">🎁 Gratis (drop)</div>`;
