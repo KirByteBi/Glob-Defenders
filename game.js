@@ -177,6 +177,8 @@ function init() {
     updateUI();
     updateMetaUI();
     applyScale();
+    setTimeout(applyScale, 0);
+    setTimeout(applyScale, 250);
     gameLoop();
     console.log("Sistema iniciado correctamente.");
   } catch (e) {
@@ -2576,6 +2578,9 @@ function bindEvents() {
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', applyScale);
   }
+  if (screen.orientation) {
+    screen.orientation.addEventListener('change', applyScale);
+  }
 }
 
 function saveGameSnapshot() {
@@ -2672,14 +2677,14 @@ function updateResponsiveGameLayout() {
   const viewport = window.visualViewport;
   const viewportWidth = viewport ? viewport.width : document.documentElement.clientWidth;
   const viewportHeight = viewport ? viewport.height : document.documentElement.clientHeight;
-  const compactLayout = viewportWidth <= 1100 && viewportWidth > viewportHeight;
+  const compactLayout = viewportWidth <= 1400 && viewportWidth > viewportHeight;
   if (!compactLayout) return;
 
   const shopWidth = 76;
   const topOffset = 42;
   const availableWidth = Math.max(320, viewportWidth - shopWidth - 8);
   const availableHeight = Math.max(220, viewportHeight - topOffset - 4);
-  const scale = Math.min(availableWidth / 1000, availableHeight / 600);
+  const scale = Math.min(availableWidth / 1000, availableHeight / 600, 1);
 
   wrapper.style.width = `${availableWidth}px`;
   wrapper.style.height = `${availableHeight}px`;
@@ -2698,7 +2703,7 @@ function applyScale() {
   const viewport = window.visualViewport;
   const viewportWidth = viewport ? viewport.width : document.documentElement.clientWidth;
   const viewportHeight = viewport ? viewport.height : document.documentElement.clientHeight;
-  const compactLayout = viewportWidth <= 1100 && viewportWidth > viewportHeight;
+  const compactLayout = viewportWidth <= 1400 && viewportWidth > viewportHeight;
 
   if (compactLayout) {
     container.style.transform = 'none';
