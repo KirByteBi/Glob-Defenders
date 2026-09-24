@@ -991,6 +991,8 @@ function disableAntiNormal() {
   showMessage(translate('system_restored'), 'success');
 }
 
+let mysteryBugRecentMessages = [];
+
 function handleLogoClick(logo) {
   gameState.logoClicks++;
   logo.classList.remove('glitch-effect');
@@ -1076,7 +1078,11 @@ function handleLogoClick(logo) {
         '¡PARA YA! HASTA LOS PYCES SE ESTÁN RIENDO.',
         'ESTE LOGO TIENE MÁS PACIENCIA QUE YO... DE MOMENTO.'
       ];
-    const message = messages[Math.floor(Math.random() * messages.length)];
+    const availableMessages = messages.filter(message => !mysteryBugRecentMessages.includes(message));
+    const messagePool = availableMessages.length > 0 ? availableMessages : messages;
+    const message = messagePool[Math.floor(Math.random() * messagePool.length)];
+    mysteryBugRecentMessages.push(message);
+    if (mysteryBugRecentMessages.length > 2) mysteryBugRecentMessages.shift();
     showNarratorMsg('mysterybug', '', '???', message);
   }
 
@@ -1911,6 +1917,7 @@ function renderDebugSearchResults(container, results, onSelect, selectedId) {
   results.slice(0, 30).forEach(result => {
     const button = document.createElement('button');
     button.type = 'button';
+    button.dataset.resultId = result.id;
     button.className = `debug-search-result${result.id === selectedId ? ' selected' : ''}`;
     if (result.image) {
       const image = document.createElement('img');
@@ -1950,7 +1957,6 @@ function setupOwnerDebugTools() {
     const currentMysteryBugName = mysteryBugName?.value.trim() || '???';
     const currentMysteryBugImage = mysteryBugImage?.value || mysteryBugData?.img;
     const hasMysteryBugSelected = Boolean(
-      speakerSearch?.value.trim() &&
       selectedSpeaker &&
       selectedSpeaker.id === 'mysterybug' &&
       !selectedSpeaker.isFallback &&
@@ -2045,12 +2051,11 @@ function setupOwnerDebugTools() {
       selectedSpeaker = result;
       showDialogueButton.disabled = false;
       updateMysteryBugOptions();
-      renderDebugSearchResults(speakerResults, results, value => {
-        selectedSpeaker = value;
-        showDialogueButton.disabled = false;
-        updateMysteryBugOptions();
-        searchSpeakers();
-      }, selectedSpeaker.id);
+      speakerResults.querySelectorAll('.debug-search-result').forEach(button => {
+        const isSelected = button.dataset.resultId === result.id;
+        button.classList.toggle('selected', isSelected);
+        button.style.display = isSelected ? 'inline-flex' : 'none';
+      });
     }, selectedSpeaker && selectedSpeaker.id);
   };
 
