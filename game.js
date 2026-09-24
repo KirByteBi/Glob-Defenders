@@ -2564,7 +2564,6 @@ function bindEvents() {
       showMessage('🔄 DEBUG: Estado restaurado al original.', 'warning');
     }
     drawShop();
-    drawLoadout();
     updateUI();
     if (role === 'OWNER') showOwnerDebugPanel();
   };
@@ -3207,7 +3206,7 @@ function drawShop() {
         const specialBadge = skin.isSpecial ? `<div class="special-badge">⭐ ESPECIAL</div>` : '';
 
         const buyable = isUnlocked ? true : (skin.type === 'free' ? false : canBuy);
-        const onclickAction = isUnlocked
+        const skinAction = isUnlocked
           ? `equipSkin('${family}', '${skin.id}')`
           : (skin.type === 'free' ? '' : `buySkin('${family}', '${skin.id}', ${skin.cost})`);
 
@@ -3216,7 +3215,7 @@ function drawShop() {
           <div class="skin-preview ${skin.class || ''}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
           <h3>${translate(skin.name)}</h3><p>${translate(skin.desc)}</p>
           ${!isUnlocked ? costDisplay : ''}
-          <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${(!buyable && !isUnlocked) ? 'disabled' : ''} ${onclickAction ? `onclick="${onclickAction}"` : ''}>${btnText}</button>`;
+          <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${(!buyable && !isUnlocked) ? 'disabled' : ''} ${skinAction ? `onclick="${skinAction}"` : ''}>${btnText}</button>`;
         container.appendChild(el);
       });
     });
