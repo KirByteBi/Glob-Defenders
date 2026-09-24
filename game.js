@@ -560,11 +560,11 @@ const LOADING_TIPS = {
         'Combina Red_Glob con apoyo para eliminar objetivos prioritarios antes de que te abran paso.'
       ],
       Soap_Glob: [
-        'Los Soap_Glob son muy útiles para frenar ataques y ganar tiempo en oleadas difíciles.',
+        'Es muy útil para frenar ataques y ganar tiempo en oleadas difíciles.',
         'Si el enemigo acelera demasiado, la familia azul te da control real del campo.'
       ],
       Ducky_Glob: [
-        'Ducky_Glob favorece la economía y la consistencia; no lo dejes en segundo plano.',
+        'Aporta economía y consistencia; no lo dejes en segundo plano.',
         'Los Ducky son excelentes para generar más recursos y sostener partidas largas.'
       ],
       Comet_Glob: [
@@ -634,11 +634,11 @@ const LOADING_TIPS = {
         'Pair Red_Glob with support to remove priority targets before they break through.'
       ],
       Soap_Glob: [
-        'Soap_Glob is very useful for slowing attacks and buying time in tougher waves.',
+        'It is very useful for slowing attacks and buying time in tougher waves.',
         'If enemies accelerate too much, the blue family gives real map control.'
       ],
       Ducky_Glob: [
-        'Ducky_Glob favors economy and consistency; do not leave it behind.',
+        'It favors economy and consistency; do not leave it behind.',
         'Ducky is excellent for generating more resources and sustaining long runs.'
       ],
       Comet_Glob: [
@@ -3087,8 +3087,8 @@ function bindEvents() {
     es: {
       Glob: ['Los Glob básicos sostienen la defensa temprana; colócalos bien para controlar la primera oleada.', 'Los Glob no son los más fuertes, pero son el núcleo de tu ritmo de juego y de tu economía.'],
       Red_Glob: ['La familia roja suele ser la mejor para empujar daño directo a enemigos rápidos.', 'Combina Red_Glob con apoyo para eliminar objetivos prioritarios antes de que te abran paso.'],
-      Soap_Glob: ['Los Soap_Glob son muy útiles para frenar ataques y ganar tiempo en oleadas difíciles.', 'Si el enemigo acelera demasiado, la familia azul te da control real del campo.'],
-      Ducky_Glob: ['Ducky_Glob favorece la economía y la consistencia; no lo dejes en segundo plano.', 'Los Ducky son excelentes para generar más recursos y sostener partidas largas.'],
+      Soap_Glob: ['Es muy útil para frenar ataques y ganar tiempo en oleadas difíciles.', 'Si el enemigo acelera demasiado, la familia azul te da control real del campo.'],
+      Ducky_Glob: ['Aporta economía y consistencia; no lo dejes en segundo plano.', 'Los Ducky son excelentes para generar más recursos y sostener partidas largas.'],
       Comet_Glob: ['La familia negra hace daño brutal cuando ya has controlado el tablero.', 'Comet_Glob es ideal para presionar en el centro del mapa en oleadas medianas.'],
       Old_Glob: ['Old_Glob funciona muy bien si quieres estabilidad y apoyo defensivo.', 'A veces conviene conservarlo en puntos estratégicos para no perder presión.'],
       Work_Bombot: ['Bombot gana mucho cuando sabes anticipar los flancos por donde entran los Pyces.', 'No lo uses como relleno: su explosión es más útil si enchufas una ruta clara.'],
@@ -3103,8 +3103,8 @@ function bindEvents() {
     en: {
       Glob: ['Basic Globs hold the early defense; place them well to control the first wave.', 'Globs are not the strongest, but they are the core of your pacing and economy.'],
       Red_Glob: ['The red family is usually best for direct pressure against fast enemies.', 'Pair Red_Glob with support to remove priority targets before they break through.'],
-      Soap_Glob: ['Soap_Glob is very useful for slowing attacks and buying time in tougher waves.', 'If enemies accelerate too much, the blue family gives real map control.'],
-      Ducky_Glob: ['Ducky_Glob favors economy and consistency; do not leave it behind.', 'Ducky is excellent for generating more resources and sustaining long runs.'],
+      Soap_Glob: ['It is very useful for slowing attacks and buying time in tougher waves.', 'If enemies accelerate too much, the blue family gives real map control.'],
+      Ducky_Glob: ['It favors economy and consistency; do not leave it behind.', 'Ducky is excellent for generating more resources and sustaining long runs.'],
       Comet_Glob: ['The black family deals brutal damage once you already control the board.', 'Comet_Glob is ideal for pressure in the center of the map during mid waves.'],
       Old_Glob: ['Old_Glob works well if you want stability and defensive support.', 'Sometimes it is better to keep it in a strategic spot than to rotate too much.'],
       Work_Bombot: ['Bombot shines when you anticipate where enemies will enter.', 'Do not use it as filler: its blast is more useful if you have a clear route.'],
