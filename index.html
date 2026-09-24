@@ -102,7 +102,7 @@
     <div id="game-container">
         <div id="game-header">
             <img src="img/GlobDefendersLogo.png" alt="Glob Defenders" class="game-logo">
-            <div id="admin-indicator" class="admin-indicator" style="display: none;">👑 ADMIN MODE</div>
+            <div id="admin-indicator" class="admin-indicator" style="display: none;" data-role="">👑 ADMIN MODE</div>
         </div>
 
         <div id="game-ui">
@@ -194,6 +194,7 @@
     <!-- FIN GAME CONTAINER -->
 
     <button id="debug-toggle" style="position: fixed; bottom: 10px; right: 10px; opacity: 0.1; background-color: #ff69b4; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 100;">🐛</button>
+    <button id="debug-panel-toggle" type="button" title="Abrir panel debug">⚙</button>
 
     <div id="owner-debug-panel" class="owner-debug-panel" style="display:none;">
         <div class="owner-debug-header">
@@ -211,7 +212,20 @@
             <button type="button" id="debug-max-resources">Max recursos</button>
             <button type="button" id="debug-unlock-all">Desbloquear todo</button>
         </div>
-        <small>Solo visible para KirByteBi.</small>
+        <div class="owner-debug-section">
+            <strong>Spawnear enemigo</strong>
+            <input id="debug-enemy-search" type="search" placeholder="Busca: PY, BIT, ASTRORB..." autocomplete="off">
+            <div id="debug-enemy-results" class="debug-search-results"></div>
+            <button type="button" id="debug-spawn-enemy" disabled>Spawnear seleccionado</button>
+        </div>
+        <div class="owner-debug-section">
+            <strong>Diálogo personalizado</strong>
+            <input id="debug-speaker-search" type="search" placeholder="Busca personaje o imagen..." autocomplete="off">
+            <div id="debug-speaker-results" class="debug-search-results"></div>
+            <textarea id="debug-dialogue-text" rows="3" placeholder="Escribe lo que quieres que diga..."></textarea>
+            <button type="button" id="debug-show-dialogue" disabled>Mostrar diálogo</button>
+        </div>
+        <small>Solo visible para usuarios de desarrollo autorizados.</small>
     </div>
 
     <!-- PANEL DE LOGROS FLOTANTE -->
@@ -473,6 +487,23 @@
         </div>
     </div>
 
+    <div id="badge-popup" role="status" aria-live="polite">
+        <div class="badge-popup-glow"></div>
+        <div id="badge-popup-icon" class="badge-popup-icon"></div>
+        <div class="badge-popup-content">
+            <div class="badge-popup-label">✦ ¡NUEVO BADGE! ✦</div>
+            <h2 id="badge-popup-title"></h2>
+            <p id="badge-popup-desc"></p>
+        </div>
+    </div>
+    <div id="encyclopedia-popup" role="status" aria-live="polite">
+        <div id="encyclopedia-popup-image" class="encyclopedia-popup-image"></div>
+        <div class="encyclopedia-popup-content">
+            <div class="encyclopedia-popup-label">✦ ¡NUEVO ENMARCADO! ✦</div>
+            <h2 id="encyclopedia-popup-title"></h2>
+            <p id="encyclopedia-popup-desc"></p>
+        </div>
+    </div>
     <div id="game-messages"></div>
     <div id="tooltip" class="tooltip" style="display: none;"></div>
 

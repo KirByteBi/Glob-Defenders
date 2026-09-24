@@ -128,6 +128,8 @@ let gameState = {
   globsPlaced: {},
   mimicSpawned: 0,
   maxedFamilies: [],
+  collectionMasterDialogueShown: false,
+  wallGardenSoapMessageShown: false,
   uniquesBossSpawned: {}  // Tracks NOeye_Pyce, MoonStar_Pyce (only 1 per game)
 };
 
@@ -140,6 +142,52 @@ function getFamilyCount(baseType) {
 
 function saveUsers() {
   localStorage.setItem('glob_users', JSON.stringify(USERS));
+}
+
+const PROGRESS_DB_NAME = 'glob-defenders-db';
+const PROGRESS_DB_VERSION = 1;
+const PROGRESS_STORE_NAME = 'progress';
+
+function openProgressDatabase() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error('IndexedDB no está disponible en este navegador.'));
+      return;
+    }
+
+    const request = indexedDB.open(PROGRESS_DB_NAME, PROGRESS_DB_VERSION);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(PROGRESS_STORE_NAME)) {
+        request.result.createObjectStore(PROGRESS_STORE_NAME);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('No se pudo abrir IndexedDB.'));
+  });
+}
+
+function saveProgressToDatabase(user, progress) {
+  openProgressDatabase().then(db => {
+    const transaction = db.transaction(PROGRESS_STORE_NAME, 'readwrite');
+    transaction.objectStore(PROGRESS_STORE_NAME).put(progress, user);
+    transaction.oncomplete = () => db.close();
+    transaction.onerror = () => {
+      console.error('No se pudo guardar el progreso en IndexedDB:', transaction.error);
+      db.close();
+    };
+  }).catch(error => {
+    console.error('No se pudo guardar el progreso en IndexedDB:', error);
+  });
+}
+
+function loadProgressFromDatabase(user) {
+  return openProgressDatabase().then(db => new Promise((resolve, reject) => {
+    const transaction = db.transaction(PROGRESS_STORE_NAME, 'readonly');
+    const request = transaction.objectStore(PROGRESS_STORE_NAME).get(user);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error || new Error('No se pudo leer IndexedDB.'));
+    transaction.oncomplete = () => db.close();
+  }));
 }
 
 function loadUsers() {
@@ -237,9 +285,11 @@ function saveProgress() {
     pycesKilled: gameState.pycesKilled,
     globsPlaced: gameState.globsPlaced,
     mimicSpawned: gameState.mimicSpawned,
-    maxedFamilies: gameState.maxedFamilies || []
+    maxedFamilies: gameState.maxedFamilies || [],
+    collectionMasterDialogueShown: gameState.collectionMasterDialogueShown
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
+  saveProgressToDatabase(user, progress);
 }
 
 function loadProgress(username) {
@@ -255,6 +305,18 @@ function loadProgress(username) {
         console.log("Migrando progreso global al usuario:", user);
         localStorage.setItem('glob_progress_' + user, data);
       }
+    }
+
+    if (!data) {
+      loadProgressFromDatabase(user).then(progress => {
+        if (progress) {
+          localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
+          loadProgress(user);
+        }
+      }).catch(error => {
+        console.error('No se pudo cargar el progreso desde IndexedDB:', error);
+      });
+      return;
     }
 
     if (data) {
@@ -347,6 +409,7 @@ function loadProgress(username) {
       gameState.globsPlaced = progress.globsPlaced || {};
       gameState.mimicSpawned = progress.mimicSpawned || 0;
       gameState.maxedFamilies = progress.maxedFamilies || [];
+      gameState.collectionMasterDialogueShown = !!progress.collectionMasterDialogueShown;
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
 
@@ -534,30 +597,40 @@ function handleLogin() {
   const metaControls = document.getElementById('meta-controls');
   if (metaControls) metaControls.style.display = 'flex';
 
-  if (name === "Admin" || name === "KirByteBi") {
+  const role = typeof getUserRole === 'function' ? getUserRole(name) : 'USER';
+  const isPrivileged = role === 'OWNER' || role === 'DEVBUILD' || role === 'ADMIN';
+  document.body.classList.remove('role-owner', 'role-admin', 'role-debug');
+  if (role === 'OWNER') document.body.classList.add('role-owner');
+  if (role === 'ADMIN') document.body.classList.add('role-admin');
+  if (role === 'DEVBUILD') document.body.classList.add('role-debug');
+  if (isPrivileged) {
     gameState.adminMode = true;
-    document.getElementById('admin-indicator').style.display = 'block';
-    if (name === "KirByteBi") {
+    const adminIndicator = document.getElementById('admin-indicator');
+    if (adminIndicator) {
+      adminIndicator.style.display = 'block';
+      adminIndicator.textContent = role === 'OWNER'
+        ? '💗 OWNER MODE'
+        : role === 'DEVBUILD' ? '🟢 DEBUG MODE' : '🟠 ADMIN MODE';
+      adminIndicator.dataset.role = role;
+    }
+    if (role === 'OWNER') {
       gameState.antiNormalActive = false;
       gameState.unlockedAntiNormal = true;
     }
   }
 
   // Anti-Normal glitch only activates at Duck Pass level >= 30
-  if (!gameState.unlockedAntiNormal && gameState.duckPassLevel >= 30) {
+  if (gameState.antiNormalActive || (!gameState.unlockedAntiNormal && gameState.duckPassLevel >= 30)) {
     gameState.antiNormalActive = true;
     modeScreen.classList.add('glitch-state');
     const disableBtn = document.getElementById('disable-antinormal-btn');
     if (disableBtn) disableBtn.style.display = 'block';
     showMessage(translate('system_unstable'), 'error');
-  } else if (gameState.antiNormalActive && gameState.duckPassLevel < 30) {
-    // Reset if somehow triggered below level 30
-    gameState.antiNormalActive = false;
   }
 
   const infBtn = document.querySelector('.mode-btn[data-mode="infinito"]');
   if (infBtn) {
-    if (!gameState.unlockedInfinite && name !== "Admin" && name !== "KirByteBi") {
+    if (!gameState.unlockedInfinite && !isPrivileged) {
       infBtn.disabled = true;
       infBtn.style.opacity = "0.5";
       infBtn.title = translate('win_diff_required', { diff: translate('badge_winDificil_name') });
@@ -582,6 +655,11 @@ function selectMap(mapId) {
 
 function showModeSelection() {
   document.getElementById('mode-selection').style.display = 'flex';
+  if (gameState.antiNormalActive) {
+    document.getElementById('mode-selection').classList.add('glitch-state');
+    const disableButton = document.getElementById('disable-antinormal-btn');
+    if (disableButton) disableButton.style.display = 'block';
+  }
   const modes = ['normal', 'dificil', 'extremo', 'corrupto'];
   const requirements = { 'normal': 'winFacil', 'dificil': 'winNormal', 'extremo': 'winDificil', 'corrupto': 'winExtremo' };
 
@@ -658,6 +736,123 @@ function disableAntiNormal() {
   showMessage(translate('system_restored'), 'success');
 }
 
+function handleLogoClick(logo) {
+  gameState.logoClicks++;
+  logo.classList.remove('glitch-effect');
+  void logo.offsetWidth;
+  logo.classList.add('glitch-effect');
+  logo.style.transition = 'transform 0.5s ease, filter 0.2s ease';
+  const spins = Math.floor(Math.random() * 3) + 1;
+  logo.style.transform = `scale(1.12) rotate(${360 * spins}deg)`;
+  logo.style.filter = `hue-rotate(${Math.random() * 360}deg) invert(${Math.random() > 0.5 ? 1 : 0})`;
+
+  setTimeout(() => {
+    logo.style.transition = 'transform 0.3s ease, filter 0.3s ease';
+    logo.style.transform = '';
+    logo.style.filter = '';
+  }, 500);
+
+  const antiNormalRewardActive = gameState.unlockedAntiNormal;
+  const specialPostVictoryMessage = antiNormalRewardActive && Math.random() < 0.2;
+  const collectionMasterMessage = gameState.collectionMasterDialogueShown && Math.random() < 0.25;
+  if (collectionMasterMessage) {
+    showCollectionMasterDialogue();
+  } else if (specialPostVictoryMessage) {
+    showPostAntiNormalMysteryMessage();
+  } else if (gameState.logoClicks % 5 === 0) {
+    showMysteryBugWarning();
+  }
+  if (gameState.logoClicks === 15) {
+    gameState.antiNormalActive = true;
+    document.querySelectorAll('.login-box').forEach(box => box.classList.add('login-glitch-critical'));
+    document.querySelectorAll('#mode-selection').forEach(screen => screen.classList.add('glitch-state'));
+    const disableButton = document.getElementById('disable-antinormal-btn');
+    if (disableButton) disableButton.style.display = 'block';
+    showEffect(window.innerWidth / 2, 100, translate('easter_egg_corrupt'));
+    showMessage(translate('system_unstable'), 'error');
+    setTimeout(() => {
+      document.querySelectorAll('.login-box').forEach(box => box.classList.remove('login-glitch-critical'));
+    }, 1500);
+  }
+
+  function showMysteryBugWarning() {
+    const messages = currentLanguage === 'en'
+      ? [
+        'DON’T TOUCH ME!!',
+        'WORK-BOMBOT SUBMITS TO EVIL.',
+        'THE GLOBS WILL BE USELESS IF YOU KEEP CLICKING.',
+        'THE LOGO IS NOT THERE TO BE TOUCHED!!',
+        'I’M SICK OF YOU...',
+        'DID YOU KNOW YOU CAN STOP TOUCHING THE LOGO?',
+        'THIS IS NOT AN ELEVATOR BUTTON!',
+        'DO YOU WANT THE LOGO TO CHARGE YOU RENT?',
+        'I COUNTED YOUR CLICKS... AND I DON’T LIKE THE RESULT.',
+        'MY PIXELS ARE GOING ON STRIKE!',
+        'KEEP THIS UP AND I’M CALLING A MODERATOR.',
+        'ARE YOU OUT OF THINGS TO DO?',
+        'THE LOGO SAYS NO. SO DO I.',
+        'LEAVE THE LOGO ALONE, MOUSE CREATURE!',
+        'I’M NOT A CLICKER. I’M A WARNING.',
+        'ONE MORE CLICK AND I’M MAKING YOU READ THE MANUAL.',
+        'ARE YOU TRYING TO UNLOCK SOMETHING OR JUST BORED?',
+        'WORK-BOMBOT HAS FILED A FORMAL COMPLAINT.',
+        'STOP! EVEN THE PYCES ARE LAUGHING.',
+        'THIS LOGO HAS MORE PATIENCE THAN I DO... FOR NOW.'
+      ]
+      : [
+        '¡¡NO ME TOQUES!!',
+        'WORK-BOMBOT SUBCUNDE A LA MALDAD.',
+        'LOS GLOBS SERÁN INÚTILES SI SIGUES CLICKEANDO.',
+        '¡¡EL LOGO NO ESTÁ PARA TOCARLO!!',
+        'ME TIENES HARTO...',
+        '¿¿SABÍAS QUE PUEDES DEJAR DE TOCAR EL LOGO??',
+        '¡ESTO NO ES UN BOTÓN DE ASCENSOR!',
+        '¿QUIERES QUE EL LOGO TE COBRE ALQUILER?',
+        'HE CONTADO TUS CLICS... Y NO ME GUSTA EL RESULTADO.',
+        '¡MIS PÍXELES TIENEN HUELGA!',
+        'COMO SIGAS ASÍ, LLAMO A UN MODERADOR.',
+        '¿TE HAS QUEDADO SIN COSAS QUE HACER?',
+        'EL LOGO DICE QUE NO. YO TAMBIÉN.',
+        '¡DEJA AL LOGO EN PAZ, CRIATURA DEL RATÓN!',
+        'NO SOY UN CLICKER. SOY UNA ADVERTENCIA.',
+        'UN CLIC MÁS Y TE MANDO A LEER EL MANUAL.',
+        '¿ESTÁS INTENTANDO DESBLOQUEAR ALGO O SOLO TE ABURRES?',
+        'WORK-BOMBOT HA PRESENTADO UNA QUEJA FORMAL.',
+        '¡PARA YA! HASTA LOS PYCES SE ESTÁN RIENDO.',
+        'ESTE LOGO TIENE MÁS PACIENCIA QUE YO... DE MOMENTO.'
+      ];
+    const message = messages[Math.floor(Math.random() * messages.length)];
+    showNarratorMsg('mysterybug', '', '???', message);
+  }
+
+  function showPostAntiNormalMysteryMessage() {
+    const message = currentLanguage === 'en'
+      ? 'IF YOU ALREADY BEAT THE MODE... WHY ARE YOU STILL TOUCHING ME?! Maybe I should find another job.'
+      : 'SI YA TE PASASTE EL MODO... ¡¡PARA QUE ME TOCAS!! Quizás debería buscarme otro trabajo.';
+    showNarratorMsg('mysterybug', '', '???', message);
+  }
+
+  if (antiNormalRewardActive) {
+    gameState.pycoins += 1;
+    gameState.duckPassCurrency += 1;
+    updateMetaUI();
+    showEffect(window.innerWidth / 2, window.innerHeight / 2, "+1 PyCoin / +1 DuckPass");
+  }
+  saveProgress();
+}
+
+function showCollectionMasterDialogue() {
+  showNarratorMsg(
+    'mysterybug',
+    '',
+    '???',
+    currentLanguage === 'en'
+      ? 'Phew, my work here is finished. Jerry, it is time to begin the digitalization and immortality collection plan.'
+      : 'Bufff, se terminó mi trabajo aquí. Jerry, ya es hora de empezar con el plan de digitalización y recolección de la inmortalidad.',
+    'collection-master'
+  );
+}
+
 function selectMode(mode) {
   // Anti-Normal glitch blocks ALL mode selection except normal
   if (gameState.antiNormalActive && mode !== 'normal') {
@@ -668,6 +863,7 @@ function selectMode(mode) {
       void btn.offsetWidth;
       btn.classList.add('glitch-rejected');
     }
+
     return;
   }
 
@@ -791,6 +987,12 @@ function finishBlockQuest() {
   gameState.blockQuestVictories = (gameState.blockQuestVictories || 0) + 1;
   gameState.blockQuestCompleted = true;
   gameState.blockQuestActive = false;
+  if (gameState.mode === 'dificil') {
+    unlockBadge('block_city');
+  }
+  if (gameState.blockQuestHadBlockTales || gameState.blockQuestVictories >= 2) {
+    unlockBadge('old_blox_city');
+  }
   gameState.unlockedSkins.push('corrupt_swords_set');
   gameState.unlockedSkins.push('heights_set');
   gameState.unlockedSkins.push('jonk_set');
@@ -1303,7 +1505,9 @@ function applyMetaButtonMode() {
 
 function isOwnerDebugUser() {
   const username = localStorage.getItem('glob_username') || '';
-  return typeof getUserRole === 'function' && getUserRole(username) === 'OWNER';
+  if (typeof getUserRole !== 'function') return false;
+  const role = getUserRole(username);
+  return role === 'OWNER' || role === 'DEVBUILD';
 }
 
 function ownerUnlockEverything() {
@@ -1328,9 +1532,216 @@ function ownerUnlockEverything() {
 }
 
 function showOwnerDebugPanel() {
-  if (!isOwnerDebugUser()) return;
+  const username = localStorage.getItem('glob_username') || '';
+  const role = typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
+  if (role !== 'OWNER' && role !== 'DEVBUILD') return;
   const panel = document.getElementById('owner-debug-panel');
   if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function normalizeDebugSearch(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Z0-9]+/gi, ' ')
+    .trim()
+    .toUpperCase();
+}
+
+function getDebugPathTerms(path) {
+  return String(path || '')
+    .split(/[\\/()._-]+/)
+    .map(normalizeDebugSearch)
+    .filter(Boolean);
+}
+
+function debugSearchScore(query, values) {
+  const needle = normalizeDebugSearch(query);
+  if (!needle) return 0;
+  const haystack = values.map(normalizeDebugSearch).join(' ');
+  if (haystack === needle) return 1000;
+  if (haystack.startsWith(needle)) return 800;
+  if (haystack.includes(needle)) return 600;
+  let score = 0;
+  let cursor = 0;
+  for (const character of needle) {
+    const index = haystack.indexOf(character, cursor);
+    if (index === -1) return 0;
+    score += index === cursor ? 8 : 2;
+    cursor = index + 1;
+  }
+  return score;
+}
+
+const DEBUG_ENEMY_GROUP_ALIASES = {
+  pyces: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
+  enemigos: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
+  bits: ['BitY1', 'BitB4', 'BitG2', 'BitP3'],
+  bytes: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'],
+  spyware: ['Spyware', 'Spyware1', 'Spyware2', 'Spyware3'],
+  arky: ['Arky', 'CrystArky', 'ArkyVoid'],
+  astrorb: ['AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb'],
+  crystals: ['Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'NO_CrystEye_CB', 'Crystalic_Orb'],
+  cristalizados: ['Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'NO_CrystEye_CB', 'Crystalic_Orb'],
+  treepers: ['Treeper', 'Big_Treeper', 'Stacked_Treepers'],
+  trees: ['Treeper', 'Big_Treeper', 'Stacked_Treepers'],
+  arboles: ['Treeper', 'Big_Treeper', 'Stacked_Treepers'],
+  shrums: ['Baby_Shrum', 'Shrum', 'Old_Fungus'],
+  mushrooms: ['Baby_Shrum', 'Shrum', 'Old_Fungus'],
+  hongos: ['Baby_Shrum', 'Shrum', 'Old_Fungus'],
+  rens: ['Ren', 'Thunren', 'Renibig'],
+  pysh: ['Pysh', 'Clown_Pysh'],
+  water: ['Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
+  aquatic: ['Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
+  acuaticos: ['Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
+  bosses: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Arky', 'CrystArky', 'ArkyVoid', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'Crystal_Bombot'],
+  jefes: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Arky', 'CrystArky', 'ArkyVoid', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'Crystal_Bombot'],
+  gambling: ['BitY1', 'BitB4', 'BitG2', 'BitP3', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Fireflies', 'Spyware', 'Spyware1', 'Spyware2', 'Spyware3', 'Arky', 'CrystArky', 'ArkyVoid'],
+  urban: ['BitY1', 'BitB4', 'BitG2', 'BitP3', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Fireflies', 'Spyware', 'Spyware1', 'Spyware2', 'Spyware3', 'Arky', 'CrystArky', 'ArkyVoid', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce'],
+  leafy: ['Ren', 'Thunren', 'Renibig', 'Treeper', 'Big_Treeper', 'Stacked_Treepers', 'Baby_Shrum', 'Shrum', 'Old_Fungus', 'Pysh', 'Clown_Pysh', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'Piz', 'Followishers', 'Creamplet', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Bushi_Brella'],
+  playa: ['Ren', 'Thunren', 'Renibig', 'Treeper', 'Big_Treeper', 'Stacked_Treepers', 'Baby_Shrum', 'Shrum', 'Old_Fungus', 'Pysh', 'Clown_Pysh', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'Piz', 'Followishers', 'Creamplet', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Bushi_Brella'],
+  interstellar: ['Leni_the_big_Hammer', 'Monster', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'NO_CrystEye_CB', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb'],
+  mimics: ['Stupid_GoldPyce', 'Mimic_Pyce', 'Bushi_Brella']
+};
+
+const DEBUG_SPEAKER_ALIASES = {
+  bombot: ['bombot', 'robot', 'maquina', 'máquina', 'work', 'trabajo'],
+  glob: ['glob', 'defensor', 'defender', 'verde'],
+  stupid: ['stupid', 'torpe', 'pyce'],
+  pyce2: ['pyce2', 'pyce', 'visitante'],
+  noeye: ['noeye', 'ojo', 'materia', 'oscura', 'dark matter'],
+  moonstar: ['moonstar', 'luna', 'estrellas', 'jefe', 'boss'],
+  mimic: ['mimic', 'copia', 'imitador'],
+  arky: ['arky', 'urban', 'bit', 'boss', 'jefe'],
+  crystarky: ['crystarky', 'cristal', 'arky', 'anti normal'],
+  arkyvoid: ['arkyvoid', 'vacio', 'void', 'arky', 'boss'],
+  one_x: ['1x1x1x1', 'one x', 'uno', 'corrupto', 'jefe', 'boss'],
+  astrorb: ['astrorb', 'orb', 'orbe', 'interstellar', 'interestelar']
+};
+
+function getSpeakerDebugAliases(id, data, languageData) {
+  return [
+    id,
+    languageData.name,
+    data.img,
+    ...getDebugPathTerms(data.img),
+    ...(DEBUG_SPEAKER_ALIASES[id] || [])
+  ];
+}
+
+function getEnemyDebugAliases(id, enemy) {
+  const aliases = [
+    id,
+    enemy.name,
+    enemy.desc,
+    enemy.image,
+    ...getDebugPathTerms(enemy.image)
+  ];
+  Object.entries(DEBUG_ENEMY_GROUP_ALIASES).forEach(([alias, ids]) => {
+    if (ids.includes(id)) aliases.push(alias);
+  });
+  return aliases;
+}
+
+function renderDebugSearchResults(container, results, onSelect, selectedId) {
+  if (!container) return;
+  container.innerHTML = '';
+  results.slice(0, 12).forEach(result => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `debug-search-result${result.id === selectedId ? ' selected' : ''}`;
+    if (result.image) {
+      const image = document.createElement('img');
+      image.src = result.image;
+      image.alt = '';
+      button.appendChild(image);
+    }
+    const label = document.createElement('span');
+    label.textContent = result.label;
+    button.appendChild(label);
+    button.addEventListener('click', () => onSelect(result));
+    container.appendChild(button);
+  });
+}
+
+function setupOwnerDebugTools() {
+  const enemySearch = document.getElementById('debug-enemy-search');
+  const enemyResults = document.getElementById('debug-enemy-results');
+  const spawnEnemyButton = document.getElementById('debug-spawn-enemy');
+  const speakerSearch = document.getElementById('debug-speaker-search');
+  const speakerResults = document.getElementById('debug-speaker-results');
+  const dialogueText = document.getElementById('debug-dialogue-text');
+  const showDialogueButton = document.getElementById('debug-show-dialogue');
+  let selectedEnemy = null;
+  let selectedSpeaker = null;
+
+  const searchEnemies = () => {
+    const query = enemySearch.value;
+    const results = Object.entries(ENEMY_TYPES)
+      .map(([id, enemy]) => ({
+        id,
+        image: enemy.image,
+        label: translate(enemy.name || `enemy_${id}_name`) || id,
+        score: debugSearchScore(query, getEnemyDebugAliases(id, enemy))
+      }))
+      .filter(result => result.score > 0)
+      .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+    renderDebugSearchResults(enemyResults, results, result => {
+      selectedEnemy = result;
+      spawnEnemyButton.disabled = false;
+      renderDebugSearchResults(enemyResults, results, value => {
+        selectedEnemy = value;
+        spawnEnemyButton.disabled = false;
+        searchEnemies();
+      }, selectedEnemy.id);
+    }, selectedEnemy && selectedEnemy.id);
+  };
+
+  const searchSpeakers = () => {
+    const query = speakerSearch.value;
+    const narratorData = typeof NARRATOR_DATA === 'object' ? NARRATOR_DATA : {};
+    const results = Object.entries(narratorData)
+      .map(([id, data]) => {
+        const languageData = data[currentLanguage] || data.es || data.en || {};
+        return {
+          id,
+          image: data.img,
+          label: languageData.name || id,
+          score: debugSearchScore(query, getSpeakerDebugAliases(id, data, languageData))
+        };
+      })
+      .filter(result => result.score > 0)
+      .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+    renderDebugSearchResults(speakerResults, results, result => {
+      selectedSpeaker = result;
+      showDialogueButton.disabled = false;
+      renderDebugSearchResults(speakerResults, results, value => {
+        selectedSpeaker = value;
+        showDialogueButton.disabled = false;
+        searchSpeakers();
+      }, selectedSpeaker.id);
+    }, selectedSpeaker && selectedSpeaker.id);
+  };
+
+  enemySearch?.addEventListener('input', searchEnemies);
+  speakerSearch?.addEventListener('input', searchSpeakers);
+  spawnEnemyButton?.addEventListener('click', () => {
+    if (!isOwnerDebugUser() || !selectedEnemy) return;
+    spawnEnemy(selectedEnemy.id);
+    showMessage(`DEBUG: ${selectedEnemy.label} spawneado.`, 'info');
+  });
+  showDialogueButton?.addEventListener('click', () => {
+    if (!isOwnerDebugUser() || !selectedSpeaker) return;
+    const text = dialogueText.value.trim();
+    if (!text) {
+      showMessage('Escribe un texto para el diálogo.', 'warning');
+      dialogueText.focus();
+      return;
+    }
+    const data = NARRATOR_DATA[selectedSpeaker.id];
+    const languageData = data[currentLanguage] || data.es || data.en || {};
+    showNarratorMsg(selectedSpeaker.id, data.img, languageData.name || selectedSpeaker.label, text);
+  });
 }
 
 function updateSettings() {
@@ -1514,8 +1925,8 @@ function drawBadges() {
       const desc = translate(`badge_${b.key}_desc`);
   
       let rewardText = "";
-      if (b.reward.pycoins) rewardText = `💰+${b.reward.pycoins}`;
-      if (b.reward.duckpass) rewardText = `🦆+${b.reward.duckpass}`;
+      if (b.reward.pycoins) rewardText = `<img src="img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins}`;
+      if (b.reward.duckpass) rewardText = `<img src="img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass}`;
       rewardText += ` ✨+${b.reward.xp}xp`;
   
       el.innerHTML = `
@@ -1540,6 +1951,54 @@ function unlockBadge(key) {
   }
 }
 
+function checkTowerCombinationBadges() {
+  const towers = gameState.towers || [];
+  const hasFamily = family => towers.some(tower => tower.family === family);
+  const hasNearbyFamilies = (first, second, distance) => towers.some(firstTower =>
+    firstTower.family === first &&
+    towers.some(secondTower =>
+      secondTower.family === second &&
+      Math.hypot(firstTower.x - secondTower.x, firstTower.y - secondTower.y) <= distance
+    )
+  );
+
+  if (hasNearbyFamilies('IEx', 'Worker_Glob', 180)) {
+    unlockBadge('fenced_kaboom');
+  }
+
+  if (hasFamily('Brown') && hasFamily('Worker_Glob')) {
+    const hadSoapFamily = hasFamily('Soap_Glob');
+    const shouldShowSoapMessage = !gameState.wallGardenSoapMessageShown;
+    unlockBadge('wall_garden');
+    if (hadSoapFamily && shouldShowSoapMessage) {
+      gameState.wallGardenSoapMessageShown = true;
+      showMessage(
+        currentLanguage === 'es'
+          ? 'Yo que pensaba que no usarias jabon para ralentizar aun mas... Me equivoque contigo.'
+          : 'I thought you would not use soap to slow them down even more... I was wrong about you.',
+        'info'
+      );
+    }
+  }
+
+  const urbanFamilies = ['White', 'Pink', 'Worker_Glob', 'IEx'];
+  if (urbanFamilies.every(family => gameState.maxedFamilies.includes(family))) {
+    unlockBadge('urban_king');
+  }
+
+  const dangerousFamilies = ['IEx', 'Comet_Glob', 'Pirate_Glob'];
+  const hasDangerousSet = dangerousFamilies.every(family => {
+    const familyTowers = towers.filter(tower => tower.family === family);
+    const maximum = gameState.towerLimits[family] || 0;
+    return maximum > 0 &&
+      familyTowers.length >= maximum &&
+      familyTowers.every(tower => !TOWER_TYPES[tower.type]?.evolution);
+  });
+  if (hasDangerousSet) {
+    unlockBadge('dangerous_set');
+  }
+}
+
 function showBadgePopup(badge) {
   const popup = document.getElementById('badge-popup');
   const icon = document.getElementById('badge-popup-icon');
@@ -1547,12 +2006,33 @@ function showBadgePopup(badge) {
   const desc = document.getElementById('badge-popup-desc');
   if (!popup) return;
 
-  icon.textContent = badge.icon;
+  icon.innerHTML = badge.icon;
   title.textContent = translate(`badge_${badge.key}_name`);
   desc.textContent = translate(`badge_${badge.key}_desc`);
 
   popup.classList.add('show');
   setTimeout(() => popup.classList.remove('show'), 4000);
+}
+
+function showEncyclopediaPopup(enemy) {
+  const popup = document.getElementById('encyclopedia-popup');
+  const image = document.getElementById('encyclopedia-popup-image');
+  const title = document.getElementById('encyclopedia-popup-title');
+  const desc = document.getElementById('encyclopedia-popup-desc');
+  if (!popup || !image || !title || !desc || !enemy) return;
+
+  image.innerHTML = enemy.image
+    ? `<img src="${encodeURI(enemy.image)}" alt="">`
+    : '📖';
+  title.textContent = translate(enemy.name || enemy.key || 'Enemigo');
+  desc.textContent = currentLanguage === 'es'
+    ? 'Has completado el registro de este enemigo en la Enciclopedia.'
+    : 'You have completed this enemy entry in the Encyclopedia.';
+
+  popup.classList.remove('show');
+  void popup.offsetWidth;
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 4500);
 }
 
 function grantBadgeReward(badge) {
@@ -2179,8 +2659,8 @@ function selectAlmanacItem(id, category) {
     const name = translate(`badge_${b.key}_name`);
     const desc = translate(`badge_${b.key}_desc`);
     let rewardText = "";
-    if (b.reward.pycoins) rewardText += `💰+${b.reward.pycoins} `;
-    if (b.reward.duckpass) rewardText += `🦆+${b.reward.duckpass} `;
+    if (b.reward.pycoins) rewardText += `<img src="img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins} `;
+    if (b.reward.duckpass) rewardText += `<img src="img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass} `;
     rewardText += `✨+${b.reward.xp}xp`;
 
     details.innerHTML = `
@@ -2204,30 +2684,6 @@ function bindEvents() {
       if (name) loadProgress(name);
       updateMetaUI();
     });
-  }
-
-  const loginLogo = document.getElementById('login-logo');
-  if (loginLogo) {
-    loginLogo.onclick = () => {
-      gameState.logoClicks++;
-
-      loginLogo.classList.remove('glitch-effect');
-      void loginLogo.offsetWidth;
-      loginLogo.classList.add('glitch-effect');
-
-      if (gameState.logoClicks === 5) {
-        showFloatingText(translate('easter_egg_warn_1'), window.innerWidth / 2, 100, '#ff9f43');
-      } else if (gameState.logoClicks === 10) {
-        showFloatingText(translate('easter_egg_warn_2'), window.innerWidth / 2, 100, '#e74c3c');
-      } else if (gameState.logoClicks === 15) {
-        gameState.antiNormalActive = true;
-        document.querySelector('.login-box').classList.add('login-glitch-critical');
-        showFloatingText(translate('easter_egg_corrupt'), window.innerWidth / 2, 100, '#000000');
-        setTimeout(() => {
-          document.querySelector('.login-box').classList.remove('login-glitch-critical');
-        }, 1500);
-      }
-    };
   }
 
   const musicToggle = document.getElementById('music-toggle-btn');
@@ -2279,29 +2735,9 @@ function bindEvents() {
     }
   });
 
-  const logo = document.querySelector('.login-logo');
-  if (logo) {
-    logo.onclick = () => {
-      gameState.logoClicks++;
-      logo.style.transition = 'transform 0.5s ease, filter 0.2s ease';
-      const spins = Math.floor(Math.random() * 3) + 1;
-      logo.style.transform = `scale(1.2) rotate(${360 * spins}deg)`;
-      logo.style.filter = `hue-rotate(${Math.random() * 360}deg) invert(${Math.random() > 0.5 ? 1 : 0})`;
-
-      setTimeout(() => {
-        logo.style.transition = 'transform 0.3s ease, filter 0.3s ease';
-        logo.style.transform = `scale(1) rotate(0deg)`;
-        logo.style.filter = 'none';
-      }, 500);
-
-      if (gameState.unlockedAntiNormal) {
-        gameState.pycoins += 1;
-        updateMetaUI();
-        showEffect(window.innerWidth / 2, window.innerHeight / 2, "+1 PyCoin");
-        saveProgress();
-      }
-    };
-  }
+  document.querySelectorAll('.login-logo, .game-logo').forEach(logo => {
+    logo.onclick = () => handleLogoClick(logo);
+  });
 
   document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => btn.onclick = () => selectMode(btn.dataset.mode));
   document.getElementById('health-stat').onclick = triggerCorrupt;
@@ -2565,11 +3001,21 @@ function bindEvents() {
     }
     drawShop();
     updateUI();
-    if (role === 'OWNER') showOwnerDebugPanel();
+    if (role === 'OWNER' || role === 'DEVBUILD') {
+      showOwnerDebugPanel();
+      document.getElementById('debug-panel-toggle')?.classList.add('visible');
+    }
   };
 
   document.getElementById('close-debug-panel')?.addEventListener('click', () => {
     document.getElementById('owner-debug-panel').style.display = 'none';
+  });
+  document.getElementById('debug-panel-toggle')?.addEventListener('click', () => {
+    const username = localStorage.getItem('glob_username') || '';
+    const role = typeof getUserRole !== 'undefined' ? getUserRole(username) : 'USER';
+    if (role !== 'OWNER' && role !== 'DEVBUILD') return;
+    const panel = document.getElementById('owner-debug-panel');
+    if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
   });
   document.getElementById('debug-add-resources')?.addEventListener('click', () => {
     if (!isOwnerDebugUser()) return;
@@ -2598,6 +3044,7 @@ function bindEvents() {
     saveProgress();
     showMessage('👑 OWNER DEBUG: todo desbloqueado.', 'success');
   });
+  setupOwnerDebugTools();
 
   const shopBtn = document.getElementById('open-shop');
   if (shopBtn) shopBtn.onclick = () => { if (typeof openShop === 'function') openShop(); };
@@ -3127,7 +3574,7 @@ function drawShop() {
   } else if (currentShopTab === 'skins') {
     if (!window.activeSkinFilter) window.activeSkinFilter = 'all';
 
-    const missionSkinIds = ['corrupt_swords_set', 'fracstal_set', 'heights_set', 'old_tycoon_set', 'jonk_set', 'froggy_set'];
+    const missionSkinIds = ['corrupt_swords_set', 'fracstal_set', 'old_tycoon_set', 'cuby_bombot'];
     const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set'];
     const storeUnlockableIds = [...missionSkinIds, ...otherNewSkinIds];
 
@@ -3250,7 +3697,7 @@ function drawShop() {
 
         // Categorizar
         let category = 'otros';
-        if (['rewamped_green_set', 'rewamped_red_set', 'judicial_set', 'spanish_bombot'].includes(skin.id)) category = 'mapa';
+        if (['rewamped_green_set', 'rewamped_red_set', 'judicial_set', 'spanish_bombot', 'froggy_set'].includes(skin.id)) category = 'mapa';
         else if (missionSkinIds.includes(skin.id)) category = 'misiones';
         else if (['mimic_set', ...otherNewSkinIds].includes(skin.id)) category = 'otros';
         else if (skin.unlockCondition && skin.unlockCondition.includes('urban')) category = 'mapa';
@@ -3300,11 +3747,13 @@ function drawShop() {
         container.appendChild(catHeader);
 
         list.forEach(({ family, skin, isUnlocked }) => {
+          const isCollabSkin = ['cuby_bombot', 'astrorb_set', 'crystal_bombot'].includes(skin.id);
+          const skinColor = isCollabSkin ? '#3498db' : colorHex;
           const isEquipped = gameState.equippedSkins[family] === skin.id;
           const el = document.createElement('div');
           el.className = `skin-item special-skin unlockable-skin ${isEquipped ? 'equipped' : ''}`;
           el.style.opacity = isUnlocked ? '1' : '0.85';
-          el.style.border = isUnlocked ? `1px solid ${colorHex}` : `1px solid ${colorHex}55`;
+          el.style.border = isUnlocked ? `1px solid ${skinColor}` : `1px solid ${skinColor}55`;
 
           // Determine the best preview image for special skins
           let previewImg;
@@ -3336,7 +3785,7 @@ function drawShop() {
               ? `<img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}`
               : `<img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost}`;
             el.innerHTML = `
-              <div class="special-badge" style="background:${colorHex}; color:#000;">🌟 ${currentLanguage === 'es' ? 'NUEVA' : 'NEW'}</div>
+              <div class="special-badge" style="background:${skinColor}; color:#000;">🌟 ${currentLanguage === 'es' ? 'NUEVA' : 'NEW'}</div>
               <div class="skin-preview"><img src="${previewImg}" style="width:100%; height:100%;"></div>
               <h3>${translate(skin.name)}</h3>
               <p>${translate(skin.desc)}</p>
@@ -3347,7 +3796,7 @@ function drawShop() {
             btnText = `🔒 ${currentLanguage === 'es' ? 'Bloqueada' : 'Locked'}`;
             
             el.innerHTML = `
-              <div class="special-badge" style="background:${colorHex}; color:#000;">🔓 ${currentLanguage === 'es' ? 'DESBLOQUEABLE' : 'UNLOCKABLE'}</div>
+              <div class="special-badge" style="background:${skinColor}; color:#000;">🔓 ${currentLanguage === 'es' ? 'DESBLOQUEABLE' : 'UNLOCKABLE'}</div>
               <div class="skin-preview" style="filter:grayscale(0.4) brightness(0.8)"><img src="${previewImg}" style="width:100%; height:100%;"></div>
               <h3>${translate(skin.name)}</h3>
               ${skin.pyce_morph ? `<div style="font-size:0.7rem; color:#e67e22; font-weight:bold; margin:-6px 0 6px; text-transform:uppercase; letter-spacing:1px;">⚡ ${currentLanguage === 'en' ? 'General' : 'General'}</div>` : ''}
@@ -3356,38 +3805,27 @@ function drawShop() {
               <div style="font-size:0.75rem; color:#ccc; margin-bottom:8px; padding:4px 6px; background:rgba(0,0,0,0.2); border-radius:6px; border:1px dashed ${colorHex}55;">${conditionText}</div>
               <button class="skin-buy-btn" disabled style="background:${colorHex}22; border:1px solid ${colorHex}55; color:${colorHex}; cursor:not-allowed;">${btnText}</button>`;
           } else {
-            if (skin.type === 'free' || skin.cost === 0) {
-              btnText = isEquipped ? (currentLanguage === 'es' ? 'Desequipar' : 'Unequip') : translate('equip_btn');
-              onclickAction = isEquipped ? `equipSkin('${family}', 'default')` : `equipSkin('${family}', '${skin.id}')`;
-              canBuy = true;
-            } else {
-              btnText = translate('buy');
-              if (skin.duckpass_cost) {
-                canBuy = gameState.pycoins >= skin.cost && gameState.duckPassCurrency >= skin.duckpass_cost;
-                costDisplay = `<div class="cost"><img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}</div>`;
-              } else {
-                canBuy = gameState.pycoins >= skin.cost;
-                costDisplay = `<div class="cost"><img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost}</div>`;
-              }
-              onclickAction = `buySkin('${family}', '${skin.id}', ${skin.cost})`;
-            }
+            // Once purchased or unlocked, a skin is owned regardless of its original price.
+            btnText = isEquipped ? (currentLanguage === 'es' ? 'Desequipar' : 'Unequip') : translate('equip_btn');
+            onclickAction = isEquipped ? `equipSkin('${family}', 'default')` : `equipSkin('${family}', '${skin.id}')`;
+            canBuy = true;
 
             el.innerHTML = `
-              <div class="special-badge" style="background:${colorHex}; color:#000;">🌟 ${currentLanguage === 'es' ? 'DESBLOQUEADA' : 'UNLOCKED'}</div>
+              <div class="special-badge" style="background:${skinColor}; color:#000;">🌟 ${currentLanguage === 'es' ? 'DESBLOQUEADA' : 'UNLOCKED'}</div>
               <div class="skin-preview ${skin.class || ''}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
               <h3>${translate(skin.name)}</h3>
               ${skin.pyce_morph ? `<div style="font-size:0.7rem; color:#e67e22; font-weight:bold; margin:-6px 0 6px; text-transform:uppercase; letter-spacing:1px;">⚡ ${currentLanguage === 'en' ? 'General' : 'General'}</div>` : ''}
               <p>${translate(skin.desc)}</p>
               ${costDisplay}
-              <button class="skin-buy-btn ${skin.type === 'free' || skin.cost === 0 ? 'equip' : ''}" ${!canBuy && skin.type !== 'free' && skin.cost !== 0 ? 'disabled' : ''} onclick="${onclickAction}">${btnText}</button>`;
+              <button class="skin-buy-btn equip" onclick="${onclickAction}">${btnText}</button>`;
           }
           container.appendChild(el);
         });
       }
 
-      renderCategory(unlockableSkins.mapa, currentLanguage === 'es' ? '🗺️ Mapa' : '🗺️ Map', '#ffd700'); // Amarillo
+      renderCategory(unlockableSkins.mapa, currentLanguage === 'es' ? '🗺️ Mapa' : '🗺️ Map', '#f39c12'); // Naranja
       renderCategory(unlockableSkins.misiones, currentLanguage === 'es' ? '🎯 Misiones / Collab' : '🎯 Missions / Collab', '#2ecc71'); // Verde
-      renderCategory(unlockableSkins.otros, currentLanguage === 'es' ? '🏆 Otros' : '🏆 Others', '#d2b48c'); // Marrón claro
+      renderCategory(unlockableSkins.otros, currentLanguage === 'es' ? '🏆 Otros' : '🏆 Others', '#ff69b4'); // Rosa
     }
 
     if (gameState.cheatedModeActive) {
@@ -3627,6 +4065,14 @@ function buyGTack(family, pyCost, dpCost) {
 
 function buySkin(family, skinId, cost) {
   const skin = SKINS_DATA[family].find(s => s.id === skinId);
+  if (!skin) {
+    console.error(`No se encontró la skin ${skinId} para la familia ${family}.`);
+    return;
+  }
+  if (gameState.unlockedSkins.includes(skinId)) {
+    equipSkin(family, skinId);
+    return;
+  }
   if (skin.duckpass_cost) {
     if (gameState.pycoins >= cost && gameState.duckPassCurrency >= skin.duckpass_cost) {
       gameState.pycoins -= cost;
@@ -3702,17 +4148,7 @@ function buyUpgrade(id, cost, type) {
     unlockBadge('duckgradeFirst');
   }
 
-  // urban_king: have all Urban Reborn families (Orange, White, Pink, IEx)
-  const urbanKingFamilies = ['Worker_Glob', 'Balloon_Glob', 'Streamer_Glob', 'IEx'];
-  const hasAllUrbanKing = urbanKingFamilies.every(fam =>
-    Object.values(TOWER_TYPES).some(t => (t.family === fam || t.type === fam) && t.unlocked)
-  );
-  if (hasAllUrbanKing) unlockBadge('urban_king');
-
-  // urban_crystals: also have Brown family
-  if (hasAllUrbanKing && Object.values(TOWER_TYPES).some(t => t.family === 'Brown' && t.unlocked)) {
-    unlockBadge('urban_crystals');
-  }
+  checkTowerCombinationBadges();
 
   updateMetaUI(); drawShop(); drawTowerShop(); saveProgress();
 }
@@ -3811,6 +4247,7 @@ function placeTower(spotId, type) {
   const towerFamily = tCfg.family || type;
   const idleClass = newGlobFamilies.includes(towerFamily) ? 'idle-wobble' : 'idle-jump';
   el.className = `tower ${idleClass}`; el.style.left = `${spot.x}px`; el.style.top = `${spot.y}px`;
+  el.style.setProperty('--idle-delay', `${-(Math.random() * 1.5).toFixed(2)}s`);
   el.style.backgroundImage = `url('${encodeURI(getTowerImage(type))}')`;
   // Fallback: si la imagen falla, usar color de fondo visible
   el.onerror = function () { el.style.backgroundColor = '#9b59b6'; el.style.backgroundImage = 'none'; };
@@ -3824,9 +4261,9 @@ function placeTower(spotId, type) {
 
   el.onclick = (e) => { e.stopPropagation(); selectTower(tower); };
   gameState.towers.push(tower);
+  checkTowerCombinationBadges();
   gameState.globetines -= cost;
   gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
-  if (gameState.moneySpentThisGame >= 632007) unlockBadge('globiscal_debt');
   gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
   gameState.globsPlaced[type] = (gameState.globsPlaced[type] || 0) + 1;
   spot.occupied = true;
@@ -3895,7 +4332,6 @@ function activateGTack(t) {
 
   gameState.globetines -= cost;
   gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
-  if (gameState.moneySpentThisGame >= 632007) unlockBadge('globiscal_debt');
   t.gTackCooldown = 30;
 
   updateUI();
@@ -3930,6 +4366,10 @@ function activateGTack(t) {
     showEffect(t.x, t.y - 25, "RADAR AMPLIFIED! 📡", "#95a5a6");
     gameState.usedGTackGrey = true;
   } else if (t.family === 'IEx') {
+    const iexTowers = gameState.towers.filter(tower => tower.family === 'IEx');
+    if (iexTowers.length > 1 || gameState.towers.some(tower => tower.family === 'Red_Glob')) {
+      unlockBadge('chain_reaction');
+    }
     gameState.towers.forEach(iex => {
       if (iex.family === 'IEx') {
         iex.forceExplode = true;
@@ -4041,7 +4481,6 @@ function activateGTack(t) {
     if (gameState.globetines < cost) return;
     gameState.globetines -= cost;
     gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
-    if (gameState.moneySpentThisGame >= 632007) unlockBadge('globiscal_debt');
     if (tower.type !== nextType) { gameState.towerCounts[tower.type]--; gameState.towerCounts[nextType] = (gameState.towerCounts[nextType] || 0) + 1; }
     tower.type = nextType;
     tower.evolution = next.evolution;
@@ -4055,6 +4494,7 @@ function activateGTack(t) {
       }
     }
 
+    checkTowerCombinationBadges();
     recalculateAuras();
     if (typeof checkEncyclopediaMaster === 'function') checkEncyclopediaMaster();
     updateAllTowerRanges();
@@ -4073,6 +4513,10 @@ function activateGTack(t) {
     gameState.towerCounts[tower.type]--;
     gameState.towerSpots[tower.spotId].occupied = false;
     gameState.towers.splice(gameState.towers.indexOf(tower), 1);
+    if (gameState.moneySpentThisGame > 40000 && gameState.towers.length === 0) {
+      unlockBadge('globiscal_debt');
+    }
+    checkTowerCombinationBadges();
     recalculateAuras();
     deselectTower(); updateUI(); drawTowerShop();
   }
@@ -4673,8 +5117,10 @@ function activateGTack(t) {
     const mapBalance = ENEMY_BALANCE[gameState.map || 'gelatin_lake'];
     const tier = boss ? 'boss' : Object.keys(mapBalance || {}).find(key => mapBalance[key].includes(type)) || ((t.health || 0) >= 400 ? 'tank' : (t.health || 0) >= 150 ? 'medium' : 'basic');
     const chosenPath = forcedPath || ENEMY_PATHS[Math.floor(Math.random() * ENEMY_PATHS.length)];
-    const el = document.createElement('div'); el.className = 'enemy' + (boss ? ' boss' : '');
+    const enemyMotionClass = boss ? ' enemy-boss' : tier === 'tank' ? ' enemy-tank' : tier === 'medium' ? ' enemy-medium' : ' enemy-basic';
+    const el = document.createElement('div'); el.className = 'enemy' + enemyMotionClass + (t.isCrystallized ? ' enemy-crystal' : '');
     el.style.left = `${chosenPath[0].x}px`; el.style.top = `${chosenPath[0].y}px`;
+    el.style.setProperty('--enemy-delay', `${-(Math.random() * 1.8).toFixed(2)}s`);
 
     let imgStr = t.image;
     if (type === 'Spyware') {
@@ -4890,23 +5336,34 @@ function activateGTack(t) {
   }
 
   let narratorTimeout = null;
-  function showNarratorMsg(speakerId, imgSrc, speakerName, text) {
+  function showNarratorMsg(speakerId, imgSrc, speakerName, text, variant = '') {
     const old = document.getElementById('narrator-bubble');
     if (old) old.remove();
     if (narratorTimeout) clearTimeout(narratorTimeout);
 
     const bubble = document.createElement('div');
     bubble.id = 'narrator-bubble';
-    bubble.className = `narrator-bubble narrator-enter speaker-${speakerId}`;
+    bubble.className = `narrator-bubble narrator-enter speaker-${speakerId}${variant ? ` ${variant}` : ''}`;
     bubble.innerHTML = `
     <img src="${imgSrc}" class="narrator-portrait" onerror="this.style.display='none'">
     <div class="narrator-text-box">
       <div class="narrator-name">${speakerName}</div>
-      <div class="narrator-text">${text}</div>
+      <div class="narrator-text" aria-live="polite"></div>
     </div>
     <button class="narrator-close" onclick="closeNarratorMsg()">✕</button>
   `;
     document.body.appendChild(bubble);
+    const textElement = bubble.querySelector('.narrator-text');
+    let characterIndex = 0;
+    const typeCharacter = () => {
+      if (!textElement || !bubble.isConnected) return;
+      textElement.textContent = text.slice(0, characterIndex);
+      characterIndex += 1;
+      if (characterIndex <= text.length) {
+        setTimeout(typeCharacter, textElement.textContent.endsWith(' ') ? 18 : 28);
+      }
+    };
+    typeCharacter();
 
     setTimeout(() => {
       if (bubble.parentNode) {
@@ -4966,6 +5423,14 @@ function activateGTack(t) {
       for (let i = gameState.enemies.length - 1; i >= 0; i--) {
         const e = gameState.enemies[i];
         const next = e.currentPath[e.pathIndex + 1];
+        const currentVitality = (e.health || 0) + (e.shield || 0);
+        if (e._visualVitality !== undefined && currentVitality < e._visualVitality && e.el) {
+          e.el.classList.remove('hit-flash');
+          void e.el.offsetWidth;
+          e.el.classList.add('hit-flash');
+          setTimeout(() => e.el && e.el.classList.remove('hit-flash'), 260);
+        }
+        e._visualVitality = currentVitality;
 
         let currentEnemySpeed = e.speed;
         if (e.stunned && e.stunned > 0) {
@@ -6255,7 +6720,10 @@ function activateGTack(t) {
   }
 
   function checkEncyclopediaMaster() {
-    if (BADGES.encyclopediaMaster && BADGES.encyclopediaMaster.unlocked) return;
+    if (BADGES.encyclopediaMaster && BADGES.encyclopediaMaster.unlocked) {
+      checkCollectionMasterDialogue();
+      return;
+    }
     const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'];
     let allPycesMaxed = true;
     for (const t of types) {
@@ -6295,7 +6763,35 @@ function activateGTack(t) {
     if (allPycesMaxed && allFamiliesMaxed) {
       unlockBadge('encyclopediaMaster');
     }
+    checkCollectionMasterDialogue();
   }
+
+  function checkCollectionMasterDialogue() {
+    const framedGroups = new Set();
+    const allEnemiesFramed = Object.keys(ENEMY_TYPES).every(type => {
+      if (type.startsWith('Bit')) {
+        if (framedGroups.has('bits')) return true;
+        framedGroups.add('bits');
+        return ['BitY1', 'BitB4', 'BitG2', 'BitP3']
+          .reduce((sum, bit) => sum + (gameState.pycesKilled[bit] || 0), 0) >= getPyceKillTarget(type);
+      }
+      if (type.startsWith('Byte')) {
+        if (framedGroups.has('bytes')) return true;
+        framedGroups.add('bytes');
+        return ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4']
+          .reduce((sum, byte) => sum + (gameState.pycesKilled[byte] || 0), 0) >= getPyceKillTarget(type);
+      }
+      return (gameState.pycesKilled[type] || 0) >= getPyceKillTarget(type);
+    });
+    const allBadgesUnlocked = Object.values(BADGES).every(badge => badge.unlocked);
+
+    if (!gameState.collectionMasterDialogueShown && allEnemiesFramed && allBadgesUnlocked) {
+      gameState.collectionMasterDialogueShown = true;
+      showCollectionMasterDialogue();
+      saveProgress();
+    }
+  }
+
 
   function die(e, idx) {
     if (e.type === 'Sharowd') {
@@ -6409,7 +6905,12 @@ function activateGTack(t) {
     e.el.remove();
     if (e.boss) unlockBadge('bossKiller');
     gameState.enemies.splice(idx, 1);
-    gameState.pycesKilled[e.type] = (gameState.pycesKilled[e.type] || 0) + 1;
+    const previousKills = gameState.pycesKilled[e.type] || 0;
+    gameState.pycesKilled[e.type] = previousKills + 1;
+    const frameTarget = getPyceKillTarget(e.type);
+    if (previousKills < frameTarget && gameState.pycesKilled[e.type] >= frameTarget) {
+      showEncyclopediaPopup({ ...e, key: e.type });
+    }
 
     if (gameState.roundKills) {
       gameState.roundKills.push(e.type);
@@ -6680,6 +7181,7 @@ function activateGTack(t) {
     gameState.waveActive = false;
     gameState.spawningActive = false;
     gameState.totalDamage = 0;
+    gameState.moneySpentThisGame = 0;
     gameState.usedGTackRed = false;
     gameState.usedGTackGrey = false;
     gameState.baseTookDamage = false;
@@ -6688,6 +7190,7 @@ function activateGTack(t) {
     gameState.uniquesBossSpawned = {};
     gameState.blockQuestStarted = false;
     gameState.blockQuestPending = false;
+    gameState.wallGardenSoapMessageShown = false;
     document.querySelectorAll('.block-quest-marker, .paracristal').forEach(el => el.remove());
     const crystalEnergy = document.getElementById('paracristal-energy');
     if (crystalEnergy && gameState.mode !== 'interstellar') crystalEnergy.style.display = 'none';
@@ -6792,6 +7295,15 @@ function activateGTack(t) {
           if (gameState.corruptWins >= 5) unlockBadge('corrupt5');
         }
 
+        const hasBlockTalesSkin = gameState.blockQuestHadBlockTales ||
+          gameState.unlockedSkins.includes('corrupt_swords_set');
+        if (gameState.mode === 'dificil' && hasBlockTalesSkin) {
+          unlockBadge('block_city');
+        }
+        if (gameState.blockQuestCompleted && hasBlockTalesSkin) {
+          unlockBadge('old_blox_city');
+        }
+
         // --- Skin unlock by victory condition ---
         const isUrbanMap = (gameState.map || '') === 'urbanistic_road';
 
@@ -6872,6 +7384,7 @@ function activateGTack(t) {
 
       if (gameState.mode === 'interstellar' && victory === true) {
         unlockBadge('unmenaced');
+        unlockBadge('urban_crystals');
         if (!gameState.unlockedInterstellar) {
           gameState.unlockedInterstellar = true;
           gameState.pycoins += 400;
@@ -6900,19 +7413,7 @@ function activateGTack(t) {
         }
       }
 
-      // dangerous_set: win with all 5 required families in loadout (Normal or above)
-      const modesNormalOrAboveCheck = ['normal', 'dificil', 'extremo', 'corrupto', 'antiNormal'];
-      if (modesNormalOrAboveCheck.includes(gameState.mode) && gameState.equippedTowers && gameState.equippedTowers.length > 0) {
-        const equipped = gameState.equippedTowers;
-        const hasWorker = equipped.some(t => TOWER_TYPES[t] && TOWER_TYPES[t].family === 'Worker_Glob');
-        const hasGrey   = equipped.some(t => TOWER_TYPES[t] && TOWER_TYPES[t].family === 'Grey');
-        const hasPink   = equipped.some(t => TOWER_TYPES[t] && TOWER_TYPES[t].family === 'Pink');
-        const hasBrown  = equipped.some(t => TOWER_TYPES[t] && TOWER_TYPES[t].family === 'Brown');
-        const hasIEx    = equipped.some(t => TOWER_TYPES[t] && TOWER_TYPES[t].family === 'IEx');
-        if (hasWorker && hasGrey && hasPink && hasBrown && hasIEx) {
-          unlockBadge('dangerous_set');
-        }
-      }
+      checkTowerCombinationBadges();
 
       if (!gameState.baseTookDamage) {
         unlockBadge('titaniumBuilding');
@@ -7180,6 +7681,17 @@ function activateGTack(t) {
     } else if (currentStoryTab === 'logs') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
+        <h3 style="color:#ff69b4;">📋 Historial de Actualizaciones (GlD v4.2.2 - Responvidad y Revision. (1))</h3>
+        <p style="color:#ff69b4;">Pequeños misterios, respuestas más expresivas y una revisión general de la experiencia.</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>💬 <strong style="color:#ff69b4;">??? tiene mucho que decir</strong>: El misterioso personaje del logo ahora responde con una frase aleatoria cada vez que se alcanza un múltiplo de cinco clics.</li>
+          <li>🎭 <strong>Más diálogos secretos</strong>: Se han añadido nuevas respuestas chistosas, amenazas pixeladas, referencias a la corporación mafiosa MadStars y quejas formales de WORK-BOMBOT.</li>
+          <li>🌸 <strong>Diálogo más visible</strong>: Las apariciones de ??? usan texto blanco y bordes rosas para que sus mensajes puedan leerse incluso sobre el fondo oscuro.</li>
+          <li>📱 <strong>Revisión de responsividad</strong>: Ajustes visuales para que los elementos importantes tengan más espacio en dispositivos móviles.</li>
+        </ul>
+        <p style="text-align:center; font-style:italic; color:#ff69b4; font-size:0.9rem; margin-top:20px;">Psst... prueba el código "BLOCK_QUEST" en Urbanistic Road, en Difícil o superior.</p>
+
         <h3 style="color:#7ec850;">📋 Historial de Actualizaciones (GlD v4.2.1 - LEAFY BEACH PARTY HOTFIX)</h3>
         <p style="color:#7ec850;">Correcciones, mejoras de animación y actualizaciones visuales sin nuevas salas.</p>
         <h4>Novedades del Parche:</h4>
@@ -7290,6 +7802,17 @@ function activateGTack(t) {
       `;
       } else {
         container.innerHTML = `
+        <h3 style="color:#ff69b4;">📋 Update Logs (GlD v4.2.2 - Responvidad y Revision. (1))</h3>
+        <p style="color:#ff69b4;">Small mysteries, more expressive replies, and a general pass over the experience.</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>💬 <strong style="color:#ff69b4;">??? has a lot to say</strong>: The mysterious logo character now replies with a random line whenever a multiple of five clicks is reached.</li>
+          <li>🎭 <strong>More secret dialogue</strong>: New funny replies, pixelated threats, references to the mafia-like MadStars corporation, and formal complaints from WORK-BOMBOT have been added.</li>
+          <li>🌸 <strong>More readable dialogue</strong>: ??? now uses white text and pink borders so the messages remain visible against the dark background.</li>
+          <li>📱 <strong>Responsiveness review</strong>: Visual adjustments give important elements more room on mobile devices.</li>
+        </ul>
+        <p style="text-align:center; font-style:italic; color:#ff69b4; font-size:0.9rem; margin-top:20px;">Psst... try the code "BLOCK_QUEST" on Urbanistic Road, Hard difficulty or higher.</p>
+
         <h3 style="color:#7ec850;">📋 Update Logs (GlD v4.2.1 - LEAFY BEACH PARTY HOTFIX)</h3>
         <p style="color:#7ec850;">Fixes, animation improvements and visual updates — no new stages.</p>
         <h4>What's New in this Patch:</h4>
@@ -7449,6 +7972,3 @@ function activateGTack(t) {
   }
 
   window.onload = init;
-
-
-

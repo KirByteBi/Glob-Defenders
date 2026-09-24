@@ -22,6 +22,14 @@ You can play on PC, mobile and tablet. The game is designed to work horizontally
 
 ---
 
+## 💾 Progress storage
+
+The game stores each player's badges, skins, currencies and settings in the browser's **IndexedDB** database, without requiring an installation or an external account.
+
+Existing progress saved in `localStorage` is migrated automatically the next time it is loaded. `localStorage` remains as a compatibility backup. This storage is local to the browser and does not synchronize between devices; online synchronization can be added later without changing the badge system.
+
+---
+
 ## 💰 Currencies
 
 ### 🎫 Globets / Globetines
