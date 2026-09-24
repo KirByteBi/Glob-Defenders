@@ -1952,7 +1952,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'corrupt_swords_set', name: 'skin_corrupt_swords_name', desc: 'skin_corrupt_swords_desc', cost: 637, type: 'pycoin', duckpass_cost: 207, isSpecial: true,
+      id: 'corrupt_swords_set', name: 'skin_corrupt_swords_name', desc: 'skin_corrupt_swords_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'mission_block_tales',
       skins: {
         'Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO1).png',
         'Poop_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Brad Glob (SK-EVO2).png',
@@ -2078,7 +2078,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'dreams_set', name: 'skin_dreams_name', desc: 'skin_dreams_desc', isSpecial: true, cost: 777, duckpass_cost: 555, type: 'pycoin',
+      id: 'dreams_set', name: 'skin_dreams_name', desc: 'skin_dreams_desc', isSpecial: true, cost: 637, duckpass_cost: 207, type: 'pycoin',
       skins: {
         'Comet_Glob': 'img/Skins/Negro Supremo/Dreams (SP)/Gummy Glob (SK-EVO1).png',
         'Dark_Glob': 'img/Skins/Negro Supremo/Dreams (SP)/Loyal Glob (SK-EVO2).png',
@@ -2149,7 +2149,7 @@ const SKINS_DATA = {
 
   'White': [
     {
-      id: 'heights_set', name: 'skin_heights_name', desc: 'skin_heights_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest',
+      id: 'heights_set', name: 'skin_heights_name', desc: 'skin_heights_desc', cost: 250, duckpass_cost: 100, type: 'pycoin', isSpecial: true, unlockCondition: 'block_quest',
       skins: {
         'Balloon_Glob': 'Misiones (2026)/Skins/Blanca/House & Bombot (SK-EVO1).png',
         'Heliglob': 'Misiones (2026)/Skins/Blanca/Castle & Bombot (SK-EVO2).png',
@@ -2159,7 +2159,7 @@ const SKINS_DATA = {
   ],
   'Pink': [
     {
-      id: 'old_tycoon_set', name: 'skin_old_tycoon_name', desc: 'skin_old_tycoon_desc', cost: 637, duckpass_cost: 207, type: 'pycoin', isSpecial: true, unlockCondition: 'block_quest_shop',
+      id: 'old_tycoon_set', name: 'skin_old_tycoon_name', desc: 'skin_old_tycoon_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest_shop',
       skins: {
         'Streamer_Glob': 'Misiones (2026)/Skins/Rosa/Noob Tycoon (SK-EVO1).png',
         'Gamer_Glob': 'Misiones (2026)/Skins/Rosa/Guest Retrohouse (SK-S2).png',
@@ -2169,7 +2169,7 @@ const SKINS_DATA = {
   ],
   'Brown': [
     {
-      id: 'jonk_set', name: 'skin_jonk_name', desc: 'skin_jonk_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest',
+      id: 'jonk_set', name: 'skin_jonk_name', desc: 'skin_jonk_desc', cost: 250, duckpass_cost: 100, type: 'pycoin', isSpecial: true, unlockCondition: 'block_quest',
       skins: {
         'Sprout_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO1).png',
         'Garden_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO2).png',

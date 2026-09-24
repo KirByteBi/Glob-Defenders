@@ -3127,12 +3127,17 @@ function drawShop() {
   } else if (currentShopTab === 'skins') {
     if (!window.activeSkinFilter) window.activeSkinFilter = 'all';
 
+    const missionSkinIds = ['corrupt_swords_set', 'fracstal_set', 'heights_set', 'old_tycoon_set', 'jonk_set', 'froggy_set'];
+    const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set'];
+    const storeUnlockableIds = [...missionSkinIds, ...otherNewSkinIds];
+
     const filterDiv = document.createElement('div');
     filterDiv.className = 'shop-filters';
     filterDiv.style.cssText = 'grid-column: 1 / -1; display:flex; justify-content:center; gap:8px; margin-bottom:15px; flex-wrap:wrap; width: 100%;';
     
     const filters = [
       { id: 'all', label: 'Todos' },
+      { id: 'new', label: 'Nuevas' },
       { id: 'buyable', label: 'Comprables' },
       { id: 'special', label: 'Especiales' },
       { id: 'equipped', label: 'Equipados' },
@@ -3158,6 +3163,7 @@ function drawShop() {
 
     function shouldShowSkin(skin, family, isUnlockableCat) {
       if (window.activeSkinFilter === 'all') return true;
+      if (window.activeSkinFilter === 'new') return storeUnlockableIds.includes(skin.id);
       const isEquipped = gameState.equippedSkins[family] === skin.id;
 
       if (window.activeSkinFilter === 'buyable') return !isUnlockableCat && skin.cost > 0 && skin.type !== 'free';
@@ -3172,7 +3178,7 @@ function drawShop() {
       if (family === 'Global') return;
       if (!isTowerOwned(family)) return;
       SKINS_DATA[family].forEach(skin => {
-        const isSpecialUnlockable = ['mimic_set', 'pyce_morph', 'cuby_bombot', 'astrorb_set', 'crystal_bombot'].includes(skin.id);
+        const isSpecialUnlockable = ['mimic_set', ...storeUnlockableIds].includes(skin.id);
         if (skin.unlockCondition || isSpecialUnlockable) return; // Las que tienen condición van abajo
 
         if (!shouldShowSkin(skin, family, false)) return;
@@ -3231,11 +3237,11 @@ function drawShop() {
       SKINS_DATA[family].forEach(skin => {
         if (family === 'Global' && skin.id !== 'pyce_morph') return;
 
-        const isSpecialDrop = ['mimic_set', 'pyce_morph', 'cuby_bombot', 'astrorb_set', 'crystal_bombot'].includes(skin.id);
+        const isSpecialDrop = ['mimic_set', ...storeUnlockableIds].includes(skin.id);
         if (!skin.unlockCondition && !isSpecialDrop) return;
         
         const isUnlocked = gameState.unlockedSkins.includes(skin.id);
-        const isAlwaysVisible = ['rewamped_green_set', 'rewamped_red_set', 'judicial_set'].includes(skin.id);
+        const isAlwaysVisible = ['rewamped_green_set', 'rewamped_red_set', 'judicial_set', ...storeUnlockableIds].includes(skin.id);
 
         // Solo mostrar si está desbloqueada, o si es de las siempre visibles
         if (!isUnlocked && !isAlwaysVisible) return;
@@ -3245,8 +3251,8 @@ function drawShop() {
         // Categorizar
         let category = 'otros';
         if (['rewamped_green_set', 'rewamped_red_set', 'judicial_set', 'spanish_bombot'].includes(skin.id)) category = 'mapa';
-        else if (['astrorb_set', 'cuby_bombot', 'fracstal_set', 'froggy_set'].includes(skin.id)) category = 'misiones';
-        else if (['mimic_set', 'pyce_morph', 'crystal_bombot'].includes(skin.id)) category = 'otros';
+        else if (missionSkinIds.includes(skin.id)) category = 'misiones';
+        else if (['mimic_set', ...otherNewSkinIds].includes(skin.id)) category = 'otros';
         else if (skin.unlockCondition && skin.unlockCondition.includes('urban')) category = 'mapa';
 
         unlockableSkins[category].push({ family, skin, isUnlocked });
@@ -3273,6 +3279,8 @@ function drawShop() {
         if (skinId === 'pyce_morph') return currentLanguage === 'es' ? '🎁 Recompensa Secreta' : '🎁 Secret Reward';
         if (skinId === 'cuby_bombot') return currentLanguage === 'es' ? '👑 Derrota a Astrorb True Form' : '👑 Defeat Astrorb True Form';
         if (skinId === 'froggy_set') return currentLanguage === 'es' ? '🏖️ Puedes obtenerla gratis superando Sunlight Summer en Anti-Normal' : '🏖️ You can get it for free by beating Sunlight Summer in Anti-Normal';
+        if (condition === 'mission_block_tales') return currentLanguage === 'es' ? '🗡️ Completa la misión de Block Tales' : '🗡️ Complete the Block Tales mission';
+        if (condition === 'block_quest_shop') return currentLanguage === 'es' ? '🧱 Completa la misión Block Quest' : '🧱 Complete the Block Quest mission';
         
         if (condition === 'win_facil_urban') return currentLanguage === 'es' ? '🗺️ Gana en modo Fácil en Urbanistic Road' : '🗺️ Win in Easy mode on Urbanistic Road';
         if (condition === 'win_normal') return currentLanguage === 'es' ? '⚔️ Gana en modo Normal o superior' : '⚔️ Win in Normal mode or higher';
@@ -3320,7 +3328,21 @@ function drawShop() {
           let canBuy = false;
           let onclickAction = '';
 
-          if (!isUnlocked) {
+          if (!isUnlocked && !skin.unlockCondition && skin.cost > 0) {
+            const canBuy = skin.duckpass_cost
+              ? gameState.pycoins >= skin.cost && gameState.duckPassCurrency >= skin.duckpass_cost
+              : gameState.pycoins >= skin.cost;
+            const price = skin.duckpass_cost
+              ? `<img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}`
+              : `<img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost}`;
+            el.innerHTML = `
+              <div class="special-badge" style="background:${colorHex}; color:#000;">🌟 ${currentLanguage === 'es' ? 'NUEVA' : 'NEW'}</div>
+              <div class="skin-preview"><img src="${previewImg}" style="width:100%; height:100%;"></div>
+              <h3>${translate(skin.name)}</h3>
+              <p>${translate(skin.desc)}</p>
+              <div class="cost">${price}</div>
+              <button class="skin-buy-btn" ${canBuy ? `onclick="buySkin('${family}', '${skin.id}', ${skin.cost})"` : 'disabled'}>${translate('buy')}</button>`;
+          } else if (!isUnlocked) {
             costDisplay = `<div class="cost" style="color:${colorHex}; font-size:0.78rem; margin-bottom:4px;">${currentLanguage === 'es' ? '🎁 Gratis al desbloquear' : '🎁 Free on unlock'}</div>`;
             btnText = `🔒 ${currentLanguage === 'es' ? 'Bloqueada' : 'Locked'}`;
             
