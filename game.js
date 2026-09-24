@@ -7941,7 +7941,10 @@ function activateGTack(t) {
         title.setAttribute('data-i18n', 'gameOver');
         title.textContent = translate('gameOver');
       }
-      if (msg) msg.innerHTML = translate('waveStarted', { wave: gameState.wave }).replace('Oleada', 'Llegaste a la oleada').replace('Wave', 'You reached wave');
+      const finalWave = Math.max(1, Number(gameState.wave) || 1);
+      const finalWaveEl = document.getElementById('final-wave');
+      if (finalWaveEl) finalWaveEl.textContent = finalWave;
+      if (msg) msg.textContent = translate('gameOverWave', { wave: finalWave });
       saveProgress();
     }
 
