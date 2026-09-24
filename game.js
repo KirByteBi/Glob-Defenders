@@ -1,9 +1,6 @@
 // ===================== ESTADO DEL JUEGO =====================
 
 let currentLanguage = 'es';
-let backgroundMusic = null;
-let musicEnabled = true;
-let showHitbox = false;
 
 // Generamos spots automáticamente evitando el río y el camino
 const TOWER_SPOTS = [];
@@ -1953,15 +1950,10 @@ function setupOwnerDebugTools() {
     mysteryBugImage.value = savedMysteryBugImage;
   }
   const updateMysteryBugOptions = () => {
-    const mysteryBugData = typeof NARRATOR_DATA === 'object' ? NARRATOR_DATA.mysterybug : null;
-    const currentMysteryBugName = mysteryBugName?.value.trim() || '???';
-    const currentMysteryBugImage = mysteryBugImage?.value || mysteryBugData?.img;
     const hasMysteryBugSelected = Boolean(
       selectedSpeaker &&
       selectedSpeaker.id === 'mysterybug' &&
-      !selectedSpeaker.isFallback &&
-      selectedSpeaker.label === currentMysteryBugName &&
-      selectedSpeaker.image === currentMysteryBugImage
+      !selectedSpeaker.isFallback
     );
     mysteryBugOptions.hidden = !hasMysteryBugSelected;
   };
