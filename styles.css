@@ -1966,6 +1966,13 @@ input:checked + .slider:before {
 .narrator-bubble.speaker-crystarky { border-color: #00bcd4; box-shadow: 0 0 15px rgba(0, 188, 212, 0.4), 0 0 8px rgba(255, 100, 200, 0.3); }
 .narrator-bubble.speaker-arkyvoid { border-color: #9e9e9e; box-shadow: 0 0 15px rgba(180, 0, 180, 0.4), 0 0 8px rgba(200, 200, 200, 0.2); }
 
+.narrator-bubble.speaker-fallback {
+    color: #000;
+    background: #fff;
+    border-color: #000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
 .narrator-bubble {
     position: fixed;
     bottom: 20px;
@@ -2054,6 +2061,12 @@ input:checked + .slider:before {
     font-size: 0.95rem;
     line-height: 1.4;
     min-height: 1.4em;
+}
+
+.narrator-bubble.speaker-fallback .narrator-name,
+.narrator-bubble.speaker-fallback .narrator-text,
+.narrator-bubble.speaker-fallback .narrator-close {
+    color: #000;
 }
 
 .narrator-bubble.speaker-mysterybug {

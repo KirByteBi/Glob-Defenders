@@ -1700,16 +1700,45 @@ function setupOwnerDebugTools() {
   const searchSpeakers = () => {
     const query = speakerSearch.value;
     const narratorData = typeof NARRATOR_DATA === 'object' ? NARRATOR_DATA : {};
-    const results = Object.entries(narratorData)
+    const registeredSpeakers = Object.entries(narratorData)
       .map(([id, data]) => {
         const languageData = data[currentLanguage] || data.es || data.en || {};
         return {
           id,
           image: data.img,
           label: languageData.name || id,
+          isFallback: false,
           score: debugSearchScore(query, getSpeakerDebugAliases(id, data, languageData))
         };
-      })
+      });
+    const registeredSpeakerImages = new Set(
+      Object.values(narratorData)
+        .map(data => data.img)
+        .filter(Boolean)
+    );
+    const fallbackSpeakers = [
+      ...Object.entries(typeof ENEMY_TYPES === 'object' ? ENEMY_TYPES : {}).map(([id, enemy]) => ({
+        id,
+        image: enemy.image,
+        label: translate(enemy.name) || id,
+        aliases: getEnemyDebugAliases(id, enemy)
+      })),
+      ...Object.entries(typeof TOWER_TYPES === 'object' ? TOWER_TYPES : {}).map(([id, tower]) => ({
+        id,
+        image: tower.image,
+        label: translate(tower.name) || id,
+        aliases: getEnemyDebugAliases(id, tower)
+      }))
+    ]
+      .filter(speaker => !narratorData[speaker.id] && !registeredSpeakerImages.has(speaker.image))
+      .map(speaker => ({
+        id: speaker.id,
+        image: speaker.image,
+        label: speaker.label,
+        isFallback: true,
+        score: debugSearchScore(query, speaker.aliases)
+      }));
+    const results = [...registeredSpeakers, ...fallbackSpeakers]
       .filter(result => result.score > 0)
       .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
     renderDebugSearchResults(speakerResults, results, result => {
@@ -1736,6 +1765,10 @@ function setupOwnerDebugTools() {
     if (!text) {
       showMessage('Escribe un texto para el diálogo.', 'warning');
       dialogueText.focus();
+      return;
+    }
+    if (selectedSpeaker.isFallback) {
+      showNarratorMsg(selectedSpeaker.id, selectedSpeaker.image, selectedSpeaker.label, text, 'speaker-fallback');
       return;
     }
     const data = NARRATOR_DATA[selectedSpeaker.id];
