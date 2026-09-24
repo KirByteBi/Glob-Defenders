@@ -69,6 +69,7 @@
             </div>
             <p id="loading-text" class="loading-text">Loading...</p>
             <p id="loading-tip" class="loading-tip">Tip: Los Globs básicos sostienen la defensa.</p>
+            <button id="loading-tip-btn" type="button" class="loading-tip-btn" onclick="openLoadingTipsModal()">Ver todos los tips</button>
         </div>
     </div>
 
@@ -498,6 +499,18 @@
             <div id="story-logs-body" class="story-logs-body">
                 <!-- El contenido dinámico se cargará aquí según el idioma -->
             </div>
+        </div>
+    </div>
+
+    <div id="tips-modal" class="modal">
+        <div class="modal-content tips-content">
+            <div class="modal-header">
+                <h2 id="tips-title">💡 Tips de juego</h2>
+                <div class="header-btns">
+                    <button class="close-btn" onclick="smartClose('tips-modal')">✖</button>
+                </div>
+            </div>
+            <div id="tips-list" class="tips-list"></div>
         </div>
     </div>
 

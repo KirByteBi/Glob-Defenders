@@ -680,9 +680,27 @@ const LOADING_TIPS = {
 function getLoadingTips(language) {
   const locale = LOADING_TIPS[language] || LOADING_TIPS.es;
   const familyPool = Object.entries(locale.families || {}).flatMap(([family, tips]) => tips.map(tip => `${family}: ${tip}`));
-  const generalPool = (locale.general || []).map(tip => `General: ${tip}`);
-  const enemyPool = (locale.enemy || []).map(tip => `Enemigo: ${tip}`);
+  const generalLabel = language === 'es' ? 'General' : 'General';
+  const enemyLabel = language === 'es' ? 'Enemigo' : 'Enemy';
+  const generalPool = (locale.general || []).map(tip => `${generalLabel}: ${tip}`);
+  const enemyPool = (locale.enemy || []).map(tip => `${enemyLabel}: ${tip}`);
   return [...generalPool, ...enemyPool, ...familyPool];
+}
+
+function openLoadingTipsModal() {
+  const language = currentLanguage || 'es';
+  const tipList = getLoadingTips(language);
+  const tipsListEl = document.getElementById('tips-list');
+  const tipsModal = document.getElementById('tips-modal');
+  if (!tipsListEl || !tipsModal) return;
+
+  const title = document.getElementById('tips-title');
+  if (title) {
+    title.textContent = language === 'es' ? '💡 Tips de juego' : '💡 Game tips';
+  }
+
+  tipsListEl.innerHTML = tipList.map(tip => `<div class="tips-item">${tip}</div>`).join('');
+  tipsModal.style.display = 'flex';
 }
 
 function handleLogin() {
@@ -753,12 +771,12 @@ function handleLogin() {
     const tipInterval = setInterval(() => {
       tipIdx = (tipIdx + 1) % tipList.length;
       if (tipEl) tipEl.textContent = tipList[tipIdx];
-    }, 750);
+    }, 1800);
 
     const progressInterval = setInterval(() => {
-      progress = Math.min(progress + 3, 100);
+      progress = Math.min(progress + 2, 100);
       if (barFill) barFill.style.width = `${progress}%`;
-    }, 120);
+    }, 150);
 
     setTimeout(() => {
       clearInterval(ltInterval);
@@ -771,8 +789,8 @@ function handleLogin() {
         loadingScreen.style.display = 'none';
         const mapScreen = document.getElementById('map-selection');
         if (mapScreen) mapScreen.style.display = 'flex';
-      }, 450);
-    }, 4200);
+      }, 650);
+    }, 6500);
   } else {
     const mapScreen = document.getElementById('map-selection');
     if (mapScreen) mapScreen.style.display = 'flex';
@@ -7464,6 +7482,9 @@ function activateGTack(t) {
     const logsBtn = document.getElementById('tab-logs-btn');
     if (logsBtn) logsBtn.innerHTML = `📋 ${translate('story_tab_logs')}`;
 
+    const loadingTipBtn = document.getElementById('loading-tip-btn');
+    if (loadingTipBtn) loadingTipBtn.textContent = currentLanguage === 'es' ? 'Ver todos los tips' : 'View all tips';
+
     const encBtn = document.getElementById('open-encyclopedia-btn');
     if (encBtn) encBtn.innerHTML = translate('btn_encyclopedia');
 
@@ -8031,6 +8052,9 @@ function activateGTack(t) {
           <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">Familias</button>
           <button type="button" style="background:#3a6ea5; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('enemies'), 30);">Enemigos</button>
         </div>
+        <div style="margin-top: 18px;">
+          <button type="button" style="background:rgba(255,255,255,0.08); color:#edf6ff; border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openLoadingTipsModal()">📘 Ver todos los tips</button>
+        </div>
       `;
       } else {
         container.innerHTML = `
@@ -8073,6 +8097,9 @@ function activateGTack(t) {
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
           <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">Families</button>
           <button type="button" style="background:#3a6ea5; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('enemies'), 30);">Enemies</button>
+        </div>
+        <div style="margin-top: 18px;">
+          <button type="button" style="background:rgba(255,255,255,0.08); color:#edf6ff; border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openLoadingTipsModal()">📘 View all tips</button>
         </div>
       `;
       }

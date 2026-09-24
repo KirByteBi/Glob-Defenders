@@ -268,7 +268,7 @@ const TRANSLATIONS = {
     tower_Gamer_Glob_desc: "Con el tiempo se convirtió en un gamer competitivo reconocido en toda la ciudad, pero la fama aún no era suficiente.",
     tower_Youtuber_Glob_desc: "Finalmente alcanzó el éxito como un famoso Youtuber y tiene dinero para aventar... Aunque ya es hora de que deje el internet y busque un trabajo de verdad.",
 
-    login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla",
+    login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla", create_account: "Crear cuenta",
     select_map: "Seleccionar Mapa",
     select_mode: "Seleccionar Modo",
     backToModes: "Selección de Modo",
@@ -831,7 +831,7 @@ const TRANSLATIONS = {
     tower_Planked_Glob_desc: "Generates a screwed fence that deals heavy damage, including area damage when destroyed. Great for stopping hordes easily.<br><br>He's scary to look at, he's not as good as he seems anymore, and what he does seem to have is a friendship with Molten Glob... But I doubt it's because of their relationship, something tells me the color influences it.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
     tower_DJ_Glob_desc: "Generates a radio fence that's very powerful offensively and defensively, and has an attack radius that slows and can stop the Pyce in front of it for a few seconds.<br><br>Far from being someone dedicated to music, he uses speakers as defense, but he is friends with both the pink and white families, cheering them up and making the city an urban disco.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
 
-    login_user: "Username", login_pass: "Password", login_btn: "Join the battle",
+    login_user: "Username", login_pass: "Password", login_btn: "Join the battle", create_account: "Create account",
     select_map: "Select Map",
     select_mode: "Select Mode",
     backToModes: "Mode Selection",

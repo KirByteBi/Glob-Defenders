@@ -3483,6 +3483,46 @@ body.tablet-landscape #options-toggle {
     padding: 0 8px;
 }
 
+.loading-tip-btn {
+    margin-top: 12px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: #f4fbff;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+}
+
+.loading-tip-btn:hover {
+    background: rgba(68, 199, 255, 0.18);
+    border-color: rgba(68, 199, 255, 0.6);
+    transform: translateY(-1px);
+}
+
+.tips-content {
+    width: min(760px, 88vw);
+    max-height: 78vh;
+    overflow: auto;
+}
+
+.tips-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.tips-item {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #edf6ff;
+    line-height: 1.5;
+}
+
 @keyframes blinkText {
     0%, 100% { opacity: 0.8; }
     50% { opacity: 0.3; }
