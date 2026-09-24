@@ -526,6 +526,165 @@ function checkLogin() {
   } catch (e) { console.warn("LocalStorage no disponible"); }
 }
 
+const LOADING_TIPS = {
+  es: {
+    general: [
+      'Mantén la presión con torres que cubran caminos y puntos de paso clave.',
+      'No te obsesiones con el daño: a veces la mejor jugada es controlar el campo.',
+      'Revisa tus torres con frecuencia; un buen posicionamiento salva partidas difíciles.',
+      'Los mapas largos te premian con paciencia y con rutas bien protegidas.',
+      'Antes de gastar todo, asegúrate de que tus defensas sostienen la siguiente oleada.'
+    ],
+    enemy: [
+      'Los Pyces rápidos te obligan a reaccionar antes de que te corten la presión.',
+      'Los enemigos con mucha salud necesitan más de una línea de daño o apoyo.',
+      'Si ves enemigos con escudos o resistencia, cambia el enfoque de tu defensa.',
+      'Los Pyces con comportamiento especial suelen venir en grupos más peligrosos.',
+      'Los oleajes más altos no siempre piden más daño: a veces necesitas más control.'
+    ],
+    families: {
+      Glob: [
+        'Los Glob básicos sostienen la defensa temprana; colócalos bien para controlar la primera oleada.',
+        'Los Glob no son los más fuertes, pero son el núcleo de tu ritmo de juego y de tu economía.'
+      ],
+      Red_Glob: [
+        'La familia roja suele ser la mejor para empujar daño directo a enemigos rápidos.',
+        'Combina Red_Glob con apoyo para eliminar objetivos prioritarios antes de que te abran paso.'
+      ],
+      Soap_Glob: [
+        'Los Soap_Glob son muy útiles para frenar ataques y ganar tiempo en oleadas difíciles.',
+        'Si el enemigo acelera demasiado, la familia azul te da control real del campo.'
+      ],
+      Ducky_Glob: [
+        'Ducky_Glob favorece la economía y la consistencia; no lo dejes en segundo plano.',
+        'Los Ducky son excelentes para generar más recursos y sostener partidas largas.'
+      ],
+      Comet_Glob: [
+        'La familia negra hace daño brutal cuando ya has controlado el tablero.',
+        'Comet_Glob es ideal para presionar en el centro del mapa en oleadas medianas.'
+      ],
+      Old_Glob: [
+        'Old_Glob funciona muy bien si quieres estabilidad y apoyo defensivo.',
+        'A veces conviene conservarlo en puntos estratégicos para no perder presión.'
+      ],
+      Work_Bombot: [
+        'Bombot gana mucho cuando sabes anticipar los flancos por donde entran los Pyces.',
+        'No lo uses como relleno: su explosión es más útil si enchufas una ruta clara.'
+      ],
+      Balloon_Glob: [
+        'Balloon Glob complementa muy bien el control de distancia y la cobertura del mapa.',
+        'Suele ser una gran opción para sostener el tablero mientras tu daño se organiza.'
+      ],
+      Streamer_Glob: [
+        'Streamer Glob funciona mejor cuando aprovechas la presión y el control de zonas.',
+        'Si lo combinas con daño fuerte, puedes limpiar más rápido a los enemigos más molestos.'
+      ],
+      IEx: [
+        'IEx es excepcional para reforzar el daño y la presión en rutas más extensas.',
+        'Usa sus bonificaciones en momentos clave para no perder el tempo de la partida.'
+      ],
+      Worker_Glob: [
+        'Worker_Glob es perfecto para sostener la defensa en mapas más abiertos.',
+        'Aporta estabilidad y te ayuda a mantener el control si la ola empieza a complicarse.'
+      ],
+      Bomb_Glob: [
+        'Bomb_Glob se cumple mejor cuando sabes donde va a entrar el enemigo.',
+        'Su explosión suele ser más efectiva si la colocas en un punto de paso evidente.'
+      ],
+      Sprout_Glob: [
+        'Sprout_Glob funciona muy bien si quieres más control y ralentización sin perder presión.',
+        'Los efectos de ralentización te dan más margen para responder antes del choque.'
+      ],
+      Pirate_Glob: [
+        'Pirate_Glob aporta mucho en mapas con más recorrido y presión lateral.',
+        'Cuando tienes rutas largas, su temporal y su utilidad se vuelven muy fuertes.'
+      ]
+    }
+  },
+  en: {
+    general: [
+      'Keep pressure with towers that cover key paths and choke points.',
+      'Do not obsess over raw damage: sometimes the best move is controlling the field.',
+      'Check your towers often; good positioning saves hard runs.',
+      'Longer maps reward patience and well-protected routes.',
+      'Before spending everything, make sure your defenses can sustain the next wave.'
+    ],
+    enemy: [
+      'Fast Pyces force you to react before they cut your pressure.',
+      'Enemies with lots of health need more than one damage line or support.',
+      'If you see enemies with shields or resistance, change your defense approach.',
+      'Pyces with special behavior often come in more dangerous groups.',
+      'Late waves do not always call for more damage: sometimes you need more control.'
+    ],
+    families: {
+      Glob: [
+        'Basic Globs hold the early defense; place them well to control the first wave.',
+        'Globs are not the strongest, but they are the core of your pacing and economy.'
+      ],
+      Red_Glob: [
+        'The red family is usually best for direct pressure against fast enemies.',
+        'Pair Red_Glob with support to remove priority targets before they break through.'
+      ],
+      Soap_Glob: [
+        'Soap_Glob is very useful for slowing attacks and buying time in tougher waves.',
+        'If enemies accelerate too much, the blue family gives real map control.'
+      ],
+      Ducky_Glob: [
+        'Ducky_Glob favors economy and consistency; do not leave it behind.',
+        'Ducky is excellent for generating more resources and sustaining long runs.'
+      ],
+      Comet_Glob: [
+        'The black family deals brutal damage once you already control the board.',
+        'Comet_Glob is ideal for pressure in the center of the map during mid waves.'
+      ],
+      Old_Glob: [
+        'Old_Glob works well if you want stability and defensive support.',
+        'Sometimes it is better to keep it in a strategic spot than to rotate too much.'
+      ],
+      Work_Bombot: [
+        'Bombot shines when you anticipate where enemies will enter.',
+        'Do not use it as filler: its blast is more useful if you have a clear route.'
+      ],
+      Balloon_Glob: [
+        'Balloon Glob usually complements better when controlling distances and cover.',
+        'It is very good for holding the map while your damage is still coming together.'
+      ],
+      Streamer_Glob: [
+        'Streamer Glob works best when you take advantage of pressure and zone control.',
+        'If you combine it with strong damage, you can clear the most annoying enemies faster.'
+      ],
+      IEx: [
+        'IEx is exceptional for strengthening damage and pressure on longer routes.',
+        'Use its bonuses at key moments to avoid losing the pace of the match.'
+      ],
+      Worker_Glob: [
+        'Worker_Glob is perfect for sustaining defense on more open maps.',
+        'It gives stability and helps maintain control if the wave starts to get messy.'
+      ],
+      Bomb_Glob: [
+        'Bomb_Glob is most effective when you know where the enemy will pass.',
+        'Its explosion is usually stronger if you place it on a clear choke point.'
+      ],
+      Sprout_Glob: [
+        'Sprout_Glob works very well if you want more control and slowing without losing pressure.',
+        'The slow effects give you more room to react before the clash.'
+      ],
+      Pirate_Glob: [
+        'Pirate_Glob adds a lot on maps with longer paths and lateral pressure.',
+        'When you have long routes, its tempo and utility become very strong.'
+      ]
+    }
+  }
+};
+
+function getLoadingTips(language) {
+  const locale = LOADING_TIPS[language] || LOADING_TIPS.es;
+  const familyPool = Object.entries(locale.families || {}).flatMap(([family, tips]) => tips.map(tip => `${family}: ${tip}`));
+  const generalPool = (locale.general || []).map(tip => `General: ${tip}`);
+  const enemyPool = (locale.enemy || []).map(tip => `Enemigo: ${tip}`);
+  return [...generalPool, ...enemyPool, ...familyPool];
+}
+
 function handleLogin() {
   const nameInput = document.getElementById('username-input');
   const passInput = document.getElementById('password-input');
@@ -564,7 +723,6 @@ function handleLogin() {
   const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen) {
     loadingScreen.style.display = 'flex';
-    // Pick a glob the user has unlocked for the spinner
     const loadingGlob = document.getElementById('loading-glob');
     if (loadingGlob) {
       const ownedTowers = Object.keys(TOWER_TYPES).filter(k => TOWER_TYPES[k].unlocked);
@@ -572,22 +730,49 @@ function handleLogin() {
       const spinImg = IMAGE_PATHS[spinImgKey] || 'img/Glob_DEF.png';
       loadingGlob.style.backgroundImage = `url('${spinImg}')`;
     }
-    // Cycle loading text
+
     const loadingTexts = currentLanguage === 'es'
-      ? ['Cargando...', 'Preparando las defensas...', '¡Aquí vienen los Pyces!', 'Cargando progreso...']
-      : ['Loading...', 'Preparing defenses...', 'Here come the Pyces!', 'Loading progress...'];
-    let ltIdx = 0;
+      ? ['Cargando...', 'Preparando las defensas...', '¡Aquí vienen los Pyces!', 'Revisando familias...']
+      : ['Loading...', 'Preparing defenses...', 'Here come the Pyces!', 'Reviewing families...'];
+    const tipList = getLoadingTips(currentLanguage || 'es');
+    const tipEl = document.getElementById('loading-tip');
+    const barFill = document.getElementById('loading-bar-fill');
     const ltEl = document.getElementById('loading-text');
+    let ltIdx = 0;
+    let tipIdx = 0;
+    let progress = 0;
+
+    if (tipEl) tipEl.textContent = tipList[0] || 'Tip: Elige una familia y aprende su rol.';
+    if (barFill) barFill.style.width = '0%';
+
     const ltInterval = setInterval(() => {
       ltIdx = (ltIdx + 1) % loadingTexts.length;
       if (ltEl) ltEl.textContent = loadingTexts[ltIdx];
-    }, 600);
+    }, 500);
+
+    const tipInterval = setInterval(() => {
+      tipIdx = (tipIdx + 1) % tipList.length;
+      if (tipEl) tipEl.textContent = tipList[tipIdx];
+    }, 750);
+
+    const progressInterval = setInterval(() => {
+      progress = Math.min(progress + 3, 100);
+      if (barFill) barFill.style.width = `${progress}%`;
+    }, 120);
+
     setTimeout(() => {
       clearInterval(ltInterval);
-      loadingScreen.style.display = 'none';
-      const mapScreen = document.getElementById('map-selection');
-      if (mapScreen) mapScreen.style.display = 'flex';
-    }, 2500);
+      clearInterval(tipInterval);
+      clearInterval(progressInterval);
+      if (barFill) barFill.style.width = '100%';
+      if (ltEl) ltEl.textContent = currentLanguage === 'es' ? 'Listo.' : 'Ready.';
+      if (tipEl) tipEl.textContent = currentLanguage === 'es' ? 'Cargando mapa de batalla...' : 'Loading battle map...';
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+        const mapScreen = document.getElementById('map-selection');
+        if (mapScreen) mapScreen.style.display = 'flex';
+      }, 450);
+    }, 4200);
   } else {
     const mapScreen = document.getElementById('map-selection');
     if (mapScreen) mapScreen.style.display = 'flex';
@@ -2869,6 +3054,50 @@ function bindEvents() {
     });
   }
 
+  const loadingFamilyTips = {
+    es: {
+      Glob: ['Los Glob básicos sostienen la defensa temprana; colócalos bien para controlar la primera oleada.', 'Los Glob no son los más fuertes, pero son el núcleo de tu ritmo de juego y de tu economía.'],
+      Red_Glob: ['La familia roja suele ser la mejor para empujar daño directo a enemigos rápidos.', 'Combina Red_Glob con apoyo para eliminar objetivos prioritarios antes de que te abran paso.'],
+      Soap_Glob: ['Los Soap_Glob son muy útiles para frenar ataques y ganar tiempo en oleadas difíciles.', 'Si el enemigo acelera demasiado, la familia azul te da control real del campo.'],
+      Ducky_Glob: ['Ducky_Glob favorece la economía y la consistencia; no lo dejes en segundo plano.', 'Los Ducky son excelentes para generar más recursos y sostener partidas largas.'],
+      Comet_Glob: ['La familia negra hace daño brutal cuando ya has controlado el tablero.', 'Comet_Glob es ideal para presionar en el centro del mapa en oleadas medianas.'],
+      Old_Glob: ['Old_Glob funciona muy bien si quieres estabilidad y apoyo defensivo.', 'A veces conviene conservarlo en puntos estratégicos para no perder presión.'],
+      Work_Bombot: ['Bombot gana mucho cuando sabes anticipar los flancos por donde entran los Pyces.', 'No lo uses como relleno: su explosión es más útil si enchufas una ruta clara.'],
+      White: ['La familia blanca suele complementar mejor a la hora de controlar distancias y cobertura.', 'Suele ser muy buena para sostener el mapa mientras esperas a que tu daño llegue.'],
+      Pink: ['La familia rosa funciona mejor cuando sabes aprovechar la presión y el control de zonas.', 'Si la combinas con un daño fuerte, puedes limpiar más rápido a los enemigos más molestos.'],
+      IEx: ['IEx es excepcional para reforzar el daño y la presión en rutas más extensas.', 'Usa sus bonificaciones en momentos clave para no perder el tempo de la partida.'],
+      Worker_Glob: ['Worker_Glob es perfecto para sostener la defensa en mapas más abiertos.', 'Aporta estabilidad y te ayuda a mantener el control si la ola empieza a complicarse.'],
+      Bomb_Glob: ['Bomb_Glob se cumple mejor cuando sabes donde va a entrar el enemigo.', 'Su explosión suele ser más efectiva si la colocas en un punto de paso evidente.'],
+      Sprout_Glob: ['Sprout_Glob funciona muy bien si quieres más control y ralentización sin perder presión.', 'Los efectos de ralentización te dan más margen para responder antes del choque.'],
+      Pirate_Glob: ['Pirate_Glob aporta mucho en mapas con más recorrido y presión lateral.', 'Cuando tienes rutas largas, su temporal y su utilidad se vuelven muy fuertes.']
+    },
+    en: {
+      Glob: ['Basic Globs hold the early defense; place them well to control the first wave.', 'Globs are not the strongest, but they are the core of your pacing and economy.'],
+      Red_Glob: ['The red family is usually best for direct pressure against fast enemies.', 'Pair Red_Glob with support to remove priority targets before they break through.'],
+      Soap_Glob: ['Soap_Glob is very useful for slowing attacks and buying time in tougher waves.', 'If enemies accelerate too much, the blue family gives real map control.'],
+      Ducky_Glob: ['Ducky_Glob favors economy and consistency; do not leave it behind.', 'Ducky is excellent for generating more resources and sustaining long runs.'],
+      Comet_Glob: ['The black family deals brutal damage once you already control the board.', 'Comet_Glob is ideal for pressure in the center of the map during mid waves.'],
+      Old_Glob: ['Old_Glob works well if you want stability and defensive support.', 'Sometimes it is better to keep it in a strategic spot than to rotate too much.'],
+      Work_Bombot: ['Bombot shines when you anticipate where enemies will enter.', 'Do not use it as filler: its blast is more useful if you have a clear route.'],
+      White: ['The white family usually complements better when controlling distances and cover.', 'It is very good for holding the map while your damage is still coming together.'],
+      Pink: ['The pink family works best when you take advantage of pressure and zone control.', 'If you combine it with strong damage, you can clear the most annoying enemies faster.'],
+      IEx: ['IEx is exceptional for strengthening damage and pressure on longer routes.', 'Use its bonuses at key moments to avoid losing the pace of the match.'],
+      Worker_Glob: ['Worker_Glob is perfect for sustaining defense on more open maps.', 'It gives stability and helps maintain control if the wave starts to get messy.'],
+      Bomb_Glob: ['Bomb_Glob is most effective when you know where the enemy will pass.', 'Its explosion is usually stronger if you place it on a clear choke point.'],
+      Sprout_Glob: ['Sprout_Glob works very well if you want more control and slowing without losing pressure.', 'The slow effects give you more room to react before the clash.'],
+      Pirate_Glob: ['Pirate_Glob adds a lot on maps with longer paths and lateral pressure.', 'When you have long routes, its tempo and utility become very strong.']
+    }
+  };
+
+  function getLoadingTips(language) {
+    const langTips = loadingFamilyTips[language] || loadingFamilyTips.es;
+    const orderedTips = Object.entries(langTips).flatMap(([family, tips]) => {
+      const label = family === 'Glob' ? 'Glob' : family.replace(/_/g, ' ');
+      return tips.map(tip => `${label}: ${tip}`);
+    });
+    return orderedTips;
+  }
+
   const musicToggle = document.getElementById('music-toggle-btn');
   if (musicToggle) musicToggle.onclick = toggleMusic;
 
@@ -2886,6 +3115,14 @@ function bindEvents() {
   });
 
   document.addEventListener('keydown', (e) => {
+    const target = e.target instanceof HTMLElement ? e.target : null;
+    const isEditingText = target && (
+      target.matches('input, textarea, select') ||
+      target.isContentEditable ||
+      target.closest('input, textarea, select, [contenteditable="true"]')
+    );
+    if (isEditingText) return;
+
     const key = e.key.toLowerCase();
     const upgradeMenu = document.getElementById('tower-upgrade-menu');
     const isUpgradeOpen = upgradeMenu && upgradeMenu.style.display === 'flex';
@@ -7710,155 +7947,133 @@ function activateGTack(t) {
     if (currentStoryTab === 'lore') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
-        <h3>🎮 Glob Defenders (GlD)</h3>
-        <p>Glob Defenders es un juego de defensa por oleadas ambientado en <strong>Gelatin Lake</strong>, un gran valle natural donde la vida ha evolucionado de formas inesperadas a partir de criaturas gelatinosas conocidas como <strong>Globs</strong>.</p>
-        <p>En este mundo, los jugadores deben resistir el avance de los <strong>Pyces</strong>, organismos artificiales con forma de ordenadores vivientes que, aunque no son malvados por naturaleza, han sido utilizados o forzados por entidades superiores que alteran el equilibrio del sistema.</p>
+        <h3>� La historia de Glob Defenders</h3>
+        <p><strong>Glob Defenders</strong> transcurre en un mundo habitado por criaturas y seres muy diferentes entre sí. En una de sus regiones, <strong>Gelatin Lake</strong>, viven los <strong>Globs</strong>, criaturas de gelatina creadas y criadas por el propio lago para defenderse de las amenazas que aparecen en sus alrededores.</p>
+        <p>Los Globs no son un ejército tradicional. Cada uno pertenece a una <strong>familia</strong> con características, habilidades y formas de evolucionar diferentes. Con el tiempo, han aprendido a trabajar juntos y a utilizar sus distintas capacidades para proteger sus territorios.</p>
+        <p>Una de las principales amenazas son los <strong>Pyces</strong>. Aunque algunos Pyces son enemigos, la situación es bastante más complicada que una simple guerra entre dos especies. Existen diferentes grupos, individuos y entidades con sus propios objetivos, y no todos los Pyces actúan de la misma manera.</p>
+        <p>Para ayudar a los Globs está <strong>Work-Bombot</strong>, un robot que actúa como guía y aliado durante sus aventuras. Gracias a él, los Globs conocen otros lugares y terminan involucrándose en conflictos que van mucho más allá de Gelatin Lake.</p>
+        <p>La aventura comienza principalmente en <strong>Gelatin Lake</strong>, pero poco a poco se extiende hacia otras regiones.</p>
+        <p>Una de ellas es <strong>Urbanistic Road</strong>, una zona mucho más desarrollada, con carreteras, ríos y zonas urbanas. Allí los Globs deben adaptarse a un entorno diferente mientras aparecen nuevas amenazas, nuevos personajes y nuevas formas de combatir.</p>
+        <p>Más adelante, los Globs también llegan a <strong>Sunlight Seaside</strong>, una zona costera y portuaria que conecta con otros lugares del mundo. Defender sus instalaciones se vuelve importante para poder continuar explorando y ayudar a otras zonas que también están siendo atacadas.</p>
+        <p>A medida que los Globs avanzan, los conflictos empiezan a involucrar fenómenos cada vez más extraños: corrupción, tecnología, dimensiones, energía desconocida y fuerzas que parecen estar muy por encima de los enemigos normales.</p>
+        <p>Esto alcanza uno de sus puntos más importantes con <strong>Interstellar Menace</strong>, donde los acontecimientos dejan de limitarse a los problemas habituales de los Globs y empiezan a relacionarse con fenómenos de escala mucho mayor.</p>
+        <p>Aun así, <strong>Glob Defenders no trata únicamente sobre salvar el mundo</strong>. También trata sobre descubrir nuevos lugares, conocer a sus habitantes, enfrentarse a personajes extraños, encontrar secretos y entender poco a poco cómo está conectado todo lo que rodea a los Globs.</p>
+        <p>Y cuanto más avanzan...</p>
+        <p><strong>más evidente se vuelve que el mundo en el que viven es mucho más grande de lo que parecía al principio.</strong></p>
 
-        <h3>🌊 El mundo: Gelatin Lake</h3>
-        <p>Gelatin Lake es un entorno natural donde los Globs surgieron como vida biológica basada en gelatina orgánica. Con el tiempo, esta especie se diversificó en múltiples familias evolutivas, cada una con habilidades, comportamientos y roles distintos dentro del ecosistema.</p>
-
-        <h3>🍮 Los Globs</h3>
-        <p>Los Globs son las unidades defensivas principales del juego. Funcionan como torres vivas que pueden evolucionar durante las partidas.</p>
-        <ul>
-          <li>🟢 <strong>Verdes</strong>: equilibrados, con múltiples etapas evolutivas y gran escalado de poder.</li>
-          <li>🔴 <strong>Rojos</strong>: ofensivos, con progresión hacia formas cada vez más tecnológicas y destructivas.</li>
-          <li>🟡 <strong>Amarillos (Ducky)</strong>: centrados en la generación de recursos.</li>
-          <li>🔵 <strong>Azules (Jabón)</strong>: especializados en ralentizar y controlar enemigos.</li>
-          <li>⚫ <strong>Negros</strong>: unidades de alto riesgo y altísimo poder, ligadas a energía cósmica e inestable.</li>
-          <li>🤖 <strong>Variantes especiales</strong> como Pyce Glob y Old Glob, con comportamientos únicos.</li>
-        </ul>
-
-        <h3>🖥️ Los Pyces</h3>
-        <p>Los Pyces son entidades artificiales vivas, con capacidad de adaptación y evolución.</p>
-        <ul>
-          <li><strong>Pyce base</strong>: forma original del sistema.</li>
-          <li><strong>Pyce 2.0</strong>: versión autónoma con curiosidad y pensamiento propio, origen de la Portalogía.</li>
-          <li><strong>Flower Pyce</strong>: entidad orgánica con capacidad curativa y comportamiento aleatorio.</li>
-          <li><strong>NOeye</strong>: masa anómala corrompida, antes conocida como NO Kerbo, capaz de crear y destruir microentornos.</li>
-          <li><strong>MoonStar Pyce</strong>: entidad corrompida por el Bitcore, capaz de crear dimensiones enteras y alterar realidades.</li>
-        </ul>
-
-        <h3>👁️ Entidades superiores</h3>
-        <p>El mundo está influenciado por fuerzas más allá de Globs y Pyces:</p>
-        <ul>
-          <li><strong>Kirb / KirByte (el prototipo)</strong>: robot abeja cuadrado de titanio capaz de viajar entre dimensiones. Su existencia está ligada a eventos como la expulsión de humanos de Bitlands.</li>
-          <li><strong>1x1x1x1 Pyce</strong>: entidad hacker capaz de alterar reglas internas del sistema.</li>
-        </ul>
-
-        <h3>⚖️ Estructura del universo</h3>
-        <p>El equilibrio del mundo se sostiene entre tres fuerzas:</p>
-        <ul>
-          <li>🌊 <strong>Globs</strong>: vida biológica adaptativa del entorno</li>
-          <li>🖥️ <strong>Pyces</strong>: vida artificial evolutiva</li>
-          <li>👁️ <strong>Entidades superiores</strong>: fuerzas que alteran o rompen el sistema</li>
-        </ul>
-        <br>
-        <p style="color: #ffd700; font-style: italic;">⚠️ <strong>Nota de campo:</strong> Presta mucha atención a los diálogos durante tus defensas... a veces el entorno o sus habitantes ocultan sorpresas y pistas vitales.</p>
+        <div style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px;">
+          <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">Ver familias</button>
+          <button type="button" style="background:#3a6ea5; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('enemies'), 30);">Ver enemigos</button>
+        </div>
       `;
       } else {
         container.innerHTML = `
-        <h3>🎮 Glob Defenders (GlD)</h3>
-        <p>Glob Defenders is a wave defense game set in <strong>Gelatin Lake</strong>, a vast natural valley where life has evolved in unexpected ways from jelly-like creatures known as <strong>Globs</strong>.</p>
-        <p>In this world, players must resist the advance of the <strong>Pyces</strong>, artificial organisms shaped like living computers that, although not malicious by nature, have been used or forced by higher entities to disrupt the system's balance.</p>
+        <h3>🌎 The story of Glob Defenders</h3>
+        <p><strong>Glob Defenders</strong> takes place in a world filled with very different creatures and beings. In one of its regions, <strong>Gelatin Lake</strong>, live the <strong>Globs</strong>, gelatin creatures created and raised by the lake itself to defend themselves against the threats that appear around them.</p>
+        <p>The Globs are not a traditional army. Each one belongs to a <strong>family</strong> with different traits, abilities, and ways of evolving. Over time, they have learned to work together and use their different capabilities to protect their territories.</p>
+        <p>One of the main threats is the <strong>Pyces</strong>. Although some Pyces are enemies, the situation is far more complicated than a simple war between two species. There are different groups, individuals, and entities with their own goals, and not all Pyces behave the same way.</p>
+        <p>To help the Globs stands <strong>Work-Bombot</strong>, a robot who acts as a guide and ally on their adventures. Thanks to him, the Globs discover other places and end up getting involved in conflicts that go far beyond Gelatin Lake.</p>
+        <p>The adventure begins mainly in <strong>Gelatin Lake</strong>, but little by little it expands to other regions.</p>
+        <p>One of them is <strong>Urbanistic Road</strong>, a much more developed area with roads, rivers, and urban zones. There, the Globs must adapt to a different environment while new threats, new characters, and new ways of fighting appear.</p>
+        <p>Later, the Globs also reach <strong>Sunlight Seaside</strong>, a coastal and port area connected to other places in the world. Defending its installations becomes important in order to continue exploring and helping other zones that are also under attack.</p>
+        <p>As the Globs advance, the conflicts begin to involve stranger phenomena: corruption, technology, dimensions, unknown energy, and forces that seem far above ordinary enemies.</p>
+        <p>This reaches one of its most important points with <strong>Interstellar Menace</strong>, where events stop being limited to ordinary Glob problems and begin to connect to much larger-scale phenomena.</p>
+        <p>Even so, <strong>Glob Defenders is not only about saving the world</strong>. It is also about discovering new places, meeting their inhabitants, facing strange characters, finding secrets, and gradually understanding how everything around the Globs is connected.</p>
+        <p>And the more they advance...</p>
+        <p><strong>the clearer it becomes that the world they live in is much bigger than it seemed at first.</strong></p>
 
-        <h3>🌊 The World: Gelatin Lake</h3>
-        <p>Gelatin Lake is a natural environment where Globs emerged as biological life based on organic jelly. Over time, this species diversified into multiple evolutionary families, each with unique abilities, behaviors, and ecological roles.</p>
-
-        <h3>🍮 The Globs</h3>
-        <p>Globs are the primary defensive units of the game. They function as living towers that can evolve during matches.</p>
-        <ul>
-          <li>🟢 <strong>Green</strong>: balanced, with multiple evolutionary stages and high scaling power.</li>
-          <li>🔴 <strong>Red</strong>: offensive, progressing toward increasingly technological and destructive forms.</li>
-          <li>🟡 <strong>Yellow (Ducky)</strong>: focused on resource generation.</li>
-          <li>🔵 <strong>Blue (Soap)</strong>: specialized in slowing down and controlling enemies.</li>
-          <li>⚫ <strong>Black</strong>: high-risk, high-power units tied to unstable cosmic energy.</li>
-          <li>🤖 <strong>Special variants</strong> like Pyce Glob and Old Glob, with unique behaviors.</li>
-        </ul>
-
-        <h3>🖥️ The Pyces</h3>
-        <p>Pyces are artificial living entities, capable of adaptation and evolution.</p>
-        <ul>
-          <li><strong>Base Pyce</strong>: original form of the system.</li>
-          <li><strong>Pyce 2.0</strong>: autonomous version with curiosity and independent thought, spawning Portalogy.</li>
-          <li><strong>Flower Pyce</strong>: organic entity with healing abilities and random behavior.</li>
-          <li><strong>NOeye</strong>: corrupted anomalous mass, formerly known as NO Kerbo, capable of creating and destroying micro-environments.</li>
-          <li><strong>MoonStar Pyce</strong>: entity corrupted by the Bitcore, capable of creating entire dimensions and altering realities.</li>
-        </ul>
-
-        <h3>👁️ Higher Entities</h3>
-        <p>The world is influenced by forces beyond Globs and Pyces:</p>
-        <ul>
-          <li><strong>Kirb / KirByte (the prototype)</strong>: square titanium bee robot capable of traveling between dimensions. Its existence is linked to events like the expulsion of humans from Bitlands.</li>
-          <li><strong>1x1x1x1 Pyce</strong>: hacker entity capable of altering the system's internal rules.</li>
-        </ul>
-
-        <h3>⚖️ Cosmic Structure</h3>
-        <p>The balance of the world is sustained between three forces:</p>
-        <ul>
-          <li>🌊 <strong>Globs</strong>: adaptive biological life of the environment</li>
-          <li>🖥️ <strong>Pyces</strong>: evolutionary artificial life</li>
-          <li>👁️ <strong>Higher Entities</strong>: forces that alter or break the system</li>
-        </ul>
-        <br>
-        <p style="color: #ffd700; font-style: italic;">⚠️ <strong>Field Note:</strong> Pay close attention to the dialogues during your defenses... sometimes the environment or its inhabitants hide surprises and vital clues.</p>
+        <div style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px;">
+          <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">View families</button>
+          <button type="button" style="background:#3a6ea5; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('enemies'), 30);">View enemies</button>
+        </div>
       `;
       }
     } else if (currentStoryTab === 'mechanics') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
         <h3>⚙️ Mecánicas de Juego</h3>
-        <p>Aprende el funcionamiento del ecosistema de Gelatin Lake y domina la defensa.</p>
+        <p>Glob Defenders combina defensa por oleadas, economía de partida y progreso permanente. Aquí tienes un resumen útil para entender cómo funciona todo el juego.</p>
 
-        <h4>💰 Economía del Juego</h4>
+        <h4>💰 Economía y recursos</h4>
         <ul>
-          <li><img src="img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globetines</strong>: Moneda interna de partida usada para comprar y mejorar Globs durante las oleadas. Se resetea en cada partida.</li>
-          <li><img src="img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: Residuos de energía/datos obtenidos al derrotar Pyces en combate. Se usan en la Tienda Meta permanente para adquirir mejoras de base, aumentar límites de torres y comprar skins.</li>
-          <li><img src="img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: Tarjetas especiales patrocinadas por Ducky Glob que permiten comprar mejoras avanzadas (Duckgrades) y skins exclusivas.</li>
+          <li><img src="img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globetines</strong>: moneda de partida para comprar y mejorar torres durante la defensa.</li>
+          <li><img src="img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: moneda permanente usada en la tienda meta para mejoras de base, límites y skins.</li>
+          <li><img src="img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: moneda especial para Duckgrades, mejoras pasivas y objetos exclusivos.</li>
         </ul>
 
-        <h4>🏪 Meta-progresión</h4>
+        <h4>🛡️ Cómo se juega</h4>
         <ul>
-          <li><strong>Mejoras de la base</strong>: Aumenta permanentemente la salud inicial de tu base hasta un máximo de +200 de salud.</li>
-          <li><strong>Límites de Globs</strong>: Aumenta la cantidad máxima de torres de un tipo específico que puedes tener activas simultáneamente en el mapa.</li>
-          <li><strong>Duckgrades (Currency)</strong>: Habilidades pasivas definitivas de cada familia de Globs. Desbloquéalas con Duck Pass Currency en la Tienda Meta.</li>
-          <li><strong>G-Tacks</strong>: Habilidades activas poderosas (Definitivas) para torres de nivel máximo en combate. Desbloquéalas con PyCoins y Duck Pass Currency en la Tienda Meta.</li>
-          <li><strong>Personalización de Aspectos</strong>: Desbloquea y equipa skins para tus familias de Globs para cambiar sus gráficos de combate y ataques especiales.</li>
+          <li><strong>Coloca torres</strong> en puntos estratégicos del mapa para defender la base de los Pyces.</li>
+          <li><strong>Mejora o evoluciona</strong> tus Globs para subir su daño, rango y utilidad.</li>
+          <li><strong>Protege la base</strong> y evita que los enemigos lleguen al punto de entrada.</li>
+          <li><strong>Sobrevive oleada tras oleada</strong> y adapta tu estrategia según el tipo de enemigo.</li>
         </ul>
 
-        <h4>⌨️ Atajos de Teclado</h4>
+        <h4>🏪 Progreso permanente</h4>
         <ul>
-          <li><strong>Tecla U</strong>: Sirve para Colocar una torre nueva o Mejorar/Evolucionar una seleccionada.</li>
-          <li><strong>Tecla V</strong>: Vende rápidamente la torre seleccionada.</li>
-          <li><strong>Tecla C</strong>: Cancela la selección de cualquier torre o cierra menús.</li>
+          <li><strong>Mejoras de base</strong>: aumentan la salud inicial y tu resistencia general.</li>
+          <li><strong>Límites de torres</strong>: limitan cuántas torres de cada tipo puedes tener activas.</li>
+          <li><strong>Duckgrades</strong>: habilidades pasivas definitivas de cada familia.</li>
+          <li><strong>G-Tacks</strong>: habilidades activas poderosas para torres de nivel máximo.</li>
+          <li><strong>Skins</strong>: cambios visuales y especiales para familias, mapas y personajes.</li>
         </ul>
+
+        <h4>⌨️ Controles rápidos</h4>
+        <ul>
+          <li><strong>U</strong>: colocar o mejorar una torre seleccionada.</li>
+          <li><strong>V</strong>: vender la torre seleccionada.</li>
+          <li><strong>C</strong>: cancelar selección o cerrar menús.</li>
+        </ul>
+
+        <h4>📚 Si quieres profundizar</h4>
+        <p>Si quieres saber más sobre cada familia o enemigo, sigue con la enciclopedia correspondiente:</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+          <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">Familias</button>
+          <button type="button" style="background:#3a6ea5; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('enemies'), 30);">Enemigos</button>
+        </div>
       `;
       } else {
         container.innerHTML = `
         <h3>⚙️ Game Mechanics</h3>
-        <p>Learn how the Gelatin Lake ecosystem works and master the defense.</p>
+        <p>Glob Defenders combines wave defense, match economy, and permanent progression. Here is a useful summary of how the game works.</p>
 
-        <h4>💰 Game Economy</h4>
+        <h4>💰 Economy and resources</h4>
         <ul>
-          <li><img src="img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globets</strong>: In-game match currency used to purchase and upgrade Globs during waves. Resets every game.</li>
-          <li><img src="img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: Energy/data residuals obtained from defeating Pyces in combat. Used in the permanent Meta Shop for base upgrades, tower limits, and buying skins.</li>
-          <li><img src="img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: Special cards sponsored by Ducky Glob to purchase advanced passive skills (Duckgrades) and exclusive skins.</li>
+          <li><img src="img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globets</strong>: in-match currency used to buy and upgrade towers during the defense.</li>
+          <li><img src="img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: permanent currency used in the meta shop for base upgrades, limits, and skins.</li>
+          <li><img src="img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: special currency for Duckgrades, passive upgrades, and exclusive items.</li>
         </ul>
 
-        <h4>🏪 Meta-progression</h4>
+        <h4>🛡️ How to play</h4>
         <ul>
-          <li><strong>Base Upgrades</strong>: Permanently increases your starting base health up to a maximum of +200 health.</li>
-          <li><strong>Glob Limits</strong>: Increases the maximum number of towers of a specific type you can have active simultaneously on the map.</li>
-          <li><strong>Duckgrades (Currency)</strong>: Ultimate passive skills for each Glob family. Unlock them with Duck Pass Currency in the Meta Shop.</li>
-          <li><strong>G-Tacks</strong>: Powerful active abilities (Ultimates) for max level towers in combat. Unlock them with PyCoins and Duck Pass Currency in the Meta Shop.</li>
-          <li><strong>Aesthetics Customization</strong>: Unlock and equip skins for your Glob families to change their battle sprites and special attacks.</li>
+          <li><strong>Place towers</strong> on strategic map points to defend the base from Pyces.</li>
+          <li><strong>Upgrade or evolve</strong> your Globs to increase damage, range, and utility.</li>
+          <li><strong>Protect the base</strong> and prevent enemies from reaching the entrance.</li>
+          <li><strong>Survive wave after wave</strong> and adapt your strategy to the enemy type.</li>
         </ul>
 
-        <h4>⌨️ Hotkeys / Controls</h4>
+        <h4>🏪 Permanent progression</h4>
         <ul>
-          <li><strong>Key U</strong>: Used to Place a new tower or Upgrade/Evolve a selected one.</li>
-          <li><strong>Key V</strong>: Quickly sells the selected tower.</li>
-          <li><strong>Key C</strong>: Cancels any tower selection or closes menus.</li>
+          <li><strong>Base upgrades</strong>: increase starting health and overall durability.</li>
+          <li><strong>Tower limits</strong>: control how many towers of each type can be active at once.</li>
+          <li><strong>Duckgrades</strong>: ultimate passive abilities for each family.</li>
+          <li><strong>G-Tacks</strong>: powerful active skills for max-level towers.</li>
+          <li><strong>Skins</strong>: visual and special changes for families, maps, and characters.</li>
         </ul>
+
+        <h4>⌨️ Quick controls</h4>
+        <ul>
+          <li><strong>U</strong>: place or upgrade a selected tower.</li>
+          <li><strong>V</strong>: sell the selected tower.</li>
+          <li><strong>C</strong>: cancel selection or close menus.</li>
+        </ul>
+
+        <h4>📚 If you want to go deeper</h4>
+        <p>If you want to know more about each family or enemy, jump into the corresponding encyclopedia section:</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+          <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">Families</button>
+          <button type="button" style="background:#3a6ea5; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('enemies'), 30);">Enemies</button>
+        </div>
       `;
       }
     } else if (currentStoryTab === 'logs') {

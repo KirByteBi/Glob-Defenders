@@ -3410,7 +3410,8 @@ body.tablet-landscape #options-toggle {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
+    gap: 18px;
+    width: min(92vw, 560px);
     animation: fadeInUp 0.5s ease;
 }
 
@@ -3441,12 +3442,45 @@ body.tablet-landscape #options-toggle {
     100% { transform: rotate(360deg) scale(1); }
 }
 
+.loading-progress {
+    position: relative;
+    width: min(78vw, 420px);
+    height: 16px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(160, 224, 192, 0.45);
+    box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.28);
+}
+
+.loading-bar-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #38d39f 0%, #68d7ff 42%, #f7d154 100%);
+    box-shadow: 0 0 16px rgba(104, 215, 255, 0.9);
+    transition: width 0.22s ease-out;
+}
+
 .loading-text {
+    margin: 0;
     color: #a0e0c0;
-    font-size: 1rem;
+    font-size: 0.95rem;
     letter-spacing: 0.12em;
     opacity: 0.8;
     animation: blinkText 1.4s ease-in-out infinite;
+}
+
+.loading-tip {
+    margin: 0;
+    width: min(86vw, 500px);
+    text-align: center;
+    color: #eaf7ff;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    min-height: 48px;
+    opacity: 0.96;
+    padding: 0 8px;
 }
 
 @keyframes blinkText {

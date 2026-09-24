@@ -62,21 +62,14 @@ const TRANSLATIONS = {
     badge_skinllector_name: "Skinecionable", badge_skinllector_desc: "Consigue al menos 7 skins diferentes.",
     badge_crystalizing_break_name: "Descristalizando Amenazas", badge_crystalizing_break_desc: "Enmarca todos los cristalizados.",
     badge_extended_marc_name: "Enmarcacion Extensa", badge_extended_marc_desc: "Enmarca todos los enemigos de la categoria 'Otros Enemigos'.",
-    badge_fracstral_victory_name: "Dimension Paralecristal", badge_fracstral_victory_desc: "¿Te atreves a clickear cristales?",
-    badge_chain_reaction_name: "Reacción en Cadena", badge_chain_reaction_desc: "Explota varios Bomb Globs a la vez o haz que se prendan con fuego de la familia roja.",
-    badge_fenced_kaboom_name: "Kaboom vallado", badge_fenced_kaboom_desc: "Utiliza un Bomb Glob junto a una valla de la familia naranja.",
-    badge_wall_garden_name: "Jardín de muros", badge_wall_garden_desc: "Utiliza la familia marrón y la naranja a la vez: una para crear vallas y la otra para retener a los enemigos.",
-    badge_urban_king_name: "Rey Urbano", badge_urban_king_desc: "Nivela todos los Globs de Urbanistic Road: blanca, rosa, naranja e IEx.",
-    badge_urban_crystals_name: "Cristales Urbanos", badge_urban_crystals_desc: "Sobrevive a Interstellar Menace en su final normal.",
-    badge_dangerous_set_name: "Conjunto peligroso", badge_dangerous_set_desc: "Junta IEx, la familia negra y la familia marina, con todo al máximo.",
-    badge_globiscal_debt_name: "Deuda Globiscal", badge_globiscal_debt_desc: "Gasta más de 40K Globetines y borra todo tu equipo activo.",
-    badge_block_city_name: "Block City", badge_block_city_desc: "Juega con los colores en la dificultad desafiante y con la contraseña adecuada.",
-    badge_old_blox_city_name: "Old Blox City", badge_old_blox_city_desc: "Tuviste la suerte de haber desbloqueado la skin de Block Tales antes de la misión, o quizás... ¿Repetiste toda la misión para ello?",
-    sunlight_facil_name: "Soleado Reciente", sunlight_facil_desc: "Supera el modo Fácil en Sunlight Seaside.",
-    sunlight_normal_name: "Oleajes Intermediarios", sunlight_normal_desc: "Supera el modo Normal en Sunlight Seaside.",
-    sunlight_dificil_name: "Tormenta al Atardecer", sunlight_dificil_desc: "Supera el modo Difícil en Sunlight Seaside.",
-    sunlight_extremo_name: "Rayos y Centellas", sunlight_extremo_desc: "Supera el modo Extremo en Sunlight Seaside.",
-    sunlight_anti_normal_name: "Paralelismo entre Ranas", sunlight_anti_normal_desc: "Supera el modo Anti-Normal en Sunlight Seaside.",
+    badge_fracstral_victory_name: "Victoria Fracstral", badge_fracstral_victory_desc: "Gana en modo Interstellar usando únicamente torres Fracstral.",
+    badge_chain_reaction_name: "Reacción en Cadena", badge_chain_reaction_desc: "Detona múltiples explosivos al mismo tiempo.",
+    badge_fenced_kaboom_name: "Kaboom vallado", badge_fenced_kaboom_desc: "Usa explosivos junto a trampas.",
+    badge_wall_garden_name: "Jardín de muros", badge_wall_garden_desc: "Construye una fortaleza defensiva.",
+    badge_urban_king_name: "Rey Urbano", badge_urban_king_desc: "Supera Urbanistic Road.",
+    badge_urban_crystals_name: "Cristales Urbanos", badge_urban_crystals_desc: "Sobrevive a la amenaza cristalina en la ciudad.",
+    badge_dangerous_set_name: "Conjunto peligroso", badge_dangerous_set_desc: "Equipa torres inestables al mismo tiempo.",
+    badge_globiscal_debt_name: "Deuda Globiscal", badge_globiscal_debt_desc: "Gasta una gran fortuna.",
 
 
     // Nombres de Torres
@@ -275,7 +268,7 @@ const TRANSLATIONS = {
     tower_Gamer_Glob_desc: "Con el tiempo se convirtió en un gamer competitivo reconocido en toda la ciudad, pero la fama aún no era suficiente.",
     tower_Youtuber_Glob_desc: "Finalmente alcanzó el éxito como un famoso Youtuber y tiene dinero para aventar... Aunque ya es hora de que deje el internet y busque un trabajo de verdad.",
 
-    login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Iniciar sesión", create_account: "Crear cuenta",
+    login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla",
     select_map: "Seleccionar Mapa",
     select_mode: "Seleccionar Modo",
     backToModes: "Selección de Modo",
@@ -349,9 +342,6 @@ const TRANSLATIONS = {
     evolve_title: "Evolución de Torre",
     sell: "Vender",
     back_to_modes: "Volver a Modos",
-    choose_mode: "Elegir modo",
-    choose_map: "Elegir mapa",
-    exit_game: "Salir",
     rotate_device: "Gira el dispositivo",
     landscape_msg: "Glob Defenders se juega en modo horizontal",
     pycoins_title: "PyCoins",
@@ -501,10 +491,10 @@ const TRANSLATIONS = {
     skin_buff_damage2_desc: "+10% Daño Extra.",
 
     // Descripciones de Torres
-    tower_Glob_desc: "Un humilde habitante de Gelatin Lake. Lanza orbes de pura energía verde para defender su hogar. Confiable y leal.",
+    tower_Glob_desc: "Un humilde habitante de Bitlands. Lanza orbes de pura energía verde para defender su hogar. Confiable y leal.",
     tower_Poop_Glob_desc: "Su extraña dieta le ha otorgado una densidad abrumadora. Lanza proyectiles fangosos que golpean con fuerza bruta.",
     tower_Golden_Glob_desc: "Bañado en riquezas, este Glob ha perfeccionado su técnica. Sus proyectiles de oro puro son letales y extremadamente veloces.",
-    tower_Rainbow_Glob_desc: "La leyenda de Gelatin Lake. Ha trascendido los colores primarios para canalizar láseres prismáticos que destrozan todo a su paso.",
+    tower_Rainbow_Glob_desc: "La leyenda de Bitlands. Ha trascendido los colores primarios para canalizar láseres prismáticos que destrozan todo a su paso.",
     tower_Red_Glob_desc: "Lleno de adrenalina y furia contenida. Prefiere el combate cuerpo a cuerpo para asestar golpes a una velocidad cegadora.",
     tower_Molten_Glob_desc: "La furia lo ha consumido hasta derretirlo. Su cuerpo irradia un calor intenso que carboniza a quienes se atrevan a acercarse.",
     tower_Robotic_Glob_desc: "Mejorado con tecnología de PixelStar. Este cíborg erradica a los intrusos desde la distancia con un poderoso láser perforador.",
@@ -514,7 +504,7 @@ const TRANSLATIONS = {
     tower_Golden_Ducky_Glob_desc: "Realeza financiera. Su plumaje dorado bendice tu tesoro, generando inmensas fortunas en un abrir y cerrar de ojos.",
     tower_Comet_Glob_desc: "Extraído de las estrellas. Lanza astros celestiales como boomerangs para diezmar a las hordas enemigas desde lejos.",
     tower_Dark_Glob_desc: "Corrompido por el vacío del universo. Desata diamantes oscuros que perforan la propia tela de la realidad y a sus enemigos.",
-    tower_Demglob_desc: "La encarnación de la destrucción. Surgió de las sombras más profundas de Gelatin Lake para aniquilar Pyces con caos puro.",
+    tower_Demglob_desc: "La encarnación de la destrucción. Surgió de las sombras más profundas de Bitlands para aniquilar Pyces con caos puro.",
     tower_Pyce_Glob_desc: "Un Glob infectado por el mismo código que creó a los Pyces. Su inestabilidad genera ráfagas anómalas de alta velocidad.",
     tower_Old_Glob_desc: "El sabio ancestro. Conoce los secretos de la tierra y lanza rocas inquebrantables imbuídas de magia antigua.",
     tower_Work_Bombot_desc: "Un prototipo desechado que encontró su propósito. Desencadena explosiones devastadoras de área.",
@@ -633,21 +623,14 @@ const TRANSLATIONS = {
     badge_skinllector_name: "Skinllector", badge_skinllector_desc: "Get at least 7 different skins.",
     badge_crystalizing_break_name: "Crystalizing Break", badge_crystalizing_break_desc: "Frame all crystallized variants.",
     badge_extended_marc_name: "Extended Marc", badge_extended_marc_desc: "Frame all enemies in the 'Other Enemies' category.",
-    badge_fracstral_victory_name: "Crystalizing Break", badge_fracstral_victory_desc: "Dare to click crystals?",
-    badge_chain_reaction_name: "Chain Reaction", badge_chain_reaction_desc: "Explode several Bomb Globs at once or set them on fire with the red family.",
-    badge_fenced_kaboom_name: "Fenced Kaboom", badge_fenced_kaboom_desc: "Use a Bomb Glob next to a fence from the orange family.",
-    badge_wall_garden_name: "Wall Garden", badge_wall_garden_desc: "Use the brown and orange families together: one to create fences and the other to hold enemies.",
-    badge_urban_king_name: "Urban King", badge_urban_king_desc: "Max out every Urbanistic Road Glob: white, pink, orange and IEx.",
-    badge_urban_crystals_name: "Urban Crystals", badge_urban_crystals_desc: "Survive Interstellar Menace's normal ending.",
-    badge_dangerous_set_name: "Dangerous Set", badge_dangerous_set_desc: "Bring IEx, the black family and the marine family together, all at max.",
-    badge_globiscal_debt_name: "Globiscal Debt", badge_globiscal_debt_desc: "Spend more than 40K Globetines and delete your active team.",
-    badge_block_city_name: "Block City", badge_block_city_desc: "Play with colors on the challenging difficulty using the correct password.",
-    badge_old_blox_city_name: "Old Blox City", badge_old_blox_city_desc: "You were lucky enough to unlock the Block Tales skin before the mission, or perhaps... did you repeat the entire mission for it?",
-    sunlight_facil_name: "Recent Sunshine", sunlight_facil_desc: "Beat Easy mode on Sunlight Seaside.",
-    sunlight_normal_name: "Intermediary Waves", sunlight_normal_desc: "Beat Normal mode on Sunlight Seaside.",
-    sunlight_dificil_name: "Storm at Sunset", sunlight_dificil_desc: "Beat Hard mode on Sunlight Seaside.",
-    sunlight_extremo_name: "Thunder and Lightning", sunlight_extremo_desc: "Beat Extreme mode on Sunlight Seaside.",
-    sunlight_anti_normal_name: "Parallelism Between Frogs", sunlight_anti_normal_desc: "Beat Anti-Normal mode on Sunlight Seaside.",
+    badge_fracstral_victory_name: "Fracstral Victory", badge_fracstral_victory_desc: "Win in Interstellar mode using only Fracstral towers.",
+    badge_chain_reaction_name: "Chain Reaction", badge_chain_reaction_desc: "Detonate multiple explosives at once.",
+    badge_fenced_kaboom_name: "Fenced Kaboom", badge_fenced_kaboom_desc: "Use explosives next to traps.",
+    badge_wall_garden_name: "Wall Garden", badge_wall_garden_desc: "Build a defensive fortress.",
+    badge_urban_king_name: "Urban King", badge_urban_king_desc: "Beat Urbanistic Road.",
+    badge_urban_crystals_name: "Urban Crystals", badge_urban_crystals_desc: "Survive the crystal threat in the city.",
+    badge_dangerous_set_name: "Dangerous Set", badge_dangerous_set_desc: "Equip unstable towers simultaneously.",
+    badge_globiscal_debt_name: "Globiscal Debt", badge_globiscal_debt_desc: "Spend a large fortune.",
 
 
     // Tower Names
@@ -848,7 +831,7 @@ const TRANSLATIONS = {
     tower_Planked_Glob_desc: "Generates a screwed fence that deals heavy damage, including area damage when destroyed. Great for stopping hordes easily.<br><br>He's scary to look at, he's not as good as he seems anymore, and what he does seem to have is a friendship with Molten Glob... But I doubt it's because of their relationship, something tells me the color influences it.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
     tower_DJ_Glob_desc: "Generates a radio fence that's very powerful offensively and defensively, and has an attack radius that slows and can stop the Pyce in front of it for a few seconds.<br><br>Far from being someone dedicated to music, he uses speakers as defense, but he is friends with both the pink and white families, cheering them up and making the city an urban disco.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
 
-    login_user: "Username", login_pass: "Password", login_btn: "Log in", create_account: "Create account",
+    login_user: "Username", login_pass: "Password", login_btn: "Join the battle",
     select_map: "Select Map",
     select_mode: "Select Mode",
     backToModes: "Mode Selection",
@@ -923,9 +906,6 @@ const TRANSLATIONS = {
     evolve_title: "Tower Evolution",
     sell: "Sell",
     back_to_modes: "Back to Modes",
-    choose_mode: "Choose mode",
-    choose_map: "Choose map",
-    exit_game: "Exit",
     rotate_device: "Rotate your device",
     landscape_msg: "Glob Defenders is played in landscape mode",
     pycoins_title: "PyCoins",
@@ -1137,9 +1117,6 @@ const TRANSLATIONS = {
 
 let USERS = {
   "KirByteBi": "FTPY2",
-  "TESTER": "GLD",
-  "KIRBTESTER": "GLD",
-  "DEBUGGER": "GLD",
   "Glob_BUILD": "BUILD_DEV",
   "Admin": "ADgod",
   "AirRider": "PYCE",
@@ -1148,9 +1125,6 @@ let USERS = {
 
 const ROLES = {
   'KirByteBi': 'OWNER',
-  'TESTER': 'OWNER',
-  'KIRBTESTER': 'OWNER',
-  'DEBUGGER': 'DEVBUILD',
   'Devbuild': 'DEVBUILD',
   'Glob_BUILD': 'DEVBUILD',
   'admin': 'ADMIN',
@@ -1306,21 +1280,6 @@ const IMAGE_PATHS = {
 };
 
 const NARRATOR_DATA = {
-  mysterybug: {
-    img: 'img/Sellos/MysteryBug.png', es: {
-      name: "???", msgs: [
-        "No deberías poder verme aquí.",
-        "¿Has venido a buscarme?",
-        "Este lugar no estaba preparado para un NPC como yo."
-      ]
-    }, en: {
-      name: "???", msgs: [
-        "You should not be able to see me here.",
-        "Did you come looking for me?",
-        "This place was not prepared for an NPC like me."
-      ]
-    }
-  },
   bombot: {
     img: IMAGE_PATHS.Work_Bombot, es: {
       name: "Bombot de Trabajo", msgs: [
@@ -1330,10 +1289,7 @@ const NARRATOR_DATA = {
         "NOeye es una personificación de Materia Negra, tened mucho cuidado.",
         "¿Un símbolo? Ah no, es un enemigo más.",
         "Dicen que los magos Pyces suelen acabar mal parados.",
-        "¡Brrzzzttt! Mecachis, un resfriado.",
-        "MadStars ha vuelto a enviar una factura por protección. La he pagado con una bomba.",
-        "Si veis un maletín negro, no lo abráis. Probablemente tenga un contrato... o un jefe.",
-        "La mafia de MadStars dice que este mapa es suyo. Qué raro: no han leído el manual de propiedad."
+        "¡Brrzzzttt! Mecachis, un resfriado."
       ],
       modes: {
         'corrupto': "Transmisión desde Pixible... Las cosas se ven mal allí abajo. Os ayudaré con lo que pueda.",
@@ -1362,10 +1318,7 @@ const NARRATOR_DATA = {
         "NOeye is a personification of Dark Matter, be very careful.",
         "A symbol? Oh no, it's just another enemy.",
         "They say Pyce magicians usually end up badly.",
-        "¡Brrzzzttt! Damn it, a cold.",
-        "MadStars sent another protection bill. I paid it with a bomb.",
-        "If you see a black briefcase, do not open it. It probably contains a contract... or a boss.",
-        "MadStars says this map belongs to them. Strange: they have not read the property manual."
+        "¡Brrzzzttt! Damn it, a cold."
       ],
       modes: {
         'corrupto': "Transmission from Pixible... Things look bad down there. I'll help you with what I can.",
@@ -1392,26 +1345,20 @@ const NARRATOR_DATA = {
     img: IMAGE_PATHS.Glob, es: {
       name: "Glob (DEF)", msgs: [
         "Me pregunto por que atacamos a los Pyces. ¿No son amigos?",
-        "¿No viven los Pyces 2.0 en Bitlands? ¡Los Globs nacemos y nos reproducimos en Gelatin Lake!",
+        "¿No viven los Pyces 2.0 en Bitlands? ¡Si este es mi hogar!",
         "¡Ojala pudiera darles su merecido a esos corruptos...",
         "¡Oh no... Aquí vienen los disparadores!",
         "¡AYUDA! ¡Vienen demasiados!",
-        "¿Alguien tiene un paraguas? Creo que va a llover... Pyces.",
-        "He oído que MadStars cobra por cada Pyce que cruza la calle. ¡Eso explica la cola!",
-        "¿Por qué los mafiosos siempre llevan trajes? ¿Para que sus amenazas combinen?",
-        "No quiero problemas con MadStars. Bueno, sí quiero problemas... pero con refuerzos."
+        "¿Alguien tiene un paraguas? Creo que va a llover... Pyces."
       ]
     }, en: {
       name: "Glob (DEF)", msgs: [
         "I wonder why we attack the Pyces. Aren't they friends?",
-        "Don't the Pyces 2.0 live in Bitlands? Globs are born and reproduce in Gelatin Lake!",
+        "Don't the Pyces 2.0 live in Bitlands? This is my home!",
         "I wish I could give those corrupt ones what they deserve...",
         "Oh no... Here come the shooters!",
         "HELP! Too many are coming! 😱",
-        "Anyone got an umbrella? I think it's gonna rain... Pyces.",
-        "I heard MadStars charges for every Pyce crossing the street. That explains the queue!",
-        "Why do mafiosos always wear suits? So their threats match?",
-        "I do not want trouble with MadStars. Well, I do want trouble... but with backup."
+        "Anyone got an umbrella? I think it's gonna rain... Pyces."
       ]
     }
   },
@@ -1420,17 +1367,13 @@ const NARRATOR_DATA = {
       name: "Pyce Torpe", msgs: [
         "Eh, estamos entrando. No nos pegues muy fuerte.",
         "Caminar por este mapa cansa un poco.",
-        "¿Habeis visto mi sombrero? Ah, no llevo.",
-        "MadStars me dijo que corriera en línea recta. ¡Por fin un consejo fácil!",
-        "¿La mafia también cuenta como familia? Porque la de ellos da bastante miedo.",
+        "¿Habeis visto mi sombrero? Ah, no llevo."
       ]
     }, en: {
       name: "Stupid Pyce", msgs: [
         "Hey, we're coming in. Don't hit us too hard.",
         "Walking this map is a bit tiring.",
-        "Have you seen my hat? Oh, I'm not wearing one.",
-        "MadStars told me to run in a straight line. Finally, easy advice!",
-        "Does the mafia count as a family? Because theirs is pretty scary.",
+        "Have you seen my hat? Oh, I'm not wearing one."
       ]
     }
   },
@@ -1442,9 +1385,7 @@ const NARRATOR_DATA = {
         "Buen disparo, casi me das.",
         "Espero que no os moleste nuestra visita.",
         "Parece que hoy hace un buen día para dar un paseo.",
-        "Interesante defensa, se nota el esfuerzo.",
-        "¿MadStars controla este barrio? Solo preguntaba... desde una distancia prudente.",
-        "Me ofrecieron un trabajo en MadStars, pero no sé hacer la mirada intimidante.",
+        "Interesante defensa, se nota el esfuerzo."
       ]
     }, en: {
       name: "Pyce2", msgs: [
@@ -1453,9 +1394,7 @@ const NARRATOR_DATA = {
         "Good shot, you almost hit me.",
         "I hope our visit doesn't bother you.",
         "Looks like a good day for a walk.",
-        "Interesting defense, the effort is noticeable.",
-        "Does MadStars control this neighborhood? Just asking... from a safe distance.",
-        "MadStars offered me a job, but I cannot do the intimidating stare."
+        "Interesting defense, the effort is noticeable."
       ]
     }
   },
@@ -1465,9 +1404,7 @@ const NARRATOR_DATA = {
         "3S70Y H4R70 D3 QU3 M3 73N64N C0N7R0L4D0.",
         "3L P0D3R 3S 1NU71L CU4ND0 713N3S UN4 M4S4 D3 4L14D0S C0N7R0L4D0S.",
         "M3 4B4ND0N4R0N... ¡Y 4H0R4 3LL0S P464R4N!",
-        "M4LD170S K3RB0S... S13MPR3 4RRU1N4N M1S PL4N3S.",
-        "M4D574RS CR33 QU3 70D0 53 PU3D3 C0MPR4R. 1NCLU5O 4 M1.",
-        "N0 50Y UN4 P13Z4 D3 574R5... 50Y L4 M4N0 QU3 L35 R0MP3 3L N3G0C10.",
+        "M4LD170S K3RB0S... S13MPR3 4RRU1N4N M1S PL4N3S."
       ], defeat: [
         "C0M0 PU3D3N UN4S 63L471N4S D3RR074R 4 L4 M473R14 N3-",
         "¡1 7H0U6H7 Y0U W3R3 SM4R73R, 1'LL B3 B4CK S00N!",
@@ -1478,9 +1415,7 @@ const NARRATOR_DATA = {
         "1 4M 71R3D 0F B31N6 C0N7R0LL3D.",
         "P0W3R 1S US3L3SS W17H 4 M4SS 0F C0N7R0LL3D 4LL13S.",
         "7H3Y 4B4ND0N3D M3... N0W 7H3Y W1LL P4Y!",
-        "CURS3D K3RB0S... 4LW4YS RU1N1N6 MY PL4NS.",
-        "M4D574RS 7H1NK 3V3RY7H1NG C4N B3 B0UGH7. 3V3N M3.",
-        "1 4M N07 4 P13C3 0F 574R5... 1 4M 7H3 H4ND 7H47 BR34K5 7H31R D34L."
+        "CURS3D K3RB0S... 4LW4YS RU1N1N6 MY PL4NS."
       ], defeat: [
         "H0W C4N J3LL13S D3F347 D4RK M4773R-",
         "¡1 7H0U6H7 Y0U W3R3 SM4R73R, 1'LL B3 B4CK S00N!",
@@ -1494,9 +1429,7 @@ const NARRATOR_DATA = {
         "Es un honor contemplar vuestra inevitable caída, pequeños Globs.",
         "Vuestro esfuerzo es loable, pero el destino ya ha sido escrito por las estrellas.",
         "Dos vueltas al escenario para saborear vuestro miedo. ¡Qué delicia.",
-        "Vuestra resistencia es fútil ante el ciclo eterno de los astros.",
-        "MadStars intenta comprar el destino. Qué vulgaridad. Yo prefiero manipularlo.",
-        "Hasta la mafia teme a las estrellas... y eso que ellos siempre cobran por adelantado.",
+        "Vuestra resistencia es fútil ante el ciclo eterno de los astros."
       ], defeat: [
         "Imposible... el brillo de las estrellas... se apaga...",
         "Esto es solo un eclipse temporal. Volveré pronto.",
@@ -1507,9 +1440,7 @@ const NARRATOR_DATA = {
         "It is an honor to behold your inevitable fall, little Globs.",
         "Your effort is laudable, but fate has already been written by the stars.",
         "Two laps around the stage to savor your fear. What a delight.",
-        "Your resistance is futile before the eternal cycle of the stars.",
-        "MadStars tries to buy fate. How vulgar. I prefer to manipulate it.",
-        "Even the mafia fears the stars... and they always charge in advance.",
+        "Your resistance is futile before the eternal cycle of the stars."
       ], defeat: [
         "Impossible... the starlight... fades...",
         "This is only a temporary eclipse. I shall return.",
@@ -1522,16 +1453,12 @@ const NARRATOR_DATA = {
       name: "Pyce de Oro Torpe", msgs: [
         "¡Soy rico! Bueno, lo era hasta que me disparaste.",
         "¿Brillo mucho? Es por el oro, ¿sabes?",
-        "MadStars quiere mi oro. Les ofrecí una moneda y salí corriendo con las dos piernas.",
-        "El jefe de MadStars dijo que yo era un activo. ¡Soy una persona, no una inversión!",
         "¡No me mates, solo quiero ser tu amigo (y darte dinero)!"
       ]
     }, en: {
       name: "Stupid GoldPyce", msgs: [
         "I'm rich! Well, I was until you shot me.",
         "Do I shine a lot? It's the gold, you know?",
-        "MadStars wants my gold. I offered one coin and ran away with both legs.",
-        "The MadStars boss called me an asset. I am a person, not an investment!",
         "Don't kill me, I just want to be your friend (and give you money)!"
       ]
     }
@@ -1542,18 +1469,14 @@ const NARRATOR_DATA = {
         "¿Creéis que podéis pararme? 01001001 01100100 01101001 01101111 01110100 01100001 01110011",
         "El código es mío. Todo es mío.",
         "01001101 01110101 01100101 01110010 01100101",
-        "Vuestra defensa es un error de sintaxis en mi mundo.",
-        "MadStars intentó contratarme para hackear sus cuentas. Les cobré por adelantado y borré el contrato.",
-        "La mafia cree que controla el código. Qué adorable. Ni siquiera saben hacer una copia de seguridad."
+        "Vuestra defensa es un error de sintaxis en mi mundo."
       ]
     }, en: {
       name: "1x1x1x1 Pyce", msgs: [
         "Do you think you can stop me? 01001001 01101001 01101001 01101111 01110100 01110011",
         "The code is mine. Everything is mine.",
         "01000100 01101001 01101001",
-        "Your defense is a syntax error in my world.",
-        "MadStars tried to hire me to hack their accounts. I charged upfront and deleted the contract.",
-        "The mafia thinks it controls the code. Adorable. They cannot even make a backup."
+        "Your defense is a syntax error in my world."
       ]
     }
   },
@@ -1572,8 +1495,6 @@ const NARRATOR_DATA = {
         "El gran Arky nunca pierde. Si parecéis ganar... es que aún no he apostado en serio.",
         "¡Mis Pyces son mis mejores clientes! Siempre vuelven... porque yo se lo ordeno.",
         "Cada oleada que supero es otra ronda de bebidas en mi mesa VIP. ¡Salud!"
-        ,"MadStars me pidió que blanqueara sus Globetines. Les dije que el dinero ya era bastante sospechoso.",
-        "En mi casino, la casa gana. En MadStars, la casa amenaza. Qué poca elegancia."
       ]
     }, en: {
       name: "Arky", msgs: [
@@ -1589,8 +1510,6 @@ const NARRATOR_DATA = {
         "The great Arky never loses. If you seem to be winning... I just haven't bet seriously yet.",
         "My Pyces are my best customers! They always come back... because I order them to.",
         "Every wave I survive is another round of drinks at my VIP table. Cheers!"
-        ,"MadStars asked me to launder their Globets. I told them the money was suspicious enough already.",
-        "In my casino, the house wins. At MadStars, the house threatens you. So inelegant."
       ]
     }
   },
@@ -1609,8 +1528,6 @@ const NARRATOR_DATA = {
         "hay algo hermoso en la inevitabilidad. como un cometa. bello... y destructor.",
         "el casino brilla de noche como las estrellas. y las estrellas... tarde o temprano se apagan.",
         "siento que os queda poco tiempo. no lo digo con crueldad... lo dicen los astros por mí."
-        ,"MadStars también mira las estrellas... pero solo para calcular cuándo cobrar.",
-        "las gemas no se venden. aunque MadStars insista, amenace y vuelva a insistir."
       ]
     }, en: {
       name: "CrystArky", msgs: [
@@ -1626,8 +1543,6 @@ const NARRATOR_DATA = {
         "there is something beautiful in inevitability. like a comet. beautiful... and destructive.",
         "the casino glows at night like the stars. and stars... sooner or later go dark.",
         "i sense you don't have much time left. i don't say it with cruelty... the stars say it for me."
-        ,"MadStars watches the stars too... but only to calculate when to collect.",
-        "gems are not for sale. even if MadStars insists, threatens, and insists again."
       ]
     }
   },
@@ -1858,9 +1773,9 @@ const BADGES = {
   antiNormal: { key: 'antiNormal', icon: '🌑', unlocked: false, reward: { duckpass: 100, xp: 2000 }, category: 'modos' },
   winFacil: { key: 'winFacil', icon: '🌱', unlocked: false, reward: { pycoins: 50, xp: 50 }, category: 'modos' },
   winNormal: { key: 'winNormal', icon: '🌲', unlocked: false, reward: { pycoins: 100, xp: 100 }, category: 'modos' },
-  una_por_cada: { key: 'una_por_cada', icon: '🎰', unlocked: false, reward: { pycoins: 200, duckpass: 150, xp: 200 }, category: 'interacciones' },
-  explosiones_por_doquier: { key: 'explosiones_por_doquier', icon: '💥', unlocked: false, reward: { pycoins: 350, duckpass: 250, xp: 200 }, category: 'interacciones' },
-  urba_complet1: { key: 'urba_complet1', icon: '🌆', unlocked: false, reward: { pycoins: 500, duckpass: 300, xp: 200 }, category: 'misiones' },
+  una_por_cada: { key: 'una_por_cada', icon: '🎰', unlocked: false, reward: { pycoins: 200, duckpass: 150 }, category: 'interacciones' },
+  explosiones_por_doquier: { key: 'explosiones_por_doquier', icon: '💥', unlocked: false, reward: { pycoins: 350, duckpass: 250 }, category: 'interacciones' },
+  urba_complet1: { key: 'urba_complet1', icon: '🌆', unlocked: false, reward: { pycoins: 500, duckpass: 300 }, category: 'misiones' },
   winDificil: { key: 'winDificil', icon: '⚔️', unlocked: false, reward: { pycoins: 200, xp: 150 }, category: 'modos' },
   winExtremo: { key: 'winExtremo', icon: '💀', unlocked: false, reward: { pycoins: 500, xp: 500 }, category: 'modos' },
   winCorrupto: { key: 'winCorrupto', icon: '👾', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'modos' },
@@ -1876,21 +1791,19 @@ const BADGES = {
   angelicFortress: { key: 'angelicFortress', icon: '😇', unlocked: false, reward: { pycoins: 500, xp: 250 }, category: 'modos' },
   titaniumBuilding: { key: 'titaniumBuilding', icon: '🛡️', unlocked: false, reward: { pycoins: 500, xp: 300 }, category: 'modos' },
   encyclopediaMaster: { key: 'encyclopediaMaster', icon: '📖', unlocked: false, reward: { pycoins: 500, duckpass: 500, xp: 2000 }, category: 'misiones' },
-  unmenaced: { key: 'unmenaced', icon: '🌠', unlocked: false, reward: { pycoins: 300, duckpass: 100, xp: 200 }, category: 'misiones' },
-  skinllector: { key: 'skinllector', icon: '👗', unlocked: false, reward: { pycoins: 400, duckpass: 200, xp: 200 }, category: 'misiones' },
+  unmenaced: { key: 'unmenaced', icon: '🌠', unlocked: false, reward: { pycoins: 300, duckpass: 100 }, category: 'misiones' },
+  skinllector: { key: 'skinllector', icon: '👗', unlocked: false, reward: { pycoins: 400, duckpass: 200 }, category: 'misiones' },
   crystalizing_break: { key: 'crystalizing_break', icon: '💎', unlocked: false, reward: { pycoins: 200, xp: 500 }, category: 'interacciones' },
-  extended_marc: { key: 'extended_marc', icon: '🖼️', unlocked: false, reward: { pycoins: 350, duckpass: 150, xp: 200 }, category: 'misiones' },
+  extended_marc: { key: 'extended_marc', icon: '🖼️', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'misiones' },
 
   fracstral_victory: { key: 'fracstral_victory', icon: '<img src="Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png" width="35" height="35" style="border-radius:6px; object-fit:contain;">', unlocked: false, reward: { pycoins: 500, xp: 500 }, category: 'misiones' },
-  chain_reaction: { key: 'chain_reaction', icon: '💥', unlocked: false, reward: { pycoins: 400, duckpass: 200, xp: 250 }, category: 'interacciones' },
-  fenced_kaboom: { key: 'fenced_kaboom', icon: '🚧', unlocked: false, reward: { pycoins: 350, duckpass: 150, xp: 250 }, category: 'interacciones' },
-  wall_garden: { key: 'wall_garden', icon: '🧱', unlocked: false, reward: { pycoins: 300, xp: 250 }, category: 'interacciones' },
-  urban_king: { key: 'urban_king', icon: '👑', unlocked: false, reward: { pycoins: 600, duckpass: 400, xp: 250 }, category: 'misiones' },
-  urban_crystals: { key: 'urban_crystals', icon: '💎', unlocked: false, reward: { pycoins: 700, duckpass: 500, xp: 250 }, category: 'misiones' },
-  dangerous_set: { key: 'dangerous_set', icon: '⚠️', unlocked: false, reward: { pycoins: 800, xp: 250 }, category: 'interacciones' },
-  globiscal_debt: { key: 'globiscal_debt', icon: '💸', unlocked: false, reward: { pycoins: 1000, xp: 250 }, category: 'economia' },
-  block_city: { key: 'block_city', icon: '<img src="img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO1).png" width="35" height="35" style="border-radius:6px; object-fit:contain;">', unlocked: false, reward: { xp: 250 }, category: 'misiones' },
-  old_blox_city: { key: 'old_blox_city', icon: '<img src="Misiones (2026)/Skins/Rosa/Guest Retrohouse (SK-S2).png" width="35" height="35" style="border-radius:6px; object-fit:contain;">', unlocked: false, reward: { xp: 250 }, category: 'misiones' },
+  chain_reaction: { key: 'chain_reaction', icon: '💥', unlocked: false, reward: { pycoins: 400, duckpass: 200 }, category: 'interacciones' },
+  fenced_kaboom: { key: 'fenced_kaboom', icon: '🚧', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'interacciones' },
+  wall_garden: { key: 'wall_garden', icon: '🧱', unlocked: false, reward: { pycoins: 300, xp: 400 }, category: 'interacciones' },
+  urban_king: { key: 'urban_king', icon: '👑', unlocked: false, reward: { pycoins: 600, duckpass: 400 }, category: 'misiones' },
+  urban_crystals: { key: 'urban_crystals', icon: '💎', unlocked: false, reward: { pycoins: 700, duckpass: 500 }, category: 'misiones' },
+  dangerous_set: { key: 'dangerous_set', icon: '⚠️', unlocked: false, reward: { pycoins: 800, xp: 1000 }, category: 'interacciones' },
+  globiscal_debt: { key: 'globiscal_debt', icon: '💸', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'economia' },
 
   // Sunlight Seaside difficulty badges
   sunlight_facil: { key: 'sunlight_facil', icon: '🌱', unlocked: false, reward: { pycoins: 150, xp: 100 }, category: 'modos' },
@@ -2033,7 +1946,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'corrupt_swords_set', name: 'skin_corrupt_swords_name', desc: 'skin_corrupt_swords_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'mission_block_tales',
+      id: 'corrupt_swords_set', name: 'skin_corrupt_swords_name', desc: 'skin_corrupt_swords_desc', cost: 637, type: 'pycoin', duckpass_cost: 207, isSpecial: true,
       skins: {
         'Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO1).png',
         'Poop_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Brad Glob (SK-EVO2).png',
@@ -2159,7 +2072,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'dreams_set', name: 'skin_dreams_name', desc: 'skin_dreams_desc', isSpecial: true, cost: 637, duckpass_cost: 207, type: 'pycoin',
+      id: 'dreams_set', name: 'skin_dreams_name', desc: 'skin_dreams_desc', isSpecial: true, cost: 777, duckpass_cost: 555, type: 'pycoin',
       skins: {
         'Comet_Glob': 'img/Skins/Negro Supremo/Dreams (SP)/Gummy Glob (SK-EVO1).png',
         'Dark_Glob': 'img/Skins/Negro Supremo/Dreams (SP)/Loyal Glob (SK-EVO2).png',
@@ -2230,7 +2143,7 @@ const SKINS_DATA = {
 
   'White': [
     {
-      id: 'heights_set', name: 'skin_heights_name', desc: 'skin_heights_desc', cost: 250, duckpass_cost: 100, type: 'pycoin', isSpecial: true,
+      id: 'heights_set', name: 'skin_heights_name', desc: 'skin_heights_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest',
       skins: {
         'Balloon_Glob': 'Misiones (2026)/Skins/Blanca/House & Bombot (SK-EVO1).png',
         'Heliglob': 'Misiones (2026)/Skins/Blanca/Castle & Bombot (SK-EVO2).png',
@@ -2240,7 +2153,7 @@ const SKINS_DATA = {
   ],
   'Pink': [
     {
-      id: 'old_tycoon_set', name: 'skin_old_tycoon_name', desc: 'skin_old_tycoon_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest_shop',
+      id: 'old_tycoon_set', name: 'skin_old_tycoon_name', desc: 'skin_old_tycoon_desc', cost: 637, duckpass_cost: 207, type: 'pycoin', isSpecial: true, unlockCondition: 'block_quest_shop',
       skins: {
         'Streamer_Glob': 'Misiones (2026)/Skins/Rosa/Noob Tycoon (SK-EVO1).png',
         'Gamer_Glob': 'Misiones (2026)/Skins/Rosa/Guest Retrohouse (SK-S2).png',
@@ -2250,7 +2163,7 @@ const SKINS_DATA = {
   ],
   'Brown': [
     {
-      id: 'jonk_set', name: 'skin_jonk_name', desc: 'skin_jonk_desc', cost: 250, duckpass_cost: 100, type: 'pycoin', isSpecial: true,
+      id: 'jonk_set', name: 'skin_jonk_name', desc: 'skin_jonk_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest',
       skins: {
         'Sprout_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO1).png',
         'Garden_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO2).png',
@@ -2430,3 +2343,6 @@ Object.assign(window.SKIN_META, {
   }
 });
 /* --- END INSERTAR --- */
+
+
+
