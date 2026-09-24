@@ -569,10 +569,10 @@ const LOADING_TIPS = {
       ],
       Comet_Glob: [
         'La familia negra hace daño brutal cuando ya has controlado el tablero.',
-        'Comet_Glob es ideal para presionar en el centro del mapa en oleadas medianas.'
+        'Es ideal para presionar en el centro del mapa en oleadas medianas.'
       ],
       Old_Glob: [
-        'Old_Glob funciona muy bien si quieres estabilidad y apoyo defensivo.',
+        'Funciona muy bien si quieres estabilidad y apoyo defensivo.',
         'A veces conviene conservarlo en puntos estratégicos para no perder presión.'
       ],
       Work_Bombot: [
@@ -588,24 +588,24 @@ const LOADING_TIPS = {
         'Si lo combinas con daño fuerte, puedes limpiar más rápido a los enemigos más molestos.'
       ],
       IEx: [
-        'IEx es excepcional para reforzar el daño y la presión en rutas más extensas.',
-        'Usa sus bonificaciones en momentos clave para no perder el tempo de la partida.'
+        'Es excelente para reforzar el daño y la presión en rutas largas, pero no es una torre de sacrificio.',
+        'Si quieres explosivos de radio puro, Bomb Glob es mucho más directo: explota al entrar alguien en su alcance.'
       ],
       Worker_Glob: [
-        'Worker_Glob es perfecto para sostener la defensa en mapas más abiertos.',
+        'Es perfecto para sostener la defensa en mapas más abiertos.',
         'Aporta estabilidad y te ayuda a mantener el control si la ola empieza a complicarse.'
       ],
       Bomb_Glob: [
-        'Bomb_Glob se cumple mejor cuando sabes donde va a entrar el enemigo.',
-        'Su explosión suele ser más efectiva si la colocas en un punto de paso evidente.'
+        'Explota cuando alguien entra en su radio; es ideal para limpiar un paso sospechoso.',
+        'No tiene bonificaciones: su valor está en el sacrificio y en borrar amenazas a tiempo.'
       ],
       Sprout_Glob: [
         'Sprout_Glob funciona muy bien si quieres más control y ralentización sin perder presión.',
         'Los efectos de ralentización te dan más margen para responder antes del choque.'
       ],
       Pirate_Glob: [
-        'Pirate_Glob aporta mucho en mapas con más recorrido y presión lateral.',
-        'Cuando tienes rutas largas, su temporal y su utilidad se vuelven muy fuertes.'
+        'Aporta mucho en mapas con más recorrido y presión lateral.',
+        'Cuando tienes rutas largas, su utilidad y apoyo de control se vuelven muy fuertes.'
       ]
     }
   },
@@ -643,10 +643,10 @@ const LOADING_TIPS = {
       ],
       Comet_Glob: [
         'The black family deals brutal damage once you already control the board.',
-        'Comet_Glob is ideal for pressure in the center of the map during mid waves.'
+        'It is ideal for pressure in the center of the map during mid waves.'
       ],
       Old_Glob: [
-        'Old_Glob works well if you want stability and defensive support.',
+        'It works well if you want stability and defensive support.',
         'Sometimes it is better to keep it in a strategic spot than to rotate too much.'
       ],
       Work_Bombot: [
@@ -662,24 +662,24 @@ const LOADING_TIPS = {
         'If you combine it with strong damage, you can clear the most annoying enemies faster.'
       ],
       IEx: [
-        'IEx is exceptional for strengthening damage and pressure on longer routes.',
-        'Use its bonuses at key moments to avoid losing the pace of the match.'
+        'IEx is excellent for reinforcing damage and pressure on long routes, but it is not a sacrifice tower.',
+        'If you want pure blast radius, Bomb Glob is much more direct: it explodes when something enters its range.'
       ],
       Worker_Glob: [
-        'Worker_Glob is perfect for sustaining defense on more open maps.',
+        'It is perfect for sustaining defense on more open maps.',
         'It gives stability and helps maintain control if the wave starts to get messy.'
       ],
       Bomb_Glob: [
-        'Bomb_Glob is most effective when you know where the enemy will pass.',
-        'Its explosion is usually stronger if you place it on a clear choke point.'
+        'It explodes when someone enters its radius; it is ideal for clearing a risky lane.',
+        'It has no bonuses or support buffs: its value lies in the sacrifice and in removing threats in time.'
       ],
       Sprout_Glob: [
         'Sprout_Glob works very well if you want more control and slowing without losing pressure.',
         'The slow effects give you more room to react before the clash.'
       ],
       Pirate_Glob: [
-        'Pirate_Glob adds a lot on maps with longer paths and lateral pressure.',
-        'When you have long routes, its tempo and utility become very strong.'
+        'It adds a lot on maps with longer paths and lateral pressure.',
+        'When you have long routes, its utility and control support become very strong.'
       ]
     }
   }
@@ -688,7 +688,8 @@ const LOADING_TIPS = {
 function getLoadingTips(language) {
   const locale = LOADING_TIPS[language] || LOADING_TIPS.es;
   const familyPool = Object.entries(locale.families || {}).flatMap(([family, tips]) => {
-    const cleanFamily = String(family).replace(/_/g, ' ');
+    const familyLabelMap = { Pirate_Glob: 'Crewmate Glob', Crewmate_Glob: 'Crewmate Glob' };
+    const cleanFamily = familyLabelMap[family] || String(family).replace(/_/g, ' ');
     return tips.map(tip => `${cleanFamily}: ${tip}`);
   });
   const generalLabel = language === 'es' ? 'General' : 'General';
@@ -1798,7 +1799,7 @@ function getDebugPathTerms(path) {
 function debugSearchScore(query, values) {
   if (String(query || '').trim() === '???' && values.some(value => String(value || '').trim() === '???')) return 1001;
   const needle = normalizeDebugSearch(query);
-  if (!needle) return 0;
+  if (!needle) return 1;
   const haystack = values.map(normalizeDebugSearch).join(' ');
   if (haystack === needle) return 1000;
   if (haystack.startsWith(needle)) return 800;
@@ -2044,6 +2045,7 @@ function setupOwnerDebugTools() {
     updateMysteryBugOptions();
   });
   updateMysteryBugOptions();
+  searchSpeakers();
   spawnEnemyButton?.addEventListener('click', () => {
     if (!isOwnerDebugUser() || !selectedEnemy) return;
     spawnEnemy(selectedEnemy.id);
@@ -3089,16 +3091,16 @@ function bindEvents() {
       Red_Glob: ['La familia roja suele ser la mejor para empujar daño directo a enemigos rápidos.', 'Combina Red_Glob con apoyo para eliminar objetivos prioritarios antes de que te abran paso.'],
       Soap_Glob: ['Es muy útil para frenar ataques y ganar tiempo en oleadas difíciles.', 'Si el enemigo acelera demasiado, la familia azul te da control real del campo.'],
       Ducky_Glob: ['Aporta economía y consistencia; no lo dejes en segundo plano.', 'Los Ducky son excelentes para generar más recursos y sostener partidas largas.'],
-      Comet_Glob: ['La familia negra hace daño brutal cuando ya has controlado el tablero.', 'Comet_Glob es ideal para presionar en el centro del mapa en oleadas medianas.'],
-      Old_Glob: ['Old_Glob funciona muy bien si quieres estabilidad y apoyo defensivo.', 'A veces conviene conservarlo en puntos estratégicos para no perder presión.'],
+      Comet_Glob: ['La familia negra hace daño brutal cuando ya has controlado el tablero.', 'Es ideal para presionar en el centro del mapa en oleadas medianas.'],
+      Old_Glob: ['Funciona muy bien si quieres estabilidad y apoyo defensivo.', 'A veces conviene conservarlo en puntos estratégicos para no perder presión.'],
       Work_Bombot: ['Bombot gana mucho cuando sabes anticipar los flancos por donde entran los Pyces.', 'No lo uses como relleno: su explosión es más útil si enchufas una ruta clara.'],
       White: ['La familia blanca suele complementar mejor a la hora de controlar distancias y cobertura.', 'Suele ser muy buena para sostener el mapa mientras esperas a que tu daño llegue.'],
       Pink: ['La familia rosa funciona mejor cuando sabes aprovechar la presión y el control de zonas.', 'Si la combinas con un daño fuerte, puedes limpiar más rápido a los enemigos más molestos.'],
-      IEx: ['IEx es excepcional para reforzar el daño y la presión en rutas más extensas.', 'Usa sus bonificaciones en momentos clave para no perder el tempo de la partida.'],
-      Worker_Glob: ['Worker_Glob es perfecto para sostener la defensa en mapas más abiertos.', 'Aporta estabilidad y te ayuda a mantener el control si la ola empieza a complicarse.'],
-      Bomb_Glob: ['Bomb_Glob se cumple mejor cuando sabes donde va a entrar el enemigo.', 'Su explosión suele ser más efectiva si la colocas en un punto de paso evidente.'],
+      IEx: ['Es excelente para reforzar el daño y la presión en rutas largas, pero no es una torre de sacrificio.', 'Si quieres explosivos de radio puro, Bomb Glob es mucho más directo: explota al entrar alguien en su alcance.'],
+      Worker_Glob: ['Es perfecto para sostener la defensa en mapas más abiertos.', 'Aporta estabilidad y te ayuda a mantener el control si la ola empieza a complicarse.'],
+      Bomb_Glob: ['Explota cuando alguien entra en su radio; es ideal para limpiar un paso sospechoso.', 'No tiene bonificaciones: su valor está en el sacrificio y en borrar amenazas a tiempo.'],
       Sprout_Glob: ['Sprout_Glob funciona muy bien si quieres más control y ralentización sin perder presión.', 'Los efectos de ralentización te dan más margen para responder antes del choque.'],
-      Pirate_Glob: ['Pirate_Glob aporta mucho en mapas con más recorrido y presión lateral.', 'Cuando tienes rutas largas, su temporal y su utilidad se vuelven muy fuertes.']
+      Pirate_Glob: ['Aporta mucho en mapas con más recorrido y presión lateral.', 'Cuando tienes rutas largas, su utilidad y apoyo de control se vuelven muy fuertes.']
     },
     en: {
       Glob: ['Basic Globs hold the early defense; place them well to control the first wave.', 'Globs are not the strongest, but they are the core of your pacing and economy.'],
@@ -3110,11 +3112,11 @@ function bindEvents() {
       Work_Bombot: ['Bombot shines when you anticipate where enemies will enter.', 'Do not use it as filler: its blast is more useful if you have a clear route.'],
       White: ['The white family usually complements better when controlling distances and cover.', 'It is very good for holding the map while your damage is still coming together.'],
       Pink: ['The pink family works best when you take advantage of pressure and zone control.', 'If you combine it with strong damage, you can clear the most annoying enemies faster.'],
-      IEx: ['IEx is exceptional for strengthening damage and pressure on longer routes.', 'Use its bonuses at key moments to avoid losing the pace of the match.'],
+      IEx: ['IEx is excellent for reinforcing damage and pressure on long routes, but it is not a sacrifice tower.', 'If you want pure blast radius, Bomb Glob is much more direct: it explodes when something enters its range.'],
       Worker_Glob: ['Worker_Glob is perfect for sustaining defense on more open maps.', 'It gives stability and helps maintain control if the wave starts to get messy.'],
-      Bomb_Glob: ['Bomb_Glob is most effective when you know where the enemy will pass.', 'Its explosion is usually stronger if you place it on a clear choke point.'],
+      Bomb_Glob: ['Bomb_Glob explodes when someone enters its radius; it is ideal for clearing a risky lane.', 'It has no bonuses or support buffs: its value lies in the sacrifice and in removing threats in time.'],
       Sprout_Glob: ['Sprout_Glob works very well if you want more control and slowing without losing pressure.', 'The slow effects give you more room to react before the clash.'],
-      Pirate_Glob: ['Pirate_Glob adds a lot on maps with longer paths and lateral pressure.', 'When you have long routes, its tempo and utility become very strong.']
+      Pirate_Glob: ['It adds a lot on maps with longer paths and lateral pressure.', 'When you have long routes, its utility and control support become very strong.']
     }
   };
 
@@ -8408,3 +8410,7 @@ function activateGTack(t) {
   }
 
   window.onload = init;
+
+
+
+

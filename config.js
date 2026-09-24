@@ -1578,6 +1578,24 @@ const NARRATOR_DATA = {
         "*krkr* ...i see your future in the portal... *kzzt*... and there are... no Globs in it. *interference* 💀"
       ]
     }
+  },
+  special_unknown: {
+    img: 'img/Sellos/MysteryBug.png', es: { name: '???', msgs: [] }, en: { name: '???', msgs: [] }
+  },
+  jerry: {
+    img: 'img/Sellos/MysteryBug.png', es: { name: 'Jerry', msgs: [] }, en: { name: 'Jerry', msgs: [] }
+  },
+  mysterybug_custom: {
+    img: 'img/Sellos/MysteryBug.png', es: { name: 'MysteryBug', msgs: [] }, en: { name: 'MysteryBug', msgs: [] }
+  },
+  astral_exclamation: {
+    img: 'img/Sellos/AstralExclamation.png', es: { name: 'AstralExclamation', msgs: [] }, en: { name: 'AstralExclamation', msgs: [] }
+  },
+  error_entity: {
+    img: 'img/Sellos/AstralExclamation.png', es: { name: 'ERROR', msgs: [] }, en: { name: 'ERROR', msgs: [] }
+  },
+  login_guy: {
+    img: 'img/Sellos/AstralExclamation.png', es: { name: 'LoginGuy', msgs: [] }, en: { name: 'LoginGuy', msgs: [] }
   }
 };
 
