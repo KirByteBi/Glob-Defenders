@@ -1,6 +1,9 @@
 # Ignorar el archivo de códigos secretos
 codigos.txt
 
+# Ignorar el archivo de usuarios y roles
+usuarios_roles.txt
+
 # Ignorar archivos temporales de sistema
 Thumbs.db
 .DS_Store
