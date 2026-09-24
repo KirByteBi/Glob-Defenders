@@ -2610,6 +2610,152 @@ body.fullscreen-map #meta-controls {
     z-index: 10 !important;
 }
 
+/* Compact layout for touch devices whose browser reports a desktop CSS width. */
+body.touch-landscape {
+    overflow: hidden;
+}
+
+body.touch-landscape #game-container {
+    width: 100vw !important;
+    height: 100dvh;
+    min-height: 0;
+    max-width: none;
+    padding: 2px 4px;
+    overflow: hidden;
+}
+
+body.touch-landscape #game-header {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: 20;
+    transform: translateX(-50%);
+    margin: 0;
+}
+
+body.touch-landscape .game-logo {
+    height: 34px;
+}
+
+body.touch-landscape #game-ui {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    right: 80px;
+    z-index: 20;
+    min-height: 36px;
+    margin: 0;
+    padding: 3px 5px;
+    gap: 5px;
+}
+
+body.touch-landscape #game-stats {
+    min-width: 0;
+    gap: 5px;
+    padding: 3px 5px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+body.touch-landscape .stat {
+    gap: 3px;
+    min-width: 0;
+}
+
+body.touch-landscape .stat-label,
+body.touch-landscape .controls .btn-text,
+body.touch-landscape .meta-btn-text {
+    display: none !important;
+}
+
+body.touch-landscape .stat-value {
+    font-size: 0.8rem;
+}
+
+body.touch-landscape .controls {
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+body.touch-landscape .controls button {
+    width: 32px;
+    height: 30px;
+    padding: 3px;
+    justify-content: center;
+    font-size: 0.85rem;
+}
+
+body.touch-landscape .game-scale-wrapper {
+    position: absolute;
+    top: 42px;
+    left: 80px;
+    width: calc(100vw - 160px);
+    height: calc(100dvh - 46px);
+    overflow: visible;
+    align-items: center;
+}
+
+body.touch-landscape #game-area {
+    flex: 0 0 auto;
+    width: 1000px;
+    height: 600px;
+    transform-origin: center center;
+}
+
+body.touch-landscape #tower-shop {
+    position: fixed;
+    top: 42px;
+    left: 3px;
+    right: auto;
+    bottom: 3px;
+    transform: none !important;
+    width: 70px;
+    max-height: none;
+    margin: 0;
+    padding: 4px 2px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 5px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 30;
+}
+
+body.touch-landscape #meta-controls {
+    top: 92px;
+    right: 4px;
+    left: auto;
+    gap: 4px;
+}
+
+body.touch-landscape #meta-controls .meta-btn {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    padding: 5px;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+body.touch-landscape #language-toggle {
+    top: 4px !important;
+    right: 4px !important;
+    left: auto !important;
+    padding: 7px 10px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+body.touch-landscape #options-toggle {
+    top: 50px !important;
+    right: 4px !important;
+    left: auto !important;
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+}
+
 /* ===================== LOADING SCREEN ===================== */
 #loading-screen {
     position: fixed;

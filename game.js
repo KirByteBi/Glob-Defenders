@@ -2677,15 +2677,17 @@ function updateResponsiveGameLayout() {
   const viewport = window.visualViewport;
   const viewportWidth = viewport ? viewport.width : document.documentElement.clientWidth;
   const viewportHeight = viewport ? viewport.height : document.documentElement.clientHeight;
-  const compactLayout = viewportWidth <= 1400 && viewportWidth > viewportHeight;
+  const touchDevice = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+  const compactLayout = (viewportWidth <= 1400 || touchDevice) && viewportWidth > viewportHeight;
   if (!compactLayout) return;
 
-  const shopWidth = 76;
+  const sideWidth = 76;
   const topOffset = 42;
-  const availableWidth = Math.max(320, viewportWidth - shopWidth - 8);
+  const availableWidth = Math.max(320, viewportWidth - (sideWidth * 2) - 8);
   const availableHeight = Math.max(220, viewportHeight - topOffset - 4);
   const scale = Math.min(availableWidth / 1000, availableHeight / 600, 1);
 
+  wrapper.style.left = `${sideWidth + 4}px`;
   wrapper.style.width = `${availableWidth}px`;
   wrapper.style.height = `${availableHeight}px`;
   gameArea.style.width = '1000px';
@@ -2703,11 +2705,14 @@ function applyScale() {
   const viewport = window.visualViewport;
   const viewportWidth = viewport ? viewport.width : document.documentElement.clientWidth;
   const viewportHeight = viewport ? viewport.height : document.documentElement.clientHeight;
-  const compactLayout = viewportWidth <= 1400 && viewportWidth > viewportHeight;
+  const touchDevice = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+  const compactLayout = (viewportWidth <= 1400 || touchDevice) && viewportWidth > viewportHeight;
+  document.body.classList.toggle('touch-landscape', compactLayout && touchDevice);
 
   if (compactLayout) {
     container.style.transform = 'none';
     container.style.marginTop = '0';
+    container.style.width = '';
     updateResponsiveGameLayout();
     return;
   }
