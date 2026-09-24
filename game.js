@@ -353,7 +353,7 @@ function loadProgress(username) {
       if (gameState.unlockedAntiNormal) BADGES.antiNormal.unlocked = true;
       updateBuffs();
       document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
-      if (gameState.settings.metaEmojis) document.body.classList.add('meta-emojis-only');
+      applyMetaButtonMode();
       if (gameState.settings.fullscreenMap) document.body.classList.add('fullscreen-map');
       if (gameState.settings.autoEnglish) { currentLanguage = 'en'; updateLanguage(); }
       updateMuteButton();
@@ -1278,6 +1278,13 @@ function updateHitboxesVisibility() {
     else map.classList.remove('show-hitboxes');
   }
 }
+function applyMetaButtonMode() {
+  const iconOnly = !!gameState.settings.metaEmojis;
+  document.body.classList.toggle('meta-emojis-only', iconOnly);
+  document.querySelectorAll('.meta-btn-text').forEach(text => {
+    text.hidden = iconOnly;
+  });
+}
 
 function updateSettings() {
   gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
@@ -1296,11 +1303,7 @@ function updateSettings() {
   const optAutoEn = document.getElementById('opt-auto-english');
   if (optAutoEn) gameState.settings.autoEnglish = optAutoEn.checked;
 
-  if (gameState.settings.metaEmojis) {
-    document.body.classList.add('meta-emojis-only');
-  } else {
-    document.body.classList.remove('meta-emojis-only');
-  }
+  applyMetaButtonMode();
 
   if (gameState.settings.fullscreenMap) {
     document.body.classList.add('fullscreen-map');
@@ -2355,7 +2358,7 @@ function bindEvents() {
 
       gameState.mode = 'interstellar';
       gameState.modeConfirmed = true;
-      gameState.maxWaves = 45; // Or whatever interstellar max waves is, wait, let me check maxWaves for interstellar
+      gameState.maxWaves = 40;
 
       retryGame();
       gameState.globetines = 500;
@@ -4250,8 +4253,19 @@ function activateGTack(t) {
       }
 
       if (pool.length > 0) {
+        const interstellarCount = wave <= 5
+          ? 2
+          : wave <= 11
+            ? 3
+            : wave <= 19
+              ? 4
+              : wave <= 22
+                ? 5
+                : wave <= 25
+                  ? 6
+                  : 6 + Math.floor((wave - 25) / 5);
+        count = interstellarCount + Math.floor(Math.random() * 2);
         if (wave % 5 === 0 && !isBossWave) {
-          count = 3 + Math.floor(Math.random() * 2); // 3-4
           let highestHPEnemy = pool[0];
           let maxHP = 0;
           pool.forEach(e => {
@@ -4294,7 +4308,7 @@ function activateGTack(t) {
       const mapTankPool = (ENEMY_BALANCE[mapKey] && ENEMY_BALANCE[mapKey].tank) || mapPool.hard;
 
       if (mapKey === 'sunlight_seaside' && mode === 'facil') {
-         let count = 10 + wave * 3;
+         let count = 2 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
          let wPool = [];
          if (wave === 1) wPool = ['Piz', 'Baby_Shrum'];
          else if (wave === 2) wPool = ['Axolotl_Pyce', 'Ren'];
@@ -4305,7 +4319,7 @@ function activateGTack(t) {
          else if (wave === 7) wPool = ['Big_Treeper', 'Ren', 'Baby_Shrum'];
          else if (wave === 8) wPool = ['Renibig', 'Shrum', 'Clown_Pysh'];
          else if (wave === 9) wPool = ['Big_Treeper', 'Shark_Pyce', 'Old_Fungus'];
-         else if (wave === 10) { wPool = ['Piz', 'Baby_Shrum', 'Pysh', 'Thunren']; count = 25; }
+         else if (wave === 10) { wPool = ['Piz', 'Baby_Shrum', 'Pysh', 'Thunren']; count = 6; }
          
          for(let i=0; i<count; i++) spawnList.push(wPool[Math.floor(Math.random() * wPool.length)]);
       } else {
@@ -4313,60 +4327,49 @@ function activateGTack(t) {
         let comp = { regular: 1.0, medium: 0, hard: 0, special: 0 };
         
         if (mode === 'facil') {
-           if (wave <= 3) { count = 10 + wave*3; comp = { regular: 1.0, medium: 0, hard: 0, special: 0 }; }
-           else if (wave <= 6) { count = 15 + wave*3; comp = { regular: 0.8, medium: 0.2, hard: 0, special: 0 }; }
-           else if (wave <= 9) { count = 20 + wave*3; comp = { regular: 0.7, medium: 0.3, hard: 0, special: 0 }; }
-           else if (wave === 10) { count = 30; comp = { regular: 0.6, medium: 0.4, hard: 0, special: 0 }; }
+            count = 2 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 5) comp = { regular: 1.0, medium: 0, hard: 0, special: 0 };
+            else comp = { regular: 0.8, medium: 0.2, hard: 0, special: 0 };
         } 
         else if (mode === 'normal') {
-           if (wave <= 3) { count = 8 + wave*2; comp = { regular: 1, medium: 0, hard: 0, special: 0 }; }
-           else if (wave <= 6) { count = 12 + wave*3; comp = { regular: 0.8, medium: 0.2, hard: 0, special: 0 }; }
-           else if (wave <= 9) { count = 18 + wave*3; comp = { regular: 0.6, medium: 0.4, hard: 0, special: 0 }; }
-           else if (wave <= 12) { count = 28 + wave*2; comp = { regular: 0.35, medium: 0.5, hard: 0.15, special: 0 }; }
-           else if (wave <= 14) { count = 34 + wave*2; comp = { regular: 0.25, medium: 0.45, hard: 0.3, special: 0 }; }
-           else if (wave === 15) { count = 45; comp = { regular: 0.35, medium: 0.45, hard: 0.2, special: 0 }; }
+            count = 3 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 5) comp = { regular: 1, medium: 0, hard: 0, special: 0 };
+            else if (wave <= 10) comp = { regular: 0.8, medium: 0.2, hard: 0, special: 0 };
+            else comp = { regular: 0.5, medium: 0.4, hard: 0.1, special: 0 };
         }
         else if (mode === 'dificil') {
-           if (wave <= 5) { count = 12 + wave*3; comp = { regular: 0.85, medium: 0.15, hard: 0, special: 0 }; }
-           else if (wave <= 10) { count = 20 + wave*4; comp = { regular: 0.4, medium: 0.5, hard: 0.1, special: 0 }; }
-           else if (wave <= 15) { count = 32 + wave*4; comp = { regular: 0.25, medium: 0.5, hard: 0.25, special: 0 }; }
-           else if (wave <= 20) { count = 55 + wave*6; comp = { regular: 0.2, medium: 0.4, hard: 0.4, special: 0.1 }; }
-           else if (wave <= 24) { count = 75 + wave*6; comp = { regular: 0.1, medium: 0.4, hard: 0.5, special: 0.2 }; }
-           else if (wave === 25) { count = 60; comp = { regular: 0.2, medium: 0.4, hard: 0.4, special: 0.1 }; }
+            count = 4 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 5) comp = { regular: 0.85, medium: 0.15, hard: 0, special: 0 };
+            else if (wave <= 10) comp = { regular: 0.5, medium: 0.4, hard: 0.1, special: 0 };
+            else comp = { regular: 0.25, medium: 0.5, hard: 0.25, special: 0 };
         }
         else if (mode === 'extremo') {
-           if (wave <= 8) { count = 20 + wave*5; comp = { regular: 0.6, medium: 0.3, hard: 0.1, special: 0 }; }
-           else if (wave <= 15) { count = 40 + wave*6; comp = { regular: 0.4, medium: 0.4, hard: 0.2, special: 0.1 }; }
-           else if (wave <= 22) { count = 65 + wave*7; comp = { regular: 0.2, medium: 0.5, hard: 0.3, special: 0.1 }; }
-           else if (wave <= 30) { count = 90 + wave*8; comp = { regular: 0.1, medium: 0.4, hard: 0.5, special: 0.2 }; }
-           else if (wave <= 35) { count = 120 + wave*9; comp = { regular: 0.1, medium: 0.3, hard: 0.6, special: 0.3 }; }
-           else if (wave <= 39) { count = 150 + wave*7; comp = { regular: 0.05, medium: 0.25, hard: 0.7, special: 0.3 }; }
-           else if (wave === 40) { count = 110; comp = { regular: 0.1, medium: 0.3, hard: 0.6, special: 0.2 }; }
+            count = 5 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 8) comp = { regular: 0.6, medium: 0.3, hard: 0.1, special: 0 };
+            else if (wave <= 15) comp = { regular: 0.4, medium: 0.4, hard: 0.2, special: 0.1 };
+            else comp = { regular: 0.2, medium: 0.5, hard: 0.3, special: 0.1 };
         }
         else if (mode === 'corrupto') {
-           if (wave <= 7) { count = 25 + wave*6; comp = { regular: 0.5, medium: 0.4, hard: 0.1, special: 0 }; }
-           else if (wave <= 14) { count = 50 + wave*7; comp = { regular: 0.3, medium: 0.4, hard: 0.3, special: 0.1 }; }
-           else if (wave <= 20) { count = 85 + wave*9; comp = { regular: 0.2, medium: 0.4, hard: 0.4, special: 0.2 }; }
-           else if (wave <= 27) { count = 120 + wave*11; comp = { regular: 0.1, medium: 0.3, hard: 0.6, special: 0.3 }; }
-           else if (wave <= 32) { count = 160 + wave*13; comp = { regular: 0.05, medium: 0.2, hard: 0.75, special: 0.4 }; }
-           else if (wave <= 35) { count = 80 + wave*5; comp = { regular: 0.3, medium: 0.5, hard: 0.2, special: 0.1 }; }
-           else if (wave <= 39) { count = 200 + wave*12; comp = { regular: 0.05, medium: 0.2, hard: 0.75, special: 0.4 }; }
-           else if (wave === 40) { count = 130; comp = { regular: 0.1, medium: 0.3, hard: 0.6, special: 0.3 }; }
+            count = 6 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 7) comp = { regular: 0.5, medium: 0.4, hard: 0.1, special: 0 };
+            else if (wave <= 14) comp = { regular: 0.3, medium: 0.4, hard: 0.3, special: 0.1 };
+            else comp = { regular: 0.15, medium: 0.4, hard: 0.45, special: 0.2 };
         }
         else if (mode === 'antiNormal') {
-           if (wave <= 5) { count = 40 + wave*7; comp = { regular: 0.6, medium: 0.3, hard: 0.1, special: 0 }; }
-           else if (wave <= 10) { count = 70 + wave*9; comp = { regular: 0.4, medium: 0.4, hard: 0.2, special: 0.1 }; }
-           else if (wave <= 15) { count = 110 + wave*11; comp = { regular: 0.2, medium: 0.5, hard: 0.3, special: 0.2 }; }
-           else if (wave <= 20) { count = 160 + wave*13; comp = { regular: 0.1, medium: 0.4, hard: 0.5, special: 0.3 }; }
-           else if (wave <= 25) { count = 220 + wave*16; comp = { regular: 0.05, medium: 0.3, hard: 0.65, special: 0.4 }; }
-           else if (wave <= 30) { count = 290 + wave*16; comp = { regular: 0.05, medium: 0.2, hard: 0.75, special: 0.5 }; }
-           else if (wave <= 33) { count = 330 + wave*16; comp = { regular: 0.05, medium: 0.2, hard: 0.75, special: 0.6 }; }
-           else if (wave === 34) { count = 400; comp = { regular: 0, medium: 0.1, hard: 0.9, special: 0.7 }; }
-           else if (wave === 35) { count = 180; comp = { regular: 0.05, medium: 0.2, hard: 0.75, special: 0.5 }; }
+            count = 7 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 5) comp = { regular: 0.6, medium: 0.3, hard: 0.1, special: 0 };
+            else if (wave <= 10) comp = { regular: 0.4, medium: 0.4, hard: 0.2, special: 0.1 };
+            else comp = { regular: 0.15, medium: 0.45, hard: 0.4, special: 0.2 };
         }
         else { // infinito
-           count = 20 + wave * 10;
+            count = 8 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
            comp = { regular: 0.2, medium: 0.3, hard: 0.5, special: 0.2 };
+        }
+
+        if (mapKey === 'urbanistic_road') {
+          count += 1 + Math.floor(wave / 10);
+        } else if (mapKey === 'sunlight_seaside') {
+          count += 2 + Math.floor(wave / 10);
         }
 
         const rCount = Math.floor(count * comp.regular);
@@ -4383,6 +4386,9 @@ function activateGTack(t) {
         pushRandom(mapPool.medium, mCount);
         pushRandom(mapPool.hard, hCount);
         pushRandom(mapPool.special, sCount);
+        while (spawnList.length < count) {
+          pushRandom(mapPool.regular, 1);
+        }
 
         const spikeWaves = mode === 'normal' ? [8, 13] : mode === 'dificil' ? [6, 12, 18] : mode === 'extremo' ? [5, 10, 15, 20] : mode === 'infinito' ? [5, 10, 15] : [];
         if (spikeWaves.includes(wave) && mapTankPool.length > 0) {
@@ -4462,6 +4468,10 @@ function activateGTack(t) {
 
     // 5. Iniciar secuencia de generación con temporizador
     let spawned = 0;
+    const mobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    const spawnInterval = mobileDevice
+      ? Math.max(240, 650 - Math.min(420, wave * 22))
+      : Math.max(300, 800 - Math.min(500, wave * 25));
     const interval = setInterval(() => {
       if (gameState.gameOver || !gameState.waveActive) {
         clearInterval(interval);
@@ -4477,7 +4487,7 @@ function activateGTack(t) {
         clearInterval(interval);
         gameState.spawningActive = false;
       }
-    }, Math.max(300, 800 - Math.min(500, wave * 25)));
+    }, spawnInterval);
   }
 
   function updateEnemyStatusUI(e) {
@@ -4797,10 +4807,15 @@ function activateGTack(t) {
     }
   }
 
-  function gameLoop() {
+  let lastGameFrameTime = 0;
+
+  function gameLoop(timestamp = performance.now()) {
     if (gameState.gameOver) return;
     try {
-      const dt = 1 / 60;
+      const elapsed = lastGameFrameTime ? (timestamp - lastGameFrameTime) / 1000 : 1 / 60;
+      const dt = Math.min(0.05, Math.max(1 / 120, elapsed));
+      const movementScale = dt * 60;
+      lastGameFrameTime = timestamp;
       gameState.simultaneousExplosions = 0;
 
       if (gameState.paracristalActive && gameState.waveActive && Math.random() < 0.012) {
@@ -4838,8 +4853,9 @@ function activateGTack(t) {
 
         if (next) {
           const dx = next.x - e.x, dy = next.y - e.y, dist = Math.hypot(dx, dy);
-          if (dist < currentEnemySpeed) e.pathIndex++;
-          else { e.x += (dx / dist) * currentEnemySpeed; e.y += (dy / dist) * currentEnemySpeed; }
+          const movementStep = currentEnemySpeed * movementScale;
+          if (dist < movementStep) e.pathIndex++;
+          else { e.x += (dx / dist) * movementStep; e.y += (dy / dist) * movementStep; }
           e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
         } else {
           if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
@@ -6478,8 +6494,10 @@ function activateGTack(t) {
       const data = SKINS_DATA['Global'].find(s => s.id === globalSkin);
       if (data?.class) el.classList.add(data.class);
     }
-    // All-Stars Randomizer: enemies face right (→), Globs face left (←), so flip horizontally
-    if (globalSkin === 'pyce_morph') {
+    const family = cfg.family || type;
+    const equippedSkin = gameState.equippedSkins[family];
+    const enemyBasedSkins = ['pyce_morph', 'mimic_set', 'astrorb_set', 'crystal_bombot'];
+    if (enemyBasedSkins.includes(globalSkin) || enemyBasedSkins.includes(equippedSkin)) {
       el.classList.add('enemy-skin-flipped');
     } else {
       el.classList.remove('enemy-skin-flipped');
