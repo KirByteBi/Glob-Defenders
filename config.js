@@ -1579,7 +1579,7 @@ const NARRATOR_DATA = {
       ]
     }
   },
-  special_unknown: {
+  mysterybug: {
     img: 'img/Sellos/MysteryBug.png', es: { name: '???', msgs: [] }, en: { name: '???', msgs: [] }
   },
   jerry: {
@@ -1609,10 +1609,10 @@ const TOWER_TYPES = {
   'Molten_Glob': { name: 'tower_Molten_Glob_name', damage: 25, range: 120, speed: 2.2, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "tower_Molten_Glob_desc", family: 'Red_Glob' },
   'Robotic_Glob': { name: 'tower_Robotic_Glob_name', damage: 65, range: 150, speed: 1.0, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
 
-  'Soap_Glob': { name: 'tower_Soap_Glob_name', damage: 0, range: 120, speed: 0.3, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "tower_Soap_Glob_desc", family: 'Soap_Glob' },
+  'Soap_Glob': { name: 'tower_Soap_Glob_name', damage: 0, range: 120, speed: 0.3, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "tower_Soap_Glob_desc", family: 'Soap_Glob', unlocked: false },
   'Cotton_Glob': { name: 'tower_Cotton_Glob_name', damage: 5, range: 140, speed: 2.6, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "tower_Cotton_Glob_desc", family: 'Soap_Glob' },
 
-  'Ducky_Glob': { name: 'tower_Ducky_Glob_name', damage: 0, range: 140, speed: 0, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'none', desc: "tower_Ducky_Glob_desc", family: 'Ducky_Glob' },
+  'Ducky_Glob': { name: 'tower_Ducky_Glob_name', damage: 0, range: 140, speed: 0, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'none', desc: "tower_Ducky_Glob_desc", family: 'Ducky_Glob', unlocked: false },
   'Golden_Ducky_Glob': { name: 'tower_Golden_Ducky_Glob_name', damage: 0, range: 160, speed: 0, cost: 180, image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'none', desc: "tower_Golden_Ducky_Glob_desc", family: 'Ducky_Glob' },
 
   'Comet_Glob': { name: 'tower_Comet_Glob_name', damage: 50, range: 250, speed: 0.25, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'star_boomerang', piercing: true, boomerang: true, desc: "tower_Comet_Glob_desc", family: 'Comet_Glob' },
@@ -1626,12 +1626,12 @@ const TOWER_TYPES = {
   'Work_Bombot': { name: 'tower_Work_Bombot_name', damage: 100, range: 150, speed: 0.6, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "tower_Work_Bombot_desc", family: 'Special' },
 
   // Familia Blanca
-  'Balloon_Glob': { name: 'tower_Balloon_Glob_name', damage: 0, range: 100, speed: 0, cost: 120, evolution: 'Heliglob', image: IMAGE_PATHS.Balloon_Glob, projectile: 'none', desc: "tower_Balloon_Glob_desc", family: 'White' },
+  'Balloon_Glob': { name: 'tower_Balloon_Glob_name', damage: 0, range: 100, speed: 0, cost: 120, evolution: 'Heliglob', image: IMAGE_PATHS.Balloon_Glob, projectile: 'none', desc: "tower_Balloon_Glob_desc", family: 'White', unlocked: false },
   'Heliglob': { name: 'tower_Heliglob_name', damage: 0, range: 150, speed: 0, cost: 250, evolution: 'Alien_Glob', image: IMAGE_PATHS.Heliglob, projectile: 'none', desc: "tower_Heliglob_desc", family: 'White' },
   'Alien_Glob': { name: 'tower_Alien_Glob_name', damage: 0, range: 200, speed: 0, cost: 500, image: IMAGE_PATHS.Alien_Glob, projectile: 'none', desc: "tower_Alien_Glob_desc", family: 'White' },
 
   // Familia Rosa
-  'Streamer_Glob': { name: 'tower_Streamer_Glob_name', damage: 0, range: 100, speed: 0, cost: 100, evolution: 'Gamer_Glob', image: IMAGE_PATHS.Streamer_Glob, projectile: 'none', desc: "tower_Streamer_Glob_desc", family: 'Pink' },
+  'Streamer_Glob': { name: 'tower_Streamer_Glob_name', damage: 0, range: 100, speed: 0, cost: 100, evolution: 'Gamer_Glob', image: IMAGE_PATHS.Streamer_Glob, projectile: 'none', desc: "tower_Streamer_Glob_desc", family: 'Pink', unlocked: false },
   'Gamer_Glob': { name: 'tower_Gamer_Glob_name', damage: 0, range: 150, speed: 0, cost: 200, evolution: 'Youtuber_Glob', image: IMAGE_PATHS.Gamer_Glob, projectile: 'none', desc: "tower_Gamer_Glob_desc", family: 'Pink' },
   'Youtuber_Glob': { name: 'tower_Youtuber_Glob_name', damage: 0, range: 200, speed: 0, cost: 400, image: IMAGE_PATHS.Youtuber_Glob, projectile: 'none', desc: "tower_Youtuber_Glob_desc", family: 'Pink' },
 
@@ -1641,7 +1641,7 @@ const TOWER_TYPES = {
   'Nuclear_Glob': { name: 'tower_Nuclear_Glob_name', damage: 800, range: 220, speed: 0, cost: 1200, image: IMAGE_PATHS.Nuclear_Glob, projectile: 'none', desc: "tower_IEx3_desc", family: 'IEx' },
 
   // Worker Glob Family (Trampas)
-  'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 110, speed: 0.25, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: true },
+  'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 110, speed: 0.25, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: false },
   'Police_Glob': { name: 'tower_Police_Glob_name', damage: 30, range: 130, speed: 0.35, cost: 300, evolution: 'Planked_Glob', image: IMAGE_PATHS.Police_Glob, trap: 'Police_Trap', desc: "tower_Police_Glob_desc", family: 'Worker_Glob' },
   'Planked_Glob': { name: 'tower_Planked_Glob_name', damage: 70, range: 140, speed: 0.7, cost: 550, evolution: 'DJ_Glob', image: IMAGE_PATHS.Planked_Glob, trap: 'Planked_Trap', desc: "tower_Planked_Glob_desc", family: 'Worker_Glob' },
   'DJ_Glob': { name: 'tower_DJ_Glob_name', damage: 120, range: 160, speed: 0.8, cost: 1200, image: IMAGE_PATHS.DJ_Glob, trap: 'DJ_Trap', desc: "tower_DJ_Glob_desc", family: 'Worker_Glob' },

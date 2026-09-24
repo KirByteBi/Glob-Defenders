@@ -244,9 +244,16 @@ function saveProgress() {
     unlockedInterstellar: gameState.unlockedInterstellar || false,
     corruptWins: gameState.corruptWins,
     unlockedBombot: TOWER_TYPES['Work_Bombot'] ? TOWER_TYPES['Work_Bombot'].unlocked : false,
+    unlockedSoapGlob: TOWER_TYPES['Soap_Glob'] ? TOWER_TYPES['Soap_Glob'].unlocked : false,
+    unlockedDuckyGlob: TOWER_TYPES['Ducky_Glob'] ? TOWER_TYPES['Ducky_Glob'].unlocked : false,
     unlockedOldGlob: TOWER_TYPES['Old_Glob'] ? TOWER_TYPES['Old_Glob'].unlocked : false,
     unlockedCometGlob: TOWER_TYPES['Comet_Glob'] ? TOWER_TYPES['Comet_Glob'].unlocked : false,
     unlockedSproutGlob: TOWER_TYPES['Sprout_Glob'] ? TOWER_TYPES['Sprout_Glob'].unlocked : false,
+    unlockedBalloonGlob: TOWER_TYPES['Balloon_Glob'] ? TOWER_TYPES['Balloon_Glob'].unlocked : false,
+    unlockedStreamerGlob: TOWER_TYPES['Streamer_Glob'] ? TOWER_TYPES['Streamer_Glob'].unlocked : false,
+    unlockedWorkerGlob: TOWER_TYPES['Worker_Glob'] ? TOWER_TYPES['Worker_Glob'].unlocked : false,
+    unlockedBombGlob: TOWER_TYPES['Bomb_Glob'] ? TOWER_TYPES['Bomb_Glob'].unlocked : false,
+    unlockedPirateGlob: TOWER_TYPES['Pirate_Glob'] ? TOWER_TYPES['Pirate_Glob'].unlocked : false,
     globetines: gameState.globetines,
     pycoins: gameState.pycoins,
     duckPassXP: gameState.duckPassXP,
@@ -360,6 +367,8 @@ function loadProgress(username) {
       gameState.unlockedInterstellar = progress.unlockedInterstellar || false;
       gameState.corruptWins = progress.corruptWins || 0;
       if (TOWER_TYPES['Work_Bombot']) TOWER_TYPES['Work_Bombot'].unlocked = progress.unlockedBombot || false;
+      if (TOWER_TYPES['Soap_Glob']) TOWER_TYPES['Soap_Glob'].unlocked = progress.unlockedSoapGlob || false;
+      if (TOWER_TYPES['Ducky_Glob']) TOWER_TYPES['Ducky_Glob'].unlocked = progress.unlockedDuckyGlob || false;
       if (TOWER_TYPES['Old_Glob']) TOWER_TYPES['Old_Glob'].unlocked = progress.unlockedOldGlob || false;
       if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = progress.unlockedOldGlob || false;
       if (TOWER_TYPES['SpyGlob']) TOWER_TYPES['SpyGlob'].unlocked = progress.unlockedOldGlob || false;
@@ -367,6 +376,11 @@ function loadProgress(username) {
       if (TOWER_TYPES['Sprout_Glob']) TOWER_TYPES['Sprout_Glob'].unlocked = progress.unlockedSproutGlob || false;
       if (TOWER_TYPES['Garden_Glob']) TOWER_TYPES['Garden_Glob'].unlocked = progress.unlockedSproutGlob || false;
       if (TOWER_TYPES['Flower_Glob']) TOWER_TYPES['Flower_Glob'].unlocked = progress.unlockedSproutGlob || false;
+      if (TOWER_TYPES['Balloon_Glob']) TOWER_TYPES['Balloon_Glob'].unlocked = progress.unlockedBalloonGlob || false;
+      if (TOWER_TYPES['Streamer_Glob']) TOWER_TYPES['Streamer_Glob'].unlocked = progress.unlockedStreamerGlob || false;
+      if (TOWER_TYPES['Worker_Glob']) TOWER_TYPES['Worker_Glob'].unlocked = progress.unlockedWorkerGlob || false;
+      if (TOWER_TYPES['Bomb_Glob']) TOWER_TYPES['Bomb_Glob'].unlocked = progress.unlockedBombGlob || false;
+      if (TOWER_TYPES['Pirate_Glob']) TOWER_TYPES['Pirate_Glob'].unlocked = progress.unlockedPirateGlob || false;
 
       gameState.equippedTowers = progress.equippedTowers || ['Glob', 'Red_Glob'];
       gameState.globetines = Number(progress.globetines != null ? progress.globetines : 500);
@@ -1847,6 +1861,12 @@ const DEBUG_ENEMY_GROUP_ALIASES = {
 };
 
 const DEBUG_SPEAKER_ALIASES = {
+  mysterybug: ['???', 'mysterybug', 'mystery bug'],
+  jerry: ['jerry'],
+  mysterybug_custom: ['mysterybug', 'mystery bug'],
+  astral_exclamation: ['astralexclamation', 'astral exclamation'],
+  error_entity: ['error', '3rr0r'],
+  login_guy: ['loginguy', 'login guy'],
   bombot: ['bombot', 'robot', 'maquina', 'máquina', 'work', 'trabajo'],
   glob: ['glob', 'defensor', 'defender', 'verde'],
   stupid: ['stupid', 'torpe', 'pyce'],
@@ -1888,7 +1908,7 @@ function getEnemyDebugAliases(id, enemy) {
 function renderDebugSearchResults(container, results, onSelect, selectedId) {
   if (!container) return;
   container.innerHTML = '';
-  results.slice(0, 12).forEach(result => {
+  results.slice(0, 30).forEach(result => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = `debug-search-result${result.id === selectedId ? ' selected' : ''}`;
@@ -3451,6 +3471,7 @@ function bindEvents() {
       showMessage('🔄 DEBUG: Estado restaurado al original.', 'warning');
     }
     drawShop();
+    drawTowerShop();
     updateUI();
     if (role === 'OWNER' || role === 'DEVBUILD') {
       showOwnerDebugPanel();
@@ -3862,8 +3883,7 @@ function updateMetaUI() {
 
 function isTowerOwned(t) {
   if (t === 'Glob' || t === 'Red_Glob' || t === 'Recolors' || t === 'Global') return true;
-  if (t === 'Soap_Glob') return gameState.duckPassLevel >= 3;
-  if (t === 'Ducky_Glob') return gameState.duckPassLevel >= 6;
+  if (t === 'Soap_Glob' || t === 'Ducky_Glob' || t === 'Balloon_Glob' || t === 'Streamer_Glob' || t === 'Worker_Glob' || t === 'Bomb_Glob') return !!TOWER_TYPES[t]?.unlocked;
   if (t === 'Work_Bombot' || t === 'Special') return !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked);
   if (t === 'Old_Glob' || t === 'Pyce_Glob' || t === 'SpyGlob' || t === 'Grey') return !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked);
   if (t === 'Sprout_Glob' || t === 'Brown') return !!(TOWER_TYPES['Sprout_Glob'] && TOWER_TYPES['Sprout_Glob'].unlocked);
@@ -3871,10 +3891,9 @@ function isTowerOwned(t) {
   // F. Marina family
   if (t === 'Pirate_Glob' || t === 'PMate_Glob' || t === 'BreathKing_Glob' || t === 'Haunted_Pirate_Glob') return !!(TOWER_TYPES['Pirate_Glob'] && TOWER_TYPES['Pirate_Glob'].unlocked);
   // Urbanistic Road families
-  if (t === 'Worker_Glob') return gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 15;
-  if (t === 'Balloon_Glob' || t === 'White') return gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 20;
-  if (t === 'Streamer_Glob' || t === 'Pink') return gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 25;
-  if (t === 'Bomb_Glob' || t === 'IEx') return gameState.map === 'urbanistic_road' || gameState.duckPassLevel >= 30;
+  if (t === 'White') return !!TOWER_TYPES['Balloon_Glob']?.unlocked;
+  if (t === 'Pink') return !!TOWER_TYPES['Streamer_Glob']?.unlocked;
+  if (t === 'IEx') return !!TOWER_TYPES['Bomb_Glob']?.unlocked;
   return false;
 }
 
@@ -3898,9 +3917,15 @@ function drawShop() {
   if (currentShopTab === 'upgrades') {
     const upgrades = [
       { id: 'hp', name: 'upgrade_hp_name', desc: 'upgrade_hp_desc', cost: 50, type: 'pycoin', level: gameState.baseHealthLevel, max: 10 },
+      { id: 'unlock_Soap_Glob', name: 'tower_Soap_Glob_name', desc: 'tower_Soap_Glob_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Ducky_Glob', name: 'tower_Ducky_Glob_name', desc: 'tower_Ducky_Glob_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
       { id: 'unlock_Old_Glob', name: 'upgrade_unlock_old_name', desc: 'upgrade_unlock_old_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
       { id: 'unlock_Comet_Glob', name: 'upgrade_unlock_comet_name', desc: 'upgrade_unlock_comet_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
-      { id: 'unlock_Sprout_Glob', name: 'upgrade_unlock_sprout_name', desc: 'upgrade_unlock_sprout_desc', cost: 350, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Sprout_Glob', name: 'upgrade_unlock_sprout_name', desc: 'upgrade_unlock_sprout_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Balloon_Glob', name: 'tower_Balloon_Glob_name', desc: 'tower_Balloon_Glob_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Streamer_Glob', name: 'tower_Streamer_Glob_name', desc: 'tower_Streamer_Glob_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Worker_Glob', name: 'tower_Worker_Glob_name', desc: 'tower_Worker_Glob_desc', cost: 200, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Bomb_Glob', name: 'tower_Bomb_Glob_name', desc: 'tower_IEx1_desc', cost: 200, type: 'pycoin', hideIfUnlocked: true },
       { id: 'unlock_Pirate_Glob', name: 'tower_Pirate_Glob_name', desc: 'tower_Pirate_Glob_desc', cost: 350, type: 'pycoin', hideIfUnlocked: true },
 
       { id: 'meta_damage', name: 'upgrade_damage_name', desc: 'upgrade_damage_desc', cost: 15, type: 'duckpass', level: gameState.metaDamageLevel, max: 5 }
@@ -3924,6 +3949,12 @@ function drawShop() {
       if (u.id === 'unlock_Old_Glob' && TOWER_TYPES['Old_Glob'].unlocked) return;
       if (u.id === 'unlock_Comet_Glob' && TOWER_TYPES['Comet_Glob'].unlocked) return;
       if (u.id === 'unlock_Sprout_Glob' && TOWER_TYPES['Sprout_Glob'].unlocked) return;
+      if (u.id === 'unlock_Soap_Glob' && TOWER_TYPES['Soap_Glob'].unlocked) return;
+      if (u.id === 'unlock_Ducky_Glob' && TOWER_TYPES['Ducky_Glob'].unlocked) return;
+      if (u.id === 'unlock_Balloon_Glob' && TOWER_TYPES['Balloon_Glob'].unlocked) return;
+      if (u.id === 'unlock_Streamer_Glob' && TOWER_TYPES['Streamer_Glob'].unlocked) return;
+      if (u.id === 'unlock_Worker_Glob' && TOWER_TYPES['Worker_Glob'].unlocked) return;
+      if (u.id === 'unlock_Bomb_Glob' && TOWER_TYPES['Bomb_Glob'].unlocked) return;
       if (u.id === 'unlock_Pirate_Glob' && TOWER_TYPES['Pirate_Glob'].unlocked) return;
       const el = document.createElement('div');
       const isMax = u.max && u.level >= u.max;
@@ -4404,17 +4435,17 @@ function drawEquipShop(container) {
   const shopTowers = [
     { type: 'Glob', unlocked: true },
     { type: 'Red_Glob', unlocked: true },
-    { type: 'Soap_Glob', unlocked: true },
-    { type: 'Ducky_Glob', unlocked: true },
+    { type: 'Soap_Glob', unlocked: isTowerOwned('Soap_Glob') },
+    { type: 'Ducky_Glob', unlocked: isTowerOwned('Ducky_Glob') },
     { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
     { type: 'Sprout_Glob', unlocked: !!(TOWER_TYPES['Sprout_Glob'] && TOWER_TYPES['Sprout_Glob'].unlocked), req: 'shop' },
     { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
     { type: 'Work_Bombot', unlocked: !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked), req: 'challenge' },
     { type: 'Pirate_Glob', unlocked: !!(TOWER_TYPES['Pirate_Glob'] && TOWER_TYPES['Pirate_Glob'].unlocked), req: 'shop' },
-    { type: 'Worker_Glob', unlocked: true },
-    { type: 'Balloon_Glob', unlocked: true },
-    { type: 'Streamer_Glob', unlocked: true },
-    { type: 'Bomb_Glob', unlocked: true }
+    { type: 'Worker_Glob', unlocked: isTowerOwned('Worker_Glob') },
+    { type: 'Balloon_Glob', unlocked: isTowerOwned('Balloon_Glob') },
+    { type: 'Streamer_Glob', unlocked: isTowerOwned('Streamer_Glob') },
+    { type: 'Bomb_Glob', unlocked: isTowerOwned('Bomb_Glob') }
   ];
 
   // ── Filtros de Equipación ──
@@ -4581,6 +4612,14 @@ function buyUpgrade(id, cost, type) {
     if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = true;
     showMessage("🩶 " + (currentLanguage === 'es' ? "TORRE ANCIANA DESBLOQUEADA!" : "ANCIENT GLOB TOWER UNLOCKED!"), 'success');
   }
+  else if (id === 'unlock_Soap_Glob') {
+    if (TOWER_TYPES['Soap_Glob']) TOWER_TYPES['Soap_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'GLOB DE JABON DESBLOQUEADO!' : 'SOAP GLOB UNLOCKED!', 'success');
+  }
+  else if (id === 'unlock_Ducky_Glob') {
+    if (TOWER_TYPES['Ducky_Glob']) TOWER_TYPES['Ducky_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'DUCKY GLOB DESBLOQUEADO!' : 'DUCKY GLOB UNLOCKED!', 'success');
+  }
   else if (id === 'unlock_Comet_Glob') {
     if (TOWER_TYPES['Comet_Glob']) TOWER_TYPES['Comet_Glob'].unlocked = true;
     showMessage("🖤 " + (currentLanguage === 'es' ? "TORRE COMETA DESBLOQUEADA!" : "COMET GLOB TOWER UNLOCKED!"), 'success');
@@ -4588,6 +4627,22 @@ function buyUpgrade(id, cost, type) {
   else if (id === 'unlock_Sprout_Glob') {
     if (TOWER_TYPES['Sprout_Glob']) TOWER_TYPES['Sprout_Glob'].unlocked = true;
     showMessage("🎊 " + (currentLanguage === 'es' ? "SPROUT GLOB DESBLOQUEADO!" : "SPROUT GLOB UNLOCKED!"), 'success');
+  }
+  else if (id === 'unlock_Balloon_Glob') {
+    if (TOWER_TYPES['Balloon_Glob']) TOWER_TYPES['Balloon_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'BALLOON GLOB DESBLOQUEADO!' : 'BALLOON GLOB UNLOCKED!', 'success');
+  }
+  else if (id === 'unlock_Streamer_Glob') {
+    if (TOWER_TYPES['Streamer_Glob']) TOWER_TYPES['Streamer_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'STREAMER GLOB DESBLOQUEADO!' : 'STREAMER GLOB UNLOCKED!', 'success');
+  }
+  else if (id === 'unlock_Worker_Glob') {
+    if (TOWER_TYPES['Worker_Glob']) TOWER_TYPES['Worker_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'WORKER GLOB DESBLOQUEADO!' : 'WORKER GLOB UNLOCKED!', 'success');
+  }
+  else if (id === 'unlock_Bomb_Glob') {
+    if (TOWER_TYPES['Bomb_Glob']) TOWER_TYPES['Bomb_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'BOMB GLOB DESBLOQUEADO!' : 'BOMB GLOB UNLOCKED!', 'success');
   }
   else if (id === 'unlock_Pirate_Glob') {
     if (TOWER_TYPES['Pirate_Glob']) TOWER_TYPES['Pirate_Glob'].unlocked = true;
