@@ -2610,6 +2610,91 @@ body.fullscreen-map #meta-controls {
     z-index: 10 !important;
 }
 
+.owner-debug-panel {
+    position: fixed;
+    right: 18px;
+    bottom: 48px;
+    z-index: 13000;
+    width: min(340px, calc(100vw - 28px));
+    padding: 14px;
+    color: #fff;
+    background: rgba(20, 10, 28, 0.97);
+    border: 2px solid #ff69b4;
+    border-radius: 10px;
+    box-shadow: 0 0 24px rgba(255, 105, 180, 0.45);
+}
+
+.owner-debug-header,
+.owner-debug-actions,
+.owner-debug-resources {
+    display: flex;
+    gap: 8px;
+}
+
+.owner-debug-header {
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #ff69b4;
+}
+
+.owner-debug-header .close-btn-round {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+}
+
+.owner-debug-resources {
+    flex-direction: column;
+}
+
+.owner-debug-resources label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.8rem;
+}
+
+.owner-debug-resources input {
+    width: 110px;
+    padding: 5px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background: #111;
+    color: #fff;
+}
+
+.owner-debug-actions {
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.owner-debug-actions button {
+    flex: 1 1 30%;
+    min-width: 90px;
+    padding: 7px 8px;
+    font-size: 0.72rem;
+}
+
+.owner-debug-panel small {
+    display: block;
+    margin-top: 8px;
+    color: #aaa;
+}
+
+.game-over-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.game-over-actions button {
+    min-width: 0;
+    justify-content: center;
+    padding: 10px 12px;
+}
+
 /* Compact layout for touch devices whose browser reports a desktop CSS width. */
 body.touch-landscape {
     overflow: hidden;

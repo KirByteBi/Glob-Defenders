@@ -173,9 +173,10 @@
                         <h2 data-i18n="gameOver">💀 GAME OVER 💀</h2>
                         <p id="game-over-msg">Llegaste a la oleada <span id="final-wave">0</span></p>
                         <div class="game-over-actions">
-                            <button class="retry-btn" onclick="retryGame()" data-i18n="playAgain">🔄 Reintentar</button>
-                            <button class="back-btn" onclick="location.reload()" data-i18n="back_to_modes">📋
-                                Modos</button>
+                            <button class="retry-btn" onclick="retryGame()">🔄 <span class="btn-text" data-i18n="playAgain">Reintentar</span></button>
+                            <button class="mode-select-btn" onclick="chooseModeAfterGame()">⚔️ <span class="btn-text" data-i18n="choose_mode">Elegir modo</span></button>
+                            <button class="map-select-btn" onclick="chooseMapAfterGame()">🗺️ <span class="btn-text" data-i18n="choose_map">Elegir mapa</span></button>
+                            <button class="exit-btn" onclick="exitToLogin()">🚪 <span class="btn-text" data-i18n="exit_game">Salir</span></button>
                         </div>
                     </div>
                 </div>
@@ -193,6 +194,25 @@
     <!-- FIN GAME CONTAINER -->
 
     <button id="debug-toggle" style="position: fixed; bottom: 10px; right: 10px; opacity: 0.1; background-color: #ff69b4; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 100;">🐛</button>
+
+    <div id="owner-debug-panel" class="owner-debug-panel" style="display:none;">
+        <div class="owner-debug-header">
+            <strong>OWNER DEBUG</strong>
+            <button type="button" id="close-debug-panel" class="close-btn-round">×</button>
+        </div>
+        <div class="owner-debug-resources">
+            <label>PyCoins <input id="debug-pycoins" type="number" min="0" value="1000"></label>
+            <label>DuckPass <input id="debug-duckpass" type="number" min="0" value="1000"></label>
+            <label>XP <input id="debug-xp" type="number" min="0" value="1000"></label>
+            <label>Nivel <input id="debug-level" type="number" min="1" value="30"></label>
+        </div>
+        <div class="owner-debug-actions">
+            <button type="button" id="debug-add-resources">+ Recursos</button>
+            <button type="button" id="debug-max-resources">Max recursos</button>
+            <button type="button" id="debug-unlock-all">Desbloquear todo</button>
+        </div>
+        <small>Solo visible para KirByteBi.</small>
+    </div>
 
     <!-- PANEL DE LOGROS FLOTANTE -->
     <div id="badges-panel">

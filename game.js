@@ -1211,6 +1211,9 @@ function activateCheatedMode() {
     duckPassCurrency: gameState.duckPassCurrency,
     duckPassXP: gameState.duckPassXP,
     duckPassLevel: gameState.duckPassLevel,
+    unlockedInfinite: gameState.unlockedInfinite,
+    unlockedInterstellar: gameState.unlockedInterstellar,
+    towerTypes: Object.fromEntries(Object.keys(TOWER_TYPES).map(type => [type, TOWER_TYPES[type].unlocked])),
     badges: Object.fromEntries(Object.entries(BADGES).map(([k, v]) => [k, v.unlocked]))
   };
   gameState.cheatedModeActive = true;
@@ -1230,6 +1233,13 @@ function activateCheatedMode() {
     });
   });
   gameState.unlockedSkins = allSkins;
+  Object.keys(TOWER_TYPES).forEach(type => { TOWER_TYPES[type].unlocked = true; });
+  gameState.unlockedInfinite = true;
+  gameState.unlockedInterstellar = true;
+  gameState.pycoins = 999999;
+  gameState.duckPassCurrency = 999999;
+  gameState.duckPassXP = 999999;
+  gameState.duckPassLevel = 100;
 
   drawBadges();
   updateMetaUI();
@@ -1249,6 +1259,11 @@ function deactivateCheatedMode() {
   gameState.duckPassCurrency = backup.duckPassCurrency || 0;
   gameState.duckPassXP = backup.duckPassXP || 0;
   gameState.duckPassLevel = backup.duckPassLevel || 1;
+  gameState.unlockedInfinite = !!backup.unlockedInfinite;
+  gameState.unlockedInterstellar = !!backup.unlockedInterstellar;
+  Object.keys(TOWER_TYPES).forEach(type => {
+    if (backup.towerTypes[type] !== undefined) TOWER_TYPES[type].unlocked = backup.towerTypes[type];
+  });
 
   Object.keys(BADGES).forEach(k => {
     if (BADGES[k]) {
@@ -1284,6 +1299,38 @@ function applyMetaButtonMode() {
   document.querySelectorAll('.meta-btn-text').forEach(text => {
     text.hidden = iconOnly;
   });
+}
+
+function isOwnerDebugUser() {
+  const username = localStorage.getItem('glob_username') || '';
+  return typeof getUserRole === 'function' && getUserRole(username) === 'OWNER';
+}
+
+function ownerUnlockEverything() {
+  Object.keys(TOWER_TYPES).forEach(type => { TOWER_TYPES[type].unlocked = true; });
+  Object.values(SKINS_DATA).forEach(skins => skins.forEach(skin => {
+    if (skin.id && !gameState.unlockedSkins.includes(skin.id)) gameState.unlockedSkins.push(skin.id);
+  }));
+  Object.keys(BADGES).forEach(key => {
+    BADGES[key].unlocked = true;
+    if (!gameState.claimedRewards.includes(key)) gameState.claimedRewards.push(key);
+  });
+  gameState.unlockedInfinite = true;
+  gameState.unlockedInterstellar = true;
+  gameState.duckPassLevel = Math.max(gameState.duckPassLevel, 100);
+  Object.keys(ENEMY_TYPES).forEach(type => {
+    const target = typeof getPyceKillTarget === 'function' ? getPyceKillTarget(type) : 9999;
+    gameState.pycesKilled[type] = Math.max(gameState.pycesKilled[type] || 0, target);
+  });
+  drawBadges();
+  drawTowerShop();
+  updateMetaUI();
+}
+
+function showOwnerDebugPanel() {
+  if (!isOwnerDebugUser()) return;
+  const panel = document.getElementById('owner-debug-panel');
+  if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 }
 
 function updateSettings() {
@@ -2457,8 +2504,13 @@ function bindEvents() {
       gameState.debugSnapshot = {
         pycoins: gameState.pycoins,
         duckPassCurrency: gameState.duckPassCurrency,
+        duckPassXP: gameState.duckPassXP,
         duckPassLevel: gameState.duckPassLevel,
         unlockedSkins: [...(gameState.unlockedSkins || [])],
+        unlockedInfinite: gameState.unlockedInfinite,
+        unlockedInterstellar: gameState.unlockedInterstellar,
+        claimedRewards: [...(gameState.claimedRewards || [])],
+        badges: Object.fromEntries(Object.entries(BADGES).map(([k, v]) => [k, v.unlocked])),
         pycesKilled: JSON.parse(JSON.stringify(gameState.pycesKilled || {})),
         towerTypes: JSON.parse(JSON.stringify(
           Object.fromEntries(Object.keys(TOWER_TYPES).map(k => [k, { unlocked: TOWER_TYPES[k].unlocked }]))
@@ -2466,6 +2518,16 @@ function bindEvents() {
       };
       // Unlock all towers
       Object.keys(TOWER_TYPES).forEach(k => { TOWER_TYPES[k].unlocked = true; });
+      gameState.pycoins = Math.max(gameState.pycoins, 999999);
+      gameState.duckPassCurrency = Math.max(gameState.duckPassCurrency, 999999);
+      gameState.duckPassXP = Math.max(gameState.duckPassXP, 999999);
+      gameState.duckPassLevel = Math.max(gameState.duckPassLevel, 100);
+      gameState.unlockedInfinite = true;
+      gameState.unlockedInterstellar = true;
+      Object.keys(BADGES).forEach(k => {
+        BADGES[k].unlocked = true;
+        if (!gameState.claimedRewards.includes(k)) gameState.claimedRewards.push(k);
+      });
       // Unlock all skins
       const allSkinIds = [];
       Object.values(SKINS_DATA).forEach(arr => arr.forEach(s => allSkinIds.push(s.id)));
@@ -2485,6 +2547,14 @@ function bindEvents() {
           if (snap.towerTypes[k] !== undefined) TOWER_TYPES[k].unlocked = snap.towerTypes[k].unlocked;
         });
         gameState.unlockedSkins = snap.unlockedSkins;
+        gameState.pycoins = snap.pycoins;
+        gameState.duckPassCurrency = snap.duckPassCurrency;
+        gameState.duckPassXP = snap.duckPassXP;
+        gameState.duckPassLevel = snap.duckPassLevel;
+        gameState.unlockedInfinite = snap.unlockedInfinite;
+        gameState.unlockedInterstellar = snap.unlockedInterstellar;
+        gameState.claimedRewards = snap.claimedRewards;
+        Object.keys(BADGES).forEach(k => { BADGES[k].unlocked = !!snap.badges[k]; });
         // Restore encyclopedia kill counters
         if (snap.pycesKilled) gameState.pycesKilled = JSON.parse(JSON.stringify(snap.pycesKilled));
       }
@@ -2496,7 +2566,39 @@ function bindEvents() {
     drawShop();
     drawLoadout();
     updateUI();
+    if (role === 'OWNER') showOwnerDebugPanel();
   };
+
+  document.getElementById('close-debug-panel')?.addEventListener('click', () => {
+    document.getElementById('owner-debug-panel').style.display = 'none';
+  });
+  document.getElementById('debug-add-resources')?.addEventListener('click', () => {
+    if (!isOwnerDebugUser()) return;
+    const value = id => Math.max(0, Number(document.getElementById(id)?.value) || 0);
+    gameState.pycoins += value('debug-pycoins');
+    gameState.duckPassCurrency += value('debug-duckpass');
+    gameState.duckPassXP += value('debug-xp');
+    gameState.duckPassLevel = Math.max(gameState.duckPassLevel, value('debug-level') || 1);
+    updateMetaUI();
+    saveProgress();
+    showMessage('👑 OWNER DEBUG: recursos añadidos.', 'success');
+  });
+  document.getElementById('debug-max-resources')?.addEventListener('click', () => {
+    if (!isOwnerDebugUser()) return;
+    gameState.pycoins = 999999;
+    gameState.duckPassCurrency = 999999;
+    gameState.duckPassXP = 999999;
+    gameState.duckPassLevel = 100;
+    updateMetaUI();
+    saveProgress();
+    showMessage('👑 OWNER DEBUG: recursos al máximo.', 'success');
+  });
+  document.getElementById('debug-unlock-all')?.addEventListener('click', () => {
+    if (!isOwnerDebugUser()) return;
+    ownerUnlockEverything();
+    saveProgress();
+    showMessage('👑 OWNER DEBUG: todo desbloqueado.', 'success');
+  });
 
   const shopBtn = document.getElementById('open-shop');
   if (shopBtn) shopBtn.onclick = () => { if (typeof openShop === 'function') openShop(); };
@@ -6573,7 +6675,33 @@ function activateGTack(t) {
     deselectTower();
     updateUI();
     drawTowerShop();
+    const content = document.querySelector('#game-over .modal-content');
+    if (content) content.classList.remove('victory');
     document.getElementById('game-over').style.display = 'none';
+  }
+
+  function chooseModeAfterGame() {
+    retryGame();
+    document.getElementById('map-selection').style.display = 'none';
+    showModeSelection();
+  }
+
+  function chooseMapAfterGame() {
+    retryGame();
+    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('map-selection').style.display = 'flex';
+  }
+
+  function exitToLogin() {
+    retryGame();
+    gameState.mode = null;
+    gameState.map = null;
+    gameState.modeConfirmed = false;
+    document.getElementById('game-over').style.display = 'none';
+    document.getElementById('map-selection').style.display = 'none';
+    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('meta-controls').style.display = 'none';
   }
 
   function endGame(victory = false) {
