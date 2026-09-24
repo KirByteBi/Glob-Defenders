@@ -770,18 +770,118 @@ button.active {
     top: -12px;
     left: 50%;
     transform: translateX(-50%);
-    width: 40px;
-    height: 4px;
+    width: 48px;
+    height: 6px;
     background: rgba(0, 0, 0, 0.5);
     border-radius: 2px;
     z-index: 20;
+    border: 1px solid rgba(255,255,255,0.7);
+}
+
+.enemy-hp-value {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 0.55rem;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px #000, 0 0 2px #000;
+    z-index: 21;
+    pointer-events: none;
+}
+
+.enemy-status-icons {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 18px;
+    color: #fff;
+    font-size: 0.8rem;
+    line-height: 1;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px #000;
+    z-index: 21;
+    pointer-events: none;
 }
 
 .hp-bar-fill {
     height: 100%;
-    background: #2ecc71;
+    background: #ff4444;
     border-radius: 2px;
     transition: width 0.2s;
+}
+
+.block-quest-marker,
+.paracristal {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(255,255,255,0.9);
+    cursor: pointer;
+    z-index: 25;
+    pointer-events: auto;
+}
+
+.block-quest-marker {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: var(--quest-color);
+    color: rgba(0,0,0,0.6);
+    font-size: 1.5rem;
+    box-shadow: 0 0 18px var(--quest-color), inset 0 0 8px rgba(255,255,255,0.7);
+}
+
+.block-quest-marker.found {
+    opacity: 0.25;
+    transform: translate(-50%, -50%) scale(0.75);
+    pointer-events: none;
+}
+
+.paracristal {
+    width: 58px;
+    height: 58px;
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: drop-shadow(0 0 9px rgba(100,230,255,0.9));
+    animation: crystalFloat 1.8s ease-in-out infinite alternate;
+}
+
+.paracristal.crystal-hit {
+    animation: crystalHit 0.12s ease-out;
+}
+
+#paracristal-energy {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 12000;
+    padding: 6px 12px;
+    border: 1px solid rgba(94,231,255,0.8);
+    border-radius: 8px;
+    background: rgba(8,24,45,0.86);
+    color: #bdf5ff;
+    font-size: 0.8rem;
+    font-weight: 800;
+    pointer-events: none;
+    text-shadow: 0 0 8px rgba(94,231,255,0.8);
+}
+
+@keyframes crystalFloat {
+    from { margin-top: -3px; }
+    to { margin-top: 3px; }
+}
+
+@keyframes crystalHit {
+    50% { transform: translate(-50%, -50%) scale(1.2) rotate(8deg); }
 }
 
 /* ===================== BOTONES FLOTANTES DE TORRES ===================== */
@@ -2282,6 +2382,153 @@ input:checked + .slider:before {
    AJUSTES PARA MÓVILES (Xiaomi/Redmi y similares)
    ========================================================================== */
 @media (max-width: 900px) {
+    /* ===================== MAPA COMPACTO PARA MÓVIL Y TABLET ===================== */
+    @media (max-width: 1100px) and (orientation: landscape) {
+        body {
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100dvh;
+            min-height: 0;
+            max-width: none;
+            padding: 2px 4px;
+            overflow: hidden;
+        }
+
+        #game-header {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            z-index: 20;
+            transform: translateX(-50%);
+            margin: 0;
+        }
+
+        .game-logo {
+            height: 34px;
+        }
+
+        #game-ui {
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            right: 80px;
+            z-index: 20;
+            min-height: 36px;
+            margin: 0;
+            padding: 3px 5px;
+            gap: 5px;
+        }
+
+        #game-stats {
+            min-width: 0;
+            gap: 5px;
+            padding: 3px 5px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .stat {
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .stat img {
+            width: 14px;
+            height: 14px;
+        }
+
+        .stat-value {
+            font-size: 0.8rem;
+        }
+
+        .stat-label {
+            display: none;
+        }
+
+        .controls {
+            gap: 3px;
+            flex-shrink: 0;
+        }
+
+        .controls button {
+            width: 32px;
+            height: 30px;
+            padding: 3px;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        .controls .btn-text {
+            display: none;
+        }
+
+        .game-scale-wrapper {
+            position: absolute;
+            top: 42px;
+            left: 4px;
+            width: calc(100vw - 84px);
+            height: calc(100dvh - 46px);
+            overflow: visible;
+            align-items: center;
+        }
+
+        #game-area {
+            flex: 0 0 auto;
+            width: 1000px;
+            height: 600px;
+            transform-origin: center center;
+        }
+
+        #tower-shop {
+            position: fixed;
+            top: 42px;
+            right: 3px;
+            bottom: 3px;
+            transform: none !important;
+            transform-origin: initial;
+            width: 70px;
+            max-height: none;
+            margin: 0;
+            padding: 4px 2px;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 5px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            z-index: 30;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 8px;
+        }
+
+        #tower-shop .tower-item {
+            flex: 0 0 auto;
+            width: 60px !important;
+            height: 60px !important;
+            min-height: 60px !important;
+            padding: 4px 2px !important;
+            border-radius: 10px;
+        }
+
+        #tower-shop .tower-item img {
+            width: 30px !important;
+            height: 30px !important;
+            max-width: 30px !important;
+            max-height: 30px !important;
+        }
+
+        #tower-shop .tower-item span {
+            max-width: 56px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.52rem !important;
+        }
+    }
     /* 1. Botones Meta (reducidos a iconos por defecto en móvil para no tapar) */
     .meta-btn-text {
         display: none !important;
@@ -2308,6 +2555,14 @@ input:checked + .slider:before {
         width: 50px !important;
         height: 50px !important;
         font-size: 0.5rem !important;
+    }
+}
+
+@media (max-width: 1100px) and (orientation: landscape) {
+    #tower-shop {
+        transform: none !important;
+        transform-origin: initial !important;
+        bottom: 3px !important;
     }
 }
 

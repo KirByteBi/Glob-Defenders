@@ -177,6 +177,10 @@ const TRANSLATIONS = {
     enemy_AstrorbOrbe_desc: "El sello que mantenía encerrado a este astro rey acabó convirtiendo en una leyenda. Algunos aseguran que fueron los propios habitantes quienes lograron encerrarlo; otros hablan de seres muy superiores. Sea cual sea la verdad, Astrorb solo desea una cosa: volver a cristalizar el mundo.",
     enemy_AstrorbContenida_desc: "Liberado de su sello, Astrorb recupera parte de su poder y puede desplazarse libremente por el mundo. Sin embargo, todavía necesita reunir más energía antes de alcanzar su auténtica forma.",
     enemy_AstrorbTF_desc: "La verdadera forma del ser celestial. Ahora convertido en una figura humanoide, Astrorb pretende vengarse de quienes lo encerraron y eliminar cualquier amenaza para cumplir su misión. Para él, cristalizar el mundo no es maldad... sino el único camino posible.<br><br><strong>Mecánica:</strong> Destruye instantáneamente a cualquier torre y tiene Doble Vuelta (Ignora el daño en su primera pasada).",
+    enemy_Sharowd_name: "Sharowd",
+    enemy_Sharowd_desc: "Una espada corrompida por las emociones negativas y hacks constantes para obtenerla. Se dice ser la Darkheart original, pero nadie ha probado ser digno de su minijuego urbano.<br><br><strong>Recompensa:</strong> 3 derrotas para enmarcar.",
+    enemy_Crystalic_Orb_name: "Crystalic Orb",
+    enemy_Crystalic_Orb_desc: "Tras ser despojado de un cuerpo propio, Astrorb busca vengarse de quienes le traicionaron. Se ha amplificado con su propio poder cristalizado, convirtiéndose en una masa desatada que intenta regresar a su forma original.",
     enemy_Crystal_Bombot_desc: "Toda comunicación con Work-Bombot se ha perdido. Ahora utiliza cristales de tonos astrales como explosivos para atacar sin descanso. Astrorb ha dejado su marca sobre él: un ojo con forma de estrella roja que refleja el odio sembrado por la cristalización.<br><br><strong>Mecánica:</strong> Lanza cristales que roban energía a tus torres.",
     enemy_Crystal_Pyce_name: "Crystal Pyce",
     enemy_Crystal_Pyce_desc: "Un fragmento cristalino desprendido durante la llegada de Astrorb impactó sobre Pyce2, cristalizando solo parte de su cuerpo. Es uno de los pocos casos conocidos de cristalización parcial.",
@@ -413,6 +417,8 @@ const TRANSLATIONS = {
     duckgrade_worker_desc: "Aumenta la vida de todas tus trampas desplegadas.",
     duckgrade_brown_name: "Espinas Resecadas",
     duckgrade_brown_desc: "Probabilidad de aturdir a los enemigos dentro del área.",
+    duckgrade_pirate_name: "Artillería Rebotante",
+    duckgrade_pirate_desc: "Las bombas de las dos últimas invocaciones pueden rebotar una vez.",
     duckgrade_duck_name: "Pato Defensivo",
     duckgrade_duck_desc: "Genera dinero más rápido cerca de enemigos y hace daño de área.",
     duckgrade_iex_name: "Detonación Tóxica/Ígnea",
@@ -440,6 +446,8 @@ const TRANSLATIONS = {
     gtack_comet_desc: "Invoca un agujero negro temporal que absorbe enemigos.",
     gtack_brown_name: "Brown G-Tack: Florecimiento Amigable",
     gtack_brown_desc: "Aumenta temporalmente la velocidad de ataque de las torres cercanas.",
+    gtack_pirate_name: "Marine G-Tack: Bombardeo Glob",
+    gtack_pirate_desc: "Durante 10 segundos, Pirate Glob ataca con bombas y puede lanzar Globs de IEx.",
     gtack_buy: "Comprar",
     gtack_active: "Activo",
     gtack_req_lvl: "🔒 Req. Lvl 50",
@@ -734,6 +742,10 @@ const TRANSLATIONS = {
     enemy_AstrorbOrbe_desc: "The seal that kept this star king imprisoned eventually became a legend. Some claim it was the inhabitants themselves who managed to lock him away; others speak of far superior beings. Whatever the truth, Astrorb desires only one thing: to crystallize the world once more.",
     enemy_AstrorbContenida_desc: "Freed from his seal, Astrorb recovers part of his power and can move freely through the world. However, he still needs to gather more energy before reaching his true form.",
     enemy_AstrorbTF_desc: "The true form of the celestial being. Now transformed into a humanoid figure, Astrorb seeks revenge on those who imprisoned him and aims to eliminate any threat standing in the way of his mission. For him, crystallizing the world is not evil... it is the only path forward.<br><br><strong>Mechanic:</strong> Instantly destroys any tower and has Double Lap (Ignores damage on its first pass).",
+    enemy_Sharowd_name: "Sharowd",
+    enemy_Sharowd_desc: "A sword corrupted by negative emotions and constant hacks used to obtain it. It is said to be the original Darkheart, but nobody has proven worthy of its urban minigame.<br><br><strong>Reward:</strong> 3 kills to frame.",
+    enemy_Crystalic_Orb_name: "Crystalic Orb",
+    enemy_Crystalic_Orb_desc: "After being stripped of a body of its own, Astrorb seeks revenge on those who betrayed it. It amplified itself with crystallized power, becoming an unleashed mass trying to return to its original form.",
     enemy_Crystal_Bombot_desc: "All communication with Work-Bombot has been lost. He now uses astral-toned crystals as explosives to attack relentlessly. Astrorb has left his mark on him: a red star-shaped eye that reflects the hatred sown by crystallization.<br><br><strong>Mechanic:</strong> Throws crystals that steal energy from your towers.",
     enemy_Crystal_Pyce_name: "Crystal Pyce",
     enemy_Crystal_Pyce_desc: "A crystalline fragment detached during Astrorb's arrival impacted Pyce2, crystallizing only part of its body. It is one of the few known cases of partial crystallization.",
@@ -1207,6 +1219,13 @@ const IMAGE_PATHS = {
   'AstrorbOrbe': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbOrbe.png',
   'AstrorbContenida': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbContenido.png',
   'AstrorbTF': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbTF.png',
+  'Sharowd': 'Misiones (2026)/Jefes/Sharowd.png',
+  'Crystalic_Orb': 'Misiones (2026)/Jefes/Crystalic Orb.png',
+  'MiniCrystal': 'Misiones (2026)/Elementos/Minicristal.png',
+  'Crystal': 'Misiones (2026)/Elementos/Cristal.png',
+  'BigCrystal': 'Misiones (2026)/Elementos/Cristal Grande.png',
+  'MegaCrystal': 'Misiones (2026)/Elementos/Megacristal.png',
+  'GigaCrystal': 'Misiones (2026)/Elementos/Gigacristal.png',
   'Cuby_BombotA1': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA1).png',
   'Cuby_BombotA2': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA2).png',
   'Cube_Bomb_CB': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cube Bomb (SK-CB).png',
@@ -1632,8 +1651,8 @@ const ENEMY_TYPES = {
   'SO_Pyce': { name: 'enemy_SO_Pyce_name', desc: 'enemy_SO_Pyce_desc', health: 450, speed: 0.6, reward: 80, image: IMAGE_PATHS.SO_Pyce },
 
   '1x1x1x1_Pyce': { name: 'enemy_1x1x1x1_Pyce_name', desc: 'enemy_1x1x1x1_Pyce_desc', health: 500, speed: 0.5, reward: 500, image: IMAGE_PATHS['1x1x1x1_Pyce'], boss: true, bossStun: true, stunCooldown: 10 },
-  'NOeye_Pyce': { name: 'enemy_NOeye_Pyce_name', desc: 'enemy_NOeye_Pyce_desc', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12 },
-  'MoonStar_Pyce': { name: 'enemy_MoonStar_Pyce_name', desc: 'enemy_MoonStar_Pyce_desc', mechanic_key: 'mechanic_moonstar', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true },
+  'NOeye_Pyce': { name: 'enemy_NOeye_Pyce_name', desc: 'enemy_NOeye_Pyce_desc', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12, shieldRatio: 0.2 },
+  'MoonStar_Pyce': { name: 'enemy_MoonStar_Pyce_name', desc: 'enemy_MoonStar_Pyce_desc', mechanic_key: 'mechanic_moonstar', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true, shieldRatio: 0.4 },
 
   'Stupid_GoldPyce': { name: 'enemy_Stupid_GoldPyce_name', desc: 'enemy_Stupid_GoldPyce_desc', mechanic_key: 'mechanic_gold', health: 80, speed: 2.0, reward: 150, image: IMAGE_PATHS.Stupid_GoldPyce, mimic: true },
   'Mimic_Pyce': { name: 'enemy_Mimic_Pyce_name', desc: 'enemy_Mimic_Pyce_desc', mechanic_key: 'mechanic_mimic_special', health: 500, speed: 1.8, reward: 1000, image: IMAGE_PATHS.Mimic_Pyce, mimic: true, isSpecialMimic: true },
@@ -1642,7 +1661,7 @@ const ENEMY_TYPES = {
   'Bomb_Pyce': { name: 'enemy_Bomb_Pyce_name', desc: 'enemy_Bomb_Pyce_desc', health: 100, speed: 1.5, reward: 30, image: IMAGE_PATHS.Bomb_Pyce, mechanic_key: 'mechanic_bomb' },
   'Knight_Pyce': { name: 'enemy_Knight_Pyce_name', desc: 'enemy_Knight_Pyce_desc', mechanic_key: 'mechanic_knight', health: 250, speed: 1.0, reward: 60, image: IMAGE_PATHS.Knight_Pyce },
   'Cannon_Pycer': { name: 'enemy_Cannon_Pycer_name', desc: 'enemy_Cannon_Pycer_desc', mechanic_key: 'mechanic_cannon', health: 300, speed: 0.8, reward: 70, image: IMAGE_PATHS.Cannon_Pycer, stunAbility: true, stunCooldown: 6 },
-  'HoloPyce': { name: 'enemy_HoloPyce_name', desc: 'enemy_HoloPyce_desc', health: 180, speed: 1.2, reward: 40, image: IMAGE_PATHS.HoloPyce, holo: true, mechanic_key: 'mechanic_holo' },
+  'HoloPyce': { name: 'enemy_HoloPyce_name', desc: 'enemy_HoloPyce_desc', health: 180, speed: 1.2, reward: 40, image: IMAGE_PATHS.HoloPyce, holo: true, stealth: true, mechanic_key: 'mechanic_holo' },
   'Strechy_Pyce': { name: 'enemy_Strechy_Pyce_name', desc: 'enemy_Strechy_Pyce_desc', health: 220, speed: 1.1, reward: 50, image: IMAGE_PATHS.Strechy_Pyce },
   'Rebel_Pyce': { name: 'enemy_Rebel_Pyce_name', desc: 'enemy_Rebel_Pyce_desc', health: 150, speed: 2.8, reward: 45, image: IMAGE_PATHS.Rebel_Pyce },
   
@@ -1655,14 +1674,14 @@ const ENEMY_TYPES = {
   'ByteYP2': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYP2, category: 'gambling' },
   'BytePG3': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.BytePG3, category: 'gambling' },
   'ByteYB4': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYB4, category: 'gambling' },
-  'Fireflies': { name: 'enemy_Fireflies_name', desc: 'enemy_Fireflies_desc', health: 30, speed: 1.8, reward: 20, image: IMAGE_PATHS.Fireflies, category: 'gambling' },
-  'Spyware': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling' },
-  'Spyware1': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling' },
-  'Spyware2': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware2, category: 'gambling' },
-  'Spyware3': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware3, category: 'gambling' },
-  'Arky': { name: 'enemy_Arky_name', desc: 'enemy_Arky_desc', mechanic_key: 'mechanic_arky', health: 1000, speed: 0.4, reward: 1000, image: IMAGE_PATHS.Arky, boss: true, arkyType: 'normal', category: 'gambling' },
-  'CrystArky': { name: 'enemy_CrystArky_name', desc: 'enemy_CrystArky_desc', mechanic_key: 'mechanic_crystarky', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.CrystArky, boss: true, arkyType: 'crystal', category: 'gambling' },
-  'ArkyVoid': { name: 'enemy_ArkyVoid_name', desc: 'enemy_ArkyVoid_desc', mechanic_key: 'mechanic_arkyvoid', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.ArkyVoid, boss: true, arkyType: 'void', category: 'gambling' },
+  'Fireflies': { name: 'enemy_Fireflies_name', desc: 'enemy_Fireflies_desc', health: 30, speed: 1.8, reward: 20, image: IMAGE_PATHS.Fireflies, category: 'gambling', fireImmune: true },
+  'Spyware': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling', stealth: true },
+  'Spyware1': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling', stealth: true },
+  'Spyware2': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware2, category: 'gambling', stealth: true },
+  'Spyware3': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware3, category: 'gambling', stealth: true },
+  'Arky': { name: 'enemy_Arky_name', desc: 'enemy_Arky_desc', mechanic_key: 'mechanic_arky', health: 1000, speed: 0.4, reward: 1000, image: IMAGE_PATHS.Arky, boss: true, arkyType: 'normal', category: 'gambling', shieldRatio: 0.4 },
+  'CrystArky': { name: 'enemy_CrystArky_name', desc: 'enemy_CrystArky_desc', mechanic_key: 'mechanic_crystarky', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.CrystArky, boss: true, arkyType: 'crystal', category: 'gambling', shieldRatio: 0.2 },
+  'ArkyVoid': { name: 'enemy_ArkyVoid_name', desc: 'enemy_ArkyVoid_desc', mechanic_key: 'mechanic_arkyvoid', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.ArkyVoid, boss: true, arkyType: 'void', category: 'gambling', shieldRatio: 0.4 },
   
   // Interstellar Menace Enemies
   'Leni_the_big_Hammer': { name: 'enemy_Leni_the_big_Hammer_name', desc: 'enemy_Leni_the_big_Hammer_desc', health: 120, speed: 1.0, reward: 25, image: IMAGE_PATHS.Leni_the_big_Hammer, category: 'other' },
@@ -1673,10 +1692,12 @@ const ENEMY_TYPES = {
   'Crystal_Pyce': { name: 'enemy_Crystal_Pyce_name', desc: 'enemy_Crystal_Pyce_desc', health: 105, speed: 1.4, reward: 30, image: IMAGE_PATHS.Crystal_Pyce, isCrystallized: true },
   'Dreamy_SPyce': { name: 'enemy_Dreamy_SPyce_name', desc: 'enemy_Dreamy_SPyce_desc', health: 180, speed: 3.2, reward: 40, image: IMAGE_PATHS.Dreamy_SPyce, isCrystallized: true },
   'Astral_BPyce': { name: 'enemy_Astral_BPyce_name', desc: 'enemy_Astral_BPyce_desc', mechanic_key: 'mechanic_bomb', health: 230, speed: 1.5, reward: 45, image: IMAGE_PATHS.Astral_BPyce, isCrystallized: true },
-  'NO_CrystEye_CB': { name: 'enemy_NOCrystEye_CB_name', desc: 'enemy_NOCrystEye_CB_desc', health: 1200, speed: 0.4, reward: 800, image: IMAGE_PATHS.NO_CrystEye_CB, isCrystallized: true, boss: true, paralyzeLaser: true, stunCooldown: 12, category: 'other', crystEyeVariantOf: 'NOeye_Pyce' },
+  'NO_CrystEye_CB': { name: 'enemy_NOCrystEye_CB_name', desc: 'enemy_NOCrystEye_CB_desc', health: 1200, speed: 0.4, reward: 800, image: IMAGE_PATHS.NO_CrystEye_CB, isCrystallized: true, boss: true, paralyzeLaser: true, stunCooldown: 12, category: 'other', crystEyeVariantOf: 'NOeye_Pyce', shieldRatio: 0.2 },
   'AstrorbOrbe': { name: 'enemy_AstrorbOrbe_name', desc: 'enemy_AstrorbOrbe_desc', health: 800, speed: 1.2, reward: 0, image: IMAGE_PATHS.AstrorbOrbe, boss: true, category: 'other', astrorbGroup: true },
-  'AstrorbContenida': { name: 'enemy_AstrorbContenida_name', desc: 'enemy_AstrorbContenida_desc', health: 600, speed: 2.0, reward: 1000, image: IMAGE_PATHS.AstrorbContenida, boss: true, category: 'other', astrorbGroup: true, astrorbForm: 2 },
-  'AstrorbTF': { name: 'enemy_AstrorbTF_name', desc: 'enemy_AstrorbTF_desc', health: 3000, speed: 0.3, reward: 3000, image: IMAGE_PATHS.AstrorbTF, boss: true, instakill: true, doubleLap: true, category: 'other', astrorbGroup: true, astrorbForm: 3 },
+  'AstrorbContenida': { name: 'enemy_AstrorbContenida_name', desc: 'enemy_AstrorbContenida_desc', health: 600, speed: 2.0, reward: 1000, image: IMAGE_PATHS.AstrorbContenida, boss: true, category: 'other', astrorbGroup: true, astrorbForm: 2, shieldRatio: 0.2 },
+  'AstrorbTF': { name: 'enemy_AstrorbTF_name', desc: 'enemy_AstrorbTF_desc', health: 3000, speed: 0.3, reward: 3000, image: IMAGE_PATHS.AstrorbTF, boss: true, instakill: true, doubleLap: true, category: 'other', astrorbGroup: true, astrorbForm: 3, shieldRatio: 0.4 },
+  'Crystalic_Orb': { name: 'enemy_Crystalic_Orb_name', desc: 'enemy_Crystalic_Orb_desc', health: 5000, speed: 0.28, reward: 5000, image: IMAGE_PATHS.Crystalic_Orb, boss: true, instakill: true, category: 'other', isCrystallized: true, astrorbGroup: true, astrorbForm: 4, shieldRatio: 0.4 },
+  'Sharowd': { name: 'enemy_Sharowd_name', desc: 'enemy_Sharowd_desc', health: 1200, speed: 0.45, reward: 1200, image: IMAGE_PATHS.Sharowd, boss: true, category: 'other', blockQuestBoss: true },
 
   // Sunlight Seaside Enemies
   'Ren': { name: 'enemy_Ren_name', desc: 'enemy_Ren_desc', health: 60, speed: 1.5, reward: 15, image: IMAGE_PATHS.Ren, mapSource: 'sunlight_seaside', enemyClass: 'shooter' },
@@ -1703,10 +1724,31 @@ const ENEMY_TYPES = {
 
   // Leafy Beach Party Bosses & Enemies
   'PhantKeeper': { name: 'enemy_PhantKeeper_name', desc: 'enemy_PhantKeeper_desc', health: 3000, speed: 0.3, reward: 2000, image: IMAGE_PATHS.PhantKeeper, boss: true, mechanic_key: 'mechanic_boss', honeySlow: true, mapSource: 'sunlight_seaside' },
-  'GlitchKeeper': { name: 'enemy_GlitchKeeper_name', desc: 'enemy_GlitchKeeper_desc', health: 4500, speed: 0.35, reward: 2500, image: IMAGE_PATHS.GlitchKeeper, boss: true, mechanic_key: 'mechanic_boss', blueHoneySlow: true, mapSource: 'sunlight_seaside' },
-  'DarkSpirit': { name: 'enemy_DarkSpirit_name', desc: 'enemy_DarkSpirit_desc', health: 6000, speed: 0.4, reward: 3000, image: IMAGE_PATHS.DarkSpirit, boss: true, mechanic_key: 'mechanic_boss', darkAura: true, mapSource: 'sunlight_seaside' },
+  'GlitchKeeper': { name: 'enemy_GlitchKeeper_name', desc: 'enemy_GlitchKeeper_desc', health: 4500, speed: 0.35, reward: 2500, image: IMAGE_PATHS.GlitchKeeper, boss: true, mechanic_key: 'mechanic_boss', blueHoneySlow: true, mapSource: 'sunlight_seaside', shieldRatio: 0.2 },
+  'DarkSpirit': { name: 'enemy_DarkSpirit_name', desc: 'enemy_DarkSpirit_desc', health: 6000, speed: 0.4, reward: 3000, image: IMAGE_PATHS.DarkSpirit, boss: true, mechanic_key: 'mechanic_boss', darkAura: true, mapSource: 'sunlight_seaside', shieldRatio: 0.4 },
   'Bushi_Brella': { name: 'enemy_Bushi_Brella_name', desc: 'enemy_Bushi_Brella_desc', health: 400, speed: 1.8, reward: 500, image: IMAGE_PATHS.Bushi_Brella, mimic: true, isSpecialMimic: true, mapSource: 'sunlight_seaside' }
 };
+
+// Tier de balance: controla cuándo aparece un enemigo y cuánto daño causa al llegar a la base.
+const ENEMY_BALANCE = {
+  gelatin_lake: {
+    basic: ['Stupid_Pyce', 'Pyce2'],
+    medium: ['Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce'],
+    tank: ['4motions_Pyce', 'Flower_Pyce', 'SO_Pyce']
+  },
+  urbanistic_road: {
+    basic: ['BitY1', 'BitG2', 'BitP3', 'BitB4', 'HoloPyce', 'Rebel_Pyce'],
+    medium: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Bomb_Pyce', 'Fireflies', 'Strechy_Pyce'],
+    tank: ['Spyware', 'Spyware1', 'Spyware2', 'Spyware3', 'Knight_Pyce', 'Cannon_Pycer']
+  },
+  sunlight_seaside: {
+    basic: ['Piz', 'Baby_Shrum', 'Ren', 'Pysh'],
+    medium: ['Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Umbrella_Pyce', 'Creamplet'],
+    tank: ['Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers']
+  }
+};
+
+const ENEMY_TIER_DAMAGE = { basic: 1, medium: 2, tank: 3 };
 
 const BADGES = {
   survivor: { key: 'survivor', icon: '🛡️', unlocked: false, reward: { pycoins: 100, xp: 50 }, category: 'modos' },
@@ -2058,10 +2100,6 @@ const SKINS_DATA = {
         'TNT_Glob': 'Diamore Glob',
         'Nuclear_Glob': 'Fracstral Glob'
       }
-    },
-    {
-      id: 'froggy_set', name: 'skin_froggy_name', desc: 'skin_froggy_desc', cost: 1500, type: 'pycoin', isSpecial: true, unlockCondition: 'win_sunlight_summer_anti_normal',
-      filter: 'hue-rotate(120deg) saturate(1.5)'
     }
   ],
   'Special': [
@@ -2103,6 +2141,37 @@ const SKINS_DATA = {
     }
   ],
 
+  'White': [
+    {
+      id: 'heights_set', name: 'skin_heights_name', desc: 'skin_heights_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest',
+      skins: {
+        'Balloon_Glob': 'Misiones (2026)/Skins/Blanca/House & Bombot (SK-EVO1).png',
+        'Heliglob': 'Misiones (2026)/Skins/Blanca/Castle & Bombot (SK-EVO2).png',
+        'Alien_Glob': 'Misiones (2026)/Skins/Blanca/Earth & KirByte (SK-EVO3).png'
+      }
+    }
+  ],
+  'Pink': [
+    {
+      id: 'old_tycoon_set', name: 'skin_old_tycoon_name', desc: 'skin_old_tycoon_desc', cost: 637, duckpass_cost: 207, type: 'pycoin', isSpecial: true, unlockCondition: 'block_quest_shop',
+      skins: {
+        'Streamer_Glob': 'Misiones (2026)/Skins/Rosa/Noob Tycoon (SK-EVO1).png',
+        'Gamer_Glob': 'Misiones (2026)/Skins/Rosa/Guest Retrohouse (SK-S2).png',
+        'Youtuber_Glob': 'Misiones (2026)/Skins/Rosa/Heights Sword Battle (SK-EVO3).png'
+      }
+    }
+  ],
+  'Brown': [
+    {
+      id: 'jonk_set', name: 'skin_jonk_name', desc: 'skin_jonk_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest',
+      skins: {
+        'Sprout_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO1).png',
+        'Garden_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO2).png',
+        'Flower_Glob': 'Misiones (2026)/Skins/Marron/Jonk the big piranha (SK-EVO3).png'
+      }
+    }
+  ],
+
   'Pirate_Glob': [
     {
       id: 'froggy_set', name: 'skin_froggy_name', desc: 'skin_froggy_desc', cost: 1500, type: 'pycoin', isSpecial: true, unlockCondition: 'win_sunlight_summer_anti_normal',
@@ -2111,10 +2180,10 @@ const SKINS_DATA = {
         'PMate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Froggy Glob (SK-EVO2).png',
         'BreathKing_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Frogold Glob (SK-EVO3).png',
         'Haunted_Pirate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/King Frog Glob (SK-EVO4).png',
-        'Boat_S1': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Lillypad (SK-S1).png',
-        'Boat_S2': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Lillypad (SK-S1).png',
-        'Boat_S3': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Flowered Lillypad (SK-S3).png',
-        'Boat_S4': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Flowered Lillypad (SK-S3).png'
+        'Boat_S1': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lillypad (SK-S1).png',
+        'Boat_S2': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lillypad (SK-S1).png',
+        'Boat_S3': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Flowered Lillypad (SK-S3).png',
+        'Boat_S4': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Flowered Lillypad (SK-S3).png'
       },
       names: {
         'Pirate_Glob': 'Tadpole Glob',
@@ -2197,6 +2266,12 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_crystal_bombot_desc": "La variante de cristal del Bombot.",
   "skin_fracstal_name": "Set Fracstral",
   "skin_fracstal_desc": "Unos Globs que se cristalizaron, pero esto no los detiene de poder estallar mas fuerte gracias a su amplificacion de poder.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Creado por: Credible</span>",
+  "skin_old_tycoon_name": "Old Tycoon Set",
+  "skin_old_tycoon_desc": "20 Años de Roblox y celebrándolo a lo grande con un esfuerzo de vuestro robot abeja favorito. ¡Que cumplas muchos más, ROBLOX!",
+  "skin_heights_name": "Set de Altura",
+  "skin_heights_desc": "Quién iba a decir que Bombot intentaría volar con un triste globo... ¿¡PERO QUIÉN ES EL ÚLTIMO!?",
+  "skin_jonk_name": "Jonk the big piranha",
+  "skin_jonk_desc": "Una gran carnívora sustituye nuestro Glob jardinero. No se preocupen, esta piraña es nuestra amiga tal y como lo fue en sus tiempos.",
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>"
 });
@@ -2226,6 +2301,12 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_crystal_bombot_desc": "The crystal variant of the Bombot.",
   "skin_fracstal_name": "Fracstal Set",
   "skin_fracstal_desc": "Some Globs that crystallized, but this does not stop them from being able to explode stronger thanks to their power amplification.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Created by: Credible</span>",
+  "skin_old_tycoon_name": "Old Tycoon Set",
+  "skin_old_tycoon_desc": "20 years of Roblox, celebrated in style with an effort from your favorite bee robot. Happy many more, ROBLOX!",
+  "skin_heights_name": "Height Set",
+  "skin_heights_desc": "Who would have thought Bombot would try to fly with a sad balloon... WHO IS LAST!?",
+  "skin_jonk_name": "Jonk the big piranha",
+  "skin_jonk_desc": "A great carnivore replaces our Garden Glob. Don't worry, this piranha is our friend, just as it was in its time.",
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Frogs that fish and grow... But their lily pads do deal damage!<br><span style='font-size:0.8em; color: teal;'>Skin designed and drawn by \"Victorillo\", current artwork by KirByte_Bi.</span>"
 });

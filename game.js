@@ -113,7 +113,17 @@ let gameState = {
   baseTookDamage: false,
   settings: { showShopDesc: true, showTotalDamage: false, oldAchievements: false, autoEnglish: false },
   duckgrades: {},
-  gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false },
+  blockQuestActive: false,
+  blockQuestStage: 0,
+  blockQuestCompleted: false,
+  blockQuestVictories: 0,
+  blockQuestHadBlockTales: false,
+  blockQuestStarted: false,
+  paracristalActive: false,
+  paracristalEnergy: 100,
+  paracristalAstrorbSeen: false,
+  paracristalFinal: false,
+  gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false, 'Pirate_Glob': false },
   pycesKilled: {},
   globsPlaced: {},
   mimicSpawned: 0,
@@ -214,6 +224,13 @@ function saveProgress() {
     metaDamageLevel: gameState.metaDamageLevel,
     metaDamage: gameState.metaDamage,
     duckgrades: gameState.duckgrades,
+    blockQuestActive: gameState.blockQuestActive,
+    blockQuestStage: gameState.blockQuestStage,
+    blockQuestCompleted: gameState.blockQuestCompleted,
+    blockQuestVictories: gameState.blockQuestVictories,
+    blockQuestHadBlockTales: gameState.blockQuestHadBlockTales,
+    paracristalEnergy: gameState.paracristalEnergy,
+    paracristalFinal: gameState.paracristalFinal,
     upgradesResetV4: true,
     pycesKilled: gameState.pycesKilled,
     globsPlaced: gameState.globsPlaced,
@@ -295,6 +312,13 @@ function loadProgress(username) {
       gameState.duckPassXP = progress.duckPassXP || 0;
       gameState.duckPassLevel = progress.duckPassLevel || 1;
       gameState.duckPassCurrency = progress.duckPassCurrency || 0;
+      gameState.blockQuestActive = !!progress.blockQuestActive;
+      gameState.blockQuestStage = progress.blockQuestStage || 0;
+      gameState.blockQuestCompleted = !!progress.blockQuestCompleted;
+      gameState.blockQuestVictories = progress.blockQuestVictories || 0;
+      gameState.blockQuestHadBlockTales = !!progress.blockQuestHadBlockTales;
+      gameState.paracristalEnergy = progress.paracristalEnergy == null ? 100 : progress.paracristalEnergy;
+      gameState.paracristalFinal = !!progress.paracristalFinal;
       if (progress.towerLimits) {
         gameState.towerLimits = { ...gameState.towerLimits, ...progress.towerLimits };
       }
@@ -315,7 +339,7 @@ function loadProgress(username) {
       gameState.duckgrades = progress.duckgrades || {};
       gameState.gtacks = Object.assign({
         'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false,
-        'Comet_Glob': false, 'Old_Glob': false, 'Bomb_Glob': false, 'Worker_Glob': false, 'Brown': false
+        'Comet_Glob': false, 'Old_Glob': false, 'Bomb_Glob': false, 'Worker_Glob': false, 'Brown': false, 'Pirate_Glob': false
       }, progress.gtacks || {});
       gameState.pycesKilled = progress.pycesKilled || {};
       gameState.globsPlaced = progress.globsPlaced || {};
@@ -592,7 +616,10 @@ function showModeSelection() {
       btn.innerHTML = currentLanguage === 'en' ? '🌌 Interstellar' : '🌌 Interestelar';
       btn.style.background = 'linear-gradient(45deg, #4b0082, #ff00ff)';
       btn.onclick = () => {
-        gameState.map = 'gelatin_lake';
+        if (gameState.map !== 'sunlight_seaside') {
+          showMessage(currentLanguage === 'es' ? '🌊 Selecciona Sunlight Seaside para iniciar esta versión.' : '🌊 Select Sunlight Seaside to start this version.', 'warning');
+          return;
+        }
         generateSpots();
         createMap();
         selectMode('interstellar');
@@ -646,6 +673,10 @@ function selectMode(mode) {
   gameState.modeConfirmed = true;
   const limits = { facil: 10, normal: 15, dificil: 25, extremo: 40, infinito: 999, corrupto: 40, antiNormal: 35, interstellar: 40 };
   gameState.maxWaves = limits[mode] || 15;
+
+  if (gameState.blockQuestActive && gameState.map === 'urbanistic_road' && ['dificil', 'extremo', 'corrupto', 'antiNormal'].includes(mode)) {
+    gameState.blockQuestPending = true;
+  }
 
   if (gameState.antiNormalActive && mode === 'normal') {
     // Require confirmation before triggering Anti-Normal via the glitch path
@@ -702,6 +733,114 @@ function selectMode(mode) {
       showNarratorMsg('arky', NARRATOR_DATA.arky.img, NARRATOR_DATA.arky[currentLanguage].name, storyText);
     }
   }, 1000);
+}
+
+function startBlockQuest() {
+  if (gameState.blockQuestStarted || !gameState.blockQuestActive) return;
+  gameState.blockQuestStarted = true;
+  gameState.blockQuestStage = 0;
+  const map = document.getElementById('map');
+  if (!map) return;
+  const colors = [
+    { id: 'blue', color: '#278cff', label: 'AZUL' },
+    { id: 'green', color: '#2ecc71', label: 'VERDE' },
+    { id: 'lightgray', color: '#d8dee9', label: 'GRIS CLARO' },
+    { id: 'orange', color: '#ff8c00', label: 'NARANJA' },
+    { id: 'cyan', color: '#5ee7ff', label: 'AZUL CELESTE' }
+  ];
+  const spots = [];
+  while (spots.length < colors.length) {
+    const spot = { x: 80 + Math.random() * 820, y: 70 + Math.random() * 460 };
+    if (spots.every(other => Math.hypot(other.x - spot.x, other.y - spot.y) > 130)) spots.push(spot);
+  }
+  colors.forEach((item, index) => {
+    const marker = document.createElement('button');
+    marker.className = 'block-quest-marker';
+    marker.dataset.questIndex = index;
+    marker.style.left = `${spots[index].x}px`;
+    marker.style.top = `${spots[index].y}px`;
+    marker.style.setProperty('--quest-color', item.color);
+    marker.title = item.label;
+    marker.textContent = '◆';
+    marker.onclick = () => {
+      if (Number(marker.dataset.questIndex) !== gameState.blockQuestStage) {
+        gameState.blockQuestStage = 0;
+        document.querySelectorAll('.block-quest-marker').forEach(el => el.classList.remove('found'));
+        showMessage(currentLanguage === 'es' ? 'Secuencia reiniciada.' : 'Sequence reset.', 'warning');
+        return;
+      }
+      marker.classList.add('found');
+      gameState.blockQuestStage++;
+      if (gameState.blockQuestStage >= colors.length) {
+        document.querySelectorAll('.block-quest-marker').forEach(el => el.remove());
+        gameState.blockQuestStarted = false;
+        gameState.blockQuestBossPending = true;
+        showMessage(currentLanguage === 'es' ? '⚔️ ¡Sharowd ha aparecido!' : '⚔️ Sharowd has appeared!', 'warning');
+        spawnEnemy('Sharowd', true);
+      }
+      saveProgress();
+    };
+    map.appendChild(marker);
+  });
+  showMessage(currentLanguage === 'es' ? '🧱 Encuentra los colores en orden.' : '🧱 Find the colors in order.', 'info');
+}
+
+function finishBlockQuest() {
+  gameState.blockQuestVictories = (gameState.blockQuestVictories || 0) + 1;
+  gameState.blockQuestCompleted = true;
+  gameState.blockQuestActive = false;
+  gameState.unlockedSkins.push('corrupt_swords_set');
+  gameState.unlockedSkins.push('heights_set');
+  gameState.unlockedSkins.push('jonk_set');
+  if (gameState.blockQuestVictories >= 2 || gameState.blockQuestHadBlockTales) gameState.unlockedSkins.push('old_tycoon_set');
+  gameState.unlockedSkins = [...new Set(gameState.unlockedSkins)];
+  showMessage(currentLanguage === 'es' ? '🎁 ¡Recompensas de Block City Quest desbloqueadas!' : '🎁 Block City Quest rewards unlocked!', 'success');
+  saveProgress();
+}
+
+function spawnParacristal() {
+  if (!gameState.paracristalActive || gameState.paracristalEnergy < 60 || gameState.paracristalFinal) return;
+  const map = document.getElementById('map');
+  if (!map || map.querySelectorAll('.paracristal').length >= 5) return;
+  const astrorbPresent = gameState.enemies.some(e => e.type === 'AstrorbOrbe' || e.type === 'AstrorbContenida' || e.type === 'AstrorbTF');
+  const roll = Math.random();
+  const clicks = astrorbPresent && roll < 0.35 ? (roll < 0.12 ? 5 : 4) : Math.ceil(Math.random() * 3);
+  const sizes = [null, 'MiniCrystal', 'Crystal', 'BigCrystal', 'MegaCrystal', 'GigaCrystal'];
+  const crystal = document.createElement('button');
+  crystal.className = 'paracristal';
+  crystal.dataset.clicks = clicks;
+  crystal.style.left = `${60 + Math.random() * 860}px`;
+  crystal.style.top = `${50 + Math.random() * 500}px`;
+  crystal.style.backgroundImage = `url('${encodeURI(IMAGE_PATHS[sizes[clicks]])}')`;
+  crystal.title = `${clicks} ${currentLanguage === 'es' ? 'clics' : 'clicks'}`;
+  crystal.onclick = event => {
+    event.stopPropagation();
+    const remaining = Number(crystal.dataset.clicks) - 1;
+    crystal.dataset.clicks = remaining;
+    crystal.classList.add('crystal-hit');
+    setTimeout(() => crystal.classList.remove('crystal-hit'), 120);
+    if (remaining <= 0) {
+      crystal.remove();
+      gameState.paracristalEnergy = Math.min(100, gameState.paracristalEnergy + clicks);
+    }
+  };
+  map.appendChild(crystal);
+}
+
+function startParacristalDimension() {
+  if (gameState.map !== 'sunlight_seaside' || gameState.mode !== 'interstellar' || !gameState.unlockedInterstellar) return false;
+  gameState.paracristalActive = true;
+  gameState.paracristalEnergy = 100;
+  let energy = document.getElementById('paracristal-energy');
+  if (!energy) {
+    energy = document.createElement('div');
+    energy.id = 'paracristal-energy';
+    document.getElementById('game-container').appendChild(energy);
+  }
+  energy.textContent = currentLanguage === 'es' ? '💎 Energía cristalina: 100%' : '💎 Crystal energy: 100%';
+  energy.style.display = 'block';
+  showMessage(currentLanguage === 'es' ? '💎 La Dimensión Paralecristal se ha abierto.' : '💎 The Paralecrystal Dimension has opened.', 'info');
+  return true;
 }
 
 function triggerCorrupt() {
@@ -1635,7 +1774,7 @@ function switchEncyclopediaTab(tab) {
       const HIDDEN_VARIANTS = ['NO_CrystEye_CB', 'AstrorbContenida', 'AstrorbTF', 'Spyware2', 'Spyware3', 'BitG2', 'BitP3', 'BitB4', 'ByteYP2', 'BytePG3', 'ByteYB4'];
 
       const OG_ENEMIES = ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce'];
-      const ID_ENEMIES = ['Leni_the_big_Hammer', 'Monster', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'NO_CrystEye_CB', 'Arky', 'CrystArky', 'ArkyVoid', 'Fireflies', 'Treeper', 'Big_Treeper', 'Stacked_Treepers', 'Baby_Shrum', 'Shrum', 'Old_Fungus', 'Spyware1', 'Spyware2', 'Spyware3', 'BitY1', 'BitG2', 'BitP3', 'BitB4', 'ByteYP2', 'BytePG3', 'ByteYB4', 'ByteGB1'];
+      const ID_ENEMIES = ['Leni_the_big_Hammer', 'Monster', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'NO_CrystEye_CB', 'Arky', 'CrystArky', 'ArkyVoid', 'Fireflies', 'Treeper', 'Big_Treeper', 'Stacked_Treepers', 'Baby_Shrum', 'Shrum', 'Old_Fungus', 'Spyware1', 'Spyware2', 'Spyware3', 'BitY1', 'BitG2', 'BitP3', 'BitB4', 'ByteYP2', 'BytePG3', 'ByteYB4', 'ByteGB1'];
       const REN_ENEMIES = ['Ren', 'Thunren', 'Renibig'];
       const TREEPER_ENEMIES = ['Treeper', 'Big_Treeper', 'Stacked_Treepers'];
       const SHRUM_ENEMIES = ['Baby_Shrum', 'Shrum', 'Old_Fungus'];
@@ -2178,8 +2317,26 @@ function bindEvents() {
       return;
     }
 
-    if (gameState.usedCodes[code] && code !== 'CR1-M3-CA+GLD') {
+    if (gameState.usedCodes[code] && code !== 'CR1-M3-CA+GLD' && code !== 'BLOCK_QUEST') {
       showMessage(translate('code_already_used'), 'warning');
+      input.value = '';
+      return;
+    }
+
+    if (code === 'BLOCK_QUEST') {
+      const validMap = gameState.map === 'urbanistic_road';
+      const validMode = ['dificil', 'extremo', 'corrupto', 'antiNormal'].includes(gameState.mode);
+      if (!validMap || !validMode) {
+        showMessage(currentLanguage === 'es' ? 'BLOCK_QUEST requiere Urbanistic Road en Difícil o superior.' : 'BLOCK_QUEST requires Urbanistic Road on Hard or higher.', 'error');
+        input.value = '';
+        return;
+      }
+      gameState.blockQuestActive = true;
+      gameState.blockQuestPending = true;
+      gameState.blockQuestHadBlockTales = gameState.unlockedSkins.includes('corrupt_swords_set');
+      gameState.usedCodes[code] = true;
+      showMessage(currentLanguage === 'es' ? '🧱 Misión aceptada. La secuencia aparecerá a mitad de la partida.' : '🧱 Quest accepted. The sequence will appear halfway through the game.', 'success');
+      saveProgress();
       input.value = '';
       return;
     }
@@ -2453,7 +2610,10 @@ function restoreGameSnapshot() {
   gameState.towers = snap.towers || [];
   gameState.enemies = (snap.enemies || []).map(e => {
     const t = ENEMY_TYPES[e.type] || {};
-    return { ...t, type: e.type, x: e.x, y: e.y, health: e.health, maxHealth: e.health, pathIndex: e.pathIndex, boss: !!e.boss };
+    const mapBalance = ENEMY_BALANCE[gameState.map || 'gelatin_lake'];
+    const tier = e.boss ? 'boss' : Object.keys(mapBalance || {}).find(key => mapBalance[key].includes(e.type)) || ((t.health || 0) >= 400 ? 'tank' : (t.health || 0) >= 150 ? 'medium' : 'basic');
+    const baseDamage = e.boss ? 10 : (ENEMY_TIER_DAMAGE[tier] || 2);
+    return { ...t, type: e.type, tier, baseDamage, x: e.x, y: e.y, health: e.health, maxHealth: e.health, pathIndex: e.pathIndex, boss: !!e.boss };
   });
   delete gameState._snapshot;
   try { localStorage.removeItem('gd_snapshot'); } catch (e) { }
@@ -2501,12 +2661,40 @@ function backToModes() {
   }
 }
 
+function updateResponsiveGameLayout() {
+  const wrapper = document.querySelector('.game-scale-wrapper');
+  const gameArea = document.getElementById('game-area');
+  if (!wrapper || !gameArea) return;
+
+  const compactLayout = window.matchMedia('(max-width: 1100px) and (orientation: landscape)').matches;
+  if (!compactLayout) return;
+
+  const shopWidth = 76;
+  const topOffset = 42;
+  const availableWidth = Math.max(320, window.innerWidth - shopWidth - 8);
+  const availableHeight = Math.max(220, window.innerHeight - topOffset - 4);
+  const scale = Math.min(availableWidth / 1000, availableHeight / 600);
+
+  wrapper.style.width = `${availableWidth}px`;
+  wrapper.style.height = `${availableHeight}px`;
+  gameArea.style.width = '1000px';
+  gameArea.style.height = '600px';
+  gameArea.style.transform = `scale(${scale})`;
+}
+
 const GAME_DESIGN_W = 1000;
 const GAME_DESIGN_H = 600;
 
 function applyScale() {
   const container = document.getElementById('game-container');
   if (!container) return;
+
+  if (window.matchMedia('(max-width: 1100px) and (orientation: landscape)').matches) {
+    container.style.transform = 'none';
+    container.style.marginTop = '0';
+    updateResponsiveGameLayout();
+    return;
+  }
 
   const area = document.getElementById('game-area');
   const wrapper = document.querySelector('.game-scale-wrapper');
@@ -2705,7 +2893,8 @@ function drawShop() {
       { id: 'dg_Ducky_Glob', name: 'duckgrade_duck_name', desc: 'duckgrade_duck_desc', cost: 15, family: 'Ducky_Glob' },
       { id: 'dg_IEx', name: 'duckgrade_iex_name', desc: 'duckgrade_iex_desc', cost: 20, family: 'IEx' },
       { id: 'dg_Worker_Glob', name: 'duckgrade_worker_name', desc: 'duckgrade_worker_desc', cost: 25, family: 'Worker_Glob' },
-      { id: 'dg_Brown', name: 'duckgrade_brown_name', desc: 'duckgrade_brown_desc', cost: 20, family: 'Brown' }
+      { id: 'dg_Brown', name: 'duckgrade_brown_name', desc: 'duckgrade_brown_desc', cost: 20, family: 'Brown' },
+      { id: 'dg_Pirate_Glob', name: 'duckgrade_pirate_name', desc: 'duckgrade_pirate_desc', cost: 25, family: 'Pirate_Glob' }
     ];
 
     const filteredDgs = dgs.filter(u => {
@@ -2718,6 +2907,7 @@ function drawShop() {
       if (u.id === 'dg_IEx') return isTowerOwned('Bomb_Glob');
       if (u.id === 'dg_Worker_Glob') return isTowerOwned('Worker_Glob');
       if (u.id === 'dg_Brown') return isTowerOwned('Sprout_Glob');
+      if (u.id === 'dg_Pirate_Glob') return isTowerOwned('Pirate_Glob');
       return false;
     });
 
@@ -2750,7 +2940,8 @@ function drawShop() {
       { id: 'Old_Glob', name: translate('gtack_grey_name'), desc: translate('gtack_grey_desc'), pyCost: 520, dpCost: 170 },
       { id: 'Bomb_Glob', name: translate('gtack_iex_name'), desc: translate('gtack_iex_desc'), pyCost: 600, dpCost: 200 },
       { id: 'Worker_Glob', name: translate('gtack_worker_name'), desc: translate('gtack_worker_desc'), pyCost: 600, dpCost: 200 },
-      { id: 'Brown', name: translate('gtack_brown_name'), desc: translate('gtack_brown_desc'), pyCost: 650, dpCost: 210 }
+      { id: 'Brown', name: translate('gtack_brown_name'), desc: translate('gtack_brown_desc'), pyCost: 650, dpCost: 210 },
+      { id: 'Pirate_Glob', name: translate('gtack_pirate_name'), desc: translate('gtack_pirate_desc'), pyCost: 700, dpCost: 230 }
     ];
 
     const gtacksLocked = gameState.duckPassLevel < 50;
@@ -3514,6 +3705,7 @@ function getGTackName(family) {
     case 'Grey': return 'Ampliación 📡';
     case 'IEx': return 'Detonación 💥';
     case 'Worker_Glob': return 'Actividad Policial 🚨';
+    case 'Pirate_Glob': return 'Bombardeo Glob 💣';
     default: return 'G-Táctica';
   }
 }
@@ -3578,6 +3770,9 @@ function activateGTack(t) {
       }
     });
     showEffect(t.x, t.y - 25, "POLICE ACTIVITY! 🚨", "#3498db");
+  } else if (t.family === 'Pirate_Glob') {
+    t.marineGtackTimer = 10;
+    showEffect(t.x, t.y - 25, "GLOB BOMBARDMENT! 💣", "#2ecc71");
   } else if (t.family === 'Brown') {
     gameState.towers.forEach(otherTower => {
         if (Math.hypot(otherTower.x - t.x, otherTower.y - t.y) <= (t.range || 100) * 1.5) {
@@ -3786,7 +3981,15 @@ function activateGTack(t) {
     gameState.roundKills = [];
     gameState.roundIExExplosions = 0;
 
-    if (gameState.mode === 'interstellar' && gameState.wave === 26) {
+    if (gameState.blockQuestPending && gameState.wave >= Math.ceil(maxWaves / 2)) {
+      gameState.blockQuestPending = false;
+      setTimeout(startBlockQuest, 500);
+    }
+    if (gameState.mode === 'interstellar' && gameState.map === 'sunlight_seaside' && gameState.wave === 1) {
+      startParacristalDimension();
+    }
+
+    if (gameState.mode === 'interstellar' && gameState.wave === 26 && !gameState.paracristalActive) {
       showMessage("¡Transición detectada! Reubicando al equipo...", 'warning');
       gameState.map = 'urbanistic_road';
 
@@ -4035,6 +4238,7 @@ function activateGTack(t) {
       };
 
       const mapPool = MAP_POOLS[mapKey] || MAP_POOLS.gelatin_lake;
+      const mapTankPool = (ENEMY_BALANCE[mapKey] && ENEMY_BALANCE[mapKey].tank) || mapPool.hard;
 
       if (mapKey === 'sunlight_seaside' && mode === 'facil') {
          let count = 10 + wave * 3;
@@ -4062,17 +4266,17 @@ function activateGTack(t) {
            else if (wave === 10) { count = 30; comp = { regular: 0.6, medium: 0.4, hard: 0, special: 0 }; }
         } 
         else if (mode === 'normal') {
-           if (wave <= 3) { count = 12 + wave*4; comp = { regular: 0.9, medium: 0.1, hard: 0, special: 0 }; }
-           else if (wave <= 6) { count = 18 + wave*4; comp = { regular: 0.7, medium: 0.3, hard: 0, special: 0 }; }
-           else if (wave <= 9) { count = 25 + wave*4; comp = { regular: 0.5, medium: 0.4, hard: 0.1, special: 0 }; }
-           else if (wave <= 12) { count = 35 + wave*4; comp = { regular: 0.4, medium: 0.4, hard: 0.2, special: 0 }; }
-           else if (wave <= 14) { count = 45 + wave*3; comp = { regular: 0.3, medium: 0.4, hard: 0.3, special: 0.1 }; }
-           else if (wave === 15) { count = 40; comp = { regular: 0.4, medium: 0.4, hard: 0.2, special: 0 }; }
+           if (wave <= 3) { count = 8 + wave*2; comp = { regular: 1, medium: 0, hard: 0, special: 0 }; }
+           else if (wave <= 6) { count = 12 + wave*3; comp = { regular: 0.8, medium: 0.2, hard: 0, special: 0 }; }
+           else if (wave <= 9) { count = 18 + wave*3; comp = { regular: 0.6, medium: 0.4, hard: 0, special: 0 }; }
+           else if (wave <= 12) { count = 28 + wave*2; comp = { regular: 0.35, medium: 0.5, hard: 0.15, special: 0 }; }
+           else if (wave <= 14) { count = 34 + wave*2; comp = { regular: 0.25, medium: 0.45, hard: 0.3, special: 0 }; }
+           else if (wave === 15) { count = 45; comp = { regular: 0.35, medium: 0.45, hard: 0.2, special: 0 }; }
         }
         else if (mode === 'dificil') {
-           if (wave <= 5) { count = 15 + wave*4; comp = { regular: 0.8, medium: 0.2, hard: 0, special: 0 }; }
-           else if (wave <= 10) { count = 25 + wave*5; comp = { regular: 0.5, medium: 0.5, hard: 0, special: 0 }; }
-           else if (wave <= 15) { count = 40 + wave*5; comp = { regular: 0.3, medium: 0.5, hard: 0.2, special: 0 }; }
+           if (wave <= 5) { count = 12 + wave*3; comp = { regular: 0.85, medium: 0.15, hard: 0, special: 0 }; }
+           else if (wave <= 10) { count = 20 + wave*4; comp = { regular: 0.4, medium: 0.5, hard: 0.1, special: 0 }; }
+           else if (wave <= 15) { count = 32 + wave*4; comp = { regular: 0.25, medium: 0.5, hard: 0.25, special: 0 }; }
            else if (wave <= 20) { count = 55 + wave*6; comp = { regular: 0.2, medium: 0.4, hard: 0.4, special: 0.1 }; }
            else if (wave <= 24) { count = 75 + wave*6; comp = { regular: 0.1, medium: 0.4, hard: 0.5, special: 0.2 }; }
            else if (wave === 25) { count = 60; comp = { regular: 0.2, medium: 0.4, hard: 0.4, special: 0.1 }; }
@@ -4126,6 +4330,12 @@ function activateGTack(t) {
         pushRandom(mapPool.medium, mCount);
         pushRandom(mapPool.hard, hCount);
         pushRandom(mapPool.special, sCount);
+
+        const spikeWaves = mode === 'normal' ? [8, 13] : mode === 'dificil' ? [6, 12, 18] : mode === 'extremo' ? [5, 10, 15, 20] : mode === 'infinito' ? [5, 10, 15] : [];
+        if (spikeWaves.includes(wave) && mapTankPool.length > 0) {
+          const spikeCount = mode === 'normal' ? 2 : 3;
+          pushRandom(mapTankPool, spikeCount);
+        }
         
         if (mode !== 'facil' && wave >= 5 && Math.random() < 0.15) {
            spawnList.push(Math.random() < 0.5 ? 'Stupid_GoldPyce' : 'Mimic_Pyce');
@@ -4217,7 +4427,31 @@ function activateGTack(t) {
     }, Math.max(300, 800 - Math.min(500, wave * 25)));
   }
 
-  function spawnEnemy(type, boss) {
+  function updateEnemyStatusUI(e) {
+    if (!e.el || !e.hpFill || !e.statusIcons) return;
+
+    const icons = [];
+    if (e.stealth) icons.push('🫥');
+    if (e.fireImmune) icons.push('🔥🚫');
+    if (e.shield > 0) icons.push('🛡️');
+    if (e.enemySlowTimer > 0) icons.push('❄️');
+    if (e.burnTimer > 0) icons.push('🔥');
+    if (e.toxicTimer > 0) icons.push('🤢');
+    if (e.poisonTimer > 0) icons.push('🍄');
+    if (e.stunned > 0) icons.push('⚡');
+
+    e.statusIcons.textContent = icons.join(' ');
+    e.hpValue.textContent = `${Math.max(0, Math.ceil(e.health))}/${Math.ceil(e.maxHealth)}`;
+    e.hpFill.style.backgroundColor = e.shield > 0
+      ? '#ffd700'
+      : e.fireImmune
+        ? '#8b0000'
+        : e.stealth
+          ? '#355c3a'
+          : '#ff4444';
+  }
+
+  function spawnEnemy(type, boss = false, forcedPath = null) {
     if (gameState.mimicSpawned < 2 && !boss && Math.random() < 0.001 && gameState.mode !== 'interstellar') {
       if (gameState.map === 'sunlight_seaside') {
         type = 'Bushi_Brella';
@@ -4251,7 +4485,9 @@ function activateGTack(t) {
 
     const t = ENEMY_TYPES[type];
     if (!t) return console.warn("Enemy type missing:", type);
-    const chosenPath = ENEMY_PATHS[Math.floor(Math.random() * ENEMY_PATHS.length)];
+    const mapBalance = ENEMY_BALANCE[gameState.map || 'gelatin_lake'];
+    const tier = boss ? 'boss' : Object.keys(mapBalance || {}).find(key => mapBalance[key].includes(type)) || ((t.health || 0) >= 400 ? 'tank' : (t.health || 0) >= 150 ? 'medium' : 'basic');
+    const chosenPath = forcedPath || ENEMY_PATHS[Math.floor(Math.random() * ENEMY_PATHS.length)];
     const el = document.createElement('div'); el.className = 'enemy' + (boss ? ' boss' : '');
     el.style.left = `${chosenPath[0].x}px`; el.style.top = `${chosenPath[0].y}px`;
 
@@ -4263,7 +4499,9 @@ function activateGTack(t) {
     if (imgStr) el.style.backgroundImage = `url('${imgStr}')`;
     const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
     const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
-    hpBg.appendChild(hpFill); el.appendChild(hpBg);
+    const hpValue = document.createElement('div'); hpValue.className = 'enemy-hp-value';
+    const statusIcons = document.createElement('div'); statusIcons.className = 'enemy-status-icons';
+    hpBg.appendChild(hpFill); el.appendChild(hpValue); el.appendChild(hpBg); el.appendChild(statusIcons);
     const gameArea = document.getElementById('game-area') || document.getElementById('map') || document.body;
     gameArea.appendChild(el);
 
@@ -4285,9 +4523,10 @@ function activateGTack(t) {
     else if (gameState.mode === 'pesadilla') mult = 2.0;
 
     const healthScaled = Math.max(1, (t.health || 10) * (1 + (gameState.wave || 1) * 0.15) * mult);
-    let shieldVal = (t.shield || 0) * (t.health || 10);
-    if (type === 'CrystArky' || type === 'MoonStar_Pyce') shieldVal = healthScaled * 1.0;
-    const enemyObj = { ...t, name, el, x: chosenPath[0].x, y: chosenPath[0].y, pathIndex: 0, currentPath: chosenPath, health: healthScaled, maxHealth: healthScaled, hpFill, shield: shieldVal, type, boss };
+    const shieldVal = t.shieldRatio ? healthScaled * t.shieldRatio : (t.shield || 0) * (t.health || 10);
+    const baseDamage = boss ? 10 : (ENEMY_TIER_DAMAGE[tier] || 2);
+    const enemyObj = { ...t, name, tier, baseDamage, el, x: chosenPath[0].x, y: chosenPath[0].y, pathIndex: 0, currentPath: chosenPath, health: healthScaled, maxHealth: healthScaled, hpFill, hpValue, statusIcons, shield: shieldVal, shieldMax: shieldVal, type, boss };
+    el.title = `${name} | HP: ${Math.ceil(healthScaled)}`;
     gameState.enemies.push(enemyObj);
   }
 
@@ -4511,6 +4750,19 @@ function activateGTack(t) {
       const dt = 1 / 60;
       gameState.simultaneousExplosions = 0;
 
+      if (gameState.paracristalActive && gameState.waveActive && Math.random() < 0.012) {
+        spawnParacristal();
+      }
+      if (gameState.paracristalActive && gameState.health < 120) {
+        gameState.paracristalActive = false;
+        gameState.paracristalEnergy = Math.max(0, gameState.paracristalEnergy - 20);
+        document.querySelectorAll('.paracristal').forEach(crystal => crystal.remove());
+      }
+      const crystalEnergy = document.getElementById('paracristal-energy');
+      if (crystalEnergy && gameState.paracristalActive) {
+        crystalEnergy.textContent = `${currentLanguage === 'es' ? '💎 Energía cristalina' : '💎 Crystal energy'}: ${Math.ceil(gameState.paracristalEnergy)}%`;
+      }
+
       function isTowerProtected(tower) {
         if (!gameState.duckgrades.dg_Old_Glob) return false;
         return gameState.towers.some(grey => {
@@ -4540,7 +4792,7 @@ function activateGTack(t) {
           if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
           if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
           e.el.remove(); gameState.enemies.splice(i, 1);
-          let baseDmg = e.boss ? 10 : 1;
+          let baseDmg = e.baseDamage || (e.boss ? 10 : 2);
           if (gameState.mode === 'interstellar' && ENEMY_TYPES[e.type] && ENEMY_TYPES[e.type].isCrystallized) baseDmg *= 5;
           gameState.health -= baseDmg;
           gameState.baseTookDamage = true;
@@ -4549,10 +4801,10 @@ function activateGTack(t) {
         }
 
         const totalCurrent = e.health + (e.shield || 0);
-        const totalMax = e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0);
-        const pct = Math.max(0, (totalCurrent / (e.maxHealth + (e.shield > 0 ? e.maxHealth * 0.5 : 0))) * 100);
+        const totalMax = e.maxHealth + (e.shieldMax || 0);
+        const pct = Math.max(0, (totalCurrent / totalMax) * 100);
         e.hpFill.style.width = pct + '%';
-        e.hpFill.style.backgroundColor = (e.shield > 0) ? '#ffd700' : '#ff4444';
+        e.el.title = `${e.name} | HP: ${Math.max(0, Math.ceil(e.health))}/${Math.ceil(e.maxHealth)}`;
 
         if (e.type === 'Arky' || e.type === 'CrystArky' || e.type === 'ArkyVoid') {
           e.arkyTimer = (e.arkyTimer || 0) + dt;
@@ -4640,11 +4892,9 @@ function activateGTack(t) {
           if (e.type === 'Fireflies') {
             e.health = Math.min(e.maxHealth, e.health + dmg);
             e.el.classList.add('burning');
-            if (Math.random() < 0.1) showEffect(e.x, e.y, "HEAL! 💚", "#2ecc71");
           } else {
             e.health -= dmg;
             e.el.classList.add('burning');
-            if (Math.random() < 0.1) showEffect(e.x, e.y, "🔥", "#ff5500");
           }
         } else {
           e.el.classList.remove('burning');
@@ -4658,7 +4908,6 @@ function activateGTack(t) {
           e.toxicTimer -= dt;
           const dmg = 25 * dt;
           e.health -= dmg;
-          if (Math.random() < 0.1) showEffect(e.x, e.y, "🤢🔥", "#2ecc71");
         }
 
         if (gameState.traps && gameState.traps.length > 0) {
@@ -4709,15 +4958,15 @@ function activateGTack(t) {
           e.poisonTimer -= dt;
           const dmg = 12 * dt;
           e.health -= dmg;
-          if (Math.random() < 0.1) showEffect(e.x, e.y, "🍄💀", "#9b59b6");
 
           gameState.enemies.forEach(other => {
             if (other !== e && !other.poisonTimer && Math.hypot(other.x - e.x, other.y - e.y) < 40) {
               other.poisonTimer = 3;
-              showEffect(other.x, other.y - 10, "CONTAGIO! 💀", "#9b59b6");
             }
           });
         }
+
+        updateEnemyStatusUI(e);
 
         if (e.health <= 0) {
           die(e, i);
@@ -4846,6 +5095,10 @@ function activateGTack(t) {
           t.gTackCooldown -= dt;
           if (t.gTackCooldown < 0) t.gTackCooldown = 0;
           if (gameState.selectedTower === t) updateEvolveButtons(t);
+        }
+        if (t.marineGtackTimer && t.marineGtackTimer > 0) {
+          t.marineGtackTimer -= dt;
+          if (t.marineGtackTimer < 0) t.marineGtackTimer = 0;
         }
         if (t.toxicTimer && t.toxicTimer > 0) {
           t.toxicTimer -= dt;
@@ -4996,7 +5249,7 @@ function activateGTack(t) {
                   }
                 }
                 if (gameState.duckgrades.dg_IEx) {
-                  if (t.type === 'Bomb_Glob' || t.type === 'TNT_Glob') {
+                  if ((t.type === 'Bomb_Glob' || t.type === 'TNT_Glob') && !e.fireImmune) {
                     e.burnTimer = 3;
                   } else if (t.type === 'Nuclear_Glob') {
                     e.toxicTimer = 5;
@@ -5115,7 +5368,12 @@ function activateGTack(t) {
               dmg *= (1 + (redCount * 0.1));
             }
 
-            if (t.isSummoner) {
+            if (t.family === 'Pirate_Glob' && t.marineGtackTimer > 0) {
+              const useIexGlob = Math.random() < 0.2;
+              const projectileImage = useIexGlob ? IMAGE_PATHS.TNT_Glob : IMAGE_PATHS.Bomb_Glob;
+              const bombShooter = { ...t, aoe: true, projectile: 'tumble_bomb' };
+              shoot(bombShooter, targets[0], { damage: dmg * (useIexGlob ? 2 : 1.25), projectile: 'tumble_bomb', image: projectileImage });
+            } else if (t.isSummoner) {
               spawnBoat(t);
             } else if (t.type === 'SpyGlob') {
               let baseAngle = Math.atan2(targets[0].y - t.y, targets[0].x - t.x);
@@ -5165,24 +5423,21 @@ function activateGTack(t) {
           if (p.meta.slow) {
             target.enemySlowTimer = 3.0;
             target.enemySlowFactor = p.meta.slow;
-            showEffect(target.x, target.y - 15, "SLOWED! ❄️", "#00b4ff");
           }
           if (p.meta.burn) {
-            target.burnTimer = 3.0;
-            target.burnDamage = p.meta.burnDamage || 5;
-            showEffect(target.x, target.y - 15, "BURN! 🔥", "#ff4444");
+            if (!target.fireImmune) {
+              target.burnTimer = 3.0;
+              target.burnDamage = p.meta.burnDamage || 5;
+            }
           }
           if (p.meta.toxic) {
             target.toxicTimer = (target.toxicTimer || 0) + 3.0;
-            showEffect(target.x, target.y - 15, "TOXIC! 🤢", "#2ecc71");
           }
           if (p.meta.poison) {
             target.poisonTimer = (target.poisonTimer || 0) + 5.0;
-            showEffect(target.x, target.y - 15, "POISON! 🍄", "#9b59b6");
           }
           if (p.meta.stunStrike) {
             target.stunned = (target.stunned || 0) + 3.0;
-            showEffect(target.x, target.y - 15, "SHOCKED! ⚡", "#3498db");
           }
         }
         if (gameState.duckgrades.dg_Comet_Glob && p.family === 'Comet_Glob') {
@@ -5214,7 +5469,14 @@ function activateGTack(t) {
         }
         gameState.totalDamage += p.damage;
 
-        if (gameState.duckgrades.dg_Work_Bombot && p.type === 'Work_Bombot' && !p.bounced) {
+        if (p.bounceOnHit && p.bounces < p.bounceLimit) {
+          p.bounces++;
+          p.hitEntities.add(target);
+          const nextTarget = gameState.enemies
+            .filter(e => !p.hitEntities.has(e))
+            .sort((a, b) => Math.hypot(a.x - target.x, a.y - target.y) - Math.hypot(b.x - target.x, b.y - target.y))[0];
+          p.target = nextTarget || null;
+        } else if (gameState.duckgrades.dg_Work_Bombot && p.type === 'Work_Bombot' && !p.bounced) {
           p.bounced = true;
           p.x = target.x; p.y = target.y;
           const nextTarget = gameState.enemies.find(e => e !== target && Math.hypot(e.x - p.x, e.y - p.y) < 100);
@@ -5291,7 +5553,10 @@ function activateGTack(t) {
                   if (gameState.equippedSkins['Pirate_Glob'] === 'froggy_set') {
                     pOpts.filter = 'hue-rotate(120deg) saturate(1.5)';
                   }
-                  shoot({ x: b.x, y: b.y, damage: specialDmg, speed: 2, projectile: 'tumble_bomb' }, targets[0], pOpts);
+                  shoot({
+                    x: b.x, y: b.y, damage: specialDmg, speed: 2, projectile: 'tumble_bomb',
+                    family: b.shooter.family, type: b.shooter.type, aoe: true
+                  }, targets[0], { ...pOpts, bounceOnHit: gameState.duckgrades.dg_Pirate_Glob && (b.summonType === 'Boat_S3' || b.summonType === 'Boat_S4') });
                 } else {
                   b.normalShotsCount++;
                   shoot({ x: b.x, y: b.y, damage: b.damage * 0.5, speed: 4, projectile: 'stone' }, targets[0]);
@@ -5356,6 +5621,7 @@ function activateGTack(t) {
           const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
           if (dist < 10) {
             applyProjectileHit(p, p.target);
+            if (p.bounceOnHit && p.target && p.bounces < p.bounceLimit) continue;
             p.el.remove(); gameState.projectiles.splice(i, 1); continue;
           } else {
             p.vx = (dx / dist) * p.speed;
@@ -5705,6 +5971,9 @@ function activateGTack(t) {
       meta: opts,
       family: shooter.family,
       type: shooter.type,
+      bounceOnHit: !!opts.bounceOnHit,
+      bounces: 0,
+      bounceLimit: opts.bounceOnHit ? 1 : 0,
       projectile: projClass,
       piercing: shooter.piercing || opts.piercing || false,
       boomerang: shooter.boomerang || opts.boomerang || false,
@@ -5731,6 +6000,7 @@ function activateGTack(t) {
       'Leni_the_big_Hammer': 400, 'Monster': 250, 'Cristalized_Monster': 300,
       'Lenistal': 300, 'Crystal_Bombot': 3, 'NO_CrystEye_CB': 3,
       'AstrorbOrbe': 3, 'AstrorbContenida': 3, 'AstrorbTF': 3,
+      'Sharowd': 3, 'Crystalic_Orb': 3,
       // Nuevos enemigos de Sunlight Seaside (Leafy Beach Party)
       'Axolotl_Pyce': 250, 'Shark_Pyce': 250, 'Umbrella_Pyce': 250,
       'Piz': 500, 'Followishers': 250, 'Creamplet': 150
@@ -5837,9 +6107,34 @@ function activateGTack(t) {
   }
 
   function die(e, idx) {
+    if (e.type === 'Sharowd') {
+      finishBlockQuest();
+    }
+
+    if (e.type === 'AstrorbTF' && gameState.mode === 'interstellar' && gameState.paracristalActive && !gameState.paracristalFinal) {
+      gameState.paracristalFinal = true;
+      gameState.paracristalAstrorbSeen = true;
+      gameState.paracristalActive = false;
+      document.querySelectorAll('.paracristal').forEach(crystal => crystal.remove());
+      setTimeout(() => {
+        showMessage(currentLanguage === 'es' ? '💎 ¡Crystalic Orb ha tomado forma!' : '💎 Crystalic Orb has taken shape!', 'warning');
+        spawnEnemy('Crystalic_Orb', true);
+      }, 700);
+    }
+
+    if (e.type === 'Crystalic_Orb') {
+      gameState.paracristalFinal = false;
+      gameState.paracristalActive = false;
+      gameState.unlockedSkins.push('fracstal_set');
+      gameState.unlockedSkins = [...new Set(gameState.unlockedSkins)];
+      showMessage(currentLanguage === 'es' ? '🌌 ¡Dimensión Paralecristal completada! Set Fracstral desbloqueado.' : '🌌 Paralecrystal Dimension complete! Fracstral Set unlocked.', 'success');
+      saveProgress();
+      setTimeout(() => endGame(true), 100);
+    }
+
     if (e.type === 'AstrorbOrbe') {
       showEffect(e.x, e.y, translate('effect_broken_crystal'), "#ff00ff");
-      spawnEnemy('AstrorbContenida', e.currentPath);
+      spawnEnemy('AstrorbContenida', true, e.currentPath);
       const contenida = gameState.enemies[gameState.enemies.length - 1];
       if (contenida) {
         contenida.x = e.x;
@@ -5853,7 +6148,7 @@ function activateGTack(t) {
         // Oleada 40: Transformación a True Form
         showEffect(e.x, e.y, "TRUE FORM AWAKENED!", "#ff00ff");
         showNarratorMsg('astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? "Contemplad... la perfección celestial." : "Behold... celestial perfection.");
-        spawnEnemy('AstrorbTF', e.currentPath);
+        spawnEnemy('AstrorbTF', true, e.currentPath);
         const tf = gameState.enemies[gameState.enemies.length - 1];
         if (tf) {
           tf.x = e.x;
@@ -6198,6 +6493,12 @@ function activateGTack(t) {
     gameState.mimicSpawned = 0;
     gameState.consecutiveMimics = 0;
     gameState.uniquesBossSpawned = {};
+    gameState.blockQuestStarted = false;
+    gameState.blockQuestPending = false;
+    document.querySelectorAll('.block-quest-marker, .paracristal').forEach(el => el.remove());
+    const crystalEnergy = document.getElementById('paracristal-energy');
+    if (crystalEnergy && gameState.mode !== 'interstellar') crystalEnergy.style.display = 'none';
+    if (gameState.mode !== 'interstellar') gameState.paracristalActive = false;
     deselectTower();
     updateUI();
     drawTowerShop();
