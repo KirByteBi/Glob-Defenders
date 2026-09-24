@@ -2573,6 +2573,9 @@ function bindEvents() {
   }
 
   window.addEventListener('resize', applyScale);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', applyScale);
+  }
 }
 
 function saveGameSnapshot() {
@@ -2666,13 +2669,16 @@ function updateResponsiveGameLayout() {
   const gameArea = document.getElementById('game-area');
   if (!wrapper || !gameArea) return;
 
-  const compactLayout = window.matchMedia('(max-width: 1100px) and (orientation: landscape)').matches;
+  const viewport = window.visualViewport;
+  const viewportWidth = viewport ? viewport.width : document.documentElement.clientWidth;
+  const viewportHeight = viewport ? viewport.height : document.documentElement.clientHeight;
+  const compactLayout = viewportWidth <= 1100 && viewportWidth > viewportHeight;
   if (!compactLayout) return;
 
   const shopWidth = 76;
   const topOffset = 42;
-  const availableWidth = Math.max(320, window.innerWidth - shopWidth - 8);
-  const availableHeight = Math.max(220, window.innerHeight - topOffset - 4);
+  const availableWidth = Math.max(320, viewportWidth - shopWidth - 8);
+  const availableHeight = Math.max(220, viewportHeight - topOffset - 4);
   const scale = Math.min(availableWidth / 1000, availableHeight / 600);
 
   wrapper.style.width = `${availableWidth}px`;
@@ -2689,7 +2695,12 @@ function applyScale() {
   const container = document.getElementById('game-container');
   if (!container) return;
 
-  if (window.matchMedia('(max-width: 1100px) and (orientation: landscape)').matches) {
+  const viewport = window.visualViewport;
+  const viewportWidth = viewport ? viewport.width : document.documentElement.clientWidth;
+  const viewportHeight = viewport ? viewport.height : document.documentElement.clientHeight;
+  const compactLayout = viewportWidth <= 1100 && viewportWidth > viewportHeight;
+
+  if (compactLayout) {
     container.style.transform = 'none';
     container.style.marginTop = '0';
     updateResponsiveGameLayout();
@@ -2714,8 +2725,8 @@ function applyScale() {
 
   const cWidth = 1000;
   const cHeight = container.scrollHeight;
-  const availW = window.innerWidth;
-  const availH = window.innerHeight;
+  const availW = viewportWidth;
+  const availH = viewportHeight;
 
   const scaleW = availW / cWidth;
   const scaleH = availH / cHeight;
