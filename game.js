@@ -1759,6 +1759,13 @@ function setupOwnerDebugTools() {
     const results = [...registeredSpeakers, ...fallbackSpeakers]
       .filter(result => result.score > 0)
       .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+
+    if (!results.some(result => result.id === (selectedSpeaker && selectedSpeaker.id))) {
+      selectedSpeaker = null;
+      showDialogueButton.disabled = true;
+      mysteryBugOptions.hidden = true;
+    }
+
     renderDebugSearchResults(speakerResults, results, result => {
       selectedSpeaker = result;
       showDialogueButton.disabled = false;
