@@ -3571,20 +3571,24 @@ function bindEvents() {
   document.getElementById('debug-add-resources')?.addEventListener('click', () => {
     if (!isOwnerDebugUser()) return;
     const value = id => Math.max(0, Number(document.getElementById(id)?.value) || 0);
+    gameState.globetines += value('debug-globetines');
     gameState.pycoins += value('debug-pycoins');
     gameState.duckPassCurrency += value('debug-duckpass');
     gameState.duckPassXP += value('debug-xp');
     gameState.duckPassLevel = Math.max(gameState.duckPassLevel, value('debug-level') || 1);
+    updateUI();
     updateMetaUI();
     saveProgress();
     showMessage('👑 OWNER DEBUG: recursos añadidos.', 'success');
   });
   document.getElementById('debug-max-resources')?.addEventListener('click', () => {
     if (!isOwnerDebugUser()) return;
+    gameState.globetines = 999999;
     gameState.pycoins = 999999;
     gameState.duckPassCurrency = 999999;
     gameState.duckPassXP = 999999;
     gameState.duckPassLevel = 100;
+    updateUI();
     updateMetaUI();
     saveProgress();
     showMessage('👑 OWNER DEBUG: recursos al máximo.', 'success');
