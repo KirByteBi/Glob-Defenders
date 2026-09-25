@@ -1998,6 +1998,17 @@ function setupOwnerDebugTools() {
     );
     mysteryBugOptions.hidden = !hasMysteryBugSelected;
   };
+  const mysteryBugSearchAliases = [
+    'mysterybug',
+    'mysterybug_custom',
+    'jerry',
+    'astral_exclamation',
+    'astralexclamation',
+    'error_entity',
+    'error',
+    'login_guy',
+    'loginguy'
+  ];
 
   setupOwnerDebugPanelDrag();
 
@@ -2027,6 +2038,7 @@ function setupOwnerDebugTools() {
     const query = speakerSearch.value;
     const narratorData = typeof NARRATOR_DATA === 'object' ? NARRATOR_DATA : {};
     const registeredSpeakers = Object.entries(narratorData)
+      .filter(([id]) => id === 'mysterybug' || !mysteryBugSearchAliases.includes(id))
       .map(([id, data]) => {
         const languageData = data[currentLanguage] || data.es || data.en || {};
         const mysteryBugLabel = mysteryBugName?.value.trim() || '???';
@@ -2038,7 +2050,7 @@ function setupOwnerDebugTools() {
           score: debugSearchScore(
             query,
             id === 'mysterybug'
-              ? [...getSpeakerDebugAliases(id, data, languageData), mysteryBugLabel]
+              ? [...getSpeakerDebugAliases(id, data, languageData), mysteryBugLabel, ...mysteryBugSearchAliases]
               : getSpeakerDebugAliases(id, data, languageData)
           )
         };
