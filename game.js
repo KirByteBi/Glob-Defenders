@@ -288,7 +288,9 @@ function saveProgress() {
     blockQuestHadBlockTales: gameState.blockQuestHadBlockTales,
     paracristalEnergy: gameState.paracristalEnergy,
     paracristalFinal: gameState.paracristalFinal,
+    upgradesResetV3: true,
     upgradesResetV4: true,
+    upgradesResetV5: true,
     pycesKilled: gameState.pycesKilled,
     globsPlaced: gameState.globsPlaced,
     mimicSpawned: gameState.mimicSpawned,
@@ -5729,7 +5731,12 @@ function activateGTack(t) {
     el.style.backgroundPosition = 'center';
     el.style.zIndex = '6';
 
-    document.getElementById('game-map').appendChild(el);
+    const mapElement = document.getElementById('map');
+    if (!mapElement) {
+      console.error('No se pudo crear el summon de Marina: no existe el contenedor del mapa.');
+      return;
+    }
+    mapElement.appendChild(el);
 
     const boat = {
       el: el,
@@ -6595,7 +6602,9 @@ function activateGTack(t) {
               });
             } else if (gameState.duckgrades.dg_Grey && t.type === 'Pyce_Glob' && Math.random() < 0.2) {
               for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-                shoot(t, { x: t.x + Math.cos(a) * 100, y: t.y + Math.sin(a) * 100, health: 999 }, { damage: dmg });
+                const radialTarget = { x: t.x + Math.cos(a) * 100, y: t.y + Math.sin(a) * 100, health: 999 };
+                const specialAttack = getSpecialAttack(t, radialTarget, dmg);
+                if (!specialAttack) shoot(t, radialTarget, { damage: dmg });
               }
             } else {
               const specialAttack = getSpecialAttack(t, targets[0], dmg);
