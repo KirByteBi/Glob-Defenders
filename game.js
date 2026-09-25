@@ -5723,6 +5723,17 @@ function activateGTack(t) {
       type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
     }
 
+    const currentWave = gameState.wave || 1;
+    const selectedType = ENEMY_TYPES[type];
+    if (!boss && currentWave < 10 && selectedType?.stealth) {
+      const mapBalance = ENEMY_BALANCE[gameState.map || 'gelatin_lake'];
+      const earlyPool = (mapBalance?.basic || ['Stupid_Pyce'])
+        .filter(enemyType => ENEMY_TYPES[enemyType] && !ENEMY_TYPES[enemyType].stealth);
+      const fallbackType = earlyPool[Math.floor(Math.random() * earlyPool.length)] || 'Stupid_Pyce';
+      console.warn(`Enemigo invisible bloqueado antes de la oleada 10: ${type}. Se reemplaza por ${fallbackType}.`);
+      type = fallbackType;
+    }
+
     const t = ENEMY_TYPES[type];
     if (!t) return console.warn("Enemy type missing:", type);
     const mapBalance = ENEMY_BALANCE[gameState.map || 'gelatin_lake'];
@@ -6350,6 +6361,23 @@ function activateGTack(t) {
             }
           }
         }
+        if (['NO_CrystEye_CB', 'AstrorbOrbe', 'AstrorbContenida', 'Crystalic_Orb'].includes(e.type)) {
+          e.crystalMeteorTimer = (e.crystalMeteorTimer || 0) + dt;
+          const attackInterval = e.type === 'NO_CrystEye_CB' ? 8 : 5;
+          if (e.crystalMeteorTimer > attackInterval) {
+            e.crystalMeteorTimer = 0;
+            if (gameState.towers.length > 0) {
+              const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
+              const isFinalAstrorb = e.type === 'Crystalic_Orb';
+              shoot(e, targetTower, {
+                isEnemy: true,
+                image: 'img/Proyectiles/Crystal Metor.png',
+                speed: isFinalAstrorb ? 4 : e.type === 'NO_CrystEye_CB' ? 3.5 : 3,
+                stun: isFinalAstrorb ? 4 : e.type === 'NO_CrystEye_CB' ? 2.5 : 3
+              });
+            }
+          }
+        }
         if (e.honeySlow || e.blueHoneySlow) {
           e.attackTimer1 = (e.attackTimer1 || 0) + dt;
           if (e.attackTimer1 > 4) {
@@ -6694,11 +6722,17 @@ function activateGTack(t) {
             const marineGtackActive = t.family === 'Pirate_Glob' && t.marineGtackTimer > 0;
             if (marineGtackActive) {
               const useIexGlob = Math.random() < 0.2;
-              const projectileImage = useIexGlob ? IMAGE_PATHS.TNT_Glob : IMAGE_PATHS.Bomb_Glob;
+              const specialType = useIexGlob ? 'TNT_Glob' : 'Bomb_Glob';
               const bombShooter = { ...t, aoe: true, projectile: 'tumble_bomb' };
               const attackTarget = targets[0] || gameState.enemies[0];
               if (attackTarget) {
-                shoot(bombShooter, attackTarget, { damage: dmg * (useIexGlob ? 2 : 1.25), projectile: 'tumble_bomb', image: projectileImage });
+                shoot(bombShooter, attackTarget, {
+                  damage: dmg * (useIexGlob ? 2 : 1.25),
+                  projectile: 'tumble_bomb',
+                  image: 'img/Proyectiles/Proyectil_Bomba.png',
+                  boatBomb: true,
+                  bombType: specialType
+                });
               }
             }
             if (t.isSummoner) {
@@ -6809,6 +6843,9 @@ function activateGTack(t) {
           target.health -= dmg;
           if (p.family !== 'IEx') target.nonIExDamage = true;
         }
+        if (p.meta?.boatBomb) {
+          showBoatBombExplosion(target.x, target.y, p.meta.bombType);
+        }
         gameState.totalDamage += p.damage;
 
         if (p.bounceOnHit && p.bounces < p.bounceLimit) {
@@ -6912,7 +6949,8 @@ function activateGTack(t) {
 
                 if (isSpecial) {
                   b.normalShotsCount = 0;
-                  let pOpts = { image: projImg };
+                  const bombProjectileImage = 'img/Proyectiles/Proyectil_Bomba.png';
+                  let pOpts = { image: bombProjectileImage, boatBomb: true, bombType: specialType };
                   if (gameState.equippedSkins['Pirate_Glob'] === 'froggy_set') {
                     pOpts.filter = 'hue-rotate(120deg) saturate(1.5)';
                   }
@@ -7809,6 +7847,47 @@ function activateGTack(t) {
   function showEffect(x, y, text) {
     const el = document.createElement('div'); el.className = 'money-popup'; el.style.left = x + 'px'; el.style.top = y + 'px'; el.textContent = text;
     document.getElementById('map').appendChild(el); setTimeout(() => el.remove(), 1000);
+  }
+
+  function showBoatBombExplosion(x, y, bombType) {
+    let image = 'img/Proyectiles/Explosion Effect.png';
+    let size = 110;
+    if (gameState.equippedSkins['IEx'] === 'fracstal_set') {
+      if (bombType === 'Bomb_Glob') {
+        image = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystal Explosion (1).png';
+        size = 110;
+      } else if (bombType === 'TNT_Glob') {
+        image = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystor Kaboom (2).png';
+        size = 140;
+      } else if (bombType === 'Nuclear_Glob') {
+        image = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Nuclear Crystal (3).png';
+        size = 190;
+      }
+    } else if (bombType === 'TNT_Glob') {
+      size = 140;
+    } else if (bombType === 'Nuclear_Glob') {
+      size = 190;
+    }
+
+    const map = document.getElementById('map');
+    if (!map) return;
+    const explosion = document.createElement('div');
+    explosion.style.cssText = [
+      'position:absolute',
+      `left:${x}px`,
+      `top:${y}px`,
+      `width:${size}px`,
+      `height:${size}px`,
+      'transform:translate(-50%,-50%) scale(0.2)',
+      `background:url('${encodeURI(image)}') center/contain no-repeat`,
+      'z-index:35',
+      'pointer-events:none',
+      'transition:transform 0.15s cubic-bezier(0.175,0.885,0.32,1.275),opacity 0.3s ease-out 0.15s'
+    ].join(';');
+    map.appendChild(explosion);
+    setTimeout(() => { explosion.style.transform = 'translate(-50%,-50%) scale(1)'; }, 10);
+    setTimeout(() => { explosion.style.opacity = '0'; }, 150);
+    setTimeout(() => { explosion.remove(); }, 500);
   }
 
   function getTowerImage(type) {
