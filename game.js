@@ -5791,12 +5791,11 @@ function activateGTack(t) {
       skinSet.skins &&
       Object.keys(skinSet.skins).some(key => key.startsWith('Boat_'))
     );
-    if (hasCustomSummons && !hasCustomSummonSkin) {
-      console.error(`La skin ${equippedSkin} no tiene summon configurado para ${summonType}; se cancela la invocación base.`);
-      return;
-    }
     if (hasCustomSummonSkin) {
       imagePath = skinSet.skins[summonType];
+    } else if (hasCustomSummons) {
+      imagePath = IMAGE_PATHS[summonType];
+      console.warn(`La skin ${equippedSkin} no tiene summon para ${summonType}; se usa el summon base como fallback.`);
     }
     
     if (!hasCustomSummonSkin && summonType === 'Boat_S1' && Math.random() < 0.3) {
