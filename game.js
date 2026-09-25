@@ -1,6 +1,9 @@
 // ===================== ESTADO DEL JUEGO =====================
 
 let currentLanguage = 'es';
+let backgroundMusic = null;
+let musicEnabled = true;
+let showHitbox = false;
 
 // Generamos spots automáticamente evitando el río y el camino
 const TOWER_SPOTS = [];
