@@ -2092,8 +2092,7 @@ input:checked + .slider:before {
     color: #fff;
 }
 
-.narrator-bubble.speaker-mysterybug .narrator-portrait,
-.narrator-bubble.speaker-astral_exclamation .narrator-portrait {
+.narrator-bubble.image-blacked-out .narrator-portrait {
     filter: brightness(0) drop-shadow(0 0 8px currentColor);
 }
 

@@ -1083,14 +1083,14 @@ function handleLogoClick(logo) {
     const message = messagePool[Math.floor(Math.random() * messagePool.length)];
     mysteryBugRecentMessages.push(message);
     if (mysteryBugRecentMessages.length > 2) mysteryBugRecentMessages.shift();
-    showNarratorMsg('mysterybug', NARRATOR_DATA.mysterybug.img, '???', message);
+    showNarratorMsg('mysterybug', `${NARRATOR_DATA.mysterybug.img}|blacked-out`, '???', message);
   }
 
   function showPostAntiNormalMysteryMessage() {
     const message = currentLanguage === 'en'
       ? 'IF YOU ALREADY BEAT THE MODE... WHY ARE YOU STILL TOUCHING ME?! Maybe I should find another job.'
       : 'SI YA TE PASASTE EL MODO... ¡¡PARA QUE ME TOCAS!! Quizás debería buscarme otro trabajo.';
-    showNarratorMsg('mysterybug', NARRATOR_DATA.mysterybug.img, '???', message);
+    showNarratorMsg('mysterybug', `${NARRATOR_DATA.mysterybug.img}|blacked-out`, '???', message);
   }
 
   if (antiNormalRewardActive) {
@@ -1105,7 +1105,7 @@ function handleLogoClick(logo) {
 function showCollectionMasterDialogue() {
   showNarratorMsg(
     'mysterybug',
-    NARRATOR_DATA.mysterybug.img,
+    `${NARRATOR_DATA.mysterybug.img}|blacked-out`,
     '???',
     currentLanguage === 'en'
       ? 'Phew, my work here is finished. Jerry, it is time to begin the digitalization and immortality collection plan.'
@@ -1949,7 +1949,15 @@ function setupOwnerDebugTools() {
   const savedMysteryBugName = localStorage.getItem('glob_mysterybug_name');
   const savedMysteryBugImage = localStorage.getItem('glob_mysterybug_image');
   if (mysteryBugName && savedMysteryBugName) mysteryBugName.value = savedMysteryBugName;
-  if (mysteryBugImage && ['img/Sellos/MysteryBug.png', 'img/Sellos/AstralExclamation.png'].includes(savedMysteryBugImage)) {
+  const mysteryBugImageOptions = [
+    'img/Sellos/MysteryBug.png|blacked-out',
+    'img/Sellos/MysteryBug.png',
+    'img/Sellos/AstralExclamation.png|blacked-out',
+    'img/Sellos/AstralExclamation.png',
+    'Misiones (2026)/Elementos/ZONESUBJECT.gif|blacked-out',
+    'Misiones (2026)/Elementos/ZONESUBJECT.gif'
+  ];
+  if (mysteryBugImage && mysteryBugImageOptions.includes(savedMysteryBugImage)) {
     mysteryBugImage.value = savedMysteryBugImage;
   }
   const updateMysteryBugOptions = () => {
@@ -1994,7 +2002,7 @@ function setupOwnerDebugTools() {
         const mysteryBugLabel = mysteryBugName?.value.trim() || '???';
         return {
           id,
-          image: id === 'mysterybug' ? (mysteryBugImage?.value || data.img) : data.img,
+          image: data.img,
           label: id === 'mysterybug' ? mysteryBugLabel : (languageData.name || id),
           isFallback: false,
           score: debugSearchScore(
@@ -5845,11 +5853,13 @@ function activateGTack(t) {
     if (old) old.remove();
     if (narratorTimeout) clearTimeout(narratorTimeout);
 
+    const isBlackedOut = imgSrc.endsWith('|blacked-out');
+    const renderedImgSrc = isBlackedOut ? imgSrc.replace(/\|blacked-out$/, '') : imgSrc;
     const bubble = document.createElement('div');
     bubble.id = 'narrator-bubble';
-    bubble.className = `narrator-bubble narrator-enter speaker-${speakerId}${variant ? ` ${variant}` : ''}`;
+    bubble.className = `narrator-bubble narrator-enter speaker-${speakerId}${isBlackedOut ? ' image-blacked-out' : ''}${variant ? ` ${variant}` : ''}`;
     bubble.innerHTML = `
-    <img src="${imgSrc}" class="narrator-portrait" onerror="this.style.display='none'">
+    <img src="${renderedImgSrc}" class="narrator-portrait" onerror="this.style.display='none'">
     <div class="narrator-text-box">
       <div class="narrator-name">${speakerName}</div>
       <div class="narrator-text" aria-live="polite"></div>
@@ -8466,6 +8476,5 @@ function activateGTack(t) {
   }
 
   window.onload = init;
-
 
 
