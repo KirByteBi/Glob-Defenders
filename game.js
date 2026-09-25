@@ -5781,7 +5781,20 @@ function activateGTack(t) {
     const skinSet = equippedSkin && SKINS_DATA[tower.family]
       ? SKINS_DATA[tower.family].find(skin => skin.id === equippedSkin)
       : null;
-    const hasCustomSummonSkin = !!(skinSet?.isSpecial && skinSet.skins?.[summonType]);
+    const hasCustomSummonSkin = Boolean(
+      skinSet?.isSpecial &&
+      skinSet.skins &&
+      Object.prototype.hasOwnProperty.call(skinSet.skins, summonType)
+    );
+    const hasCustomSummons = Boolean(
+      skinSet?.isSpecial &&
+      skinSet.skins &&
+      Object.keys(skinSet.skins).some(key => key.startsWith('Boat_'))
+    );
+    if (hasCustomSummons && !hasCustomSummonSkin) {
+      console.error(`La skin ${equippedSkin} no tiene summon configurado para ${summonType}; se cancela la invocación base.`);
+      return;
+    }
     if (hasCustomSummonSkin) {
       imagePath = skinSet.skins[summonType];
     }
