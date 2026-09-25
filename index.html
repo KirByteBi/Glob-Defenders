@@ -147,6 +147,7 @@
             <div class="controls">
                 <button id="start-wave">▶️ <span class="btn-text">Iniciar Oleada</span></button>
                 <button id="auto-wave">🔁 <span class="btn-text">Auto-Oleada</span></button>
+                <button id="pause-game" type="button">⏸️ <span class="btn-text">Pausa</span></button>
                 <button id="deselect-tower">❌ <span class="btn-text">Cancelar</span></button>
             </div>
         </div>
@@ -181,6 +182,7 @@
                         <h2 data-i18n="gameOver">💀 GAME OVER 💀</h2>
                         <p id="game-over-msg">Llegaste a la oleada <span id="final-wave">0</span></p>
                         <div class="game-over-actions">
+                            <button id="resume-game" class="retry-btn" onclick="resumeGame()" style="display:none;">▶️ <span class="btn-text">Reanudar</span></button>
                             <button class="retry-btn" onclick="retryGame()">🔄 <span class="btn-text" data-i18n="playAgain">Reintentar</span></button>
                             <button class="mode-select-btn" onclick="chooseModeAfterGame()">⚔️ <span class="btn-text" data-i18n="choose_mode">Elegir modo</span></button>
                             <button class="map-select-btn" onclick="chooseMapAfterGame()">🗺️ <span class="btn-text" data-i18n="choose_map">Elegir mapa</span></button>

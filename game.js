@@ -67,7 +67,7 @@ let gameState = {
   health: 100, wave: 0,
   towers: [], enemies: [], projectiles: [], boats: [],
   selectedTowerType: null, waveActive: false, spawningActive: false,
-  gameOver: false, adminMode: false, autoWave: false,
+  gameOver: false, paused: false, adminMode: false, autoWave: false,
   towerSpots: [],
   mode: 'normal',
   map: 'gelatin_lake',
@@ -3170,6 +3170,7 @@ function selectAlmanacItem(id, category) {
 }
 
 function bindEvents() {
+  document.getElementById('pause-game')?.addEventListener('click', pauseGame);
   document.getElementById('login-btn').onclick = handleLogin;
   const createAccountButton = document.getElementById('create-account-btn');
   if (createAccountButton) createAccountButton.onclick = handleCreateAccount;
@@ -5260,7 +5261,7 @@ function activateGTack(t) {
     console.log("mode:", gameState.mode);
     console.log("maxWaves:", gameState.maxWaves);
 
-    if (gameState.waveActive || gameState.gameOver) return;
+    if (gameState.waveActive || gameState.gameOver || gameState.paused) return;
 
     let maxWaves = gameState.maxWaves || 20;
     if (gameState.mode === 'pesadilla') maxWaves = 50;
@@ -5722,6 +5723,7 @@ function activateGTack(t) {
       ? Math.max(240, 650 - Math.min(420, wave * 22))
       : Math.max(300, 800 - Math.min(500, wave * 25));
     const interval = setInterval(() => {
+      if (gameState.paused) return;
       if (gameState.gameOver || !gameState.waveActive) {
         clearInterval(interval);
         gameState.spawningActive = false;
@@ -6128,6 +6130,10 @@ function activateGTack(t) {
 
   function gameLoop(timestamp = performance.now()) {
     if (gameState.gameOver) return;
+    if (gameState.paused) {
+      requestAnimationFrame(gameLoop);
+      return;
+    }
     try {
       const elapsed = lastGameFrameTime ? (timestamp - lastGameFrameTime) / 1000 : 1 / 60;
       const dt = Math.min(0.05, Math.max(1 / 120, elapsed));
@@ -8038,6 +8044,7 @@ function activateGTack(t) {
   }
 
   function retryGame() {
+    gameState.paused = false;
     if (gameState.mode === 'interstellar') {
       gameState.health = 200;
     } else {
@@ -8078,8 +8085,41 @@ function activateGTack(t) {
     updateUI();
     drawTowerShop();
     const content = document.querySelector('#game-over .modal-content');
-    if (content) content.classList.remove('victory');
+    if (content) content.classList.remove('victory', 'paused');
+    const resumeButton = document.getElementById('resume-game');
+    if (resumeButton) resumeButton.style.display = 'none';
+    document.querySelector('#game-over .mode-select-btn')?.style.removeProperty('display');
+    document.querySelector('#game-over .map-select-btn')?.style.removeProperty('display');
+    document.querySelector('#game-over .retry-btn:not(#resume-game)')?.style.removeProperty('display');
     document.getElementById('game-over').style.display = 'none';
+  }
+
+  function pauseGame() {
+    if (gameState.gameOver || gameState.paused) return;
+    gameState.paused = true;
+    const modal = document.getElementById('game-over');
+    const content = modal?.querySelector('.modal-content');
+    const title = modal?.querySelector('h2');
+    const message = document.getElementById('game-over-msg');
+    if (content) content.classList.add('paused');
+    if (title) title.textContent = currentLanguage === 'es' ? '⏸️ JUEGO EN PAUSA' : '⏸️ GAME PAUSED';
+    if (message) message.textContent = currentLanguage === 'es'
+      ? `Partida detenida en la oleada ${gameState.wave}.`
+      : `Game paused on wave ${gameState.wave}.`;
+    document.getElementById('resume-game').style.display = 'inline-flex';
+    modal.querySelector('.retry-btn:not(#resume-game)').style.display = 'none';
+    modal.querySelector('.mode-select-btn').style.display = 'none';
+    modal.querySelector('.map-select-btn').style.display = 'none';
+    modal.style.display = 'flex';
+  }
+
+  function resumeGame() {
+    if (!gameState.paused) return;
+    gameState.paused = false;
+    lastGameFrameTime = performance.now();
+    document.getElementById('game-over').style.display = 'none';
+    const content = document.querySelector('#game-over .modal-content');
+    if (content) content.classList.remove('paused');
   }
 
   function chooseModeAfterGame() {
@@ -8095,6 +8135,7 @@ function activateGTack(t) {
   }
 
   function exitToLogin() {
+    gameState.paused = false;
     retryGame();
     gameState.mode = null;
     gameState.map = null;
@@ -8108,6 +8149,7 @@ function activateGTack(t) {
 
   function endGame(victory = false) {
     gameState.gameOver = true;
+    gameState.paused = false;
     gameState.spawningActive = false;
     const modal = document.getElementById('game-over');
     if (!modal) return;
@@ -8116,6 +8158,9 @@ function activateGTack(t) {
     const title = modal.querySelector('h2');
     const msg = document.getElementById('game-over-msg');
     const content = modal.querySelector('.modal-content');
+    content?.classList.remove('paused');
+    const resumeButton = document.getElementById('resume-game');
+    if (resumeButton) resumeButton.style.display = 'none';
 
     if (victory) {
       if (content) content.classList.add('victory');
