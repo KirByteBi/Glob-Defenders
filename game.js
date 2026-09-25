@@ -5737,13 +5737,14 @@ function activateGTack(t) {
     const skinSet = equippedSkin && SKINS_DATA[tower.family]
       ? SKINS_DATA[tower.family].find(skin => skin.id === equippedSkin)
       : null;
-    if (skinSet?.isSpecial && skinSet.skins?.[summonType]) {
+    const hasCustomSummonSkin = !!(skinSet?.isSpecial && skinSet.skins?.[summonType]);
+    if (hasCustomSummonSkin) {
       imagePath = skinSet.skins[summonType];
     }
     
-    if (summonType === 'Boat_S1' && Math.random() < 0.3) {
+    if (!hasCustomSummonSkin && summonType === 'Boat_S1' && Math.random() < 0.3) {
       imagePath = IMAGE_PATHS['Boat_S1_Broken'];
-    } else if (summonType === 'Boat_S2' && Math.random() < 0.3) {
+    } else if (!hasCustomSummonSkin && summonType === 'Boat_S2' && Math.random() < 0.3) {
       imagePath = IMAGE_PATHS['Boat_S2_Destroyed'];
     }
 
