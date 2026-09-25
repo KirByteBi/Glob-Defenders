@@ -2232,7 +2232,8 @@ function drawTowerShop() {
     'Worker_Glob':  { type: 'Worker_Glob', unlocked: true },
     'Balloon_Glob': { type: 'Balloon_Glob', unlocked: true },
     'Streamer_Glob':{ type: 'Streamer_Glob', unlocked: true },
-    'Bomb_Glob':    { type: 'Bomb_Glob', unlocked: true }
+    'Bomb_Glob':    { type: 'Bomb_Glob', unlocked: true },
+    'Pirate_Glob':  { type: 'Pirate_Glob', unlocked: !!(TOWER_TYPES['Pirate_Glob'] && TOWER_TYPES['Pirate_Glob'].unlocked), req: 'shop' }
   };
 
   const shopTowers = (gameState.equippedTowers || ['Glob', 'Red_Glob']).map(t => allShopTowers[t]).filter(Boolean);
@@ -4063,7 +4064,7 @@ function drawShop() {
     if (!window.activeSkinFilter) window.activeSkinFilter = 'all';
 
     const missionSkinIds = ['corrupt_swords_set', 'fracstal_set', 'old_tycoon_set', 'cuby_bombot'];
-    const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set'];
+    const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set', 'froggy_set'];
     const storeUnlockableIds = [...missionSkinIds, ...otherNewSkinIds];
 
     const filterDiv = document.createElement('div');
@@ -8476,5 +8477,3 @@ function activateGTack(t) {
   }
 
   window.onload = init;
-
-
