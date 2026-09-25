@@ -213,6 +213,7 @@ function init() {
     }
     updateLanguage();
     bindEvents();
+    scheduleSkipLoginButton();
     spawnDecorations('login-decorations');
     spawnDecorations('mode-decorations');
     updateMuteButton();
@@ -543,6 +544,30 @@ function checkLogin() {
       loadProgress(savedName);
     }
   } catch (e) { console.warn("LocalStorage no disponible"); }
+}
+
+function scheduleSkipLoginButton() {
+  const skipButton = document.getElementById('skip-login-btn');
+  if (!skipButton) return;
+  setTimeout(() => {
+    if (document.getElementById('login-screen')?.style.display !== 'none') {
+      skipButton.style.display = 'block';
+    }
+  }, 1500);
+}
+
+function handleSkipLogin() {
+  const guestName = 'guest';
+  if (!USERS[guestName]) {
+    USERS[guestName] = `guest-${Date.now()}`;
+    saveUsers();
+  }
+
+  const nameInput = document.getElementById('username-input');
+  const passInput = document.getElementById('password-input');
+  if (nameInput) nameInput.value = guestName;
+  if (passInput) passInput.value = USERS[guestName];
+  handleLogin();
 }
 
 const LOADING_TIPS = {
@@ -3108,6 +3133,8 @@ function bindEvents() {
   document.getElementById('login-btn').onclick = handleLogin;
   const createAccountButton = document.getElementById('create-account-btn');
   if (createAccountButton) createAccountButton.onclick = handleCreateAccount;
+  const skipLoginButton = document.getElementById('skip-login-btn');
+  if (skipLoginButton) skipLoginButton.onclick = handleSkipLogin;
   const nameInput = document.getElementById('username-input');
   if (nameInput) {
     nameInput.addEventListener('input', () => {
@@ -4766,9 +4793,8 @@ function placeTower(spotId, type) {
   if (gameState.globetines < cost) return showMessage(translate('notEnoughMoney'), 'error');
 
   const el = document.createElement('div');
-  const newGlobFamilies = ['Balloon_Glob', 'Streamer_Glob', 'Worker_Glob', 'Bomb_Glob', 'Sprout_Glob', 'Pirate_Glob'];
   const towerFamily = tCfg.family || type;
-  const idleClass = newGlobFamilies.includes(towerFamily) ? 'idle-wobble' : 'idle-jump';
+  const idleClass = 'idle-jump';
   el.className = `tower ${idleClass}`; el.style.left = `${spot.x}px`; el.style.top = `${spot.y}px`;
   el.style.setProperty('--idle-delay', `${-(Math.random() * 1.5).toFixed(2)}s`);
   el.style.backgroundImage = `url('${encodeURI(getTowerImage(type))}')`;
@@ -5731,7 +5757,7 @@ function activateGTack(t) {
     el.style.backgroundPosition = 'center';
     el.style.zIndex = '6';
 
-    const mapElement = document.getElementById('map');
+    const mapElement = document.getElementById('map') || document.getElementById('game-area');
     if (!mapElement) {
       console.error('No se pudo crear el summon de Marina: no existe el contenedor del mapa.');
       return;
@@ -5760,8 +5786,16 @@ function activateGTack(t) {
 
   let seenEnemyDialogues = {};
 
+  function isBossDialogueAllowed(type) {
+    if (type === 'Arky') return !['corrupto', 'antiNormal'].includes(gameState.mode);
+    if (type === 'ArkyVoid') return gameState.mode === 'corrupto';
+    if (type === 'CrystArky') return gameState.mode === 'antiNormal';
+    return true;
+  }
+
   function checkEnemyDialogues(type) {
     if (seenEnemyDialogues[type] || document.getElementById('narrator-bubble')) return;
+    if (!isBossDialogueAllowed(type)) return;
 
     const triggers = {
       'Guest_Pyce': { speaker: 'bombot', index: 1 },
@@ -5838,8 +5872,8 @@ function activateGTack(t) {
       const isUrbanMap = (gameState.map || 'gelatin_lake') === 'urbanistic_road';
 
       if (isUrbanMap) {
-        // En Urbanistic Road: los Arkys son los narradores principales
-        speakers = isCutoff ? ['arky', 'crystarky', 'arkyvoid'] : ['bombot', 'glob', 'arky', 'crystarky'];
+        // En Urbanistic Road, los Arkys solo hablan cuando el jefe correspondiente está presente.
+        speakers = isCutoff ? [] : ['bombot', 'glob'];
       } else if (mode === 'corrupto') {
         speakers = isCutoff ? ['moonstar'] : ['bombot_corrupto', 'moonstar'];
       } else if (mode === 'antiNormal') {
@@ -5853,11 +5887,12 @@ function activateGTack(t) {
         if (gameState.enemies.some(e => e.type === 'NOeye_Pyce') && mode !== 'antiNormal') speakers.push('noeye');
         if (gameState.enemies.some(e => e.type === 'MoonStar_Pyce') && mode !== 'corrupto') speakers.push('moonstar');
       } else {
-        if (gameState.enemies.some(e => e.type === 'Arky')) speakers.push('arky');
-        if (gameState.enemies.some(e => e.type === 'CrystArky')) speakers.push('crystarky');
-        if (gameState.enemies.some(e => e.type === 'ArkyVoid')) speakers.push('arkyvoid');
+        if (gameState.enemies.some(e => e.type === 'Arky' && isBossDialogueAllowed('Arky'))) speakers.push('arky');
+        if (gameState.enemies.some(e => e.type === 'CrystArky' && isBossDialogueAllowed('CrystArky'))) speakers.push('crystarky');
+        if (gameState.enemies.some(e => e.type === 'ArkyVoid' && isBossDialogueAllowed('ArkyVoid'))) speakers.push('arkyvoid');
       }
 
+      if (speakers.length === 0) return;
       const sId = speakers[Math.floor(Math.random() * speakers.length)];
 
       if (sId === 'bombot_corrupto') {

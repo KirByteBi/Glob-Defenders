@@ -3542,17 +3542,17 @@ body.tablet-landscape #options-toggle {
 /* Classic globs: bounce/jump */
 @keyframes idleJump {
     0%, 100% { transform: translate(-50%, -50%) translateY(0px) scaleX(1) scaleY(1); }
-    20%       { transform: translate(-50%, -50%) translateY(-8px) scaleX(0.95) scaleY(1.08); }
-    40%       { transform: translate(-50%, -50%) translateY(-12px) scaleX(0.92) scaleY(1.1); }
-    60%       { transform: translate(-50%, -50%) translateY(-8px) scaleX(0.95) scaleY(1.05); }
-    80%       { transform: translate(-50%, -50%) translateY(-2px) scaleX(1.02) scaleY(0.98); }
+    25%       { transform: translate(-50%, -50%) translateY(-3px) scaleX(0.99) scaleY(1.02); }
+    50%       { transform: translate(-50%, -50%) translateY(-5px) scaleX(0.98) scaleY(1.04); }
+    75%       { transform: translate(-50%, -50%) translateY(-2px) scaleX(1.01) scaleY(0.99); }
 }
 
-/* New globs (balloon, streamer, worker, bomb, sprout, pirate family): sway left-right */
+/* Compatibility class for towers created by older UI code. */
 @keyframes idleWobble {
-    0%, 100% { transform: translate(-50%, -50%) translateX(0px) rotate(0deg); }
-    25%       { transform: translate(-50%, -50%) translateX(-5px) rotate(-3deg); }
-    75%       { transform: translate(-50%, -50%) translateX(5px) rotate(3deg); }
+    0%, 100% { transform: translate(-50%, -50%) translateY(0px) scaleX(1) scaleY(1); }
+    25%       { transform: translate(-50%, -50%) translateY(-3px) scaleX(0.99) scaleY(1.02); }
+    50%       { transform: translate(-50%, -50%) translateY(-5px) scaleX(0.98) scaleY(1.04); }
+    75%       { transform: translate(-50%, -50%) translateY(-2px) scaleX(1.01) scaleY(0.99); }
 }
 
 /* Attack flash pulse */
@@ -3564,12 +3564,12 @@ body.tablet-landscape #options-toggle {
 }
 
 .tower.idle-jump {
-    animation: idleJump 1.6s ease-in-out infinite;
+    animation: idleJump 2.4s ease-in-out infinite;
     animation-delay: var(--idle-delay, 0s);
 }
 
 .tower.idle-wobble {
-    animation: idleWobble 2.2s ease-in-out infinite;
+    animation: idleWobble 2.4s ease-in-out infinite;
     animation-delay: var(--idle-delay, 0s);
 }
 
@@ -3590,13 +3590,12 @@ body.tablet-landscape #options-toggle {
 
 @keyframes idleJumpFlipped {
     0%, 100% { transform: translate(-50%, -50%) scaleX(-1) translateY(0px); filter: brightness(1); }
-    50%       { transform: translate(-50%, -50%) scaleX(-1) translateY(-7px); filter: brightness(1.05); }
+    50%       { transform: translate(-50%, -50%) scaleX(-1) translateY(-4px); filter: brightness(1.03); }
 }
 
 @keyframes idleWobbleFlipped {
-    0%, 100% { transform: translate(-50%, -50%) scaleX(-1) translateX(0px) rotate(0deg); }
-    25%       { transform: translate(-50%, -50%) scaleX(-1) translateX(-5px) rotate(3deg); }
-    75%       { transform: translate(-50%, -50%) scaleX(-1) translateX(5px) rotate(-3deg); }
+    0%, 100% { transform: translate(-50%, -50%) scaleX(-1) translateY(0px); }
+    50%       { transform: translate(-50%, -50%) scaleX(-1) translateY(-4px); filter: brightness(1.03); }
 }
 
 @keyframes attackPulseFlipped {
