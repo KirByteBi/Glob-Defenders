@@ -2221,9 +2221,9 @@ const SKINS_DATA = {
         'BreathKing_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Frogold Glob (SK-EVO3).png',
         'Haunted_Pirate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/King Frog Glob (SK-EVO4).png',
         'Boat_S1': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lillypad (SK-S1).png',
-        'Boat_S2': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lillypad (SK-S1).png',
+        'Boat_S2': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Raft Lillypad (SK-S2).png',
         'Boat_S3': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Flowered Lillypad (SK-S3).png',
-        'Boat_S4': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Flowered Lillypad (SK-S3).png'
+        'Boat_S4': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lotus Lillypads (SK-S4).png'
       },
       names: {
         'Pirate_Glob': 'Tadpole Glob',

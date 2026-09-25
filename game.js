@@ -5733,6 +5733,13 @@ function activateGTack(t) {
     if (!typeDef || !typeDef.summonType) return;
     const summonType = typeDef.summonType;
     let imagePath = IMAGE_PATHS[summonType];
+    const equippedSkin = gameState.equippedSkins[tower.family];
+    const skinSet = equippedSkin && SKINS_DATA[tower.family]
+      ? SKINS_DATA[tower.family].find(skin => skin.id === equippedSkin)
+      : null;
+    if (skinSet?.isSpecial && skinSet.skins?.[summonType]) {
+      imagePath = skinSet.skins[summonType];
+    }
     
     if (summonType === 'Boat_S1' && Math.random() < 0.3) {
       imagePath = IMAGE_PATHS['Boat_S1_Broken'];
@@ -5770,9 +5777,11 @@ function activateGTack(t) {
       y: startPoint.y,
       pathIndex: chosenPath.length - 1,
       currentPath: chosenPath,
-      speed: 100,
+      speed: { Boat_S1: 70, Boat_S2: 85, Boat_S3: 105, Boat_S4: 125 }[summonType] || 70,
       summonType: summonType,
-      damage: tower.damage,
+      damage: tower.damage * ({ Boat_S1: 1, Boat_S2: 1.4, Boat_S3: 2, Boat_S4: 3 }[summonType] || 1),
+      health: { Boat_S1: 100, Boat_S2: 180, Boat_S3: 300, Boat_S4: 500 }[summonType] || 100,
+      maxHealth: { Boat_S1: 100, Boat_S2: 180, Boat_S3: 300, Boat_S4: 500 }[summonType] || 100,
       shooter: tower,
       isBoat: true,
       hitEntities: new Set(),
@@ -6350,6 +6359,10 @@ function activateGTack(t) {
           t.pinkGtackTimer -= dt;
           if (t.pinkGtackTimer < 0) t.pinkGtackTimer = 0;
         }
+        if (t.summonCooldown && t.summonCooldown > 0) {
+          t.summonCooldown -= dt;
+          if (t.summonCooldown < 0) t.summonCooldown = 0;
+        }
         if (t.toxicTimer && t.toxicTimer > 0) {
           t.toxicTimer -= dt;
           if (t.toxicTimer < 0) t.toxicTimer = 0;
@@ -6625,7 +6638,10 @@ function activateGTack(t) {
               const bombShooter = { ...t, aoe: true, projectile: 'tumble_bomb' };
               shoot(bombShooter, targets[0], { damage: dmg * (useIexGlob ? 2 : 1.25), projectile: 'tumble_bomb', image: projectileImage });
             } else if (t.isSummoner) {
-              spawnBoat(t);
+              if (!t.summonCooldown || t.summonCooldown <= 0) {
+                spawnBoat(t);
+                t.summonCooldown = { Boat_S1: 3.5, Boat_S2: 3, Boat_S3: 2.5, Boat_S4: 2 }[t.summonType] || 3;
+              }
             } else if (t.type === 'SpyGlob') {
               let baseAngle = Math.atan2(targets[0].y - t.y, targets[0].x - t.x);
               const angles = [-0.3, 0, 0.3];
@@ -6770,7 +6786,7 @@ function activateGTack(t) {
             b.el.style.left = b.x + 'px';
             b.el.style.top = b.y + 'px';
             const angle = Math.atan2(dy, dx);
-            b.el.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
+            b.el.style.transform = `translate(-50%, -50%) rotate(${angle + Math.PI}rad)`;
           }
 
           gameState.enemies.forEach(e => {
