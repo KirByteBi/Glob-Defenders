@@ -2092,6 +2092,11 @@ input:checked + .slider:before {
     color: #fff;
 }
 
+.narrator-bubble.speaker-mysterybug .narrator-portrait,
+.narrator-bubble.speaker-astral_exclamation .narrator-portrait {
+    filter: brightness(0) drop-shadow(0 0 8px currentColor);
+}
+
 .narrator-bubble.speaker-mysterybug.collection-master {
     border-color: #2196f3;
     box-shadow: 0 0 0 2px #ffd700, 0 0 26px rgba(33, 150, 243, 0.7), 0 0 10px rgba(255, 215, 0, 0.85);

@@ -1080,14 +1080,14 @@ function handleLogoClick(logo) {
     const message = messagePool[Math.floor(Math.random() * messagePool.length)];
     mysteryBugRecentMessages.push(message);
     if (mysteryBugRecentMessages.length > 2) mysteryBugRecentMessages.shift();
-    showNarratorMsg('mysterybug', '', '???', message);
+    showNarratorMsg('mysterybug', NARRATOR_DATA.mysterybug.img, '???', message);
   }
 
   function showPostAntiNormalMysteryMessage() {
     const message = currentLanguage === 'en'
       ? 'IF YOU ALREADY BEAT THE MODE... WHY ARE YOU STILL TOUCHING ME?! Maybe I should find another job.'
       : 'SI YA TE PASASTE EL MODO... ¡¡PARA QUE ME TOCAS!! Quizás debería buscarme otro trabajo.';
-    showNarratorMsg('mysterybug', '', '???', message);
+    showNarratorMsg('mysterybug', NARRATOR_DATA.mysterybug.img, '???', message);
   }
 
   if (antiNormalRewardActive) {
@@ -1102,7 +1102,7 @@ function handleLogoClick(logo) {
 function showCollectionMasterDialogue() {
   showNarratorMsg(
     'mysterybug',
-    '',
+    NARRATOR_DATA.mysterybug.img,
     '???',
     currentLanguage === 'en'
       ? 'Phew, my work here is finished. Jerry, it is time to begin the digitalization and immortality collection plan.'
@@ -2054,11 +2054,9 @@ function setupOwnerDebugTools() {
   enemySearch?.addEventListener('input', searchEnemies);
   speakerSearch?.addEventListener('input', searchSpeakers);
   mysteryBugName?.addEventListener('input', () => {
-    searchSpeakers();
     updateMysteryBugOptions();
   });
   mysteryBugImage?.addEventListener('change', () => {
-    searchSpeakers();
     updateMysteryBugOptions();
   });
   updateMysteryBugOptions();
@@ -8465,7 +8463,6 @@ function activateGTack(t) {
   }
 
   window.onload = init;
-
 
 
 
