@@ -570,6 +570,25 @@ function handleSkipLogin() {
   handleLogin();
 }
 
+function damageBaseFromEnemy(enemy) {
+  let baseDamage = enemy.baseDamage || (enemy.boss ? 10 : 2);
+  if (gameState.mode === 'interstellar' && ENEMY_TYPES[enemy.type]?.isCrystallized) {
+    baseDamage *= 5;
+  }
+  gameState.health = Math.max(0, gameState.health - baseDamage);
+  gameState.baseTookDamage = true;
+  updateUI();
+  if (gameState.health <= 0) endGame();
+}
+
+function skipLoadingScreen() {
+  const loadingScreen = document.getElementById('loading-screen');
+  const mapScreen = document.getElementById('map-selection');
+  if (!loadingScreen || loadingScreen.style.display === 'none') return;
+  loadingScreen.style.display = 'none';
+  if (mapScreen) mapScreen.style.display = 'flex';
+}
+
 const LOADING_TIPS = {
   es: {
     general: [
@@ -812,12 +831,21 @@ function handleLogin() {
     const tipEl = document.getElementById('loading-tip');
     const barFill = document.getElementById('loading-bar-fill');
     const ltEl = document.getElementById('loading-text');
+    const skipLoadingButton = document.getElementById('skip-loading-btn');
     let ltIdx = 0;
     let tipIdx = 0;
     let progress = 0;
 
     if (tipEl) tipEl.textContent = tipList[0] || 'Tip: Elige una familia y aprende su rol.';
     if (barFill) barFill.style.width = '0%';
+    if (skipLoadingButton) {
+      skipLoadingButton.onclick = skipLoadingScreen;
+      setTimeout(() => {
+        if (loadingScreen.style.display !== 'none') {
+          skipLoadingButton.style.display = 'inline-flex';
+        }
+      }, 1500);
+    }
 
     const ltInterval = setInterval(() => {
       ltIdx = (ltIdx + 1) % loadingTexts.length;
@@ -4822,6 +4850,10 @@ function placeTower(spotId, type) {
 
   el.onclick = (e) => { e.stopPropagation(); selectTower(tower); };
   gameState.towers.push(tower);
+  if (tower.isSummoner) {
+    spawnBoat(tower);
+    tower.summonCooldown = { Boat_S1: 3.5, Boat_S2: 3, Boat_S3: 2.5, Boat_S4: 2 }[tower.summonType] || 3;
+  }
   checkTowerCombinationBadges();
   gameState.globetines -= cost;
   gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
@@ -6058,12 +6090,8 @@ function activateGTack(t) {
           if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
           if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
           e.el.remove(); gameState.enemies.splice(i, 1);
-          let baseDmg = e.baseDamage || (e.boss ? 10 : 2);
-          if (gameState.mode === 'interstellar' && ENEMY_TYPES[e.type] && ENEMY_TYPES[e.type].isCrystallized) baseDmg *= 5;
-          gameState.health -= baseDmg;
-          gameState.baseTookDamage = true;
-          if (gameState.health <= 0) { gameState.health = 0; endGame(); }
-          updateUI(); continue;
+          damageBaseFromEnemy(e);
+          continue;
         }
 
         const totalCurrent = e.health + (e.shield || 0);
@@ -7228,7 +7256,15 @@ function activateGTack(t) {
     const tintColor = opts.color || TYPE_COLORS[shooter.type] || FAMILY_COLORS[shooter.family] || (isEnemy ? '#ff4444' : '#FFFFFF');
     const imgUrl = `url('${projImg}')`;
 
-    if (isBomb) {
+    if (opts.image) {
+      el.style.backgroundImage = `url('${encodeURI(opts.image)}')`;
+      el.style.backgroundSize = 'contain';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundColor = 'transparent';
+      el.style.maskImage = 'none';
+      el.style.webkitMaskImage = 'none';
+    } else if (isBomb) {
       el.style.backgroundImage = imgUrl;
       el.style.backgroundSize = '100% 100%';
       el.style.backgroundRepeat = 'no-repeat';
