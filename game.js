@@ -5194,6 +5194,61 @@ function activateGTack(t) {
     }
   }
 
+  function getInfiniteWavePlan(mapKey, wave) {
+    const mapPools = {
+      gelatin_lake: {
+        enemies: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce'],
+        bosses: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce']
+      },
+      urbanistic_road: {
+        enemies: ['BitY1', 'BitG2', 'BitP3', 'BitB4', 'HoloPyce', 'Rebel_Pyce', 'Strechy_Pyce', 'Bomb_Pyce', 'Fireflies', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Cannon_Pycer', 'Knight_Pyce', 'Spyware1', 'Spyware2', 'Spyware3', 'Stupid_GoldPyce', 'Mimic_Pyce'],
+        bosses: ['Arky', 'ArkyVoid', 'CrystArky', 'NOeye_Pyce', 'MoonStar_Pyce']
+      },
+      sunlight_seaside: {
+        enemies: ['Piz', 'Baby_Shrum', 'Ren', 'Pysh', 'Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers', 'Creamplet', 'Umbrella_Pyce', 'Bushi_Brella', 'Stupid_GoldPyce', 'Mimic_Pyce'],
+        bosses: ['PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'NOeye_Pyce', 'MoonStar_Pyce']
+      }
+    };
+    const plan = mapPools[mapKey] || mapPools.gelatin_lake;
+    const availableEnemies = plan.enemies.filter(type => ENEMY_TYPES[type] && !ENEMY_TYPES[type].boss);
+    const availableBosses = plan.bosses.filter(type => ENEMY_TYPES[type] && ENEMY_TYPES[type].boss);
+    const maxProgressionWave = 40;
+    const isBossWave = wave > maxProgressionWave && (wave - maxProgressionWave) % 30 === 0;
+    const bossCycle = Math.floor((wave - maxProgressionWave) / 30);
+    const bossCount = isBossWave ? Math.min(4, Math.max(1, bossCycle)) : 0;
+    const enemiesPerWave = 6 + Math.floor(wave * 0.08);
+    const spawnList = [];
+
+    for (let i = 0; i < enemiesPerWave; i++) {
+      const progress = Math.min(1, wave / maxProgressionWave);
+      const poolStart = Math.floor(progress * Math.max(0, availableEnemies.length - 5));
+      const pool = availableEnemies.slice(0, Math.min(availableEnemies.length, poolStart + 5));
+      spawnList.push(pool[Math.floor(Math.random() * pool.length)] || availableEnemies[0]);
+    }
+
+    const bossesToSpawn = [];
+    if (isBossWave && availableBosses.length > 0) {
+      const shuffledBosses = [...availableBosses].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < bossCount; i++) {
+        bossesToSpawn.push(shuffledBosses[i % shuffledBosses.length]);
+      }
+      spawnList.unshift(...bossesToSpawn);
+    }
+    return { spawnList, bossesToSpawn, isBossWave };
+  }
+
+  function showInfiniteCompletionDucky() {
+    if (document.getElementById('infinite-completion-ducky')) return;
+    const map = document.getElementById('map');
+    if (!map) return;
+    const ducky = document.createElement('div');
+    ducky.id = 'infinite-completion-ducky';
+    ducky.title = currentLanguage === 'es' ? '¡Has alcanzado la oleada 999!' : 'You reached wave 999!';
+    ducky.style.cssText = "position:absolute;left:50%;top:50%;width:110px;height:110px;transform:translate(-50%,-50%);background:url('" + encodeURI(IMAGE_PATHS.Ducky_Glob) + "') center/contain no-repeat;z-index:40;filter:drop-shadow(0 0 12px #ffd700);animation:idle-jump 1.8s ease-in-out infinite;pointer-events:none;";
+    map.appendChild(ducky);
+    showMessage(currentLanguage === 'es' ? '🦆 ¡Ducky Glob ha aparecido! Has superado el Infinito.' : '🦆 Ducky Glob has appeared! You conquered Endless.', 'success');
+  }
+
   function startWave() {
     console.log("🔥 startWave() iniciada");
     console.log("waveActive:", gameState.waveActive);
@@ -5205,6 +5260,13 @@ function activateGTack(t) {
 
     let maxWaves = gameState.maxWaves || 20;
     if (gameState.mode === 'pesadilla') maxWaves = 50;
+    if (gameState.mode === 'infinito' && (gameState.infiniteCompleted || gameState.wave >= 999)) {
+      gameState.infiniteCompleted = true;
+      gameState.autoWave = false;
+      showInfiniteCompletionDucky();
+      updateUI();
+      return;
+    }
 
     if (gameState.mode !== 'infinito' && gameState.wave >= maxWaves) return typeof endGame === 'function' && endGame(true);
 
@@ -5295,6 +5357,7 @@ function activateGTack(t) {
     const spawnList = [];
     let isBossWave = false;
     const bossesToSpawn = [];
+    const mapKey = gameState.map || 'gelatin_lake';
 
     console.log(`📋 Generando oleada ${wave} en modo ${mode} con mult ${mult}`);
 
@@ -5456,10 +5519,13 @@ function activateGTack(t) {
           for (let i = 0; i < count; i++) spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
         }
       }
+    } else if (mode === 'infinito') {
+      const infinitePlan = getInfiniteWavePlan(mapKey, wave);
+      spawnList.push(...infinitePlan.spawnList);
+      bossesToSpawn.push(...infinitePlan.bossesToSpawn);
+      isBossWave = infinitePlan.isBossWave;
     } else {
       // UNIFIED WAVE BRACKET SYSTEM FOR ALL MAPS
-      const mapKey = gameState.map || 'gelatin_lake';
-      
       const MAP_POOLS = {
         gelatin_lake: {
           regular: ['Stupid_Pyce', 'Pyce2'],
@@ -5620,14 +5686,16 @@ function activateGTack(t) {
 
       // Limpiar Jefes únicos
       const UNIQUE_BOSSES = ['NOeye_Pyce', 'MoonStar_Pyce'];
-      UNIQUE_BOSSES.forEach(b => {
-        if (gameState.uniquesBossSpawned && gameState.uniquesBossSpawned[b]) {
-          let idx;
-          while ((idx = spawnList.indexOf(b)) !== -1) spawnList.splice(idx, 1);
-          const bi = bossesToSpawn.indexOf(b);
-          if (bi !== -1) bossesToSpawn.splice(bi, 1);
-        }
-      });
+      if (mode !== 'infinito') {
+        UNIQUE_BOSSES.forEach(b => {
+          if (gameState.uniquesBossSpawned && gameState.uniquesBossSpawned[b]) {
+            let idx;
+            while ((idx = spawnList.indexOf(b)) !== -1) spawnList.splice(idx, 1);
+            const bi = bossesToSpawn.indexOf(b);
+            if (bi !== -1) bossesToSpawn.splice(bi, 1);
+          }
+        });
+      }
       
       if (bossesToSpawn.length === 0 && isBossWave) isBossWave = false;
     }
@@ -5774,6 +5842,7 @@ function activateGTack(t) {
     else if (gameState.mode === 'extremo') mult = 1.6;
     else if (gameState.mode === 'corrupto') mult = 1.8;
     else if (gameState.mode === 'pesadilla') mult = 2.0;
+    else if (gameState.mode === 'infinito') mult = 1.3 + (gameState.wave || 1) * 0.014;
 
     const healthScaled = Math.max(1, (t.health || 10) * (1 + (gameState.wave || 1) * 0.15) * mult);
     const shieldVal = t.shieldRatio ? healthScaled * t.shieldRatio : (t.shield || 0) * (t.health || 10);
@@ -7139,6 +7208,12 @@ function activateGTack(t) {
         if (gameState.wave >= 100) unlockBadge('inf100');
         if (gameState.wave >= 500) unlockBadge('inf500');
         if (gameState.wave >= 999) unlockBadge('inf999');
+        if (gameState.mode === 'infinito' && gameState.wave >= 999) {
+          gameState.wave = 999;
+          gameState.infiniteCompleted = true;
+          gameState.autoWave = false;
+          showInfiniteCompletionDucky();
+        }
         // Badge: titaniumBuilding - no base damage
         if (!gameState.baseTookDamage && gameState.wave >= gameState.maxWaves && gameState.mode !== 'infinito') unlockBadge('titaniumBuilding');
         // Badge: deepSavings - 1500 pycoins and duckpasses
