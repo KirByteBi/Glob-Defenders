@@ -5777,17 +5777,22 @@ function activateGTack(t) {
       y: startPoint.y,
       pathIndex: chosenPath.length - 1,
       currentPath: chosenPath,
-      speed: { Boat_S1: 70, Boat_S2: 85, Boat_S3: 105, Boat_S4: 125 }[summonType] || 70,
+      speed: { Boat_S1: 35, Boat_S2: 45, Boat_S3: 60, Boat_S4: 75 }[summonType] || 35,
       summonType: summonType,
       damage: tower.damage * ({ Boat_S1: 1, Boat_S2: 1.4, Boat_S3: 2, Boat_S4: 3 }[summonType] || 1),
-      health: { Boat_S1: 100, Boat_S2: 180, Boat_S3: 300, Boat_S4: 500 }[summonType] || 100,
-      maxHealth: { Boat_S1: 100, Boat_S2: 180, Boat_S3: 300, Boat_S4: 500 }[summonType] || 100,
+      health: summonType === 'Boat_S4'
+        ? 450 + Math.floor(Math.random() * 51)
+        : ({ Boat_S1: 50, Boat_S2: 120, Boat_S3: 250 }[summonType] || 50),
+      maxHealth: summonType === 'Boat_S4'
+        ? 0
+        : ({ Boat_S1: 50, Boat_S2: 120, Boat_S3: 250 }[summonType] || 50),
       shooter: tower,
       isBoat: true,
       hitEntities: new Set(),
       cooldownTimer: 2.0,
       normalShotsCount: 2
     };
+    boat.maxHealth = boat.health;
 
     gameState.boats = gameState.boats || [];
     gameState.boats.push(boat);
@@ -6360,7 +6365,8 @@ function activateGTack(t) {
           if (t.pinkGtackTimer < 0) t.pinkGtackTimer = 0;
         }
         if (t.summonCooldown && t.summonCooldown > 0) {
-          t.summonCooldown -= dt;
+          const summonCooldownRate = t.marineGtackTimer > 0 ? 0.8 : 1;
+          t.summonCooldown -= dt * summonCooldownRate;
           if (t.summonCooldown < 0) t.summonCooldown = 0;
         }
         if (t.toxicTimer && t.toxicTimer > 0) {
@@ -6632,15 +6638,21 @@ function activateGTack(t) {
               dmg *= (1 + (redCount * 0.1));
             }
 
-            if (t.family === 'Pirate_Glob' && t.marineGtackTimer > 0) {
+            const marineGtackActive = t.family === 'Pirate_Glob' && t.marineGtackTimer > 0;
+            if (marineGtackActive) {
               const useIexGlob = Math.random() < 0.2;
               const projectileImage = useIexGlob ? IMAGE_PATHS.TNT_Glob : IMAGE_PATHS.Bomb_Glob;
               const bombShooter = { ...t, aoe: true, projectile: 'tumble_bomb' };
-              shoot(bombShooter, targets[0], { damage: dmg * (useIexGlob ? 2 : 1.25), projectile: 'tumble_bomb', image: projectileImage });
-            } else if (t.isSummoner) {
+              const attackTarget = targets[0] || gameState.enemies[0];
+              if (attackTarget) {
+                shoot(bombShooter, attackTarget, { damage: dmg * (useIexGlob ? 2 : 1.25), projectile: 'tumble_bomb', image: projectileImage });
+              }
+            }
+            if (t.isSummoner) {
               if (!t.summonCooldown || t.summonCooldown <= 0) {
                 spawnBoat(t);
-                t.summonCooldown = { Boat_S1: 3.5, Boat_S2: 3, Boat_S3: 2.5, Boat_S4: 2 }[t.summonType] || 3;
+                const baseSummonCooldown = { Boat_S1: 3.5, Boat_S2: 3, Boat_S3: 2.5, Boat_S4: 2 }[t.summonType] || 3;
+                t.summonCooldown = baseSummonCooldown;
               }
             } else if (t.type === 'SpyGlob') {
               let baseAngle = Math.atan2(targets[0].y - t.y, targets[0].x - t.x);
@@ -6789,7 +6801,9 @@ function activateGTack(t) {
             b.el.style.transform = `translate(-50%, -50%) rotate(${angle + Math.PI}rad)`;
           }
 
+          let destroyedOnImpact = false;
           gameState.enemies.forEach(e => {
+            if (destroyedOnImpact) return;
             if (!b.hitEntities.has(e) && Math.hypot(e.x - b.x, e.y - b.y) < 40) {
               b.hitEntities.add(e);
               let dmg = b.damage;
@@ -6799,9 +6813,20 @@ function activateGTack(t) {
                 dmg -= abs;
               }
               if (dmg > 0) e.health -= dmg;
+              if (b.summonType === 'Boat_S4') {
+                b.health -= Math.max(1, e.baseDamage || ENEMY_TIER_DAMAGE[e.tier] || 2);
+              } else {
+                destroyedOnImpact = true;
+              }
               showEffect(e.x, e.y, "CRASH! 💥", "#ff0000");
             }
           });
+
+          if (destroyedOnImpact || b.health <= 0) {
+            b.el.remove();
+            gameState.boats.splice(i, 1);
+            continue;
+          }
 
           if (b.summonType === 'Boat_S3' || b.summonType === 'Boat_S4') {
             b.cooldownTimer -= dt;
@@ -6812,15 +6837,23 @@ function activateGTack(t) {
                 let isSpecial = false;
                 let projImg = null;
                 let specialDmg = 50;
+                let specialType = 'Bomb_Glob';
                 
                 if (b.normalShotsCount >= 2) {
                   const r = Math.random();
-                  if (b.summonType === 'Boat_S4' && r < 0.01) {
-                    isSpecial = true; projImg = IMAGE_PATHS['Nuclear_Glob']; specialDmg = 500;
+                  if (r < (b.summonType === 'Boat_S4' ? 0.01 : 0)) {
+                    specialType = 'Nuclear_Glob';
+                    isSpecial = true;
                   } else if (r < (b.summonType === 'Boat_S4' ? 0.06 : 0.05)) {
-                    isSpecial = true; projImg = IMAGE_PATHS['TNT_Glob']; specialDmg = 150;
+                    specialType = 'TNT_Glob';
+                    isSpecial = true;
                   } else if (r < (b.summonType === 'Boat_S4' ? 0.21 : 0.20)) {
-                    isSpecial = true; projImg = IMAGE_PATHS['Bomb_Glob']; specialDmg = 50;
+                    specialType = 'Bomb_Glob';
+                    isSpecial = true;
+                  }
+                  if (isSpecial) {
+                    projImg = IMAGE_PATHS[specialType];
+                    specialDmg = TOWER_TYPES[specialType].damage;
                   }
                 }
 
