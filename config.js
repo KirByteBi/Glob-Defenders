@@ -412,6 +412,8 @@ const TRANSLATIONS = {
     duckgrade_pyce_desc: "A veces dispara en todas direcciones (Spin).",
     duckgrade_old_name: "Inmunidad Gris",
     duckgrade_old_desc: "Las torres en un radio cercano de una torre Gris son inmunes a aturdimientos y ralentizaciones.",
+    duckgrade_grey_name: "Sincronía Gris",
+    duckgrade_grey_desc: "La familia Gris puede disparar en todas direcciones y protege a las torres cercanas de aturdimientos y ralentizaciones.",
     duckgrade_bombot_name: "Bomba Saltarina",
     duckgrade_bombot_desc: "Las bombas rebotan y explotan dos veces.",
     duckgrade_worker_name: "Trampas de Acero",
@@ -420,6 +422,14 @@ const TRANSLATIONS = {
     duckgrade_brown_desc: "Probabilidad de aturdir a los enemigos dentro del área.",
     duckgrade_pirate_name: "Artillería Rebotante",
     duckgrade_pirate_desc: "Las bombas de las dos últimas invocaciones pueden rebotar una vez.",
+    duckgrade_white_name: "Retroceso Blanco",
+    duckgrade_white_desc: "Aumenta el área de influencia de la familia Blanca y puede hacer retroceder ocasionalmente a los enemigos.",
+    duckgrade_pink_name: "Compensación Rosa",
+    duckgrade_pink_desc: "Compensa parte de la pérdida de daño causada por el apoyo de la familia Rosa y mejora ligeramente su daño.",
+    gtack_white_name: "Apoyo Blanco: Refuerzo",
+    gtack_white_desc: "Permite que las trampas y los proyectiles paralizantes apoyen al equipo sin daño directo.",
+    gtack_pink_name: "Apoyo Rosa: Enfriamiento",
+    gtack_pink_desc: "Aumenta temporalmente el cooldown de las torres afectadas.",
     duckgrade_duck_name: "Pato Defensivo",
     duckgrade_duck_desc: "Genera dinero más rápido cerca de enemigos y hace daño de área.",
     duckgrade_iex_name: "Detonación Tóxica/Ígnea",
@@ -972,12 +982,22 @@ const TRANSLATIONS = {
     duckgrade_pyce_desc: "Sometimes fires in all directions (Spin).",
     duckgrade_old_name: "Grey Immunity",
     duckgrade_old_desc: "Towers in a close radius of a Grey family tower are immune to stuns and slows.",
+    duckgrade_grey_name: "Grey Synchrony",
+    duckgrade_grey_desc: "The Grey family can fire in all directions and protects nearby towers from stuns and slows.",
     duckgrade_bombot_name: "Bouncing Bomb",
     duckgrade_bombot_desc: "Bombs bounce and explode twice.",
     duckgrade_worker_name: "Steel Traps",
     duckgrade_worker_desc: "Increases the health of all deployed traps.",
     duckgrade_brown_name: "Dried Thorns",
     duckgrade_brown_desc: "Chance to stun enemies within the area.",
+    duckgrade_white_name: "White Knockback",
+    duckgrade_white_desc: "Increases the White family's influence area and can occasionally push enemies back.",
+    duckgrade_pink_name: "Pink Compensation",
+    duckgrade_pink_desc: "Offsets part of the damage loss caused by Pink family support and slightly improves its damage.",
+    gtack_white_name: "White Support: Reinforcement",
+    gtack_white_desc: "Allows traps and stunning projectiles to support the team without direct damage.",
+    gtack_pink_name: "Pink Support: Cooldown",
+    gtack_pink_desc: "Temporarily increases the cooldown of affected towers.",
     duckgrade_duck_name: "Defensive Duck",
     duckgrade_duck_desc: "Generates money faster near enemies and deals area damage.",
     duckgrade_iex_name: "Toxic/Fiery Detonation",
@@ -2363,6 +2383,3 @@ Object.assign(window.SKIN_META, {
   }
 });
 /* --- END INSERTAR --- */
-
-
-

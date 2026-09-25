@@ -123,7 +123,7 @@ let gameState = {
   paracristalEnergy: 100,
   paracristalAstrorbSeen: false,
   paracristalFinal: false,
-  gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false, 'Pirate_Glob': false },
+  gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false, 'Pirate_Glob': false, 'White': false, 'Pink': false },
   pycesKilled: {},
   globsPlaced: {},
   mimicSpawned: 0,
@@ -415,9 +415,12 @@ function loadProgress(username) {
       gameState.metaDamageLevel = progress.metaDamageLevel || 0;
       gameState.metaDamage = progress.metaDamage || 1;
       gameState.duckgrades = progress.duckgrades || {};
+      if (gameState.duckgrades.dg_Pyce_Glob || gameState.duckgrades.dg_Old_Glob) {
+        gameState.duckgrades.dg_Grey = true;
+      }
       gameState.gtacks = Object.assign({
         'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false,
-        'Comet_Glob': false, 'Old_Glob': false, 'Bomb_Glob': false, 'Worker_Glob': false, 'Brown': false, 'Pirate_Glob': false
+        'Comet_Glob': false, 'Old_Glob': false, 'Bomb_Glob': false, 'Worker_Glob': false, 'Brown': false, 'Pirate_Glob': false, 'White': false, 'Pink': false
       }, progress.gtacks || {});
       gameState.pycesKilled = progress.pycesKilled || {};
       gameState.globsPlaced = progress.globsPlaced || {};
@@ -3976,31 +3979,34 @@ function drawShop() {
     });
   } else if (currentShopTab === 'duckgrades') {
     const dgs = [
-      { id: 'dg_Glob', name: 'duckgrade_glob_name', desc: 'duckgrade_glob_desc', cost: 15, family: 'Glob' },
-      { id: 'dg_Red_Glob', name: 'duckgrade_red_name', desc: 'duckgrade_red_desc', cost: 20, family: 'Red_Glob' },
-      { id: 'dg_Soap_Glob', name: 'duckgrade_soap_name', desc: 'duckgrade_soap_desc', cost: 18, family: 'Soap_Glob' },
-      { id: 'dg_Comet_Glob', name: 'duckgrade_comet_name', desc: 'duckgrade_comet_desc', cost: 25, family: 'Comet_Glob' },
-      { id: 'dg_Pyce_Glob', name: 'duckgrade_pyce_name', desc: 'duckgrade_pyce_desc', cost: 22, family: 'Special' },
-      { id: 'dg_Old_Glob', name: 'duckgrade_old_name', desc: 'duckgrade_old_desc', cost: 20, family: 'Special' },
+      { id: 'dg_Glob', name: 'duckgrade_glob_name', desc: 'duckgrade_glob_desc', cost: 215, family: 'Glob' },
+      { id: 'dg_Red_Glob', name: 'duckgrade_red_name', desc: 'duckgrade_red_desc', cost: 230, family: 'Red_Glob' },
+      { id: 'dg_Soap_Glob', name: 'duckgrade_soap_name', desc: 'duckgrade_soap_desc', cost: 150, family: 'Soap_Glob' },
+      { id: 'dg_Comet_Glob', name: 'duckgrade_comet_name', desc: 'duckgrade_comet_desc', cost: 200, family: 'Comet_Glob' },
+      { id: 'dg_Grey', name: 'duckgrade_grey_name', desc: 'duckgrade_grey_desc', cost: 227, family: 'Special' },
       { id: 'dg_Work_Bombot', name: 'duckgrade_bombot_name', desc: 'duckgrade_bombot_desc', cost: 30, family: 'Special' },
-      { id: 'dg_Ducky_Glob', name: 'duckgrade_duck_name', desc: 'duckgrade_duck_desc', cost: 15, family: 'Ducky_Glob' },
-      { id: 'dg_IEx', name: 'duckgrade_iex_name', desc: 'duckgrade_iex_desc', cost: 20, family: 'IEx' },
-      { id: 'dg_Worker_Glob', name: 'duckgrade_worker_name', desc: 'duckgrade_worker_desc', cost: 25, family: 'Worker_Glob' },
-      { id: 'dg_Brown', name: 'duckgrade_brown_name', desc: 'duckgrade_brown_desc', cost: 20, family: 'Brown' },
-      { id: 'dg_Pirate_Glob', name: 'duckgrade_pirate_name', desc: 'duckgrade_pirate_desc', cost: 25, family: 'Pirate_Glob' }
+      { id: 'dg_Ducky_Glob', name: 'duckgrade_duck_name', desc: 'duckgrade_duck_desc', cost: 150, family: 'Ducky_Glob' },
+      { id: 'dg_IEx', name: 'duckgrade_iex_name', desc: 'duckgrade_iex_desc', cost: 195, family: 'IEx' },
+      { id: 'dg_Worker_Glob', name: 'duckgrade_worker_name', desc: 'duckgrade_worker_desc', cost: 150, family: 'Worker_Glob' },
+      { id: 'dg_Brown', name: 'duckgrade_brown_name', desc: 'duckgrade_brown_desc', cost: 200, family: 'Brown' },
+      { id: 'dg_Pirate_Glob', name: 'duckgrade_pirate_name', desc: 'duckgrade_pirate_desc', cost: 220, family: 'Pirate_Glob' },
+      { id: 'dg_White', name: 'duckgrade_white_name', desc: 'duckgrade_white_desc', cost: 180, family: 'White' },
+      { id: 'dg_Pink', name: 'duckgrade_pink_name', desc: 'duckgrade_pink_desc', cost: 220, family: 'Pink' }
     ];
 
     const filteredDgs = dgs.filter(u => {
       if (u.id === 'dg_Glob' || u.id === 'dg_Red_Glob') return true;
       if (u.id === 'dg_Soap_Glob') return isTowerOwned('Soap_Glob');
       if (u.id === 'dg_Comet_Glob') return isTowerOwned('Comet_Glob');
-      if (u.id === 'dg_Pyce_Glob' || u.id === 'dg_Old_Glob') return isTowerOwned('Old_Glob');
+      if (u.id === 'dg_Grey') return isTowerOwned('Old_Glob');
       if (u.id === 'dg_Work_Bombot') return isTowerOwned('Work_Bombot');
       if (u.id === 'dg_Ducky_Glob') return isTowerOwned('Ducky_Glob');
       if (u.id === 'dg_IEx') return isTowerOwned('Bomb_Glob');
       if (u.id === 'dg_Worker_Glob') return isTowerOwned('Worker_Glob');
       if (u.id === 'dg_Brown') return isTowerOwned('Sprout_Glob');
       if (u.id === 'dg_Pirate_Glob') return isTowerOwned('Pirate_Glob');
+      if (u.id === 'dg_White') return isTowerOwned('White');
+      if (u.id === 'dg_Pink') return isTowerOwned('Pink');
       return false;
     });
 
@@ -4034,7 +4040,9 @@ function drawShop() {
       { id: 'Bomb_Glob', name: translate('gtack_iex_name'), desc: translate('gtack_iex_desc'), pyCost: 600, dpCost: 200 },
       { id: 'Worker_Glob', name: translate('gtack_worker_name'), desc: translate('gtack_worker_desc'), pyCost: 600, dpCost: 200 },
       { id: 'Brown', name: translate('gtack_brown_name'), desc: translate('gtack_brown_desc'), pyCost: 650, dpCost: 210 },
-      { id: 'Pirate_Glob', name: translate('gtack_pirate_name'), desc: translate('gtack_pirate_desc'), pyCost: 700, dpCost: 230 }
+      { id: 'Pirate_Glob', name: translate('gtack_pirate_name'), desc: translate('gtack_pirate_desc'), pyCost: 700, dpCost: 230 },
+      { id: 'White', name: translate('gtack_white_name'), desc: translate('gtack_white_desc'), pyCost: 600, dpCost: 200 },
+      { id: 'Pink', name: translate('gtack_pink_name'), desc: translate('gtack_pink_desc'), pyCost: 700, dpCost: 230 }
     ];
 
     const gtacksLocked = gameState.duckPassLevel < 50;
@@ -4834,6 +4842,8 @@ function getGTackName(family) {
     case 'IEx': return 'Detonación 💥';
     case 'Worker_Glob': return 'Actividad Policial 🚨';
     case 'Pirate_Glob': return 'Bombardeo Glob 💣';
+    case 'White': return 'Apoyo Blanco 🛡️';
+    case 'Pink': return 'Compensación Rosa 🌸';
     default: return 'G-Táctica';
   }
 }
@@ -4904,6 +4914,21 @@ function activateGTack(t) {
   } else if (t.family === 'Pirate_Glob') {
     t.marineGtackTimer = 10;
     showEffect(t.x, t.y - 25, "GLOB BOMBARDMENT! 💣", "#2ecc71");
+  } else if (t.family === 'White') {
+    gameState.towers.forEach(otherTower => {
+      if ((otherTower.family === 'Worker_Glob' || otherTower.family === 'Soap_Glob') &&
+          Math.hypot(otherTower.x - t.x, otherTower.y - t.y) <= t.range) {
+        otherTower.whiteSupportTimer = 10;
+      }
+    });
+    showEffect(t.x, t.y - 25, "SUPPORT DEPLOYED! 🛡️", "#ecf0f1");
+  } else if (t.family === 'Pink') {
+    gameState.towers.forEach(otherTower => {
+      if (otherTower !== t && Math.hypot(otherTower.x - t.x, otherTower.y - t.y) <= t.range) {
+        otherTower.pinkGtackTimer = 10;
+      }
+    });
+    showEffect(t.x, t.y - 25, "COOLDOWN SHIFT! 🌸", "#ff69b4");
   } else if (t.family === 'Brown') {
     gameState.towers.forEach(otherTower => {
         if (Math.hypot(otherTower.x - t.x, otherTower.y - t.y) <= (t.range || 100) * 1.5) {
@@ -5051,7 +5076,7 @@ function activateGTack(t) {
 
     gameState.towers.forEach(auraTower => {
       if (auraTower.family === 'White') {
-        const buffRange = auraTower.range;
+        const buffRange = auraTower.range * (gameState.duckgrades.dg_White ? 1.25 : 1);
         const rangeInc = auraTower.type === 'Alien_Glob' ? 60 : (auraTower.type === 'Heliglob' ? 40 : 20);
         const speedDec = auraTower.type === 'Alien_Glob' ? 0.7 : (auraTower.type === 'Heliglob' ? 0.8 : 0.9);
 
@@ -5073,8 +5098,9 @@ function activateGTack(t) {
           if (t !== auraTower && Math.hypot(t.x - auraTower.x, t.y - auraTower.y) <= buffRange) {
             t.hasPinkBuff = true;
             t.pinkDiscount = Math.max(t.pinkDiscount, discount);
-            if (dmgDec < t.bestPinkAura.dmgDec) {
-              t.bestPinkAura.dmgDec = dmgDec;
+            const compensatedDmgDec = gameState.duckgrades.dg_Pink ? Math.min(1, dmgDec + 0.1) : dmgDec;
+            if (compensatedDmgDec < t.bestPinkAura.dmgDec) {
+              t.bestPinkAura.dmgDec = compensatedDmgDec;
             }
           }
         });
@@ -5926,7 +5952,7 @@ function activateGTack(t) {
       }
 
       function isTowerProtected(tower) {
-        if (!gameState.duckgrades.dg_Old_Glob) return false;
+        if (!gameState.duckgrades.dg_Grey) return false;
         return gameState.towers.some(grey => {
           if (grey.family === 'Grey' || grey.family === 'Old_Glob' || grey.type === 'Old_Glob' || grey.type === 'Pyce_Glob') {
             return Math.hypot(grey.x - tower.x, grey.y - tower.y) < 150;
@@ -6100,6 +6126,9 @@ function activateGTack(t) {
                   }
                 });
               }
+              if (trap.whiteSupport) {
+                e.stunned = (e.stunned || 0) + 1.5;
+              }
 
               showEffect(trap.x, trap.y, "TRAP! 💥", "#f39c12");
 
@@ -6270,6 +6299,14 @@ function activateGTack(t) {
         if (t.marineGtackTimer && t.marineGtackTimer > 0) {
           t.marineGtackTimer -= dt;
           if (t.marineGtackTimer < 0) t.marineGtackTimer = 0;
+        }
+        if (t.whiteSupportTimer && t.whiteSupportTimer > 0) {
+          t.whiteSupportTimer -= dt;
+          if (t.whiteSupportTimer < 0) t.whiteSupportTimer = 0;
+        }
+        if (t.pinkGtackTimer && t.pinkGtackTimer > 0) {
+          t.pinkGtackTimer -= dt;
+          if (t.pinkGtackTimer < 0) t.pinkGtackTimer = 0;
         }
         if (t.toxicTimer && t.toxicTimer > 0) {
           t.toxicTimer -= dt;
@@ -6486,6 +6523,7 @@ function activateGTack(t) {
                 damage: t.damage,
                 trapType,
                 parentType: t.type,
+                whiteSupport: !!(t.whiteSupportTimer && t.whiteSupportTimer > 0),
                 active: true,
                 radius: trapRadius,
                 el: document.createElement('div')
@@ -6502,7 +6540,7 @@ function activateGTack(t) {
               gameState.traps.push(trap);
             }
             // Cooldown: DJ Glob x3 más lento
-            t.cooldown = (1 / workerSpeed) * (isDJ ? 3 : 1);
+            t.cooldown = (1 / workerSpeed) * (isDJ ? 3 : 1) * (t.pinkGtackTimer > 0 ? 1.25 : 1);
           }
           return;
         }
@@ -6555,7 +6593,7 @@ function activateGTack(t) {
                 const fakeTarget = gameState.enemies.length > 0 ? targets[Math.floor(Math.random() * Math.min(targets.length, 3))] : targets[0];
                 shoot(t, fakeTarget, { damage: dmg * 0.8 });
               });
-            } else if (gameState.duckgrades.dg_Pyce_Glob && t.type === 'Pyce_Glob' && Math.random() < 0.2) {
+            } else if (gameState.duckgrades.dg_Grey && t.type === 'Pyce_Glob' && Math.random() < 0.2) {
               for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
                 shoot(t, { x: t.x + Math.cos(a) * 100, y: t.y + Math.sin(a) * 100, health: 999 }, { damage: dmg });
               }
@@ -6563,7 +6601,7 @@ function activateGTack(t) {
               const specialAttack = getSpecialAttack(t, targets[0], dmg);
               if (!specialAttack) shoot(t, targets[0], { damage: dmg });
             }
-            t.cooldown = 1 / currentSpeed;
+            t.cooldown = (1 / currentSpeed) * (t.pinkGtackTimer > 0 ? 1.25 : 1);
           }
         }
       });
@@ -6617,6 +6655,14 @@ function activateGTack(t) {
         if (gameState.duckgrades.dg_Soap_Glob && p.family === 'Soap_Glob') {
           if (Math.random() < 0.2) target.stunned = 1.0;
         }
+        if (gameState.duckgrades.dg_White && p.family === 'White' && Math.random() < 0.15) {
+          target.pathIndex = Math.max(0, target.pathIndex - 1);
+          const retreatPoint = target.currentPath[target.pathIndex];
+          if (retreatPoint) {
+            target.x = retreatPoint.x;
+            target.y = retreatPoint.y;
+          }
+        }
         if (p.projectile === 'glitch' || p.type === 'Pyce_Glob') {
           target.speed = Math.max(0.5, target.speed * 0.9);
           if (Math.random() < 0.2) target.stunned = 0.5;
@@ -6653,7 +6699,7 @@ function activateGTack(t) {
           const nextTarget = gameState.enemies.find(e => e !== target && Math.hypot(e.x - p.x, e.y - p.y) < 100);
           if (nextTarget) { p.target = nextTarget; }
         }
-        if (gameState.duckgrades.dg_Old_Glob && p.type === 'Old_Glob' && !p.isSpin) {
+        if (gameState.duckgrades.dg_Grey && p.type === 'Old_Glob' && !p.isSpin) {
           for (let a = 0; a < Math.PI * 2; a += Math.PI / 2) {
             shoot({ ...p, projectile: 'stone_small', damage: p.damage * 0.3 }, { x: p.x + Math.cos(a) * 50, y: p.y + Math.sin(a) * 50, health: 999 }, { size: 8 });
           }
@@ -6962,6 +7008,9 @@ function activateGTack(t) {
     if (shooter.stunStrikeActive) {
       opts.stunStrike = true;
       shooter.stunStrikeActive = false;
+    }
+    if (shooter.whiteSupportTimer && shooter.whiteSupportTimer > 0 && shooter.family === 'Soap_Glob') {
+      opts.stunStrike = true;
     }
 
     const el = document.createElement('div');
