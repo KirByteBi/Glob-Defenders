@@ -3838,10 +3838,10 @@ function drawShop() {
       { id: 'unlock_Old_Glob', name: 'upgrade_unlock_old_name', desc: 'upgrade_unlock_old_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
       { id: 'unlock_Comet_Glob', name: 'upgrade_unlock_comet_name', desc: 'upgrade_unlock_comet_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
       { id: 'unlock_Sprout_Glob', name: 'upgrade_unlock_sprout_name', desc: 'upgrade_unlock_sprout_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
-      { id: 'unlock_Balloon_Glob', name: 'tower_Balloon_Glob_name', desc: 'tower_Balloon_Glob_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
-      { id: 'unlock_Streamer_Glob', name: 'tower_Streamer_Glob_name', desc: 'tower_Streamer_Glob_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
-      { id: 'unlock_Worker_Glob', name: 'tower_Worker_Glob_name', desc: 'tower_Worker_Glob_desc', cost: 200, type: 'pycoin', hideIfUnlocked: true },
-      { id: 'unlock_Bomb_Glob', name: 'tower_Bomb_Glob_name', desc: 'tower_IEx1_desc', cost: 200, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Balloon_Glob', name: 'tower_Balloon_Glob_name', desc: 'tower_Balloon_Glob_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Streamer_Glob', name: 'tower_Streamer_Glob_name', desc: 'tower_Streamer_Glob_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Worker_Glob', name: 'tower_Worker_Glob_name', desc: 'tower_Worker_Glob_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Bomb_Glob', name: 'tower_Bomb_Glob_name', desc: 'tower_IEx1_desc', cost: 300, type: 'pycoin', hideIfUnlocked: true },
       { id: 'unlock_Pirate_Glob', name: 'tower_Pirate_Glob_name', desc: 'tower_Pirate_Glob_desc', cost: 350, type: 'pycoin', hideIfUnlocked: true },
 
       { id: 'meta_damage', name: 'upgrade_damage_name', desc: 'upgrade_damage_desc', cost: 15, type: 'duckpass', level: gameState.metaDamageLevel, max: 5 }
