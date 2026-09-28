@@ -692,7 +692,6 @@ async function enterOfflineSession(username, password, saveCredentials) {
 }
 
 function getSessionUserRole() {
-  if (offlineModeActive) return 'USER';
   const username = localStorage.getItem('glob_username') || '';
   return typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
 }
