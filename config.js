@@ -505,10 +505,10 @@ const TRANSLATIONS = {
     skin_buff_damage2_desc: "+10% Daño Extra.",
 
     // Descripciones de Torres
-    tower_Glob_desc: "Un humilde habitante de Bitlands. Lanza orbes de pura energía verde para defender su hogar. Confiable y leal.",
+    tower_Glob_desc: "Un humilde habitante de Gelatin Lake. Lanza orbes de pura energía verde para defender su hogar. Confiable y leal.",
     tower_Poop_Glob_desc: "Su extraña dieta le ha otorgado una densidad abrumadora. Lanza proyectiles fangosos que golpean con fuerza bruta.",
     tower_Golden_Glob_desc: "Bañado en riquezas, este Glob ha perfeccionado su técnica. Sus proyectiles de oro puro son letales y extremadamente veloces.",
-    tower_Rainbow_Glob_desc: "La leyenda de Bitlands. Ha trascendido los colores primarios para canalizar láseres prismáticos que destrozan todo a su paso.",
+    tower_Rainbow_Glob_desc: "La leyenda de Gelatin Lake. Ha trascendido los colores primarios para canalizar láseres prismáticos que destrozan todo a su paso.",
     tower_Red_Glob_desc: "Lleno de adrenalina y furia contenida. Prefiere el combate cuerpo a cuerpo para asestar golpes a una velocidad cegadora.",
     tower_Molten_Glob_desc: "La furia lo ha consumido hasta derretirlo. Su cuerpo irradia un calor intenso que carboniza a quienes se atrevan a acercarse.",
     tower_Robotic_Glob_desc: "Mejorado con tecnología de PixelStar. Este cíborg erradica a los intrusos desde la distancia con un poderoso láser perforador.",
@@ -518,7 +518,7 @@ const TRANSLATIONS = {
     tower_Golden_Ducky_Glob_desc: "Realeza financiera. Su plumaje dorado bendice tu tesoro, generando inmensas fortunas en un abrir y cerrar de ojos.",
     tower_Comet_Glob_desc: "Extraído de las estrellas. Lanza astros celestiales como boomerangs para diezmar a las hordas enemigas desde lejos.",
     tower_Dark_Glob_desc: "Corrompido por el vacío del universo. Desata diamantes oscuros que perforan la propia tela de la realidad y a sus enemigos.",
-    tower_Demglob_desc: "La encarnación de la destrucción. Surgió de las sombras más profundas de Bitlands para aniquilar Pyces con caos puro.",
+    tower_Demglob_desc: "La encarnación de la destrucción. Surgió de las sombras más profundas de Gelatin Lake para aniquilar Pyces con caos puro.",
     tower_Pyce_Glob_desc: "Un Glob infectado por el mismo código que creó a los Pyces. Su inestabilidad genera ráfagas anómalas de alta velocidad.",
     tower_Old_Glob_desc: "El sabio ancestro. Conoce los secretos de la tierra y lanza rocas inquebrantables imbuídas de magia antigua.",
     tower_Work_Bombot_desc: "Un prototipo desechado que encontró su propósito. Desencadena explosiones devastadoras de área.",

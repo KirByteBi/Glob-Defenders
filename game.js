@@ -617,6 +617,7 @@ function startGameSession(username, offline) {
     localStorage.removeItem('glob_offline_mode');
   }
   offlineModeActive = offline;
+  updateRoleIndicator();
 
   const offlineIndicator = document.getElementById('offline-indicator');
   if (offlineIndicator) offlineIndicator.style.display = offline ? 'block' : 'none';
@@ -632,6 +633,7 @@ function startGameSession(username, offline) {
     if (loadingScreen) loadingScreen.style.display = 'none';
     const gameContainer = document.getElementById('game-container');
     if (gameContainer) gameContainer.style.display = 'flex';
+    document.getElementById('meta-controls').style.display = 'flex';
     document.getElementById('mode-selection').style.display = 'none';
     document.getElementById('map-selection').style.display = 'flex';
   };
@@ -697,6 +699,26 @@ async function enterOfflineSession(username, password, saveCredentials) {
 function getSessionUserRole() {
   const username = localStorage.getItem('glob_username') || '';
   return typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
+}
+
+function updateRoleIndicator() {
+  const indicator = document.getElementById('admin-indicator');
+  const role = getSessionUserRole();
+  document.body.classList.remove('role-owner', 'role-admin', 'role-debug');
+
+  if (!indicator) return;
+  if (role === 'USER') {
+    indicator.style.display = 'none';
+    indicator.dataset.role = '';
+    return;
+  }
+
+  indicator.dataset.role = role.toLowerCase();
+  indicator.textContent = role === 'OWNER' ? '👑 OWNER' : role;
+  indicator.style.display = 'block';
+  if (role === 'OWNER') document.body.classList.add('role-owner');
+  else if (role === 'ADMIN') document.body.classList.add('role-admin');
+  else document.body.classList.add('role-debug');
 }
 
 async function handleLogin() {
@@ -2407,15 +2429,9 @@ function toggleBadgesPanel() {
 function updateAchievementsBtnUI() {
   const btn = document.getElementById('badges-toggle-btn');
   if (!btn) return;
-  if (gameState.settings.oldAchievements) {
-    btn.innerHTML = translate('btn_achievements');
-    btn.classList.remove('encyclopedia-btn-yellow');
-    btn.title = translate('btn_achievements').replace('🏆 ', '');
-  } else {
-    btn.innerHTML = translate('btn_encyclopedia');
-    btn.classList.add('encyclopedia-btn-yellow');
-    btn.title = translate('btn_encyclopedia').replace('📖 ', '');
-  }
+  btn.innerHTML = translate('btn_encyclopedia');
+  btn.classList.add('encyclopedia-btn-yellow');
+  btn.title = translate('btn_encyclopedia').replace('📖 ', '');
 }
 
 function openEncyclopedia() {
@@ -3346,7 +3362,9 @@ function bindEvents() {
         gameState.pycesKilled[type] = Math.max(gameState.pycesKilled[type] || 0, target);
       });
       showMessage('🛠️ DEBUG: Torres, skins y enciclopedia desbloqueadas. Pulsa de nuevo para restaurar.', 'success');
-      document.getElementById('admin-indicator').style.display = 'block';
+      const indicator = document.getElementById('admin-indicator');
+      indicator.textContent = role === 'OWNER' ? '👑 OWNER MODE' : '🛠 DEVBUILD MODE';
+      indicator.style.display = 'block';
     } else {
       // Second click: restore snapshot
       const snap = gameState.debugSnapshot;
@@ -3368,7 +3386,7 @@ function bindEvents() {
       }
       gameState.debugState = null;
       gameState.debugSnapshot = null;
-      document.getElementById('admin-indicator').style.display = 'none';
+      updateRoleIndicator();
       showMessage('🔄 DEBUG: Estado restaurado al original.', 'warning');
     }
     drawShop();
@@ -3432,13 +3450,7 @@ function bindEvents() {
   if (storyBtn) storyBtn.onclick = () => { openStoryLogs(); };
 
   const badgesBtn = document.getElementById('badges-toggle-btn');
-  if (badgesBtn) badgesBtn.onclick = () => {
-    if (gameState.settings.oldAchievements) {
-      toggleBadgesPanel();
-    } else {
-      openEncyclopedia();
-    }
-  };
+  if (badgesBtn) badgesBtn.onclick = openEncyclopedia;
 
   const openEncBtn = document.getElementById('open-encyclopedia-btn');
   if (openEncBtn) openEncBtn.onclick = () => {
@@ -7965,6 +7977,8 @@ function activateGTack(t) {
     document.getElementById('mode-selection').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('meta-controls').style.display = 'none';
+    document.body.classList.remove('role-owner', 'role-admin', 'role-debug');
+    document.getElementById('admin-indicator').style.display = 'none';
   }
 
   function endGame(victory = false) {
