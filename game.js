@@ -546,237 +546,7 @@ function checkLogin() {
   } catch (e) { console.warn("LocalStorage no disponible"); }
 }
 
-function scheduleSkipLoginButton() {
-  const skipButton = document.getElementById('skip-login-btn');
-  if (!skipButton) return;
-  setTimeout(() => {
-    if (document.getElementById('login-screen')?.style.display !== 'none') {
-      skipButton.style.display = 'block';
-    }
-  }, 1500);
-}
-
-function handleSkipLogin() {
-  const guestName = 'guest';
-  if (!USERS[guestName]) {
-    USERS[guestName] = `guest-${Date.now()}`;
-    saveUsers();
-  }
-
-  const nameInput = document.getElementById('username-input');
-  const passInput = document.getElementById('password-input');
-  if (nameInput) nameInput.value = guestName;
-  if (passInput) passInput.value = USERS[guestName];
-  handleLogin();
-}
-
-function damageBaseFromEnemy(enemy) {
-  let baseDamage = enemy.baseDamage || (enemy.boss ? 10 : 2);
-  if (gameState.mode === 'interstellar' && ENEMY_TYPES[enemy.type]?.isCrystallized) {
-    baseDamage *= 5;
-  }
-  gameState.health = Math.max(0, gameState.health - baseDamage);
-  gameState.baseTookDamage = true;
-  updateUI();
-  if (gameState.health <= 0) endGame();
-}
-
-function skipLoadingScreen() {
-  const loadingScreen = document.getElementById('loading-screen');
-  const mapScreen = document.getElementById('map-selection');
-  if (!loadingScreen || loadingScreen.style.display === 'none') return;
-  loadingScreen.style.display = 'none';
-  if (mapScreen) mapScreen.style.display = 'flex';
-}
-
-const LOADING_TIPS = {
-  es: {
-    general: [
-      'Mantén la presión con torres que cubran caminos y puntos de paso clave.',
-      'No te obsesiones con el daño: a veces la mejor jugada es controlar el campo.',
-      'Revisa tus torres con frecuencia; un buen posicionamiento salva partidas difíciles.',
-      'Los mapas largos te premian con paciencia y con rutas bien protegidas.',
-      'Antes de gastar todo, asegúrate de que tus defensas sostienen la siguiente oleada.',
-      'Utiliza torres grises cerca de dos caminos para quitarte de encima a enemigos débiles, pero no aguantarán mucho contra los grandes.',
-      'Las familias negras deben ir detrás y acompañadas de una familia rosa para reducir su coste.',
-      'Procura elegir bien tu equipo; muchas veces lo importante no es el ataque sino el equilibrio.',
-      'El modo corrupto y el modo Anti-Normal son modos secretos. ¡Intenta descubrirlos!',
-      'Prueba a clicar el icono de vida... ¡A ver qué te espera!'
-    ],
-    enemy: [
-      'Los Pyces rápidos te obligan a reaccionar antes de que te corten la presión.',
-      'Los enemigos con mucha salud necesitan más de una línea de daño o apoyo.',
-      'Si ves enemigos con escudos o resistencia, cambia el enfoque de tu defensa.',
-      'Los Pyces con comportamiento especial suelen venir en grupos más peligrosos.',
-      'Los oleajes más altos no siempre piden más daño: a veces necesitas más control.',
-      'Los enemigos no tienen una meta fija; si ves que alguno se te escapa, ponle una torre barata que ataque y elimínalo.',
-      'Hay jefes que vienen acompañados, pero puedes eliminar al jefe primero y luego al resto.',
-      'Los jefes con escudos suelen ser invulnerables a paralizaciones.'
-    ],
-    families: {
-      Glob: [
-        'Los Glob básicos sostienen la defensa temprana; colócalos bien para controlar la primera oleada.',
-        'Los Glob no son los más fuertes, pero son el núcleo de tu ritmo de juego y de tu economía.'
-      ],
-      Red_Glob: [
-        'La familia roja suele ser la mejor para empujar daño directo a enemigos rápidos.',
-        'Combina Red_Glob con apoyo para eliminar objetivos prioritarios antes de que te abran paso.'
-      ],
-      Soap_Glob: [
-        'Es muy útil para frenar ataques y ganar tiempo en oleadas difíciles.',
-        'Si el enemigo acelera demasiado, la familia azul te da control real del campo.'
-      ],
-      Ducky_Glob: [
-        'Aporta economía y consistencia; no lo dejes en segundo plano.',
-        'Los Ducky son excelentes para generar más recursos y sostener partidas largas.'
-      ],
-      Comet_Glob: [
-        'La familia negra hace daño brutal cuando ya has controlado el tablero.',
-        'Es ideal para presionar en el centro del mapa en oleadas medianas.'
-      ],
-      Old_Glob: [
-        'Funciona muy bien si quieres estabilidad y apoyo defensivo.',
-        'A veces conviene conservarlo en puntos estratégicos para no perder presión.'
-      ],
-      Work_Bombot: [
-        'Bombot gana mucho cuando sabes anticipar los flancos por donde entran los Pyces.',
-        'No lo uses como relleno: su explosión es más útil si enchufas una ruta clara.'
-      ],
-      Balloon_Glob: [
-        'Balloon Glob complementa muy bien el control de distancia y la cobertura del mapa.',
-        'Suele ser una gran opción para sostener el tablero mientras tu daño se organiza.'
-      ],
-      Streamer_Glob: [
-        'Streamer Glob funciona mejor cuando aprovechas la presión y el control de zonas.',
-        'Si lo combinas con daño fuerte, puedes limpiar más rápido a los enemigos más molestos.'
-      ],
-      IEx: [
-        'Es excelente para reforzar el daño y la presión en rutas largas, pero no es una torre de sacrificio.',
-        'Si quieres explosivos de radio puro, Bomb Glob es mucho más directo: explota al entrar alguien en su alcance.'
-      ],
-      Worker_Glob: [
-        'Es perfecto para sostener la defensa en mapas más abiertos.',
-        'Aporta estabilidad y te ayuda a mantener el control si la ola empieza a complicarse.'
-      ],
-      Bomb_Glob: [
-        'Explota cuando alguien entra en su radio; es ideal para limpiar un paso sospechoso.',
-        'No tiene bonificaciones: su valor está en el sacrificio y en borrar amenazas a tiempo.'
-      ],
-      Sprout_Glob: [
-        'Sprout_Glob funciona muy bien si quieres más control y ralentización sin perder presión.',
-        'Los efectos de ralentización te dan más margen para responder antes del choque.'
-      ],
-      Pirate_Glob: [
-        'Aporta mucho en mapas con más recorrido y presión lateral.',
-        'Cuando tienes rutas largas, su utilidad y apoyo de control se vuelven muy fuertes.'
-      ]
-    }
-  },
-  en: {
-    general: [
-      'Keep pressure with towers that cover key paths and choke points.',
-      'Do not obsess over raw damage: sometimes the best move is controlling the field.',
-      'Check your towers often; good positioning saves hard runs.',
-      'Longer maps reward patience and well-protected routes.',
-      'Before spending everything, make sure your defenses can sustain the next wave.'
-    ],
-    enemy: [
-      'Fast Pyces force you to react before they cut your pressure.',
-      'Enemies with lots of health need more than one damage line or support.',
-      'If you see enemies with shields or resistance, change your defense approach.',
-      'Pyces with special behavior often come in more dangerous groups.',
-      'Late waves do not always call for more damage: sometimes you need more control.'
-    ],
-    families: {
-      Glob: [
-        'Basic Globs hold the early defense; place them well to control the first wave.',
-        'Globs are not the strongest, but they are the core of your pacing and economy.'
-      ],
-      Red_Glob: [
-        'The red family is usually best for direct pressure against fast enemies.',
-        'Pair Red_Glob with support to remove priority targets before they break through.'
-      ],
-      Soap_Glob: [
-        'It is very useful for slowing attacks and buying time in tougher waves.',
-        'If enemies accelerate too much, the blue family gives real map control.'
-      ],
-      Ducky_Glob: [
-        'It favors economy and consistency; do not leave it behind.',
-        'Ducky is excellent for generating more resources and sustaining long runs.'
-      ],
-      Comet_Glob: [
-        'The black family deals brutal damage once you already control the board.',
-        'It is ideal for pressure in the center of the map during mid waves.'
-      ],
-      Old_Glob: [
-        'It works well if you want stability and defensive support.',
-        'Sometimes it is better to keep it in a strategic spot than to rotate too much.'
-      ],
-      Work_Bombot: [
-        'Bombot shines when you anticipate where enemies will enter.',
-        'Do not use it as filler: its blast is more useful if you have a clear route.'
-      ],
-      Balloon_Glob: [
-        'Balloon Glob usually complements better when controlling distances and cover.',
-        'It is very good for holding the map while your damage is still coming together.'
-      ],
-      Streamer_Glob: [
-        'Streamer Glob works best when you take advantage of pressure and zone control.',
-        'If you combine it with strong damage, you can clear the most annoying enemies faster.'
-      ],
-      IEx: [
-        'IEx is excellent for reinforcing damage and pressure on long routes, but it is not a sacrifice tower.',
-        'If you want pure blast radius, Bomb Glob is much more direct: it explodes when something enters its range.'
-      ],
-      Worker_Glob: [
-        'It is perfect for sustaining defense on more open maps.',
-        'It gives stability and helps maintain control if the wave starts to get messy.'
-      ],
-      Bomb_Glob: [
-        'It explodes when someone enters its radius; it is ideal for clearing a risky lane.',
-        'It has no bonuses or support buffs: its value lies in the sacrifice and in removing threats in time.'
-      ],
-      Sprout_Glob: [
-        'Sprout_Glob works very well if you want more control and slowing without losing pressure.',
-        'The slow effects give you more room to react before the clash.'
-      ],
-      Pirate_Glob: [
-        'It adds a lot on maps with longer paths and lateral pressure.',
-        'When you have long routes, its utility and control support become very strong.'
-      ]
-    }
-  }
-};
-
-function getLoadingTips(language) {
-  const locale = LOADING_TIPS[language] || LOADING_TIPS.es;
-  const familyPool = Object.entries(locale.families || {}).flatMap(([family, tips]) => {
-    const familyLabelMap = { Pirate_Glob: 'Crewmate Glob', Crewmate_Glob: 'Crewmate Glob' };
-    const cleanFamily = familyLabelMap[family] || String(family).replace(/_/g, ' ');
-    return tips.map(tip => `${cleanFamily}: ${tip}`);
-  });
-  const generalLabel = language === 'es' ? 'General' : 'General';
-  const enemyLabel = language === 'es' ? 'Enemigo' : 'Enemy';
-  const generalPool = (locale.general || []).map(tip => `${generalLabel}: ${tip}`);
-  const enemyPool = (locale.enemy || []).map(tip => `${enemyLabel}: ${tip}`);
-  return [...generalPool, ...enemyPool, ...familyPool];
-}
-
-function openLoadingTipsModal() {
-  const language = currentLanguage || 'es';
-  const tipList = getLoadingTips(language);
-  const tipsListEl = document.getElementById('tips-list');
-  const tipsModal = document.getElementById('tips-modal');
-  if (!tipsListEl || !tipsModal) return;
-
-  const title = document.getElementById('tips-title');
-  if (title) {
-    title.textContent = language === 'es' ? '💡 Tips de juego' : '💡 Game tips';
-  }
-
-  tipsListEl.innerHTML = tipList.map(tip => `<div class="tips-item">${tip}</div>`).join('');
-  tipsModal.style.display = 'flex';
-}
+function scheduleSkipLoginButton() { /* desactivado */ }
 
 async function handleLogin() {
   const nameInput = document.getElementById('username-input');
@@ -796,7 +566,6 @@ async function handleLogin() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: name, password: password })
     });
-    
     const data = await response.json();
 
     if (!response.ok) {
@@ -807,136 +576,40 @@ async function handleLogin() {
       }
       return;
     }
-  } catch (err) {
-    const msgEl = document.getElementById('login-msg');
-    if (msgEl) {
-      msgEl.textContent = 'Error de conexión con el servidor.';
-      msgEl.style.color = 'red';
-    }
-    return;
-  }
 
+    // Login exitoso: guardar en localStorage y cargar progreso
+    try {
+      localStorage.setItem('glob_username', name);
+      loadProgress(name);
+      drawBadges();
+      updateMetaUI();
+      drawTowerShop();
+    } catch (e) { }
 
-  try {
-    localStorage.setItem('glob_username', name);
-    loadProgress(name);
-    drawBadges();
-    updateMetaUI();
-    drawTowerShop();
-  } catch (e) { }
-
-  document.getElementById('login-screen').style.display = 'none';
-  const loadingScreen = document.getElementById('loading-screen');
-  if (loadingScreen) {
-    loadingScreen.style.display = 'flex';
-    const loadingGlob = document.getElementById('loading-glob');
-    if (loadingGlob) {
-      const ownedTowers = Object.keys(TOWER_TYPES).filter(k => TOWER_TYPES[k].unlocked);
-      const spinImgKey = ownedTowers[Math.floor(Math.random() * ownedTowers.length)] || 'Glob';
-      const spinImg = IMAGE_PATHS[spinImgKey] || 'img/Glob_DEF.png';
-      loadingGlob.style.backgroundImage = `url('${spinImg}')`;
-    }
-
-    const loadingTexts = currentLanguage === 'es'
-      ? ['Cargando...', 'Preparando las defensas...', '¡Aquí vienen los Pyces!', 'Revisando familias...']
-      : ['Loading...', 'Preparing defenses...', 'Here come the Pyces!', 'Reviewing families...'];
-    const tipList = getLoadingTips(currentLanguage || 'es');
-    const tipEl = document.getElementById('loading-tip');
-    const barFill = document.getElementById('loading-bar-fill');
-    const ltEl = document.getElementById('loading-text');
-    const skipLoadingButton = document.getElementById('skip-loading-btn');
-    let ltIdx = 0;
-    let tipIdx = 0;
-    let progress = 0;
-
-    if (tipEl) tipEl.textContent = tipList[0] || 'Tip: Elige una familia y aprende su rol.';
-    if (barFill) barFill.style.width = '0%';
-    if (skipLoadingButton) {
-      skipLoadingButton.onclick = skipLoadingScreen;
-      setTimeout(() => {
-        if (loadingScreen.style.display !== 'none') {
-          skipLoadingButton.style.display = 'inline-flex';
-        }
-      }, 1500);
-    }
-
-    const ltInterval = setInterval(() => {
-      ltIdx = (ltIdx + 1) % loadingTexts.length;
-      if (ltEl) ltEl.textContent = loadingTexts[ltIdx];
-    }, 500);
-
-    const tipInterval = setInterval(() => {
-      tipIdx = (tipIdx + 1) % tipList.length;
-      if (tipEl) tipEl.textContent = tipList[tipIdx];
-    }, 1800);
-
-    const progressInterval = setInterval(() => {
-      progress = Math.min(progress + 2, 100);
-      if (barFill) barFill.style.width = `${progress}%`;
-    }, 150);
-
-    setTimeout(() => {
-      clearInterval(ltInterval);
-      clearInterval(tipInterval);
-      clearInterval(progressInterval);
-      if (barFill) barFill.style.width = '100%';
-      if (ltEl) ltEl.textContent = currentLanguage === 'es' ? 'Listo.' : 'Ready.';
-      if (tipEl) tipEl.textContent = currentLanguage === 'es' ? 'Cargando mapa de batalla...' : 'Loading battle map...';
+    document.getElementById('login-screen').style.display = 'none';
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+      loadingScreen.style.display = 'flex';
+      const loadingGlob = document.getElementById('loading-glob');
+      if (loadingGlob) {
+        const ownedTowers = Object.keys(TOWER_TYPES).filter(k => TOWER_TYPES[k].unlocked);
+        const randomTower = ownedTowers[Math.floor(Math.random() * ownedTowers.length)];
+        if (IMAGE_PATHS[randomTower]) loadingGlob.src = IMAGE_PATHS[randomTower];
+      }
       setTimeout(() => {
         loadingScreen.style.display = 'none';
-        const mapScreen = document.getElementById('map-selection');
-        if (mapScreen) mapScreen.style.display = 'flex';
-      }, 650);
-    }, 6500);
-  } else {
-    const mapScreen = document.getElementById('map-selection');
-    if (mapScreen) mapScreen.style.display = 'flex';
-  }
-  const modeScreen = document.getElementById('mode-selection');
-
-  const metaControls = document.getElementById('meta-controls');
-  if (metaControls) metaControls.style.display = 'flex';
-
-  const role = typeof getUserRole === 'function' ? getUserRole(name) : 'USER';
-  const isPrivileged = role === 'OWNER' || role === 'DEVBUILD' || role === 'ADMIN';
-  document.body.classList.remove('role-owner', 'role-admin', 'role-debug');
-  if (role === 'OWNER') document.body.classList.add('role-owner');
-  if (role === 'ADMIN') document.body.classList.add('role-admin');
-  if (role === 'DEVBUILD') document.body.classList.add('role-debug');
-  if (isPrivileged) {
-    gameState.adminMode = true;
-    const adminIndicator = document.getElementById('admin-indicator');
-    if (adminIndicator) {
-      adminIndicator.style.display = 'block';
-      adminIndicator.textContent = role === 'OWNER'
-        ? '💗 OWNER MODE'
-        : role === 'DEVBUILD' ? '🟢 DEBUG MODE' : '🟠 ADMIN MODE';
-      adminIndicator.dataset.role = role;
-    }
-    if (role === 'OWNER') {
-      gameState.antiNormalActive = false;
-      gameState.unlockedAntiNormal = true;
-    }
-  }
-
-  // Anti-Normal glitch only activates at Duck Pass level >= 30
-  if (gameState.antiNormalActive || (!gameState.unlockedAntiNormal && gameState.duckPassLevel >= 30)) {
-    gameState.antiNormalActive = true;
-    modeScreen.classList.add('glitch-state');
-    const disableBtn = document.getElementById('disable-antinormal-btn');
-    if (disableBtn) disableBtn.style.display = 'block';
-    showMessage(translate('system_unstable'), 'error');
-  }
-
-  const infBtn = document.querySelector('.mode-btn[data-mode="infinito"]');
-  if (infBtn) {
-    if (!gameState.unlockedInfinite && !isPrivileged) {
-      infBtn.disabled = true;
-      infBtn.style.opacity = "0.5";
-      infBtn.title = translate('win_diff_required', { diff: translate('badge_winDificil_name') });
+        document.getElementById('main-menu').style.display = 'flex';
+      }, 2000);
     } else {
-      infBtn.disabled = false;
-      infBtn.style.opacity = "1";
+      document.getElementById('main-menu').style.display = 'flex';
+    }
+
+  } catch (err) {
+    console.error("Error en handleLogin:", err);
+    const msgEl = document.getElementById('login-msg');
+    if (msgEl) {
+      msgEl.textContent = 'El servidor está desconectado.';
+      msgEl.style.color = 'red';
     }
   }
 }
@@ -962,7 +635,7 @@ async function handleCreateAccount() {
       body: JSON.stringify({ username: name, password: password })
     });
     const data = await response.json();
-    
+
     if (response.ok) {
       if (msgEl) {
         msgEl.textContent = currentLanguage === 'es' ? '¡Cuenta creada con éxito! Iniciando sesión...' : 'Account created successfully! Logging in...';
@@ -976,12 +649,19 @@ async function handleCreateAccount() {
       }
     }
   } catch (err) {
+    console.error("Error en handleCreateAccount:", err);
     if (msgEl) {
       msgEl.textContent = 'El servidor está desconectado.';
       msgEl.style.color = 'red';
     }
   }
 }
+
+function handleSkipLogin() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-menu').style.display = 'flex';
+}
+
 
 function selectMap(mapId) {
   gameState.map = mapId;
@@ -3203,8 +2883,7 @@ function bindEvents() {
   document.getElementById('login-btn').onclick = handleLogin;
   const createAccountButton = document.getElementById('create-account-btn');
   if (createAccountButton) createAccountButton.onclick = handleCreateAccount;
-  const skipLoginButton = document.getElementById('skip-login-btn');
-  if (skipLoginButton) skipLoginButton.onclick = handleSkipLogin;
+  
   const nameInput = document.getElementById('username-input');
   if (nameInput) {
     nameInput.addEventListener('input', () => {
