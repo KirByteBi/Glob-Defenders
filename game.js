@@ -778,13 +778,11 @@ function openLoadingTipsModal() {
   tipsModal.style.display = 'flex';
 }
 
-function handleLogin() {
+async function handleLogin() {
   const nameInput = document.getElementById('username-input');
   const passInput = document.getElementById('password-input');
   const name = nameInput ? nameInput.value.trim() : "";
   const password = passInput ? passInput.value : "";
-
-  if (name) loadProgress(name);
 
   if (!name || !password) {
     const msgEl = document.getElementById('login-msg');
@@ -792,17 +790,32 @@ function handleLogin() {
     return;
   }
 
-  if (USERS[name]) {
-    if (USERS[name] !== password) {
+  try {
+    const response = await fetch('http://localhost:3000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: name, password: password })
+    });
+    
+    const data = await response.json();
+
+    if (!response.ok) {
       const msgEl = document.getElementById('login-msg');
-      if (msgEl) msgEl.textContent = translate('loginError');
+      if (msgEl) {
+        msgEl.textContent = data.error || translate('loginError');
+        msgEl.style.color = 'red';
+      }
       return;
     }
-  } else {
-    USERS[name] = password;
-    saveUsers();
-    showMessage(translate('new_user_registered'), 'success');
+  } catch (err) {
+    const msgEl = document.getElementById('login-msg');
+    if (msgEl) {
+      msgEl.textContent = 'Error de conexión con el servidor.';
+      msgEl.style.color = 'red';
+    }
+    return;
   }
+
 
   try {
     localStorage.setItem('glob_username', name);
@@ -928,7 +941,7 @@ function handleLogin() {
   }
 }
 
-function handleCreateAccount() {
+async function handleCreateAccount() {
   const nameInput = document.getElementById('username-input');
   const passInput = document.getElementById('password-input');
   const msgEl = document.getElementById('login-msg');
@@ -942,16 +955,32 @@ function handleCreateAccount() {
     return;
   }
 
-  if (USERS[name]) {
-    if (msgEl) msgEl.textContent = currentLanguage === 'es'
-      ? 'Esta cuenta ya existe. Inicia sesión.'
-      : 'This account already exists. Log in instead.';
-    return;
+  try {
+    const response = await fetch('http://localhost:3000/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: name, password: password })
+    });
+    const data = await response.json();
+    
+    if (response.ok) {
+      if (msgEl) {
+        msgEl.textContent = currentLanguage === 'es' ? '¡Cuenta creada con éxito! Iniciando sesión...' : 'Account created successfully! Logging in...';
+        msgEl.style.color = '#00ff88';
+      }
+      handleLogin();
+    } else {
+      if (msgEl) {
+        msgEl.textContent = data.error || 'Error al crear la cuenta.';
+        msgEl.style.color = 'red';
+      }
+    }
+  } catch (err) {
+    if (msgEl) {
+      msgEl.textContent = 'El servidor está desconectado.';
+      msgEl.style.color = 'red';
+    }
   }
-
-  USERS[name] = password;
-  saveUsers();
-  handleLogin();
 }
 
 function selectMap(mapId) {
