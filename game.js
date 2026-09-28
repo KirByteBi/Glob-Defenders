@@ -124,6 +124,7 @@ let gameState = {
   paracristalEnergy: 100,
   paracristalAstrorbSeen: false,
   paracristalFinal: false,
+  interstellarParacristalQuest: false,
   gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false, 'Pirate_Glob': false, 'White': false, 'Pink': false },
   pycesKilled: {},
   globsPlaced: {},
@@ -631,6 +632,8 @@ function startGameSession(username, offline) {
     if (loadingScreen) loadingScreen.style.display = 'none';
     const gameContainer = document.getElementById('game-container');
     if (gameContainer) gameContainer.style.display = 'flex';
+    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('map-selection').style.display = 'flex';
   };
 
   const loadingScreen = document.getElementById('loading-screen');
@@ -834,15 +837,7 @@ function showModeSelection() {
       btn.dataset.mode = 'interstellar';
       btn.innerHTML = currentLanguage === 'en' ? '🌌 Interstellar' : '🌌 Interestelar';
       btn.style.background = 'linear-gradient(45deg, #4b0082, #ff00ff)';
-      btn.onclick = () => {
-        if (gameState.map !== 'sunlight_seaside') {
-          showMessage(currentLanguage === 'es' ? '🌊 Selecciona Sunlight Seaside para iniciar esta versión.' : '🌊 Select Sunlight Seaside to start this version.', 'warning');
-          return;
-        }
-        generateSpots();
-        createMap();
-        selectMode('interstellar');
-      };
+      btn.onclick = () => selectMode('interstellar');
       grid.appendChild(btn);
     }
   }
@@ -999,6 +994,11 @@ function showCollectionMasterDialogue() {
 }
 
 function selectMode(mode) {
+  if (mode === 'interstellar') {
+    startInterstellarMission(gameState.map === 'sunlight_seaside');
+    return;
+  }
+
   // Anti-Normal glitch blocks ALL mode selection except normal
   if (gameState.antiNormalActive && mode !== 'normal') {
     showMessage(translate('system_corrupt_error'), 'error');
@@ -1076,6 +1076,30 @@ function selectMode(mode) {
       showNarratorMsg('arky', NARRATOR_DATA.arky.img, NARRATOR_DATA.arky[currentLanguage].name, storyText);
     }
   }, 1000);
+}
+
+function startInterstellarMission(enableParacristalQuest) {
+  closeModal('shop-modal');
+  closeModal('pass-modal');
+  document.getElementById('mode-selection').style.display = 'none';
+  document.getElementById('map-selection').style.display = 'none';
+
+  gameState.interstellarParacristalQuest = enableParacristalQuest;
+  gameState.paracristalActive = false;
+  gameState.paracristalEnergy = 100;
+  gameState.paracristalAstrorbSeen = false;
+  gameState.paracristalFinal = false;
+  gameState.map = 'gelatin_lake';
+  generateSpots();
+  createMap();
+
+  gameState.mode = 'interstellar';
+  gameState.modeConfirmed = true;
+  gameState.maxWaves = 40;
+  retryGame();
+  gameState.health = 200;
+  gameState.globetines = 500;
+  updateUI();
 }
 
 function startBlockQuest() {
@@ -1177,7 +1201,7 @@ function spawnParacristal() {
 }
 
 function startParacristalDimension() {
-  if (gameState.map !== 'sunlight_seaside' || gameState.mode !== 'interstellar' || !gameState.unlockedInterstellar) return false;
+  if (!gameState.interstellarParacristalQuest || gameState.mode !== 'interstellar') return false;
   gameState.paracristalActive = true;
   gameState.paracristalEnergy = 100;
   let energy = document.getElementById('paracristal-energy');
@@ -3203,31 +3227,7 @@ function bindEvents() {
     }
 
     if (code === 'CR1-M3-CA+GLD') {
-      closeModal('shop-modal');
-      closeModal('pass-modal');
-      document.getElementById('mode-selection').style.display = 'none';
-      document.getElementById('map-selection').style.display = 'none';
-
-      gameState.map = 'gelatin_lake';
-      generateSpots();
-      createMap();
-
-      gameState.mode = 'interstellar';
-      gameState.modeConfirmed = true;
-      gameState.maxWaves = 40;
-
-      retryGame();
-      gameState.globetines = 500;
-      updateUI();
-
-      setTimeout(() => {
-        const storyText = currentLanguage === 'es'
-          ? "¡Has osado interrumpir mi sueño estelar! Prepárate para enfrentar el poder del cosmos... tu insignificante existencia será cristalizada."
-          : "You dared to interrupt my stellar slumber! Prepare to face the power of the cosmos... your insignificant existence shall be crystallized.";
-        showNarratorMsg('astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', storyText);
-        // Force the narrator message to have a pinkish tone if possible, standard narrator uses default styling but we can just use the Astrorb image.
-      }, 1000);
-
+      startInterstellarMission(false);
       input.value = '';
       return;
     }
@@ -5105,11 +5105,11 @@ function activateGTack(t) {
       gameState.blockQuestPending = false;
       setTimeout(startBlockQuest, 500);
     }
-    if (gameState.mode === 'interstellar' && gameState.map === 'sunlight_seaside' && gameState.wave === 1) {
+    if (gameState.mode === 'interstellar' && gameState.interstellarParacristalQuest && gameState.wave === 1) {
       startParacristalDimension();
     }
 
-    if (gameState.mode === 'interstellar' && gameState.wave === 26 && !gameState.paracristalActive) {
+    if (gameState.mode === 'interstellar' && gameState.wave === 26) {
       showMessage("¡Transición detectada! Reubicando al equipo...", 'warning');
       gameState.map = 'urbanistic_road';
 
@@ -8126,7 +8126,7 @@ function activateGTack(t) {
         saveProgress();
       }
 
-      if (gameState.mode === 'interstellar' && victory === true) {
+      if (gameState.mode === 'interstellar' && victory === true && gameState.wave >= 40) {
         unlockBadge('unmenaced');
         unlockBadge('urban_crystals');
         if (!gameState.unlockedInterstellar) {
@@ -8161,11 +8161,6 @@ function activateGTack(t) {
 
       if (!gameState.baseTookDamage) {
         unlockBadge('titaniumBuilding');
-        if (gameState.mode === 'interstellar' && !gameState.unlockedSkins.includes('fracstal_set')) {
-          gameState.unlockedSkins.push('fracstal_set');
-          showMessage(translate('skin_fracstal_name') + ' ' + translate('skin_unlocked'), 'success');
-          unlockBadge('fracstral_victory');
-        }
       }
 
       if (gameState.unlockedSkins && gameState.unlockedSkins.length >= 7) {

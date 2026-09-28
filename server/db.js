@@ -92,25 +92,24 @@ function initialize() {
   if (initialization) return initialization;
 
   initialization = (async () => {
-    let mysqlError;
+    let postgresError;
     try {
-      await connectToMySQL();
+      await connectToPostgreSQL();
       return activeDatabase.name;
     } catch (error) {
-      mysqlError = error;
+      postgresError = error;
       console.error(
-        `MySQL connection failed (${error.code || error.message}); trying PostgreSQL backup.`
+        `PostgreSQL connection failed (${error.code || error.message}); trying MySQL fallback.`
       );
     }
 
     try {
-      await connectToPostgreSQL();
-      console.log('Connected to the PostgreSQL backup database.');
+      await connectToMySQL();
       return activeDatabase.name;
-    } catch (postgresError) {
+    } catch (mysqlError) {
       const error = new Error(
-        `Unable to connect to MySQL or PostgreSQL. MySQL: ${mysqlError.message}; ` +
-        `PostgreSQL: ${postgresError.message}`
+        `Unable to connect to PostgreSQL or MySQL. PostgreSQL: ${postgresError.code || postgresError.message}; ` +
+        `MySQL: ${mysqlError.code || mysqlError.message}`
       );
       error.code = 'DATABASE_UNAVAILABLE';
       throw error;

@@ -1,8 +1,8 @@
 # Backend database configuration
 
-The server tries MySQL first. If it cannot connect, it uses the PostgreSQL
-backup instead. Configure the databases with environment variables; credentials
-are not stored in the repository.
+The server tries PostgreSQL first. If it cannot connect, it uses MySQL as a
+fallback. Configure the databases with environment variables; credentials are
+not stored in the repository.
 
 MySQL uses `MYSQLHOST`, `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLDATABASE`, and
 `MYSQLPORT`.
