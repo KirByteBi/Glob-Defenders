@@ -4,6 +4,7 @@ let currentLanguage = 'es';
 let backgroundMusic = null;
 let musicEnabled = true;
 let showHitbox = false;
+let offlineModeActive = false;
 
 // Generamos spots automáticamente evitando el río y el camino
 const TOWER_SPOTS = [];
@@ -147,6 +148,64 @@ function saveUsers() {
 const PROGRESS_DB_NAME = 'glob-defenders-db';
 const PROGRESS_DB_VERSION = 1;
 const PROGRESS_STORE_NAME = 'progress';
+const OFFLINE_ACCOUNTS_STORAGE_KEY = 'glob_offline_accounts';
+
+function getOfflineAccounts() {
+  const saved = localStorage.getItem(OFFLINE_ACCOUNTS_STORAGE_KEY);
+  return saved ? JSON.parse(saved) : {};
+}
+
+function normalizeUsername(username) {
+  return username.trim().toLowerCase();
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function hashOfflinePassword(password, salt) {
+  if (!window.crypto || !window.crypto.subtle) {
+    throw new Error('El navegador no permite proteger las credenciales offline.');
+  }
+
+  const key = await window.crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  );
+  const hash = await window.crypto.subtle.deriveBits({
+    name: 'PBKDF2',
+    salt,
+    iterations: 120000,
+    hash: 'SHA-256'
+  }, key, 256);
+  return bytesToHex(new Uint8Array(hash));
+}
+
+async function saveOfflineAccount(username, password, replace = false) {
+  const accounts = getOfflineAccounts();
+  const key = normalizeUsername(username);
+  if (accounts[key] && !replace) return false;
+
+  const salt = window.crypto.getRandomValues(new Uint8Array(16));
+  accounts[key] = {
+    username,
+    salt: bytesToHex(salt),
+    passwordHash: await hashOfflinePassword(password, salt)
+  };
+  localStorage.setItem(OFFLINE_ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+  return true;
+}
+
+async function verifyOfflineAccount(password, account) {
+  if (!/^[\da-f]{32}$/i.test(account.salt) || !/^[\da-f]{64}$/i.test(account.passwordHash)) {
+    throw new Error('El respaldo local de la cuenta no tiene un formato válido.');
+  }
+  const salt = new Uint8Array(account.salt.match(/.{2}/g).map(byte => parseInt(byte, 16)));
+  return (await hashOfflinePassword(password, salt)) === account.passwordHash;
+}
 
 function openProgressDatabase() {
   return new Promise((resolve, reject) => {
@@ -539,6 +598,7 @@ function playSound(file) {
 function checkLogin() {
   try {
     const savedName = localStorage.getItem('glob_username');
+    offlineModeActive = localStorage.getItem('glob_offline_mode') === 'true';
     if (savedName) {
       document.getElementById('username-input').value = savedName;
       loadProgress(savedName);
@@ -547,6 +607,95 @@ function checkLogin() {
 }
 
 function scheduleSkipLoginButton() { /* desactivado */ }
+
+function startGameSession(username, offline) {
+  localStorage.setItem('glob_username', username);
+  if (offline) {
+    localStorage.setItem('glob_offline_mode', 'true');
+  } else {
+    localStorage.removeItem('glob_offline_mode');
+  }
+  offlineModeActive = offline;
+
+  const offlineIndicator = document.getElementById('offline-indicator');
+  if (offlineIndicator) offlineIndicator.style.display = offline ? 'block' : 'none';
+
+  loadProgress(username);
+  drawBadges();
+  updateMetaUI();
+  drawTowerShop();
+  document.getElementById('login-screen').style.display = 'none';
+
+  const showGame = () => {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) loadingScreen.style.display = 'none';
+    const gameContainer = document.getElementById('game-container');
+    if (gameContainer) gameContainer.style.display = 'flex';
+  };
+
+  const loadingScreen = document.getElementById('loading-screen');
+  if (!loadingScreen) {
+    showGame();
+    return;
+  }
+
+  loadingScreen.style.display = 'flex';
+  const loadingGlob = document.getElementById('loading-glob');
+  if (loadingGlob) {
+    const ownedTowers = Object.keys(TOWER_TYPES).filter(key => TOWER_TYPES[key].unlocked);
+    const randomTower = ownedTowers[Math.floor(Math.random() * ownedTowers.length)];
+    if (IMAGE_PATHS[randomTower]) loadingGlob.src = IMAGE_PATHS[randomTower];
+  }
+  setTimeout(showGame, 2000);
+}
+
+function showLoginError(message) {
+  const msgEl = document.getElementById('login-msg');
+  if (!msgEl) return;
+  msgEl.textContent = message;
+  msgEl.style.color = 'red';
+}
+
+async function enterOfflineSession(username, password, saveCredentials) {
+  const name = username.trim() || 'Invitado';
+  let accounts;
+  try {
+    accounts = getOfflineAccounts();
+  } catch (error) {
+    console.error('No se pudo leer el respaldo local de las cuentas:', error);
+    showLoginError(translate('offline_account_error'));
+    return false;
+  }
+
+  const account = accounts[normalizeUsername(name)];
+  if (account && password) {
+    try {
+      if (!await verifyOfflineAccount(password, account)) {
+        showLoginError(translate('loginError'));
+        return false;
+      }
+    } catch (error) {
+      console.error('No se pudo verificar la cuenta local:', error);
+      showLoginError(translate('offline_account_error'));
+      return false;
+    }
+  } else if (password && saveCredentials) {
+    try {
+      await saveOfflineAccount(name, password);
+    } catch (error) {
+      console.error('No se pudo guardar el respaldo local de la cuenta:', error);
+    }
+  }
+
+  startGameSession(name, true);
+  return true;
+}
+
+function getSessionUserRole() {
+  if (offlineModeActive) return 'USER';
+  const username = localStorage.getItem('glob_username') || '';
+  return typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
+}
 
 async function handleLogin() {
   const nameInput = document.getElementById('username-input');
@@ -569,48 +718,25 @@ async function handleLogin() {
     const data = await response.json();
 
     if (!response.ok) {
-      const msgEl = document.getElementById('login-msg');
-      if (msgEl) {
-        msgEl.textContent = data.error || translate('loginError');
-        msgEl.style.color = 'red';
+      if (response.status === 503 && data.code === 'DATABASE_UNAVAILABLE') {
+        await enterOfflineSession(name, password, true);
+      } else if (response.status === 400 && getOfflineAccounts()[normalizeUsername(name)]) {
+        await enterOfflineSession(name, password, false);
+      } else {
+        showLoginError(data.error || translate('loginError'));
       }
       return;
     }
 
-    // Login exitoso: guardar en localStorage y cargar progreso
     try {
-      localStorage.setItem('glob_username', name);
-      loadProgress(name);
-      drawBadges();
-      updateMetaUI();
-      drawTowerShop();
-    } catch (e) { }
-
-    document.getElementById('login-screen').style.display = 'none';
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-      loadingScreen.style.display = 'flex';
-      const loadingGlob = document.getElementById('loading-glob');
-      if (loadingGlob) {
-        const ownedTowers = Object.keys(TOWER_TYPES).filter(k => TOWER_TYPES[k].unlocked);
-        const randomTower = ownedTowers[Math.floor(Math.random() * ownedTowers.length)];
-        if (IMAGE_PATHS[randomTower]) loadingGlob.src = IMAGE_PATHS[randomTower];
-      }
-      setTimeout(() => {
-        loadingScreen.style.display = 'none';
-        document.getElementById('main-menu').style.display = 'flex';
-      }, 2000);
-    } else {
-      document.getElementById('main-menu').style.display = 'flex';
+      await saveOfflineAccount(name, password, true);
+    } catch (error) {
+      console.error('No se pudo actualizar el respaldo local de la cuenta:', error);
     }
-
+    startGameSession(name, false);
   } catch (err) {
     console.error("Error en handleLogin:", err);
-    const msgEl = document.getElementById('login-msg');
-    if (msgEl) {
-      msgEl.textContent = 'El servidor está desconectado.';
-      msgEl.style.color = 'red';
-    }
+    await enterOfflineSession(name, password, true);
   }
 }
 
@@ -637,29 +763,21 @@ async function handleCreateAccount() {
     const data = await response.json();
 
     if (response.ok) {
-      if (msgEl) {
-        msgEl.textContent = currentLanguage === 'es' ? '¡Cuenta creada con éxito! Iniciando sesión...' : 'Account created successfully! Logging in...';
-        msgEl.style.color = '#00ff88';
-      }
-      handleLogin();
+      await handleLogin();
+    } else if (response.status === 503 && data.code === 'DATABASE_UNAVAILABLE') {
+      await enterOfflineSession(name, password, true);
     } else {
-      if (msgEl) {
-        msgEl.textContent = data.error || 'Error al crear la cuenta.';
-        msgEl.style.color = 'red';
-      }
+      showLoginError(data.error || 'Error al crear la cuenta.');
     }
   } catch (err) {
     console.error("Error en handleCreateAccount:", err);
-    if (msgEl) {
-      msgEl.textContent = 'El servidor está desconectado.';
-      msgEl.style.color = 'red';
-    }
+    await enterOfflineSession(name, password, true);
   }
 }
 
 function handleSkipLogin() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('main-menu').style.display = 'flex';
+  const username = document.getElementById('username-input')?.value.trim() || 'Invitado';
+  startGameSession(username, true);
 }
 
 
@@ -1532,9 +1650,7 @@ function applyMetaButtonMode() {
 }
 
 function isOwnerDebugUser() {
-  const username = localStorage.getItem('glob_username') || '';
-  if (typeof getUserRole !== 'function') return false;
-  const role = getUserRole(username);
+  const role = getSessionUserRole();
   return role === 'OWNER' || role === 'DEVBUILD';
 }
 
@@ -1560,8 +1676,7 @@ function ownerUnlockEverything() {
 }
 
 function showOwnerDebugPanel() {
-  const username = localStorage.getItem('glob_username') || '';
-  const role = typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
+  const role = getSessionUserRole();
   if (role !== 'OWNER' && role !== 'DEVBUILD') return;
   const panel = document.getElementById('owner-debug-panel');
   if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
@@ -2881,6 +2996,7 @@ function selectAlmanacItem(id, category) {
 function bindEvents() {
   document.getElementById('pause-game')?.addEventListener('click', pauseGame);
   document.getElementById('login-btn').onclick = handleLogin;
+  document.getElementById('offline-play-btn').onclick = handleSkipLogin;
   const createAccountButton = document.getElementById('create-account-btn');
   if (createAccountButton) createAccountButton.onclick = handleCreateAccount;
   
@@ -3036,8 +3152,7 @@ function bindEvents() {
 
     // DEV_BUILD / GLOB_BUILD: special code only for dev users
     if (code === 'DEV_BUILD' || code === 'GLOB_BUILD') {
-      const username = localStorage.getItem('glob_username') || '';
-      const role = typeof getUserRole !== 'undefined' ? getUserRole(username) : 'USER';
+      const role = getSessionUserRole();
       if (role !== 'OWNER' && role !== 'DEVBUILD') {
         showMessage('⛔ Código de desarrollo no disponible... ¿Qué pretendías?', 'error');
         input.value = '';
@@ -3189,8 +3304,7 @@ function bindEvents() {
   };
 
   document.getElementById('debug-toggle').onclick = () => {
-    const username = localStorage.getItem('glob_username') || '';
-    const role = typeof getUserRole !== 'undefined' ? getUserRole(username) : 'USER';
+    const role = getSessionUserRole();
     if (role !== 'OWNER' && role !== 'DEVBUILD') return; // Only DEV users can use the debug button
 
     if (!gameState.debugState) {
@@ -3271,8 +3385,7 @@ function bindEvents() {
     document.getElementById('owner-debug-panel').style.display = 'none';
   });
   document.getElementById('debug-panel-toggle')?.addEventListener('click', () => {
-    const username = localStorage.getItem('glob_username') || '';
-    const role = typeof getUserRole !== 'undefined' ? getUserRole(username) : 'USER';
+    const role = getSessionUserRole();
     if (role !== 'OWNER' && role !== 'DEVBUILD') return;
     const panel = document.getElementById('owner-debug-panel');
     if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';

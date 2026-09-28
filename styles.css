@@ -249,6 +249,21 @@ body {
     background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
 }
 
+#offline-play-btn {
+    width: 100%;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #596275 0%, #8395a7 100%);
+}
+
+#offline-indicator {
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 215, 0, 0.55);
+    border-radius: 10px;
+    background: rgba(60, 45, 0, 0.8);
+    color: #ffe082;
+    text-align: center;
+}
+
 #map-selection, #mode-selection {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;

@@ -15,3 +15,8 @@ contain the same `Usuario` table and columns used by the server.
 
 Connection attempts time out after five seconds by default. Override this with
 `MYSQL_CONNECT_TIMEOUT` or `PGCONNECT_TIMEOUT` (milliseconds).
+
+When neither database is reachable, the server remains available and returns
+HTTP 503 with code `DATABASE_UNAVAILABLE` for database-backed API requests. The
+game uses this response to enter its browser-local offline mode. No database
+schema or data is changed by this fallback.

@@ -108,10 +108,12 @@ function initialize() {
       console.log('Connected to the PostgreSQL backup database.');
       return activeDatabase.name;
     } catch (postgresError) {
-      throw new Error(
+      const error = new Error(
         `Unable to connect to MySQL or PostgreSQL. MySQL: ${mysqlError.message}; ` +
         `PostgreSQL: ${postgresError.message}`
       );
+      error.code = 'DATABASE_UNAVAILABLE';
+      throw error;
     }
   })().catch((error) => {
     initialization = null;
