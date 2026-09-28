@@ -1,5 +1,7 @@
--- Usar la base de datos GlobDefendersDB (la que creaste)
-USE GlobDefendersDB;
+-- Railway ya selecciona la base de datos automáticamente, no hace falta USE
+-- USE GlobDefendersDB;
+${{ MySQL.MYSQL_PRIVATE_URL }}
+
 
 -- 1. Tabla de Usuarios
 CREATE TABLE IF NOT EXISTS Usuario (
