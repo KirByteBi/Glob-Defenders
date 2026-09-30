@@ -6,6 +6,67 @@ let musicEnabled = true;
 let showHitbox = false;
 let offlineModeActive = false;
 
+// --- MULTIPLAYER ---
+let socket = null;
+let currentSeed = null;
+
+function connectSocket() {
+  if (typeof io !== 'undefined' && !socket) {
+    socket = io('http://localhost:3000');
+    socket.on('player-joined', (data) => {
+      console.log('Jugador se unió a la seed:', data.id);
+    });
+    // Las funciones spawnEnemy/showNarratorMsg están en el scope interno del juego,
+    // se exponen en window._spawnEnemy / window._showNarratorMsg desde allí.
+    socket.on('spawn-enemy', (data) => {
+      if (window._spawnEnemy) window._spawnEnemy(data.enemyType, data.boss, data.forcedPath);
+    });
+    socket.on('show-dialog', (data) => {
+      if (window._showNarratorMsg) window._showNarratorMsg(data.id, data.img, data.name, data.text);
+    });
+  }
+}
+
+function generateSeed() {
+  const chars = ['G', 'K', 'P', 'W', 'B', 'N', 'A'];
+  const startChar = chars[Math.floor(Math.random() * chars.length)];
+  let seedNum = '';
+  
+  if (Math.random() < 0.05) {
+    const easterEggs = ['637', '6307', '7001'];
+    seedNum = easterEggs[Math.floor(Math.random() * easterEggs.length)];
+  }
+  
+  while(seedNum.length < 6) {
+    const r = Math.floor(Math.random() * 36).toString(36).toUpperCase();
+    if (r !== 'O' && r !== 'I') seedNum += r;
+  }
+  
+  return startChar + seedNum;
+}
+
+window.createSeed = function() {
+  connectSocket();
+  currentSeed = generateSeed();
+  if (socket) socket.emit('join-seed', currentSeed);
+  document.getElementById('seed-display').style.display = 'block';
+  document.getElementById('seed-display').textContent = 'SEED: ' + currentSeed;
+  alert('Seed creada: ' + currentSeed + '\n¡A partir de ahora todo se sincronizará!');
+};
+
+window.loadSeed = function() {
+  const input = document.getElementById('seed-input').value.trim().toUpperCase();
+  if (!input) return alert('Introduce una seed válida');
+  connectSocket();
+  currentSeed = input;
+  if (socket) socket.emit('join-seed', currentSeed);
+  document.getElementById('seed-display').style.display = 'block';
+  document.getElementById('seed-display').textContent = 'SEED: ' + currentSeed;
+  alert('Unido a la seed: ' + currentSeed);
+};
+// -------------------
+
+
 // Generamos spots automáticamente evitando el río y el camino
 const TOWER_SPOTS = [];
 let ENEMY_PATHS = [];
@@ -2014,6 +2075,9 @@ function setupOwnerDebugTools() {
   spawnEnemyButton?.addEventListener('click', () => {
     if (!isOwnerDebugUser() || !selectedEnemy) return;
     spawnEnemy(selectedEnemy.id);
+    if (socket && currentSeed) {
+      socket.emit('spawn-enemy', { seed: currentSeed, enemyType: selectedEnemy.id, boss: false, forcedPath: null });
+    }
     showMessage(`DEBUG: ${selectedEnemy.label} spawneado.`, 'info');
   });
   showDialogueButton?.addEventListener('click', () => {
@@ -2025,21 +2089,30 @@ function setupOwnerDebugTools() {
       return;
     }
 
+    let emitId, emitImg, emitName;
+
     if (selectedSpeaker.isFallback) {
       showNarratorMsg(selectedSpeaker.id, selectedSpeaker.image, selectedSpeaker.label, text, 'speaker-fallback');
-      return;
+      emitId = selectedSpeaker.id; emitImg = selectedSpeaker.image; emitName = selectedSpeaker.label;
+    } else {
+      const data = NARRATOR_DATA[selectedSpeaker.id];
+      const languageData = data[currentLanguage] || data.es || data.en || {};
+      if (selectedSpeaker.id === 'mysterybug') {
+        const name = mysteryBugName?.value.trim() || '???';
+        const image = mysteryBugImage?.value || data.img;
+        localStorage.setItem('glob_mysterybug_name', name);
+        localStorage.setItem('glob_mysterybug_image', image);
+        showNarratorMsg(selectedSpeaker.id, image, name, text);
+        emitId = selectedSpeaker.id; emitImg = image; emitName = name;
+      } else {
+        showNarratorMsg(selectedSpeaker.id, data.img, languageData.name || selectedSpeaker.label, text);
+        emitId = selectedSpeaker.id; emitImg = data.img; emitName = languageData.name || selectedSpeaker.label;
+      }
     }
-    const data = NARRATOR_DATA[selectedSpeaker.id];
-    const languageData = data[currentLanguage] || data.es || data.en || {};
-    if (selectedSpeaker.id === 'mysterybug') {
-      const name = mysteryBugName?.value.trim() || '???';
-      const image = mysteryBugImage?.value || data.img;
-      localStorage.setItem('glob_mysterybug_name', name);
-      localStorage.setItem('glob_mysterybug_image', image);
-      showNarratorMsg(selectedSpeaker.id, image, name, text);
-      return;
+
+    if (socket && currentSeed) {
+      socket.emit('show-dialog', { seed: currentSeed, id: emitId, img: emitImg, name: emitName, text: text });
     }
-    showNarratorMsg(selectedSpeaker.id, data.img, languageData.name || selectedSpeaker.label, text);
   });
 }
 
@@ -5959,6 +6032,8 @@ function activateGTack(t) {
   }
 
   let lastGameFrameTime = 0;
+  let frameCount = 0;
+  const MAX_PROJECTILES = 120; // Límite de proyectiles activos en pantalla
 
   function gameLoop(timestamp = performance.now()) {
     if (gameState.gameOver || gameState.paused) {
@@ -5970,7 +6045,21 @@ function activateGTack(t) {
       const dt = Math.min(0.05, Math.max(1 / 120, elapsed));
       const movementScale = dt * 60;
       lastGameFrameTime = timestamp;
+      frameCount++;
       gameState.simultaneousExplosions = 0;
+
+      // === ANTI-LAG: Eliminar proyectiles en exceso (los más viejos, no jefes ni piercing) ===
+      if (gameState.projectiles.length > MAX_PROJECTILES) {
+        let toRemove = gameState.projectiles.length - MAX_PROJECTILES;
+        for (let i = 0; i < gameState.projectiles.length && toRemove > 0; i++) {
+          const p = gameState.projectiles[i];
+          if (!p.piercing && !p.boomerang && !p.isEnemy) {
+            p.el.remove();
+            gameState.projectiles.splice(i, 1);
+            i--; toRemove--;
+          }
+        }
+      }
 
       if (gameState.paracristalActive && gameState.waveActive && Math.random() < 0.012) {
         spawnParacristal();
@@ -6018,7 +6107,9 @@ function activateGTack(t) {
           const movementStep = currentEnemySpeed * movementScale;
           if (dist < movementStep) e.pathIndex++;
           else { e.x += (dx / dist) * movementStep; e.y += (dy / dist) * movementStep; }
-          e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
+          if (frameCount % 2 === 0) {
+            e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
+          }
         } else {
           if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
           if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
@@ -6942,8 +7033,11 @@ function activateGTack(t) {
           }
         }
 
-        p.el.style.left = p.x + 'px';
-        p.el.style.top = p.y + 'px';
+        // Throttle DOM: solo actualizar posición visual cada 2 frames (la física es siempre precisa)
+        if (frameCount % 2 === 0) {
+          p.el.style.left = p.x + 'px';
+          p.el.style.top = p.y + 'px';
+        }
 
         if (p.piercing || p.boomerang) {
           const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;

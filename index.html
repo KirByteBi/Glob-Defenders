@@ -39,8 +39,8 @@
         <div class="login-box">
             <img src="img/GlobDefendersLogoRewamped.png" alt="Glob Defenders Logo" class="login-logo">
             <div class="login-inputs">
-                <input type="text" id="username-input" placeholder="Nombre de Usuario">
-                <input type="password" id="password-input" placeholder="Contraseña">
+                <input type="text" id="username-input" data-i18n="login_user" data-i18n-attr="placeholder" placeholder="Nombre de Usuario">
+                <input type="password" id="password-input" data-i18n="login_pass" data-i18n-attr="placeholder" placeholder="Contraseña">
             </div>
             <div id="login-msg"></div>
             <button id="login-btn" data-i18n="login_btn">Iniciar sesión</button>
@@ -85,6 +85,14 @@
                 <button class="mode-btn" data-map="gelatin_lake" onclick="selectMap('gelatin_lake')" style="background: linear-gradient(135deg, #2ecc71, #8b4513); border-color: #27ae60;">🌲 Gelatin Lake</button>
                 <button class="mode-btn" data-map="urbanistic_road" onclick="selectMap('urbanistic_road')" style="background: linear-gradient(135deg, #7f8c8d, #2c3e50); border-color: #34495e;">🏙️ Urbanistic Road</button>
                 <button class="mode-btn" data-map="sunlight_seaside" onclick="selectMap('sunlight_seaside')" style="background: linear-gradient(135deg, #f1c40f, #3498db); border-color: #2980b9;">🌊 Sunlight Seaside</button>
+        </div>
+            
+            <div id="seed-controls" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                <button class="mode-btn" onclick="createSeed()" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); border-color: #8e44ad; font-size: 1.1rem; padding: 10px;">✨ Crear Seed</button>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="seed-input" placeholder="Ej: G123456" style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: 'Press Start 2P', cursive; font-size: 0.8rem; text-transform: uppercase;">
+                    <button class="mode-btn" onclick="loadSeed()" style="background: linear-gradient(135deg, #34495e, #2c3e50); border-color: #2c3e50; font-size: 0.9rem; padding: 10px;">Cargar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -113,6 +121,7 @@
             <img src="img/GlobDefendersLogoRewamped.png" alt="Glob Defenders" class="game-logo">
             <div id="admin-indicator" class="admin-indicator" style="display: none;" data-role="">👑 ADMIN MODE</div>
             <div id="offline-indicator" data-i18n="offline_mode_notice" style="display: none;"></div>
+            <div id="seed-display" style="display: none; color: #f1c40f; margin-left: 10px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px;"></div>
         </div>
 
         <div id="game-ui">
@@ -545,6 +554,7 @@
     <div id="game-messages"></div>
     <div id="tooltip" class="tooltip" style="display: none;"></div>
 
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
     <script src="config.js"></script>
     <script src="game.js"></script>
 </body>

@@ -2,10 +2,42 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
 app.use(cors()); // Permite que el juego HTML se conecte a este servidor local
 app.use(express.json()); // Permite recibir datos en formato JSON
+
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
+
+io.on('connection', (socket) => {
+    console.log('Un usuario se ha conectado:', socket.id);
+
+    socket.on('join-seed', (seed) => {
+        socket.join(seed);
+        console.log(`Usuario ${socket.id} se unió a la seed: ${seed}`);
+        socket.to(seed).emit('player-joined', { id: socket.id });
+    });
+
+    socket.on('spawn-enemy', (data) => {
+        socket.to(data.seed).emit('spawn-enemy', data);
+    });
+
+    socket.on('show-dialog', (data) => {
+        socket.to(data.seed).emit('show-dialog', data);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Usuario desconectado:', socket.id);
+    });
+});
 
 function respondIfDatabaseUnavailable(res, error) {
     if (error.code !== 'DATABASE_UNAVAILABLE') return false;
@@ -89,6 +121,6 @@ db.initialize()
     .then((dialect) => console.log(`Base de datos activa: ${dialect}`))
     .catch((error) => console.error('No se pudo conectar a ninguna base de datos:', error.message));
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Servidor de Glob Defenders corriendo en http://localhost:${PORT}`);
 });
