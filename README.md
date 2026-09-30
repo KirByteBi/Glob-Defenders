@@ -28,6 +28,14 @@ The game stores each player's badges, skins, currencies and settings in the brow
 
 Existing progress saved in `localStorage` is migrated automatically the next time it is loaded. `localStorage` remains as a compatibility backup. This storage is local to the browser and does not synchronize between devices; online synchronization can be added later without changing the badge system.
 
+## 🌌 Interstellar Menace
+
+Start in Cube Adventure searching for a portal to find a code to insert in here...
+
+### Offline play
+
+If the game cannot reach its account database, login and account creation fall back to a local session so the game remains playable. Use **Play offline** to enter without contacting the server. Offline progress is saved in this browser and is not synchronized with an online account or other devices. Accounts used in offline mode are not verified by the server.
+
 ---
 
 ## 💰 Currencies

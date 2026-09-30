@@ -7,12 +7,23 @@ const app = express();
 app.use(cors()); // Permite que el juego HTML se conecte a este servidor local
 app.use(express.json()); // Permite recibir datos en formato JSON
 
+function respondIfDatabaseUnavailable(res, error) {
+    if (error.code !== 'DATABASE_UNAVAILABLE') return false;
+
+    res.status(503).json({
+        code: 'DATABASE_UNAVAILABLE',
+        error: 'La base de datos no está disponible'
+    });
+    return true;
+}
+
 // Ruta de prueba
 app.get('/api/test', async (req, res) => {
     try {
         const [rows] = await db.query('SELECT 1 + 1 AS solution');
-        res.json({ message: '¡Conexión a MySQL exitosa!', result: rows[0].solution });
+        res.json({ message: `¡Conexión a ${db.getDialect()} exitosa!`, result: rows[0].solution });
     } catch (error) {
+        if (respondIfDatabaseUnavailable(res, error)) return;
         console.error(error);
         res.status(500).json({ error: 'Error conectando a la base de datos' });
     }
@@ -33,8 +44,10 @@ app.post('/api/register', async (req, res) => {
         );
         res.json({ success: true, message: 'Usuario creado con éxito', userId: result.insertId });
     } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
+        if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
             res.status(400).json({ error: 'El nombre de usuario ya existe' });
+        } else if (respondIfDatabaseUnavailable(res, error)) {
+            return;
         } else {
             console.error(error);
             res.status(500).json({ error: 'Error al registrar usuario' });
@@ -63,6 +76,7 @@ app.post('/api/login', async (req, res) => {
         delete user.Contrasena;
         res.json({ success: true, message: 'Login exitoso', user: user });
     } catch (error) {
+        if (respondIfDatabaseUnavailable(res, error)) return;
         console.error(error);
         res.status(500).json({ error: 'Error al iniciar sesión' });
     }
@@ -71,6 +85,10 @@ app.post('/api/login', async (req, res) => {
 
 // Arrancar el servidor
 const PORT = 3000;
+db.initialize()
+    .then((dialect) => console.log(`Base de datos activa: ${dialect}`))
+    .catch((error) => console.error('No se pudo conectar a ninguna base de datos:', error.message));
+
 app.listen(PORT, () => {
     console.log(`Servidor de Glob Defenders corriendo en http://localhost:${PORT}`);
 });

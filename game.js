@@ -4,6 +4,7 @@ let currentLanguage = 'es';
 let backgroundMusic = null;
 let musicEnabled = true;
 let showHitbox = false;
+let offlineModeActive = false;
 
 // Generamos spots automáticamente evitando el río y el camino
 const TOWER_SPOTS = [];
@@ -123,6 +124,7 @@ let gameState = {
   paracristalEnergy: 100,
   paracristalAstrorbSeen: false,
   paracristalFinal: false,
+  interstellarParacristalQuest: false,
   gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false, 'Pirate_Glob': false, 'White': false, 'Pink': false },
   pycesKilled: {},
   globsPlaced: {},
@@ -147,6 +149,64 @@ function saveUsers() {
 const PROGRESS_DB_NAME = 'glob-defenders-db';
 const PROGRESS_DB_VERSION = 1;
 const PROGRESS_STORE_NAME = 'progress';
+const OFFLINE_ACCOUNTS_STORAGE_KEY = 'glob_offline_accounts';
+
+function getOfflineAccounts() {
+  const saved = localStorage.getItem(OFFLINE_ACCOUNTS_STORAGE_KEY);
+  return saved ? JSON.parse(saved) : {};
+}
+
+function normalizeUsername(username) {
+  return username.trim().toLowerCase();
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function hashOfflinePassword(password, salt) {
+  if (!window.crypto || !window.crypto.subtle) {
+    throw new Error('El navegador no permite proteger las credenciales offline.');
+  }
+
+  const key = await window.crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  );
+  const hash = await window.crypto.subtle.deriveBits({
+    name: 'PBKDF2',
+    salt,
+    iterations: 120000,
+    hash: 'SHA-256'
+  }, key, 256);
+  return bytesToHex(new Uint8Array(hash));
+}
+
+async function saveOfflineAccount(username, password, replace = false) {
+  const accounts = getOfflineAccounts();
+  const key = normalizeUsername(username);
+  if (accounts[key] && !replace) return false;
+
+  const salt = window.crypto.getRandomValues(new Uint8Array(16));
+  accounts[key] = {
+    username,
+    salt: bytesToHex(salt),
+    passwordHash: await hashOfflinePassword(password, salt)
+  };
+  localStorage.setItem(OFFLINE_ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+  return true;
+}
+
+async function verifyOfflineAccount(password, account) {
+  if (!/^[\da-f]{32}$/i.test(account.salt) || !/^[\da-f]{64}$/i.test(account.passwordHash)) {
+    throw new Error('El respaldo local de la cuenta no tiene un formato válido.');
+  }
+  const salt = new Uint8Array(account.salt.match(/.{2}/g).map(byte => parseInt(byte, 16)));
+  return (await hashOfflinePassword(password, salt)) === account.passwordHash;
+}
 
 function openProgressDatabase() {
   return new Promise((resolve, reject) => {
@@ -539,6 +599,7 @@ function playSound(file) {
 function checkLogin() {
   try {
     const savedName = localStorage.getItem('glob_username');
+    offlineModeActive = localStorage.getItem('glob_offline_mode') === 'true';
     if (savedName) {
       document.getElementById('username-input').value = savedName;
       loadProgress(savedName);
@@ -547,6 +608,118 @@ function checkLogin() {
 }
 
 function scheduleSkipLoginButton() { /* desactivado */ }
+
+function startGameSession(username, offline) {
+  localStorage.setItem('glob_username', username);
+  if (offline) {
+    localStorage.setItem('glob_offline_mode', 'true');
+  } else {
+    localStorage.removeItem('glob_offline_mode');
+  }
+  offlineModeActive = offline;
+  updateRoleIndicator();
+
+  const offlineIndicator = document.getElementById('offline-indicator');
+  if (offlineIndicator) offlineIndicator.style.display = offline ? 'block' : 'none';
+
+  loadProgress(username);
+  drawBadges();
+  updateMetaUI();
+  drawTowerShop();
+  document.getElementById('login-screen').style.display = 'none';
+
+  const showGame = () => {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) loadingScreen.style.display = 'none';
+    const gameContainer = document.getElementById('game-container');
+    if (gameContainer) gameContainer.style.display = 'flex';
+    document.getElementById('meta-controls').style.display = 'flex';
+    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('map-selection').style.display = 'flex';
+  };
+
+  const loadingScreen = document.getElementById('loading-screen');
+  if (!loadingScreen) {
+    showGame();
+    return;
+  }
+
+  loadingScreen.style.display = 'flex';
+  const loadingGlob = document.getElementById('loading-glob');
+  if (loadingGlob) {
+    const ownedTowers = Object.keys(TOWER_TYPES).filter(key => TOWER_TYPES[key].unlocked);
+    const randomTower = ownedTowers[Math.floor(Math.random() * ownedTowers.length)];
+    if (IMAGE_PATHS[randomTower]) loadingGlob.src = IMAGE_PATHS[randomTower];
+  }
+  setTimeout(showGame, 2000);
+}
+
+function showLoginError(message) {
+  const msgEl = document.getElementById('login-msg');
+  if (!msgEl) return;
+  msgEl.textContent = message;
+  msgEl.style.color = 'red';
+}
+
+async function enterOfflineSession(username, password, saveCredentials) {
+  const name = username.trim() || 'Invitado';
+  let accounts;
+  try {
+    accounts = getOfflineAccounts();
+  } catch (error) {
+    console.error('No se pudo leer el respaldo local de las cuentas:', error);
+    showLoginError(translate('offline_account_error'));
+    return false;
+  }
+
+  const account = accounts[normalizeUsername(name)];
+  if (account && password) {
+    try {
+      if (!await verifyOfflineAccount(password, account)) {
+        showLoginError(translate('loginError'));
+        return false;
+      }
+    } catch (error) {
+      console.error('No se pudo verificar la cuenta local:', error);
+      showLoginError(translate('offline_account_error'));
+      return false;
+    }
+  } else if (password && saveCredentials) {
+    try {
+      await saveOfflineAccount(name, password);
+    } catch (error) {
+      console.error('No se pudo guardar el respaldo local de la cuenta:', error);
+    }
+  }
+
+  startGameSession(name, true);
+  return true;
+}
+
+function getSessionUserRole() {
+  const username = localStorage.getItem('glob_username') || '';
+  return typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
+}
+
+function updateRoleIndicator() {
+  const indicator = document.getElementById('admin-indicator');
+  const role = getSessionUserRole();
+  document.body.classList.remove('role-owner', 'role-admin', 'role-debug');
+
+  if (!indicator) return;
+  if (role === 'USER') {
+    indicator.style.display = 'none';
+    indicator.dataset.role = '';
+    return;
+  }
+
+  indicator.dataset.role = role.toLowerCase();
+  indicator.textContent = role === 'OWNER' ? '👑 OWNER' : role;
+  indicator.style.display = 'block';
+  if (role === 'OWNER') document.body.classList.add('role-owner');
+  else if (role === 'ADMIN') document.body.classList.add('role-admin');
+  else document.body.classList.add('role-debug');
+}
 
 async function handleLogin() {
   const nameInput = document.getElementById('username-input');
@@ -569,48 +742,25 @@ async function handleLogin() {
     const data = await response.json();
 
     if (!response.ok) {
-      const msgEl = document.getElementById('login-msg');
-      if (msgEl) {
-        msgEl.textContent = data.error || translate('loginError');
-        msgEl.style.color = 'red';
+      if (response.status === 503 && data.code === 'DATABASE_UNAVAILABLE') {
+        await enterOfflineSession(name, password, true);
+      } else if (response.status === 400 && getOfflineAccounts()[normalizeUsername(name)]) {
+        await enterOfflineSession(name, password, false);
+      } else {
+        showLoginError(data.error || translate('loginError'));
       }
       return;
     }
 
-    // Login exitoso: guardar en localStorage y cargar progreso
     try {
-      localStorage.setItem('glob_username', name);
-      loadProgress(name);
-      drawBadges();
-      updateMetaUI();
-      drawTowerShop();
-    } catch (e) { }
-
-    document.getElementById('login-screen').style.display = 'none';
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-      loadingScreen.style.display = 'flex';
-      const loadingGlob = document.getElementById('loading-glob');
-      if (loadingGlob) {
-        const ownedTowers = Object.keys(TOWER_TYPES).filter(k => TOWER_TYPES[k].unlocked);
-        const randomTower = ownedTowers[Math.floor(Math.random() * ownedTowers.length)];
-        if (IMAGE_PATHS[randomTower]) loadingGlob.src = IMAGE_PATHS[randomTower];
-      }
-      setTimeout(() => {
-        loadingScreen.style.display = 'none';
-        document.getElementById('main-menu').style.display = 'flex';
-      }, 2000);
-    } else {
-      document.getElementById('main-menu').style.display = 'flex';
+      await saveOfflineAccount(name, password, true);
+    } catch (error) {
+      console.error('No se pudo actualizar el respaldo local de la cuenta:', error);
     }
-
+    startGameSession(name, false);
   } catch (err) {
     console.error("Error en handleLogin:", err);
-    const msgEl = document.getElementById('login-msg');
-    if (msgEl) {
-      msgEl.textContent = 'El servidor está desconectado.';
-      msgEl.style.color = 'red';
-    }
+    await enterOfflineSession(name, password, true);
   }
 }
 
@@ -637,29 +787,21 @@ async function handleCreateAccount() {
     const data = await response.json();
 
     if (response.ok) {
-      if (msgEl) {
-        msgEl.textContent = currentLanguage === 'es' ? '¡Cuenta creada con éxito! Iniciando sesión...' : 'Account created successfully! Logging in...';
-        msgEl.style.color = '#00ff88';
-      }
-      handleLogin();
+      await handleLogin();
+    } else if (response.status === 503 && data.code === 'DATABASE_UNAVAILABLE') {
+      await enterOfflineSession(name, password, true);
     } else {
-      if (msgEl) {
-        msgEl.textContent = data.error || 'Error al crear la cuenta.';
-        msgEl.style.color = 'red';
-      }
+      showLoginError(data.error || 'Error al crear la cuenta.');
     }
   } catch (err) {
     console.error("Error en handleCreateAccount:", err);
-    if (msgEl) {
-      msgEl.textContent = 'El servidor está desconectado.';
-      msgEl.style.color = 'red';
-    }
+    await enterOfflineSession(name, password, true);
   }
 }
 
 function handleSkipLogin() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('main-menu').style.display = 'flex';
+  const username = document.getElementById('username-input')?.value.trim() || 'Invitado';
+  startGameSession(username, true);
 }
 
 
@@ -717,15 +859,7 @@ function showModeSelection() {
       btn.dataset.mode = 'interstellar';
       btn.innerHTML = currentLanguage === 'en' ? '🌌 Interstellar' : '🌌 Interestelar';
       btn.style.background = 'linear-gradient(45deg, #4b0082, #ff00ff)';
-      btn.onclick = () => {
-        if (gameState.map !== 'sunlight_seaside') {
-          showMessage(currentLanguage === 'es' ? '🌊 Selecciona Sunlight Seaside para iniciar esta versión.' : '🌊 Select Sunlight Seaside to start this version.', 'warning');
-          return;
-        }
-        generateSpots();
-        createMap();
-        selectMode('interstellar');
-      };
+      btn.onclick = () => selectMode('interstellar');
       grid.appendChild(btn);
     }
   }
@@ -882,6 +1016,11 @@ function showCollectionMasterDialogue() {
 }
 
 function selectMode(mode) {
+  if (mode === 'interstellar') {
+    startInterstellarMission(gameState.map === 'sunlight_seaside');
+    return;
+  }
+
   // Anti-Normal glitch blocks ALL mode selection except normal
   if (gameState.antiNormalActive && mode !== 'normal') {
     showMessage(translate('system_corrupt_error'), 'error');
@@ -959,6 +1098,30 @@ function selectMode(mode) {
       showNarratorMsg('arky', NARRATOR_DATA.arky.img, NARRATOR_DATA.arky[currentLanguage].name, storyText);
     }
   }, 1000);
+}
+
+function startInterstellarMission(enableParacristalQuest) {
+  closeModal('shop-modal');
+  closeModal('pass-modal');
+  document.getElementById('mode-selection').style.display = 'none';
+  document.getElementById('map-selection').style.display = 'none';
+
+  gameState.interstellarParacristalQuest = enableParacristalQuest;
+  gameState.paracristalActive = false;
+  gameState.paracristalEnergy = 100;
+  gameState.paracristalAstrorbSeen = false;
+  gameState.paracristalFinal = false;
+  gameState.map = 'gelatin_lake';
+  generateSpots();
+  createMap();
+
+  gameState.mode = 'interstellar';
+  gameState.modeConfirmed = true;
+  gameState.maxWaves = 40;
+  retryGame();
+  gameState.health = 200;
+  gameState.globetines = 500;
+  updateUI();
 }
 
 function startBlockQuest() {
@@ -1060,7 +1223,7 @@ function spawnParacristal() {
 }
 
 function startParacristalDimension() {
-  if (gameState.map !== 'sunlight_seaside' || gameState.mode !== 'interstellar' || !gameState.unlockedInterstellar) return false;
+  if (!gameState.interstellarParacristalQuest || gameState.mode !== 'interstellar') return false;
   gameState.paracristalActive = true;
   gameState.paracristalEnergy = 100;
   let energy = document.getElementById('paracristal-energy');
@@ -1532,9 +1695,7 @@ function applyMetaButtonMode() {
 }
 
 function isOwnerDebugUser() {
-  const username = localStorage.getItem('glob_username') || '';
-  if (typeof getUserRole !== 'function') return false;
-  const role = getUserRole(username);
+  const role = getSessionUserRole();
   return role === 'OWNER' || role === 'DEVBUILD';
 }
 
@@ -1560,8 +1721,7 @@ function ownerUnlockEverything() {
 }
 
 function showOwnerDebugPanel() {
-  const username = localStorage.getItem('glob_username') || '';
-  const role = typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
+  const role = getSessionUserRole();
   if (role !== 'OWNER' && role !== 'DEVBUILD') return;
   const panel = document.getElementById('owner-debug-panel');
   if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
@@ -2269,15 +2429,9 @@ function toggleBadgesPanel() {
 function updateAchievementsBtnUI() {
   const btn = document.getElementById('badges-toggle-btn');
   if (!btn) return;
-  if (gameState.settings.oldAchievements) {
-    btn.innerHTML = translate('btn_achievements');
-    btn.classList.remove('encyclopedia-btn-yellow');
-    btn.title = translate('btn_achievements').replace('🏆 ', '');
-  } else {
-    btn.innerHTML = translate('btn_encyclopedia');
-    btn.classList.add('encyclopedia-btn-yellow');
-    btn.title = translate('btn_encyclopedia').replace('📖 ', '');
-  }
+  btn.innerHTML = translate('btn_encyclopedia');
+  btn.classList.add('encyclopedia-btn-yellow');
+  btn.title = translate('btn_encyclopedia').replace('📖 ', '');
 }
 
 function openEncyclopedia() {
@@ -2881,6 +3035,7 @@ function selectAlmanacItem(id, category) {
 function bindEvents() {
   document.getElementById('pause-game')?.addEventListener('click', pauseGame);
   document.getElementById('login-btn').onclick = handleLogin;
+  document.getElementById('offline-play-btn').onclick = handleSkipLogin;
   const createAccountButton = document.getElementById('create-account-btn');
   if (createAccountButton) createAccountButton.onclick = handleCreateAccount;
   
@@ -3036,8 +3191,7 @@ function bindEvents() {
 
     // DEV_BUILD / GLOB_BUILD: special code only for dev users
     if (code === 'DEV_BUILD' || code === 'GLOB_BUILD') {
-      const username = localStorage.getItem('glob_username') || '';
-      const role = typeof getUserRole !== 'undefined' ? getUserRole(username) : 'USER';
+      const role = getSessionUserRole();
       if (role !== 'OWNER' && role !== 'DEVBUILD') {
         showMessage('⛔ Código de desarrollo no disponible... ¿Qué pretendías?', 'error');
         input.value = '';
@@ -3089,31 +3243,7 @@ function bindEvents() {
     }
 
     if (code === 'CR1-M3-CA+GLD') {
-      closeModal('shop-modal');
-      closeModal('pass-modal');
-      document.getElementById('mode-selection').style.display = 'none';
-      document.getElementById('map-selection').style.display = 'none';
-
-      gameState.map = 'gelatin_lake';
-      generateSpots();
-      createMap();
-
-      gameState.mode = 'interstellar';
-      gameState.modeConfirmed = true;
-      gameState.maxWaves = 40;
-
-      retryGame();
-      gameState.globetines = 500;
-      updateUI();
-
-      setTimeout(() => {
-        const storyText = currentLanguage === 'es'
-          ? "¡Has osado interrumpir mi sueño estelar! Prepárate para enfrentar el poder del cosmos... tu insignificante existencia será cristalizada."
-          : "You dared to interrupt my stellar slumber! Prepare to face the power of the cosmos... your insignificant existence shall be crystallized.";
-        showNarratorMsg('astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', storyText);
-        // Force the narrator message to have a pinkish tone if possible, standard narrator uses default styling but we can just use the Astrorb image.
-      }, 1000);
-
+      startInterstellarMission(false);
       input.value = '';
       return;
     }
@@ -3189,8 +3319,7 @@ function bindEvents() {
   };
 
   document.getElementById('debug-toggle').onclick = () => {
-    const username = localStorage.getItem('glob_username') || '';
-    const role = typeof getUserRole !== 'undefined' ? getUserRole(username) : 'USER';
+    const role = getSessionUserRole();
     if (role !== 'OWNER' && role !== 'DEVBUILD') return; // Only DEV users can use the debug button
 
     if (!gameState.debugState) {
@@ -3233,7 +3362,9 @@ function bindEvents() {
         gameState.pycesKilled[type] = Math.max(gameState.pycesKilled[type] || 0, target);
       });
       showMessage('🛠️ DEBUG: Torres, skins y enciclopedia desbloqueadas. Pulsa de nuevo para restaurar.', 'success');
-      document.getElementById('admin-indicator').style.display = 'block';
+      const indicator = document.getElementById('admin-indicator');
+      indicator.textContent = role === 'OWNER' ? '👑 OWNER MODE' : '🛠 DEVBUILD MODE';
+      indicator.style.display = 'block';
     } else {
       // Second click: restore snapshot
       const snap = gameState.debugSnapshot;
@@ -3255,7 +3386,7 @@ function bindEvents() {
       }
       gameState.debugState = null;
       gameState.debugSnapshot = null;
-      document.getElementById('admin-indicator').style.display = 'none';
+      updateRoleIndicator();
       showMessage('🔄 DEBUG: Estado restaurado al original.', 'warning');
     }
     drawShop();
@@ -3271,8 +3402,7 @@ function bindEvents() {
     document.getElementById('owner-debug-panel').style.display = 'none';
   });
   document.getElementById('debug-panel-toggle')?.addEventListener('click', () => {
-    const username = localStorage.getItem('glob_username') || '';
-    const role = typeof getUserRole !== 'undefined' ? getUserRole(username) : 'USER';
+    const role = getSessionUserRole();
     if (role !== 'OWNER' && role !== 'DEVBUILD') return;
     const panel = document.getElementById('owner-debug-panel');
     if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
@@ -3320,13 +3450,7 @@ function bindEvents() {
   if (storyBtn) storyBtn.onclick = () => { openStoryLogs(); };
 
   const badgesBtn = document.getElementById('badges-toggle-btn');
-  if (badgesBtn) badgesBtn.onclick = () => {
-    if (gameState.settings.oldAchievements) {
-      toggleBadgesPanel();
-    } else {
-      openEncyclopedia();
-    }
-  };
+  if (badgesBtn) badgesBtn.onclick = openEncyclopedia;
 
   const openEncBtn = document.getElementById('open-encyclopedia-btn');
   if (openEncBtn) openEncBtn.onclick = () => {
@@ -3714,10 +3838,10 @@ function drawShop() {
       { id: 'unlock_Old_Glob', name: 'upgrade_unlock_old_name', desc: 'upgrade_unlock_old_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
       { id: 'unlock_Comet_Glob', name: 'upgrade_unlock_comet_name', desc: 'upgrade_unlock_comet_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
       { id: 'unlock_Sprout_Glob', name: 'upgrade_unlock_sprout_name', desc: 'upgrade_unlock_sprout_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
-      { id: 'unlock_Balloon_Glob', name: 'tower_Balloon_Glob_name', desc: 'tower_Balloon_Glob_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
-      { id: 'unlock_Streamer_Glob', name: 'tower_Streamer_Glob_name', desc: 'tower_Streamer_Glob_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
-      { id: 'unlock_Worker_Glob', name: 'tower_Worker_Glob_name', desc: 'tower_Worker_Glob_desc', cost: 200, type: 'pycoin', hideIfUnlocked: true },
-      { id: 'unlock_Bomb_Glob', name: 'tower_Bomb_Glob_name', desc: 'tower_IEx1_desc', cost: 200, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Balloon_Glob', name: 'tower_Balloon_Glob_name', desc: 'tower_Balloon_Glob_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Streamer_Glob', name: 'tower_Streamer_Glob_name', desc: 'tower_Streamer_Glob_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Worker_Glob', name: 'tower_Worker_Glob_name', desc: 'tower_Worker_Glob_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Bomb_Glob', name: 'tower_Bomb_Glob_name', desc: 'tower_IEx1_desc', cost: 300, type: 'pycoin', hideIfUnlocked: true },
       { id: 'unlock_Pirate_Glob', name: 'tower_Pirate_Glob_name', desc: 'tower_Pirate_Glob_desc', cost: 350, type: 'pycoin', hideIfUnlocked: true },
 
       { id: 'meta_damage', name: 'upgrade_damage_name', desc: 'upgrade_damage_desc', cost: 15, type: 'duckpass', level: gameState.metaDamageLevel, max: 5 }
@@ -4993,11 +5117,11 @@ function activateGTack(t) {
       gameState.blockQuestPending = false;
       setTimeout(startBlockQuest, 500);
     }
-    if (gameState.mode === 'interstellar' && gameState.map === 'sunlight_seaside' && gameState.wave === 1) {
+    if (gameState.mode === 'interstellar' && gameState.interstellarParacristalQuest && gameState.wave === 1) {
       startParacristalDimension();
     }
 
-    if (gameState.mode === 'interstellar' && gameState.wave === 26 && !gameState.paracristalActive) {
+    if (gameState.mode === 'interstellar' && gameState.wave === 26) {
       showMessage("¡Transición detectada! Reubicando al equipo...", 'warning');
       gameState.map = 'urbanistic_road';
 
@@ -7853,6 +7977,8 @@ function activateGTack(t) {
     document.getElementById('mode-selection').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('meta-controls').style.display = 'none';
+    document.body.classList.remove('role-owner', 'role-admin', 'role-debug');
+    document.getElementById('admin-indicator').style.display = 'none';
   }
 
   function endGame(victory = false) {
@@ -8014,7 +8140,7 @@ function activateGTack(t) {
         saveProgress();
       }
 
-      if (gameState.mode === 'interstellar' && victory === true) {
+      if (gameState.mode === 'interstellar' && victory === true && gameState.wave >= 40) {
         unlockBadge('unmenaced');
         unlockBadge('urban_crystals');
         if (!gameState.unlockedInterstellar) {
@@ -8049,11 +8175,6 @@ function activateGTack(t) {
 
       if (!gameState.baseTookDamage) {
         unlockBadge('titaniumBuilding');
-        if (gameState.mode === 'interstellar' && !gameState.unlockedSkins.includes('fracstal_set')) {
-          gameState.unlockedSkins.push('fracstal_set');
-          showMessage(translate('skin_fracstal_name') + ' ' + translate('skin_unlocked'), 'success');
-          unlockBadge('fracstral_victory');
-        }
       }
 
       if (gameState.unlockedSkins && gameState.unlockedSkins.length >= 7) {
