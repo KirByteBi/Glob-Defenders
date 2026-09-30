@@ -1,6 +1,6 @@
 -- Railway ya selecciona la base de datos automáticamente, no hace falta USE
--- USE GlobDefendersDB;
-${{ MySQL.MYSQL_PRIVATE_URL }}
+USE GlobDefendersDB;
+-- ${{ MySQL.MYSQL_PRIVATE_URL }}
 
 
 -- 1. Tabla de Usuarios
