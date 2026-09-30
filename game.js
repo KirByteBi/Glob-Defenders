@@ -5961,8 +5961,7 @@ function activateGTack(t) {
   let lastGameFrameTime = 0;
 
   function gameLoop(timestamp = performance.now()) {
-    if (gameState.gameOver) return;
-    if (gameState.paused) {
+    if (gameState.gameOver || gameState.paused) {
       requestAnimationFrame(gameLoop);
       return;
     }
