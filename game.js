@@ -72,7 +72,7 @@ function publishMultiplayerProfile() {
 function getMultiplayerServerUrl() {
   const input = document.getElementById('multiplayer-server-url');
   const queryServer = new URLSearchParams(window.location.search).get('server');
-  const rawUrl = (queryServer || input?.value || 'http://localhost:3001').trim();
+  const rawUrl = (queryServer || input?.value || 'http://127.0.0.1:3001').trim();
   let parsedUrl;
   try {
     parsedUrl = new URL(rawUrl);

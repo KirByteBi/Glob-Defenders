@@ -49,7 +49,7 @@ try {
     }
 
     Write-Host 'Multiplayer server ready. Keep this window open and share the trycloudflare.com URL below.'
-    & cloudflared tunnel --url http://localhost:3001
+    & cloudflared tunnel --url http://127.0.0.1:3001
     if ($LASTEXITCODE -ne 0) {
         throw "cloudflared exited with code $LASTEXITCODE."
     }
