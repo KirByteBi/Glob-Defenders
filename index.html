@@ -24,6 +24,28 @@
 
     <button id="language-toggle" onclick="toggleLanguage()">🌐 ES / EN</button>
     <button id="options-toggle" onclick="openOptions()" class="meta-btn-round">⚙️</button>
+    <div id="seed-display" class="seed-display" role="status" aria-live="polite" style="display: none;">
+        <span id="seed-code"></span>
+        <button id="copy-seed-btn" type="button" onclick="openSeedOptions()" aria-label="Opciones de seed" title="Opciones de seed">📋</button>
+    </div>
+    <time id="session-clock" class="session-clock" aria-label="Hora local" style="display: none;">
+        <span id="session-date-time"></span>
+        <span id="session-play-time"></span>
+    </time>
+
+    <div id="seed-options-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="seed-options-title">
+        <div class="modal-content seed-options-content">
+            <button class="seed-options-close" type="button" onclick="closeSeedOptions()" aria-label="Cerrar">✕</button>
+            <h2 id="seed-options-title">Opciones de seed</h2>
+            <p id="seed-options-description">Elige cómo quieres guardar o compartir esta seed.</p>
+            <div class="seed-options-actions">
+                <button id="show-seed-copy-btn" type="button" onclick="showSeedCopyText()">📋 Copiar seed</button>
+                <button id="download-seed-btn" type="button" onclick="downloadSeed()">⬇️ Descargar seed</button>
+            </div>
+            <label id="seed-copy-instructions" for="seed-copy-text" hidden>Selecciona el texto para copiarlo:</label>
+            <textarea id="seed-copy-text" class="seed-copy-text" readonly hidden></textarea>
+        </div>
+    </div>
 
     <!-- Meta Controls (Visible after login) -->
     <div id="meta-controls" style="display: none;">
@@ -62,10 +84,8 @@
     <!-- Loading Screen -->
     <div id="loading-screen" style="display: none;">
         <div class="loading-content">
-            <img src="img/GlobDefendersLogo.png" alt="Glob Defenders" class="loading-logo">
-            <div id="loading-glob-wrap">
-                <div id="loading-glob" class="loading-glob-spinner"></div>
-            </div>
+            <img src="img/GlobDefendersLogoRewamped.png" alt="Glob Defenders" class="loading-logo">
+            <div id="loading-glob-wrap" class="loading-glob-gallery" role="img" aria-label="Familias de Globs"></div>
             <div class="loading-progress" aria-label="Progreso de carga">
                 <div id="loading-bar-fill" class="loading-bar-fill"></div>
             </div>
@@ -118,7 +138,6 @@
             <img src="img/GlobDefendersLogoRewamped.png" alt="Glob Defenders" class="game-logo">
             <div id="admin-indicator" class="admin-indicator" style="display: none;" data-role="">👑 ADMIN MODE</div>
             <div id="offline-indicator" data-i18n="offline_mode_notice" style="display: none;"></div>
-            <div id="seed-display" style="display: none; color: #f1c40f; margin-left: 10px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px;"></div>
         </div>
 
         <div id="game-ui">
@@ -394,6 +413,16 @@
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="opt-show-desc" checked onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">
+                            <span class="option-icon">🕒</span>
+                            <span data-i18n="hide_date">Quitar la fecha</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-hide-date" onchange="updateSettings()">
                             <span class="slider"></span>
                         </label>
                     </div>

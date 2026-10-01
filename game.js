@@ -9,6 +9,34 @@ let offlineModeActive = false;
 // --- MULTIPLAYER ---
 let socket = null;
 let currentSeed = null;
+let sessionClockInterval = null;
+let sessionStartedAt = null;
+let nextBreakReminderAt = 2 * 60 * 60 * 1000;
+let lastBreakReminderIndex = -1;
+
+const BREAK_REMINDER_INTERVAL = 2 * 60 * 60 * 1000;
+const BREAK_REMINDERS = {
+  es: [
+    '¡Ey, comandante! Llevas un buen rato al mando. Estira las piernas y bebe un poco de agua; los Globs esperan.',
+    'Registro de Bombot: actividad prolongada detectada. Recomiendo una pausa breve antes de la siguiente oleada.',
+    '¿Sigues ahí, comandante? Si te fuiste AFK, todo bien; solo quería comprobar que no te hayas quedado pegado a la silla.',
+    'No hace falta defender el mapa sin parar. Guarda la partida cuando puedas y descansa un rato.',
+    'Alerta amistosa: llevas un buen rato aquí. Tus ojos también necesitan descansar.',
+    '¿Hola? ... Ping. Si sigues ahí, ¡gracias por proteger a los Globs! Si no, espero que estés disfrutando tu pausa.',
+    'Dos horas registradas. Bombot recomienda agua, parpadear y levantarse un momento. No es una orden... casi.',
+    '¿Comandante? ¿Me recibe? ... Ah, ahí estás. Era una comprobación de rutina. Descansa cuando te venga bien.'
+  ],
+  en: [
+    'Hey, Commander! You have been in command for a while. Stretch your legs and drink some water; the Globs can wait.',
+    'Bombot report: extended activity detected. I recommend a short break before the next wave.',
+    'Are you still there, Commander? If you went AFK, no worries; I just wanted to make sure you are not glued to your chair.',
+    'You do not have to defend the map nonstop. Save when you can and take a little break.',
+    'Friendly alert: you have been here for a while. Your eyes need a rest too.',
+    'Hello? ... Ping. If you are still there, thanks for protecting the Globs! If not, I hope you are enjoying your break.',
+    'Two hours logged. Bombot recommends water, blinking, and standing up for a moment. Not an order... almost.',
+    'Commander? Do you read me? ... Oh, there you are. Just a routine check. Take a break whenever you need one.'
+  ]
+};
 
 function connectSocket() {
   if (typeof io !== 'undefined' && !socket) {
@@ -45,12 +73,19 @@ function generateSeed() {
   return startChar + seedNum;
 }
 
+function updateSeedDisplay() {
+  const seedDisplay = document.getElementById('seed-display');
+  const seedCode = document.getElementById('seed-code');
+  if (!seedDisplay || !seedCode || !currentSeed) return;
+  seedCode.textContent = `SEED: ${currentSeed}`;
+  seedDisplay.style.display = 'flex';
+}
+
 window.createSeed = function() {
   connectSocket();
   currentSeed = generateSeed();
   if (socket) socket.emit('join-seed', currentSeed);
-  document.getElementById('seed-display').style.display = 'block';
-  document.getElementById('seed-display').textContent = 'SEED: ' + currentSeed;
+  updateSeedDisplay();
   alert('Seed creada: ' + currentSeed + '\n¡A partir de ahora todo se sincronizará!');
 };
 
@@ -60,11 +95,142 @@ window.loadSeed = function() {
   connectSocket();
   currentSeed = input;
   if (socket) socket.emit('join-seed', currentSeed);
-  document.getElementById('seed-display').style.display = 'block';
-  document.getElementById('seed-display').textContent = 'SEED: ' + currentSeed;
+  updateSeedDisplay();
   alert('Unido a la seed: ' + currentSeed);
 };
+
+window.openSeedOptions = function() {
+  if (!currentSeed) return;
+  const modal = document.getElementById('seed-options-modal');
+  const title = document.getElementById('seed-options-title');
+  const description = document.getElementById('seed-options-description');
+  const copyButton = document.getElementById('show-seed-copy-btn');
+  const downloadButton = document.getElementById('download-seed-btn');
+  const instructions = document.getElementById('seed-copy-instructions');
+  const copyText = document.getElementById('seed-copy-text');
+  const closeButton = modal?.querySelector('.seed-options-close');
+  const isSpanish = currentLanguage !== 'en';
+
+  if (!modal || !title || !description || !copyButton || !downloadButton || !instructions || !copyText || !closeButton) {
+    console.error('No se pudo abrir el menú de opciones de seed: faltan elementos del diálogo.');
+    return;
+  }
+  title.textContent = isSpanish ? 'Opciones de seed' : 'Seed options';
+  description.textContent = isSpanish ? 'Elige cómo quieres guardar o compartir esta seed.' : 'Choose how you want to save or share this seed.';
+  copyButton.textContent = isSpanish ? '📋 Copiar seed' : '📋 Copy seed';
+  downloadButton.textContent = isSpanish ? '⬇️ Descargar seed' : '⬇️ Download seed';
+  instructions.textContent = isSpanish ? 'Selecciona el texto para copiarlo:' : 'Select the text to copy:';
+  closeButton.setAttribute('aria-label', isSpanish ? 'Cerrar' : 'Close');
+  copyText.hidden = true;
+  instructions.hidden = true;
+  copyText.value = currentSeed;
+  modal.style.display = 'flex';
+  closeButton.focus();
+};
+
+window.closeSeedOptions = function() {
+  const modal = document.getElementById('seed-options-modal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.getElementById('copy-seed-btn')?.focus();
+  }
+};
+
+window.showSeedCopyText = function() {
+  const copyText = document.getElementById('seed-copy-text');
+  const instructions = document.getElementById('seed-copy-instructions');
+  if (!copyText || !instructions || !currentSeed) return;
+  copyText.value = currentSeed;
+  copyText.hidden = false;
+  instructions.hidden = false;
+  copyText.focus();
+  copyText.select();
+};
+
+window.downloadSeed = function() {
+  if (!currentSeed) return;
+  const file = new Blob([`${currentSeed}\n`], { type: 'text/plain;charset=utf-8' });
+  const downloadUrl = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.download = `Glob-Defenders-Seed-${currentSeed}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+};
 // -------------------
+
+function updateSessionClock() {
+  const clock = document.getElementById('session-clock');
+  const dateTime = document.getElementById('session-date-time');
+  const playTime = document.getElementById('session-play-time');
+  if (!clock || !dateTime || !playTime) return;
+  const now = new Date();
+  const locale = currentLanguage === 'en' ? 'en-GB' : 'es-ES';
+  const dateParts = new Intl.DateTimeFormat(locale, {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).formatToParts(now);
+  const part = (type) => (dateParts.find(datePart => datePart.type === type)?.value || '0').padStart(2, '0');
+  dateTime.textContent = `${part('day')}/${part('month')} · ${part('hour')}:${part('minute')}`;
+  dateTime.hidden = !!gameState.settings.hideDate;
+  playTime.hidden = sessionStartedAt === null;
+  const elapsedSeconds = sessionStartedAt === null ? 0 : Math.floor((Date.now() - sessionStartedAt) / 1000);
+  const hours = String(Math.floor(elapsedSeconds / 3600)).padStart(2, '0');
+  const minutes = String(Math.floor((elapsedSeconds % 3600) / 60)).padStart(2, '0');
+  const seconds = String(elapsedSeconds % 60).padStart(2, '0');
+  playTime.textContent = `${currentLanguage === 'en' ? 'Play' : 'Sesión'} ${hours}:${minutes}:${seconds}`;
+  clock.style.display = dateTime.hidden && playTime.hidden ? 'none' : 'flex';
+  clock.dateTime = now.toISOString();
+  clock.title = `${now.toLocaleString(locale, { dateStyle: 'full', timeStyle: 'medium' })} · ${playTime.textContent}`;
+}
+
+function checkBreakReminder() {
+  if (sessionStartedAt === null) return;
+  const elapsed = Date.now() - sessionStartedAt;
+  if (elapsed < nextBreakReminderAt) return;
+
+  nextBreakReminderAt = (Math.floor(elapsed / BREAK_REMINDER_INTERVAL) + 1) * BREAK_REMINDER_INTERVAL;
+  const messages = BREAK_REMINDERS[currentLanguage] || BREAK_REMINDERS.es;
+  let reminderIndex = Math.floor(Math.random() * messages.length);
+  if (messages.length > 1 && reminderIndex === lastBreakReminderIndex) {
+    reminderIndex = (reminderIndex + 1 + Math.floor(Math.random() * (messages.length - 1))) % messages.length;
+  }
+  lastBreakReminderIndex = reminderIndex;
+
+  if (typeof window._showNarratorMsg !== 'function') {
+    console.error('No se pudo mostrar el recordatorio de descanso: el narrador no está disponible.');
+    return;
+  }
+  window._showNarratorMsg(
+    'break-reminder',
+    IMAGE_PATHS.Crystal_Bombot,
+    'Work-Bombot',
+    messages[reminderIndex]
+  );
+}
+
+function startSessionClock() {
+  sessionStartedAt = Date.now();
+  nextBreakReminderAt = BREAK_REMINDER_INTERVAL;
+  lastBreakReminderIndex = -1;
+  updateSessionClock();
+  if (sessionClockInterval === null) {
+    sessionClockInterval = setInterval(() => {
+      updateSessionClock();
+      checkBreakReminder();
+    }, 1000);
+  }
+}
+
+function stopSessionClock() {
+  sessionStartedAt = null;
+  updateSessionClock();
+}
 
 
 // Generamos spots automáticamente evitando el río y el camino
@@ -185,7 +351,7 @@ let gameState = {
   usedGTackRed: false,
   usedGTackGrey: false,
   baseTookDamage: false,
-  settings: { showShopDesc: true, showTotalDamage: false, oldAchievements: false, autoEnglish: false },
+  settings: { showShopDesc: true, showTotalDamage: false, oldAchievements: false, autoEnglish: false, hideDate: false },
   duckgrades: {},
   blockQuestActive: false,
   blockQuestStage: 0,
@@ -413,6 +579,13 @@ installMissingImageFallback();
 
 function init() {
   console.log("Iniciando Glob Defenders...");
+  updateSessionClock();
+  if (sessionClockInterval === null) {
+    sessionClockInterval = setInterval(() => {
+      updateSessionClock();
+      checkBreakReminder();
+    }, 1000);
+  }
   try {
     const logoRoll = Math.random();
     if (logoRoll < 0.15) {
@@ -657,6 +830,7 @@ function loadProgress(username) {
       applyMetaButtonMode();
       if (gameState.settings.fullscreenMap) document.body.classList.add('fullscreen-map');
       if (gameState.settings.autoEnglish) { currentLanguage = 'en'; updateLanguage(); }
+      updateSessionClock();
       checkFutureVoyageBadge();
       updateMuteButton();
       updateAchievementsBtnUI();
@@ -769,6 +943,7 @@ function checkLogin() {
 function scheduleSkipLoginButton() { /* desactivado */ }
 
 function startGameSession(username, offline) {
+  startSessionClock();
   localStorage.setItem('glob_username', username);
   if (offline) {
     localStorage.setItem('glob_offline_mode', 'true');
@@ -806,11 +981,43 @@ function startGameSession(username, offline) {
   }
 
   loadingScreen.style.display = 'flex';
-  const loadingGlob = document.getElementById('loading-glob');
-  if (loadingGlob) {
-    const ownedTowers = Object.keys(TOWER_TYPES).filter(key => TOWER_TYPES[key].unlocked);
-    const randomTower = ownedTowers[Math.floor(Math.random() * ownedTowers.length)];
-    if (IMAGE_PATHS[randomTower]) loadingGlob.src = IMAGE_PATHS[randomTower];
+  const loadingGlobGallery = document.getElementById('loading-glob-wrap');
+  if (loadingGlobGallery) {
+    const familyTowers = Object.keys(TOWER_TYPES).reduce((families, towerType) => {
+      const family = TOWER_TYPES[towerType].family;
+      if (family && family !== 'Special') {
+        if (!families.has(family)) families.set(family, []);
+        families.get(family).push(towerType);
+      }
+      return families;
+    }, new Map());
+    const evolvedTowers = new Set(Object.values(TOWER_TYPES).map(tower => tower.evolution).filter(Boolean));
+    const loadingTowers = [];
+
+    familyTowers.forEach(towerTypes => {
+      const firstForms = towerTypes.filter(towerType => !evolvedTowers.has(towerType));
+      firstForms.forEach(firstForm => {
+        loadingTowers.push(firstForm);
+        const secondForm = TOWER_TYPES[firstForm].evolution;
+        if (secondForm && TOWER_TYPES[secondForm]?.evolution) loadingTowers.push(secondForm);
+      });
+    });
+
+    const availableTowers = loadingTowers.filter(towerType => IMAGE_PATHS[towerType]);
+    if (availableTowers.length < loadingTowers.length) {
+      console.error('Faltan imágenes para algunos Globs de la pantalla de carga.');
+    }
+    if (availableTowers.length === 0) {
+      console.error('No hay imágenes disponibles para la pantalla de carga.');
+    } else {
+      const randomTower = availableTowers[Math.floor(Math.random() * availableTowers.length)];
+      const globImage = document.createElement('img');
+      globImage.className = 'loading-glob-spinner';
+      globImage.src = encodeURI(IMAGE_PATHS[randomTower]);
+      globImage.alt = randomTower;
+      globImage.loading = 'eager';
+      loadingGlobGallery.replaceChildren(globImage);
+    }
   }
   setTimeout(showGame, 2000);
 }
@@ -993,7 +1200,8 @@ function renderMapSelection() {
       button.type = 'button';
       button.className = `island-card island-${island.id}${islandLocked ? ' is-locked' : ''}`;
       button.disabled = islandLocked;
-      button.textContent = `${island.name}${islandLocked ? ' 🔒' : ''}`;
+      const islandName = currentLanguage === 'en' ? island.nameEn : island.nameEs;
+      button.textContent = `${islandName}${islandLocked ? ' 🔒' : ''}`;
       if (islandLocked) {
         button.title = currentLanguage === 'en'
           ? 'Requires Boat ride to the future and Duck Pass level 25.'
@@ -1192,12 +1400,12 @@ function handleLogoClick(logo) {
         'THIS LOGO HAS MORE PATIENCE THAN I DO... FOR NOW.'
       ]
       : [
-        '¡¡NO ME TOQUES!!',
+        '¡NO ME TOQUES!',
         'WORK-BOMBOT SUBCUNDE A LA MALDAD.',
         'LOS GLOBS SERÁN INÚTILES SI SIGUES CLICKEANDO.',
-        '¡¡EL LOGO NO ESTÁ PARA TOCARLO!!',
+        '¡EL LOGO NO ESTÁ PARA TOCARLO!',
         'ME TIENES HARTO...',
-        '¿¿SABÍAS QUE PUEDES DEJAR DE TOCAR EL LOGO??',
+        '¿SABÍAS QUE PUEDES DEJAR DE TOCAR EL LOGO?',
         '¡ESTO NO ES UN BOTÓN DE ASCENSOR!',
         '¿QUIERES QUE EL LOGO TE COBRE ALQUILER?',
         'HE CONTADO TUS CLICS... Y NO ME GUSTA EL RESULTADO.',
@@ -1770,6 +1978,8 @@ function openOptions() {
   if (optFullscreen) optFullscreen.checked = !!gameState.settings.fullscreenMap;
   const optAutoEn = document.getElementById('opt-auto-english');
   if (optAutoEn) optAutoEn.checked = !!gameState.settings.autoEnglish;
+  const optHideDate = document.getElementById('opt-hide-date');
+  if (optHideDate) optHideDate.checked = !!gameState.settings.hideDate;
   const hitboxCheck = document.getElementById('opt-show-hitbox');
   if (hitboxCheck) hitboxCheck.checked = showHitbox;
 
@@ -2446,7 +2656,10 @@ function updateSettings() {
   if (optFullscreen) gameState.settings.fullscreenMap = optFullscreen.checked;
   const optAutoEn = document.getElementById('opt-auto-english');
   if (optAutoEn) gameState.settings.autoEnglish = optAutoEn.checked;
+  const optHideDate = document.getElementById('opt-hide-date');
+  if (optHideDate) gameState.settings.hideDate = optHideDate.checked;
 
+  updateSessionClock();
   applyMetaButtonMode();
 
   if (gameState.settings.fullscreenMap) {
@@ -6291,6 +6504,7 @@ function activateGTack(t) {
 
     narratorTimeout = setTimeout(() => { closeNarratorMsg(); }, 6000);
   }
+  window._showNarratorMsg = showNarratorMsg;
 
   function closeNarratorMsg() {
     const bubble = document.getElementById('narrator-bubble');
@@ -8383,6 +8597,7 @@ function activateGTack(t) {
   }
 
   function exitToLogin() {
+    stopSessionClock();
     gameState.paused = false;
     retryGame();
     gameState.mode = null;
@@ -8714,7 +8929,7 @@ function activateGTack(t) {
     if (currentStoryTab === 'lore') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
-        <h3>� La historia de Glob Defenders</h3>
+        <h3>📖 La historia de Glob Defenders</h3>
         <p><strong>Glob Defenders</strong> transcurre en un mundo habitado por criaturas y seres muy diferentes entre sí. En una de sus regiones, <strong>Gelatin Lake</strong>, viven los <strong>Globs</strong>, criaturas de gelatina creadas y criadas por el propio lago para defenderse de las amenazas que aparecen en sus alrededores.</p>
         <p>Los Globs no son un ejército tradicional. Cada uno pertenece a una <strong>familia</strong> con características, habilidades y formas de evolucionar diferentes. Con el tiempo, han aprendido a trabajar juntos y a utilizar sus distintas capacidades para proteger sus territorios.</p>
         <p>Una de las principales amenazas son los <strong>Pyces</strong>. Aunque algunos Pyces son enemigos, la situación es bastante más complicada que una simple guerra entre dos especies. Existen diferentes grupos, individuos y entidades con sus propios objetivos, y no todos los Pyces actúan de la misma manera.</p>

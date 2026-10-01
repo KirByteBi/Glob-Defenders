@@ -193,11 +193,11 @@ They are useful when a wave becomes difficult or when several towers can benefit
 
 Maps are grouped into islands and selected as zones.
 
-### Globland Isle
+### Globland Isle (Isla de los Globs)
 
 Contains **Gelatin Lake**, **Urbanistic Road**, and **Sunlight Seaside**.
 
-### Windland Leaf
+### Wildsand Leaf (Bosques Arenonieves)
 
 Its first available zone is **Aridez Escalofriante**, known in English as **Spooktacular Ruins**. Two crossed routes connect the enemy pyramids on the left to allied oases on the right. The miniboss and boss slots are reserved for a future update.
 
