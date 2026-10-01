@@ -2097,6 +2097,20 @@ input:checked + .slider:before {
     box-shadow: 0 0 24px rgba(255, 105, 180, 0.55), 0 0 8px rgba(255, 20, 147, 0.8);
 }
 
+.narrator-bubble.speaker-omnipresent {
+    color: #72efb2;
+    background: #020202;
+    border-color: #72efb2;
+    box-shadow: 0 0 24px rgba(114, 239, 178, 0.5);
+}
+
+.narrator-bubble.speaker-omnipresent .narrator-name,
+.narrator-bubble.speaker-omnipresent .narrator-text,
+.narrator-bubble.speaker-omnipresent .narrator-close {
+    color: #fff;
+    text-shadow: 0 0 5px rgba(114, 239, 178, 0.8);
+}
+
 .narrator-bubble.speaker-mysterybug .narrator-name,
 .narrator-bubble.speaker-mysterybug .narrator-text {
     color: #fff;
@@ -2111,13 +2125,13 @@ input:checked + .slider:before {
     filter: brightness(0) drop-shadow(0 0 8px currentColor);
 }
 
-.narrator-bubble.speaker-mysterybug.collection-master {
+.narrator-bubble.speaker-omnipresent.collection-master {
     border-color: #2196f3;
     box-shadow: 0 0 0 2px #ffd700, 0 0 26px rgba(33, 150, 243, 0.7), 0 0 10px rgba(255, 215, 0, 0.85);
 }
 
-.narrator-bubble.speaker-mysterybug.collection-master .narrator-name,
-.narrator-bubble.speaker-mysterybug.collection-master .narrator-text {
+.narrator-bubble.speaker-omnipresent.collection-master .narrator-name,
+.narrator-bubble.speaker-omnipresent.collection-master .narrator-text {
     text-shadow: 0 0 5px rgba(33, 150, 243, 0.9), 0 0 9px rgba(255, 215, 0, 0.7);
 }
 

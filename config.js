@@ -86,6 +86,8 @@ const TRANSLATIONS = {
     tower_Robotic_Glob_name: "Glob Robótico",
     tower_Soap_Glob_name: "Glob de Jabón",
     tower_Cotton_Glob_name: "Glob de Algodón",
+    tower_ElectroClean_Glob_name: "ElectroClean Glob",
+    tower_ElectroClean_Glob_desc: "Ataca a gran velocidad y aturde siempre a sus objetivos. Sus descargas también pueden empujar a los enemigos hacia atrás.",
     tower_Ducky_Glob_name: "Pato Glob",
     tower_Golden_Ducky_Glob_name: "Pato de Oro",
     tower_Comet_Glob_name: "Glob Cometa",
@@ -661,6 +663,8 @@ const TRANSLATIONS = {
     tower_Robotic_Glob_name: "Robotic Glob",
     tower_Soap_Glob_name: "Soap Glob",
     tower_Cotton_Glob_name: "Cotton Glob",
+    tower_ElectroClean_Glob_name: "ElectroClean Glob",
+    tower_ElectroClean_Glob_desc: "Attacks rapidly and always stuns its targets. Its electric blasts can also push enemies backward.",
     tower_Bomb_Glob_name: "Bomb Glob",
     tower_TNT_Glob_name: "TNT Glob",
     tower_Nuclear_Glob_name: "Nuclear Glob",
@@ -1174,6 +1178,8 @@ const IMAGE_PATHS = {
   'Robotic_Glob': 'img/Robotic_Glob.png',
   'Soap_Glob': 'img/Soap_Glob.png',
   'Cotton_Glob': 'img/Cotton_Glob.png',
+  'ElectroClean_Glob': 'img/ElectroClean Glob (EVO3).png',
+  'Omnipresent_Glob': 'Spooks in the Desert (UPD4)/PLACEHOLDERS/Omnipresent Glob (PLACEHOLDER).png',
   'Ducky_Glob': 'img/Ducky_Glob.png',
   'Golden_Ducky_Glob': 'img/Golden_Ducky_Glob.png',
   'Comet_Glob': 'img/Comet_Glob.png',
@@ -1610,7 +1616,10 @@ const NARRATOR_DATA = {
     }
   },
   mysterybug: {
-    img: 'img/Sellos/MysteryBug.png', es: { name: '???', msgs: [] }, en: { name: '???', msgs: [] }
+    img: 'img/Sellos/MysteryBug.png', es: { name: 'MysteryBug', msgs: [] }, en: { name: 'MysteryBug', msgs: [] }
+  },
+  omnipresent: {
+    img: IMAGE_PATHS.Omnipresent_Glob, es: { name: '???', msgs: [] }, en: { name: '???', msgs: [] }
   },
   jerry: {
     img: 'img/Sellos/MysteryBug.png', es: { name: 'Jerry', msgs: [] }, en: { name: 'Jerry', msgs: [] }
@@ -1640,7 +1649,8 @@ const TOWER_TYPES = {
   'Robotic_Glob': { name: 'tower_Robotic_Glob_name', damage: 65, range: 150, speed: 1.0, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
 
   'Soap_Glob': { name: 'tower_Soap_Glob_name', damage: 0, range: 120, speed: 0.3, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "tower_Soap_Glob_desc", family: 'Soap_Glob', unlocked: false },
-  'Cotton_Glob': { name: 'tower_Cotton_Glob_name', damage: 5, range: 140, speed: 2.6, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "tower_Cotton_Glob_desc", family: 'Soap_Glob' },
+  'Cotton_Glob': { name: 'tower_Cotton_Glob_name', damage: 5, range: 140, speed: 2.6, cost: 120, evolution: 'ElectroClean_Glob', image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "tower_Cotton_Glob_desc", family: 'Soap_Glob' },
+  'ElectroClean_Glob': { name: 'tower_ElectroClean_Glob_name', damage: 12, range: 160, speed: 4.2, cost: 300, image: IMAGE_PATHS.ElectroClean_Glob, projectile: 'blue', stun: 1, knockback: 0.25, desc: "tower_ElectroClean_Glob_desc", family: 'Soap_Glob' },
 
   'Ducky_Glob': { name: 'tower_Ducky_Glob_name', damage: 0, range: 140, speed: 0, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'none', desc: "tower_Ducky_Glob_desc", family: 'Ducky_Glob', unlocked: false },
   'Golden_Ducky_Glob': { name: 'tower_Golden_Ducky_Glob_name', damage: 0, range: 160, speed: 0, cost: 180, image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'none', desc: "tower_Golden_Ducky_Glob_desc", family: 'Ducky_Glob' },
@@ -2045,7 +2055,16 @@ const SKINS_DATA = {
       id: 'abyssal_set', name: 'skin_abyssal_name', desc: 'skin_abyssal_desc', cost: 400, type: 'pycoin',
       skins: {
         'Soap_Glob': 'img/Skins/Azul Ralentizador/Beachy Glob (SK-EVO1).png',
-        'Cotton_Glob': 'img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png'
+        'Cotton_Glob': 'img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png',
+        'ElectroClean_Glob': 'img/Skins/Azul Ralentizador/LightSea Glob (SK-EVO3).png'
+      }
+    },
+    {
+      id: 'rewamped_blue_set', name: 'skin_rewamped_blue_name', desc: 'skin_rewamped_blue_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_sunlight_non_corrupt',
+      skins: {
+        'Soap_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
+        'Cotton_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
+        'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
       }
     }
   ],
@@ -2321,7 +2340,9 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_jonk_name": "Jonk the big piranha",
   "skin_jonk_desc": "Una gran carnívora sustituye nuestro Glob jardinero. No se preocupen, esta piraña es nuestra amiga tal y como lo fue en sus tiempos.",
   "skin_froggy_name": "Froggy Set",
-  "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>"
+  "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>",
+  "skin_rewamped_blue_name": "Set Azul Remasterizado",
+  "skin_rewamped_blue_desc": "Una versión de Halloween remasterizada de la familia azul."
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
@@ -2356,7 +2377,9 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_jonk_name": "Jonk the big piranha",
   "skin_jonk_desc": "A great carnivore replaces our Garden Glob. Don't worry, this piranha is our friend, just as it was in its time.",
   "skin_froggy_name": "Froggy Set",
-  "skin_froggy_desc": "Frogs that fish and grow... But their lily pads do deal damage!<br><span style='font-size:0.8em; color: teal;'>Skin designed and drawn by \"Victorillo\", current artwork by KirByte_Bi.</span>"
+  "skin_froggy_desc": "Frogs that fish and grow... But their lily pads do deal damage!<br><span style='font-size:0.8em; color: teal;'>Skin designed and drawn by \"Victorillo\", current artwork by KirByte_Bi.</span>",
+  "skin_rewamped_blue_name": "Remastered Blue Set",
+  "skin_rewamped_blue_desc": "A Halloween remaster of the blue family."
 });
 
 window.SKIN_META = window.SKIN_META || {};

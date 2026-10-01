@@ -90,7 +90,7 @@ Ducky Glob generates additional resources during the match.
 
 A support family that slows enemies using bubbles.
 
-It has short range, but can help other towers deal with enemies more easily.
+It has short range, but can help other towers deal with enemies more easily. Its third evolution, ElectroClean Glob, attacks rapidly, stuns on every hit and can push enemies back.
 
 ### ⚫ Comet Glob
 

@@ -319,6 +319,78 @@ function loadUsers() {
 }
 loadUsers();
 
+function installMissingImageFallback() {
+  const fallbackPath = IMAGE_PATHS.Omnipresent_Glob;
+  const fallbackUrl = new URL(fallbackPath, document.baseURI).href;
+  const checkedBackgrounds = new Set();
+  const missingBackgrounds = new Set();
+  const inspectedBackgrounds = new WeakMap();
+
+  document.querySelectorAll('img').forEach(image => {
+    if (image.complete && image.naturalWidth === 0 && !image.dataset.omnipresentFallback) {
+      image.dataset.omnipresentFallback = 'true';
+      image.src = fallbackPath;
+    }
+  });
+
+  document.addEventListener('error', event => {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement) || image.dataset.omnipresentFallback) return;
+    image.dataset.omnipresentFallback = 'true';
+    image.src = fallbackPath;
+    event.stopImmediatePropagation();
+  }, true);
+
+  const inspectBackground = element => {
+    if (!(element instanceof HTMLElement)) return;
+    const backgroundState = `${element.className}::${element.style.backgroundImage}`;
+    if (inspectedBackgrounds.get(element) === backgroundState) return;
+    inspectedBackgrounds.set(element, backgroundState);
+    const background = element.style.backgroundImage || getComputedStyle(element).backgroundImage;
+    const match = background.match(/url\((['"]?)(.*?)\1\)/i);
+    if (!match) return;
+
+    const imageUrl = new URL(match[2], document.baseURI).href;
+    if (imageUrl === fallbackUrl) return;
+    const useFallback = () => {
+      const currentBackground = element.style.backgroundImage || background;
+      element.style.backgroundImage = currentBackground.replace(/url\((['"]?)(.*?)\1\)/i, `url("${fallbackPath}")`);
+    };
+    if (missingBackgrounds.has(imageUrl)) {
+      useFallback();
+      return;
+    }
+    if (checkedBackgrounds.has(imageUrl)) return;
+
+    checkedBackgrounds.add(imageUrl);
+    const probe = new Image();
+    probe.onload = () => {};
+    probe.onerror = () => {
+      missingBackgrounds.add(imageUrl);
+      if (element.isConnected) useFallback();
+    };
+    probe.src = imageUrl;
+  };
+
+  const inspectTree = node => {
+    if (!(node instanceof Element)) return;
+    inspectBackground(node);
+    node.querySelectorAll('*').forEach(inspectBackground);
+  };
+
+  document.querySelectorAll('*').forEach(inspectBackground);
+  new MutationObserver(records => records.forEach(record => {
+    if (record.type === 'attributes') inspectBackground(record.target);
+    else record.addedNodes.forEach(inspectTree);
+  })).observe(document.documentElement, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['style', 'class']
+  });
+}
+installMissingImageFallback();
+
 function init() {
   console.log("Iniciando Glob Defenders...");
   try {
@@ -1045,14 +1117,14 @@ function handleLogoClick(logo) {
     const message = messagePool[Math.floor(Math.random() * messagePool.length)];
     mysteryBugRecentMessages.push(message);
     if (mysteryBugRecentMessages.length > 2) mysteryBugRecentMessages.shift();
-    showNarratorMsg('mysterybug', `${NARRATOR_DATA.mysterybug.img}|blacked-out`, '???', message);
+    showNarratorMsg('omnipresent', NARRATOR_DATA.omnipresent.img, '???', message);
   }
 
   function showPostAntiNormalMysteryMessage() {
     const message = currentLanguage === 'en'
       ? 'IF YOU ALREADY BEAT THE MODE... WHY ARE YOU STILL TOUCHING ME?! Maybe I should find another job.'
       : 'SI YA TE PASASTE EL MODO... ¡¡PARA QUE ME TOCAS!! Quizás debería buscarme otro trabajo.';
-    showNarratorMsg('mysterybug', `${NARRATOR_DATA.mysterybug.img}|blacked-out`, '???', message);
+    showNarratorMsg('omnipresent', NARRATOR_DATA.omnipresent.img, '???', message);
   }
 
   if (antiNormalRewardActive) {
@@ -1066,8 +1138,8 @@ function handleLogoClick(logo) {
 
 function showCollectionMasterDialogue() {
   showNarratorMsg(
-    'mysterybug',
-    `${NARRATOR_DATA.mysterybug.img}|blacked-out`,
+    'omnipresent',
+    NARRATOR_DATA.omnipresent.img,
     '???',
     currentLanguage === 'en'
       ? 'Phew, my work here is finished. Jerry, it is time to begin the digitalization and immortality collection plan.'
@@ -1855,7 +1927,8 @@ const DEBUG_ENEMY_GROUP_ALIASES = {
 };
 
 const DEBUG_SPEAKER_ALIASES = {
-  mysterybug: ['???', 'mysterybug', 'mystery bug'],
+  omnipresent: ['???', 'omnipresent', 'omnipresent glob'],
+  mysterybug: ['mysterybug', 'mystery bug'],
   jerry: ['jerry'],
   mysterybug_custom: ['mysterybug', 'mystery bug'],
   astral_exclamation: ['astralexclamation', 'astral exclamation'],
@@ -1999,7 +2072,7 @@ function setupOwnerDebugTools() {
       .filter(([id]) => id === 'mysterybug' || !mysteryBugSearchAliases.includes(id))
       .map(([id, data]) => {
         const languageData = data[currentLanguage] || data.es || data.en || {};
-        const mysteryBugLabel = mysteryBugName?.value.trim() || '???';
+        const mysteryBugLabel = mysteryBugName?.value.trim() || 'MysteryBug';
         return {
           id,
           image: data.img,
@@ -2098,7 +2171,7 @@ function setupOwnerDebugTools() {
       const data = NARRATOR_DATA[selectedSpeaker.id];
       const languageData = data[currentLanguage] || data.es || data.en || {};
       if (selectedSpeaker.id === 'mysterybug') {
-        const name = mysteryBugName?.value.trim() || '???';
+        const name = mysteryBugName?.value.trim() || 'MysteryBug';
         const image = mysteryBugImage?.value || data.img;
         localStorage.setItem('glob_mysterybug_name', name);
         localStorage.setItem('glob_mysterybug_image', image);
@@ -4164,7 +4237,7 @@ function drawShop() {
         if (!skin.unlockCondition && !isSpecialDrop) return;
         
         const isUnlocked = gameState.unlockedSkins.includes(skin.id);
-        const isAlwaysVisible = ['rewamped_green_set', 'rewamped_red_set', 'judicial_set', ...storeUnlockableIds].includes(skin.id);
+        const isAlwaysVisible = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'judicial_set', ...storeUnlockableIds].includes(skin.id);
 
         // Solo mostrar si está desbloqueada, o si es de las siempre visibles
         if (!isUnlocked && !isAlwaysVisible) return;
@@ -4173,7 +4246,7 @@ function drawShop() {
 
         // Categorizar
         let category = 'otros';
-        if (['rewamped_green_set', 'rewamped_red_set', 'judicial_set', 'spanish_bombot', 'froggy_set'].includes(skin.id)) category = 'mapa';
+        if (['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'judicial_set', 'spanish_bombot', 'froggy_set'].includes(skin.id)) category = 'mapa';
         else if (missionSkinIds.includes(skin.id)) category = 'misiones';
         else if (['mimic_set', ...otherNewSkinIds].includes(skin.id)) category = 'otros';
         else if (skin.unlockCondition && skin.unlockCondition.includes('urban')) category = 'mapa';
@@ -4206,6 +4279,7 @@ function drawShop() {
         if (condition === 'block_quest_shop') return currentLanguage === 'es' ? '🧱 Completa la misión Block Quest' : '🧱 Complete the Block Quest mission';
         
         if (condition === 'win_facil_urban') return currentLanguage === 'es' ? '🗺️ Gana en modo Fácil en Urbanistic Road' : '🗺️ Win in Easy mode on Urbanistic Road';
+        if (condition === 'win_sunlight_non_corrupt') return currentLanguage === 'es' ? '🎃 Gana Sunlight Seaside en cualquier modo salvo Corrupto o Anti-Normal' : '🎃 Win Sunlight Seaside in any mode except Corrupt or Anti-Normal';
         if (condition === 'win_normal') return currentLanguage === 'es' ? '⚔️ Gana en modo Normal o superior' : '⚔️ Win in Normal mode or higher';
         if (condition === 'win_extremo') return currentLanguage === 'es' ? '💀 Gana en modo Extremo o superior' : '💀 Win in Extreme mode or higher';
         if (condition === 'astrorb_frame') return currentLanguage === 'es' ? '📖 Enmarca todos los Astrorb en la Enciclopedia' : '📖 Frame all Astrorb variants in the Encyclopedia';
@@ -6808,6 +6882,17 @@ function activateGTack(t) {
           if (p.meta.stunStrike) {
             target.stunned = (target.stunned || 0) + 3.0;
           }
+          if (p.meta.stun) {
+            target.stunned = Math.max(target.stunned || 0, p.meta.stun);
+          }
+          if (p.meta.knockback && Math.random() < p.meta.knockback) {
+            target.pathIndex = Math.max(0, target.pathIndex - 1);
+            const retreatPoint = target.currentPath[target.pathIndex];
+            if (retreatPoint) {
+              target.x = retreatPoint.x;
+              target.y = retreatPoint.y;
+            }
+          }
         }
         if (gameState.duckgrades.dg_Comet_Glob && p.family === 'Comet_Glob') {
           if (Math.random() < 0.15) { dmg *= 2; showEffect(target.x, target.y, "CRIT! 💥"); }
@@ -7190,6 +7275,8 @@ function activateGTack(t) {
     const typeCfg = TOWER_TYPES[shooter.type];
     if (typeCfg) {
       if (typeCfg.slow) opts.slow = typeCfg.slow;
+      if (typeCfg.stun) opts.stun = typeCfg.stun;
+      if (typeCfg.knockback) opts.knockback = typeCfg.knockback;
       if (typeCfg.burn) opts.burn = typeCfg.burn;
       if (typeCfg.burnDamage) opts.burnDamage = typeCfg.burnDamage;
     }
@@ -8176,6 +8263,16 @@ function activateGTack(t) {
             const msg = currentLanguage === 'es'
               ? '🎁 Set Rojo Remasterizado desbloqueado y aplicado gratis! (Urbanistic Road - Fácil)'
               : '🎁 Remastered Red Set unlocked for free! (Urbanistic Road - Easy)';
+            showMessage(msg, 'success');
+          }
+        }
+
+        if ((gameState.map || '') === 'sunlight_seaside' && ['facil', 'normal', 'dificil', 'extremo', 'infinito'].includes(gameState.mode)) {
+          if (!gameState.unlockedSkins.includes('rewamped_blue_set')) {
+            gameState.unlockedSkins.push('rewamped_blue_set');
+            const msg = currentLanguage === 'es'
+              ? '🎃 Set Azul Remasterizado desbloqueado gratis por superar Sunlight Seaside.'
+              : '🎃 Remastered Blue Set unlocked for free for beating Sunlight Seaside.';
             showMessage(msg, 'success');
           }
         }
