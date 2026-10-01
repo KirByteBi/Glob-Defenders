@@ -4680,7 +4680,6 @@ function drawShop() {
         if (condition === 'block_quest_shop') return currentLanguage === 'es' ? '🧱 Completa la misión Block Quest' : '🧱 Complete the Block Quest mission';
         
         if (condition === 'win_facil_urban') return currentLanguage === 'es' ? '🗺️ Gana en modo Fácil en Urbanistic Road' : '🗺️ Win in Easy mode on Urbanistic Road';
-        if (condition === 'win_sunlight_non_corrupt') return currentLanguage === 'es' ? '🎃 Gana Sunlight Seaside en cualquier modo salvo Corrupto o Anti-Normal' : '🎃 Win Sunlight Seaside in any mode except Corrupt or Anti-Normal';
         if (condition === 'win_normal') return currentLanguage === 'es' ? '⚔️ Gana en modo Normal o superior' : '⚔️ Win in Normal mode or higher';
         if (condition === 'win_extremo') return currentLanguage === 'es' ? '💀 Gana en modo Extremo o superior' : '💀 Win in Extreme mode or higher';
         if (condition === 'astrorb_frame') return currentLanguage === 'es' ? '📖 Enmarca todos los Astrorb en la Enciclopedia' : '📖 Frame all Astrorb variants in the Encyclopedia';
@@ -8320,8 +8319,11 @@ function activateGTack(t) {
       if (parent.id === 'auto-wave') el.textContent = translate('autoWave');
       if (parent.id === 'deselect-tower') el.textContent = translate('cancel');
       if (parent.classList.contains('back-btn')) el.textContent = translate('back_to_modes');
-      if (parent.classList.contains('retry-btn')) el.textContent = translate('playAgain');
+      if (parent.id === 'resume-game') el.textContent = currentLanguage === 'en' ? 'Resume' : 'Reanudar';
+      else if (parent.classList.contains('retry-btn')) el.textContent = translate('playAgain');
     });
+    const resumeButton = document.getElementById('resume-game');
+    if (resumeButton) resumeButton.innerHTML = `▶️ ${currentLanguage === 'en' ? 'Resume' : 'Reanudar'}`;
 
     const shopTitle = document.getElementById('shop-title');
     if (shopTitle) shopTitle.innerHTML = `🛒 ${translate('shop_title').replace('🛒 ', '')}`;
@@ -8566,8 +8568,9 @@ function activateGTack(t) {
     if (message) message.textContent = currentLanguage === 'es'
       ? `Partida detenida en la oleada ${gameState.wave}.`
       : `Game paused on wave ${gameState.wave}.`;
-    document.getElementById('resume-game').style.display = 'inline-flex';
-    modal.querySelector('.retry-btn:not(#resume-game)').style.display = 'none';
+    const resumeButton = document.getElementById('resume-game');
+    resumeButton.innerHTML = `▶️ ${currentLanguage === 'en' ? 'Resume' : 'Reanudar'}`;
+    resumeButton.style.display = 'inline-flex';
     modal.querySelector('.mode-select-btn').style.display = 'none';
     modal.querySelector('.map-select-btn').style.display = 'none';
     modal.style.display = 'flex';
@@ -8723,12 +8726,12 @@ function activateGTack(t) {
           }
         }
 
-        if ((gameState.map || '') === 'sunlight_seaside' && ['facil', 'normal', 'dificil', 'extremo', 'infinito'].includes(gameState.mode)) {
+        if (gameState.mode === 'facil' && isUrbanMap) {
           if (!gameState.unlockedSkins.includes('rewamped_blue_set')) {
             gameState.unlockedSkins.push('rewamped_blue_set');
             const msg = currentLanguage === 'es'
-              ? '🎃 Set Azul Remasterizado desbloqueado gratis por superar Sunlight Seaside.'
-              : '🎃 Remastered Blue Set unlocked for free for beating Sunlight Seaside.';
+              ? '🎁 Set Azul Remasterizado desbloqueado y aplicado gratis! (Urbanistic Road - Fácil)'
+              : '🎁 Remastered Blue Set unlocked for free! (Urbanistic Road - Easy)';
             showMessage(msg, 'success');
           }
         }

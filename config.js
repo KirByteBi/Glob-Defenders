@@ -2147,7 +2147,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'rewamped_blue_set', name: 'skin_rewamped_blue_name', desc: 'skin_rewamped_blue_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_sunlight_non_corrupt',
+      id: 'rewamped_blue_set', name: 'skin_rewamped_blue_name', desc: 'skin_rewamped_blue_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
         'Soap_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
         'Cotton_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
@@ -2429,7 +2429,7 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Set Azul Remasterizado",
-  "skin_rewamped_blue_desc": "Una versión de Halloween remasterizada de la familia azul."
+  "skin_rewamped_blue_desc": "Una versión mejorada visualmente de la familia azul original."
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
@@ -2466,7 +2466,7 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Frogs that fish and grow... But their lily pads do deal damage!<br><span style='font-size:0.8em; color: teal;'>Skin designed and drawn by \"Victorillo\", current artwork by KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Remastered Blue Set",
-  "skin_rewamped_blue_desc": "A Halloween remaster of the blue family."
+  "skin_rewamped_blue_desc": "A visually improved version of the original blue family."
 });
 
 window.SKIN_META = window.SKIN_META || {};
