@@ -81,6 +81,9 @@ function generateSpots() {
 
   const islandZones = mapData.islandZones || [];
   const forbiddenZones = [...mapData.riverZones, ...mapData.pathSegments];
+  const desertRouteSegments = mapKey === 'spooktacular_ruins'
+    ? mapData.enemyPaths.flatMap(path => path.slice(1).map((end, index) => ({ start: path[index], end })))
+    : [];
 
   for (let x = 35; x < 950; x += 75) {
     for (let y = 35; y < 550; y += 75) {
@@ -117,6 +120,13 @@ function generateSpots() {
       }
 
       if (x < 20 || x > 960 || y < 20 || y > 560) collides = true;
+      if (!collides && desertRouteSegments.some(({ start, end }) => {
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const lengthSquared = dx * dx + dy * dy;
+        const projection = Math.max(0, Math.min(1, ((x - start.x) * dx + (y - start.y) * dy) / lengthSquared));
+        return Math.hypot(x - (start.x + projection * dx), y - (start.y + projection * dy)) < 58;
+      })) collides = true;
       if (!collides) {
         TOWER_SPOTS.push({ x: x - 40, y: y - 40, w: 80, h: 80 });
       }
@@ -133,6 +143,8 @@ let gameState = {
   towerSpots: [],
   mode: 'normal',
   map: 'gelatin_lake',
+  selectedIsland: null,
+  globlandHardWins: { gelatin_lake: false, urbanistic_road: false, sunlight_seaside: false },
   modeConfirmed: false,
   corrupt: false,
   healthClicks: 0,
@@ -201,6 +213,14 @@ function getFamilyCount(baseType) {
   if (!cfg) return 0;
   const family = cfg.family || baseType;
   return gameState.towers.filter(t => (t.family || t.type) === family).length;
+}
+
+function checkFutureVoyageBadge() {
+  const requiredZones = ['gelatin_lake', 'urbanistic_road', 'sunlight_seaside'];
+  const completedEveryGloblandZone = requiredZones.every(zoneId => gameState.globlandHardWins[zoneId]);
+  if (completedEveryGloblandZone && gameState.duckPassLevel >= 25) {
+    unlockBadge('future_voyage');
+  }
 }
 
 function saveUsers() {
@@ -396,11 +416,11 @@ function init() {
   try {
     const logoRoll = Math.random();
     if (logoRoll < 0.15) {
-      document.querySelectorAll('.login-logo, .game-logo').forEach(img => {
+      document.querySelectorAll('.game-logo').forEach(img => {
         img.src = 'img/GlobDefendersImage.png';
       });
     } else if (logoRoll < 0.30) {
-      document.querySelectorAll('.login-logo, .game-logo').forEach(img => {
+      document.querySelectorAll('.game-logo').forEach(img => {
         img.src = 'img/Urban Road_Reborn Logo.png';
       });
     }
@@ -457,6 +477,7 @@ function saveProgress() {
     baseHealthLevel: gameState.baseHealthLevel,
     usedCodes: gameState.usedCodes,
     unlockedSkins: gameState.unlockedSkins,
+    globlandHardWins: gameState.globlandHardWins,
     equippedSkins: gameState.equippedSkins,
     equippedTowers: gameState.equippedTowers,
     unlockedAntiNormal: gameState.unlockedAntiNormal,
@@ -604,6 +625,10 @@ function loadProgress(username) {
       gameState.cheatedBackup = progress.cheatedBackup || null;
       gameState.unlockedAntiNormal = progress.unlockedAntiNormal || false;
       gameState.claimedRewards = progress.claimedRewards || [];
+      gameState.globlandHardWins = {
+        ...gameState.globlandHardWins,
+        ...(progress.globlandHardWins || {})
+      };
       gameState.muted = progress.muted || false;
 
       gameState.metaRangeLevel = progress.metaRangeLevel || 0;
@@ -632,6 +657,7 @@ function loadProgress(username) {
       applyMetaButtonMode();
       if (gameState.settings.fullscreenMap) document.body.classList.add('fullscreen-map');
       if (gameState.settings.autoEnglish) { currentLanguage = 'en'; updateLanguage(); }
+      checkFutureVoyageBadge();
       updateMuteButton();
       updateAchievementsBtnUI();
       gameState.health = 100 + (gameState.baseHealthLevel * 20);
@@ -768,6 +794,8 @@ function startGameSession(username, offline) {
     if (gameContainer) gameContainer.style.display = 'flex';
     document.getElementById('meta-controls').style.display = 'flex';
     document.getElementById('mode-selection').style.display = 'none';
+    gameState.selectedIsland = null;
+    renderMapSelection();
     document.getElementById('map-selection').style.display = 'flex';
   };
 
@@ -937,8 +965,81 @@ function handleSkipLogin() {
   startGameSession(username, true);
 }
 
+function isIslandUnlocked(islandId) {
+  if (islandId === 'globland_isle') return true;
+  if (islandId === 'windland_leaf') {
+    return BADGES.future_voyage.unlocked && gameState.duckPassLevel >= 25;
+  }
+  return false;
+}
+
+function renderMapSelection() {
+  const title = document.getElementById('map-selection-title');
+  const islandGrid = document.getElementById('island-selection');
+  const zoneGrid = document.getElementById('zone-selection');
+  if (!title || !islandGrid || !zoneGrid) return;
+
+  const selectedIsland = MAP_ISLANDS.find(island => island.id === gameState.selectedIsland);
+  islandGrid.innerHTML = '';
+  zoneGrid.innerHTML = '';
+  islandGrid.hidden = !!selectedIsland;
+  zoneGrid.hidden = !selectedIsland;
+
+  if (!selectedIsland) {
+    title.textContent = currentLanguage === 'en' ? 'Select Island' : 'Seleccionar Isla';
+    MAP_ISLANDS.forEach(island => {
+      const islandLocked = !isIslandUnlocked(island.id);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `island-card island-${island.id}${islandLocked ? ' is-locked' : ''}`;
+      button.disabled = islandLocked;
+      button.textContent = `${island.name}${islandLocked ? ' 🔒' : ''}`;
+      if (islandLocked) {
+        button.title = currentLanguage === 'en'
+          ? 'Requires Boat ride to the future and Duck Pass level 25.'
+          : 'Requiere La travesía hacia el futuro y nivel 25 del Duck Pass.';
+      } else {
+        button.addEventListener('click', () => {
+          gameState.selectedIsland = island.id;
+          renderMapSelection();
+        });
+      }
+      islandGrid.appendChild(button);
+    });
+    return;
+  }
+
+  title.textContent = currentLanguage === 'en'
+    ? `${selectedIsland.name} Zones`
+    : `Zonas de ${selectedIsland.name}`;
+
+  const backButton = document.createElement('button');
+  backButton.type = 'button';
+  backButton.className = 'map-selection-back';
+  backButton.textContent = currentLanguage === 'en' ? '← Islands' : '← Islas';
+  backButton.addEventListener('click', () => {
+    gameState.selectedIsland = null;
+    renderMapSelection();
+  });
+  zoneGrid.appendChild(backButton);
+
+  selectedIsland.zones.forEach(zone => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `zone-card${zone.locked ? ' is-locked' : ''}`;
+    button.style.setProperty('--zone-color-start', zone.colors[0]);
+    button.style.setProperty('--zone-color-end', zone.colors[1]);
+    button.disabled = !!zone.locked;
+    button.textContent = currentLanguage === 'en' ? zone.nameEn : zone.nameEs;
+    if (!zone.locked) button.addEventListener('click', () => selectMap(zone.mapId));
+    zoneGrid.appendChild(button);
+  });
+}
 
 function selectMap(mapId) {
+  const zone = MAP_ISLANDS.flatMap(island => island.zones).find(item => item.mapId === mapId);
+  const owningIsland = MAP_ISLANDS.find(island => island.zones.some(item => item.mapId === mapId));
+  if (!zone || zone.locked || !MAPS[mapId] || !owningIsland || !isIslandUnlocked(owningIsland.id)) return;
   gameState.map = mapId;
   const mapScreen = document.getElementById('map-selection');
   if (mapScreen) mapScreen.style.display = 'none';
@@ -1448,10 +1549,39 @@ function createMap() {
     el.className = 'path-segment';
     if (mapKey === 'urbanistic_road') el.classList.add('urban-path');
     if (mapKey === 'sunlight_seaside') el.classList.add('seaside-path');
+    if (mapKey === 'spooktacular_ruins') {
+      el.classList.add('spook-path');
+      if (p.intersection) el.classList.add('spook-crossing');
+    }
     el.style.left = `${p.x}px`; el.style.top = `${p.y}px`;
     el.style.width = `${p.w}px`; el.style.height = `${p.h}px`;
+    if (p.clipPath) el.style.clipPath = p.clipPath;
     map.appendChild(el);
   });
+
+  if (mapKey === 'spooktacular_ruins') {
+    mapData.enemyPaths.forEach(path => {
+      path.slice(1).forEach((end, index) => {
+        const start = path[index];
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const segment = document.createElement('div');
+        segment.className = 'spook-road-segment';
+        segment.style.left = `${(start.x + end.x) / 2}px`;
+        segment.style.top = `${(start.y + end.y) / 2}px`;
+        segment.style.width = `${Math.hypot(dx, dy)}px`;
+        segment.style.transform = `translate(-50%, -50%) rotate(${Math.atan2(dy, dx)}rad)`;
+        map.appendChild(segment);
+      });
+    });
+    (mapData.roadIntersections || []).forEach(point => {
+      const crossing = document.createElement('div');
+      crossing.className = 'spook-road-diamond';
+      crossing.style.left = `${point.x}px`;
+      crossing.style.top = `${point.y}px`;
+      map.appendChild(crossing);
+    });
+  }
 
   TOWER_SPOTS.forEach((s, i) => {
     const el = document.createElement('div');
@@ -1468,17 +1598,31 @@ function createMap() {
   const allyBase = document.getElementById('ally-base');
   const enemyBase = document.getElementById('forest-base');
   const enemyBase2 = document.getElementById('forest-base-2');
+  const oldSecondAllyBase = document.getElementById('ally-base-2');
+  if (oldSecondAllyBase) oldSecondAllyBase.remove();
 
-  map.classList.remove('urban-map', 'sunlight-map');
-  if (allyBase) allyBase.classList.remove('casino-base', 'boat-base');
-  if (enemyBase) enemyBase.classList.remove('tunnel-base', 'raft-base');
+  map.classList.remove('urban-map', 'sunlight-map', 'spook-map');
+  if (allyBase) {
+    allyBase.classList.remove('casino-base', 'boat-base', 'spook-oasis-base');
+    allyBase.style.left = '';
+    allyBase.style.right = '';
+    allyBase.style.top = '';
+  }
+  if (enemyBase) {
+    enemyBase.classList.remove('tunnel-base', 'raft-base', 'spook-pyramid-base');
+    enemyBase.style.left = '';
+    enemyBase.style.top = '';
+    enemyBase.style.display = '';
+  }
   if (enemyBase2) {
-    enemyBase2.classList.remove('tunnel-base', 'raft-base');
+    enemyBase2.classList.remove('tunnel-base', 'raft-base', 'spook-pyramid-base');
     enemyBase2.style.display = 'none';
+    enemyBase2.style.left = '';
+    enemyBase2.style.top = '';
   }
 
   const gameArea = document.getElementById('game-area');
-  if (gameArea) gameArea.classList.remove('sunlight-map');
+  if (gameArea) gameArea.classList.remove('sunlight-map', 'spook-map');
 
   if (mapKey === 'urbanistic_road') {
     map.classList.add('urban-map');
@@ -1513,6 +1657,40 @@ function createMap() {
       enemyBase.style.left = '20px';
       enemyBase2.style.top = '420px';
       enemyBase2.style.left = '20px';
+    }
+  } else if (mapKey === 'spooktacular_ruins') {
+    map.classList.add('spook-map');
+    if (gameArea) gameArea.classList.add('spook-map');
+    if (allyBase) {
+      allyBase.classList.add('spook-oasis-base');
+      allyBase.title = 'Base aliada: Oasis nororiental';
+      allyBase.style.left = '894px';
+      allyBase.style.right = 'auto';
+      allyBase.style.top = '5px';
+    }
+    if (gameArea) {
+      const secondAllyBase = document.createElement('div');
+      secondAllyBase.id = 'ally-base-2';
+      secondAllyBase.className = 'spook-oasis-base';
+      secondAllyBase.title = 'Base aliada: Oasis suroriental';
+      secondAllyBase.style.left = '894px';
+      secondAllyBase.style.top = '420px';
+      gameArea.appendChild(secondAllyBase);
+    }
+    if (enemyBase) {
+      enemyBase.classList.add('spook-pyramid-base');
+      enemyBase.textContent = '';
+      enemyBase.title = 'Base enemiga: Pirámide noroccidental';
+      enemyBase.style.left = '0px';
+      enemyBase.style.top = '50px';
+    }
+    if (enemyBase2) {
+      enemyBase2.classList.add('spook-pyramid-base');
+      enemyBase2.textContent = '';
+      enemyBase2.title = 'Base enemiga: Pirámide suroccidental';
+      enemyBase2.style.left = '0px';
+      enemyBase2.style.top = '320px';
+      enemyBase2.style.display = 'flex';
     }
   } else {
     // Default Gelatin Lake
@@ -2392,6 +2570,10 @@ function drawTowerShop() {
 
 }
 
+function getBadgeColorGroup(badge) {
+  return badge.colorGroup || (badge.category === 'misiones' ? 'mission' : 'base');
+}
+
 function drawBadges() {
   const list = document.getElementById('badges-list');
   if (!list) return;
@@ -2429,14 +2611,14 @@ function drawBadges() {
         grantBadgeReward(b);
       }
       const el = document.createElement('div');
-      el.className = `badge ${b.unlocked ? '' : 'locked'}`;
+      el.className = `badge badge-tone-${getBadgeColorGroup(b)} ${b.unlocked ? '' : 'locked'}`;
       const name = translate(`badge_${b.key}_name`);
       const desc = translate(`badge_${b.key}_desc`);
   
       let rewardText = "";
       if (b.reward.pycoins) rewardText = `<img src="img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins}`;
       if (b.reward.duckpass) rewardText = `<img src="img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass}`;
-      rewardText += ` ✨+${b.reward.xp}xp`;
+      if (b.reward.xp) rewardText += ` ✨+${b.reward.xp}xp`;
   
       el.innerHTML = `
               <span class="badge-icon">${b.icon}</span>
@@ -2515,6 +2697,8 @@ function showBadgePopup(badge) {
   const desc = document.getElementById('badge-popup-desc');
   if (!popup) return;
 
+  popup.classList.remove('badge-tone-collab', 'badge-tone-mission', 'badge-tone-key');
+  popup.classList.add(`badge-tone-${getBadgeColorGroup(badge)}`);
   icon.innerHTML = badge.icon;
   title.textContent = translate(`badge_${badge.key}_name`);
   desc.textContent = translate(`badge_${badge.key}_desc`);
@@ -2547,19 +2731,21 @@ function showEncyclopediaPopup(enemy) {
 function grantBadgeReward(badge) {
   if (gameState.claimedRewards.includes(badge.key)) return;
 
+  const hasReward = Object.values(badge.reward || {}).some(value => Number(value) > 0);
   if (badge.reward.pycoins) gameState.pycoins += badge.reward.pycoins;
   if (badge.reward.duckpass) gameState.duckPassCurrency += badge.reward.duckpass;
-  addXP(badge.reward.xp);
+  if (badge.reward.xp) addXP(badge.reward.xp);
 
   gameState.claimedRewards.push(badge.key);
   updateMetaUI();
   saveProgress();
-  showMessage(translate('badge_reward_received', { name: translate('badge_' + badge.key + '_name') }), 'success');
+  if (hasReward) showMessage(translate('badge_reward_received', { name: translate('badge_' + badge.key + '_name') }), 'success');
 }
 
 function toggleLanguage() {
   currentLanguage = currentLanguage === 'es' ? 'en' : 'es';
   updateLanguage();
+  renderMapSelection();
   drawTowerShop();
   drawBadges();
   if (document.getElementById('story-logs-modal').style.display === 'flex') drawStoryLogs();
@@ -2661,6 +2847,7 @@ function switchEncyclopediaTab(tab) {
       <option value="gelatin_lake">Gelatin Lake (GL)</option>
       <option value="interstellar_menace">Interstellar Menace (IM)</option>
       <option value="sunlight_seaside">Sunlight Seaside (SS)</option>
+      <option value="spooktacular_ruins">${currentLanguage === 'en' ? 'Spooktacular Ruins' : 'Aridez Escalofriante'}</option>
     `;
     mapSelect.style.padding = '8px';
     mapSelect.style.borderRadius = '5px';
@@ -2899,7 +3086,7 @@ function switchEncyclopediaTab(tab) {
     Object.values(BADGES).forEach(b => {
       if (!firstItem) firstItem = b.key;
       const btn = document.createElement('div');
-      btn.className = 'almanac-btn';
+      btn.className = `almanac-btn badge-tone-${getBadgeColorGroup(b)}`;
       btn.id = 'almanac-btn-' + b.key;
       btn.onclick = () => selectAlmanacItem(b.key, 'emblemas');
       if (!b.unlocked) btn.style.filter = 'grayscale(100%)';
@@ -3164,7 +3351,7 @@ function selectAlmanacItem(id, category) {
     let rewardText = "";
     if (b.reward.pycoins) rewardText += `<img src="img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins} `;
     if (b.reward.duckpass) rewardText += `<img src="img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass} `;
-    rewardText += `✨+${b.reward.xp}xp`;
+    if (b.reward.xp) rewardText += `✨+${b.reward.xp}xp`;
 
     details.innerHTML = `
       <div style="font-size:80px; margin-bottom:10px; filter:${b.unlocked ? 'none' : 'grayscale(100%)'};">${b.icon}</div>
@@ -3918,6 +4105,7 @@ function addXP(amount) {
     saveProgress();
   }
   updateMetaUI();
+  checkFutureVoyageBadge();
 }
 
 function updateMetaUI() {
@@ -5191,6 +5379,10 @@ function activateGTack(t) {
       sunlight_seaside: {
         enemies: ['Piz', 'Baby_Shrum', 'Ren', 'Pysh', 'Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers', 'Creamplet', 'Umbrella_Pyce', 'Bushi_Brella', 'Stupid_GoldPyce', 'Mimic_Pyce'],
         bosses: ['PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'NOeye_Pyce', 'MoonStar_Pyce']
+      },
+      spooktacular_ruins: {
+        enemies: ['Broksp', 'Pumpitch', 'RIPslide', 'SkeleBone_Pyce'],
+        bosses: []
       }
     };
     const plan = mapPools[mapKey] || mapPools.gelatin_lake;
@@ -5528,6 +5720,12 @@ function activateGTack(t) {
           medium: ['Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Clown_Pysh', 'Umbrella_Pyce'],
           hard: ['Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers', 'Creamplet'],
           special: ['Thunren', 'Renibig', 'Shrum', 'Old_Fungus', 'Umbrella_Pyce', 'Followishers']
+        },
+        spooktacular_ruins: {
+          regular: ['Broksp', 'RIPslide'],
+          medium: ['Pumpitch', 'SkeleBone_Pyce'],
+          hard: ['Pumpitch', 'SkeleBone_Pyce'],
+          special: ['SkeleBone_Pyce']
         }
       };
 
@@ -6109,6 +6307,15 @@ function activateGTack(t) {
   let frameCount = 0;
   const MAX_PROJECTILES = 120; // Límite de proyectiles activos en pantalla
 
+  function damageBaseFromEnemy(enemy) {
+    const damage = Math.max(1, Number(enemy.baseDamage) || 2);
+    gameState.health = Math.max(0, gameState.health - damage);
+    gameState.baseTookDamage = true;
+    showEffect(enemy.x, enemy.y, `-${damage}`);
+    updateUI();
+    if (gameState.health <= 0) endGame();
+  }
+
   function gameLoop(timestamp = performance.now()) {
     if (gameState.gameOver || gameState.paused) {
       requestAnimationFrame(gameLoop);
@@ -6488,6 +6695,21 @@ function activateGTack(t) {
             let targetTower = null;
             gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < 200) targetTower = t; });
             if (targetTower) shoot(e, targetTower, { isEnemy: true, projectile: 'stone_red', speed: 3, stun: 1.5 });
+          }
+        }
+        if (e.type === 'SkeleBone_Pyce') {
+          e.boneThrowTimer = (e.boneThrowTimer || 0) + dt;
+          if (e.boneThrowTimer >= 4.5 && gameState.towers.length > 0) {
+            e.boneThrowTimer = 0;
+            const targetTower = gameState.towers.reduce((nearest, tower) =>
+              !nearest || Math.hypot(tower.x - e.x, tower.y - e.y) < Math.hypot(nearest.x - e.x, nearest.y - e.y)
+                ? tower
+                : nearest,
+              null
+            );
+            if (targetTower) {
+              shoot(e, targetTower, { isEnemy: true, image: IMAGE_PATHS.SkeleBone_Bone, speed: 7, stun: 0.75 });
+            }
           }
         }
 
@@ -7512,6 +7734,8 @@ function activateGTack(t) {
       'Sharowd': 3, 'Crystalic_Orb': 3,
       // Nuevos enemigos de Sunlight Seaside (Leafy Beach Party)
       'Axolotl_Pyce': 250, 'Shark_Pyce': 250, 'Umbrella_Pyce': 250,
+      // Spooks in the Desert (UPD4)
+      'Broksp': 450, 'Pumpitch': 350, 'RIPslide': 350, 'SkeleBone_Pyce': 220,
       'Piz': 500, 'Followishers': 250, 'Creamplet': 150
     };
     return targets[type] || 9999;
@@ -7519,7 +7743,7 @@ function activateGTack(t) {
 
   function checkPyceMorphUnlock() {
     if (!gameState.unlockedSkins.includes('pyce_morph')) {
-      const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'];
+      const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce'];
       let allMaxed = true;
       for (const t of types) {
         if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
@@ -7577,7 +7801,7 @@ function activateGTack(t) {
       checkCollectionMasterDialogue();
       return;
     }
-    const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'];
+    const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce'];
     let allPycesMaxed = true;
     for (const t of types) {
       if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
@@ -7665,6 +7889,7 @@ function activateGTack(t) {
     if (e.type === 'Crystalic_Orb') {
       gameState.paracristalFinal = false;
       gameState.paracristalActive = false;
+      unlockBadge('paracristal_dimension');
       gameState.unlockedSkins.push('fracstal_set');
       gameState.unlockedSkins = [...new Set(gameState.unlockedSkins)];
       showMessage(currentLanguage === 'es' ? '🌌 ¡Dimensión Paralecristal completada! Set Fracstral desbloqueado.' : '🌌 Paralecrystal Dimension complete! Fracstral Set unlocked.', 'success');
@@ -7836,10 +8061,18 @@ function activateGTack(t) {
     updateMetaUI();
   }
 
+  function getRandomizerEnemyKeys() {
+    return Object.keys(ENEMY_TYPES).filter(key => {
+      const enemy = ENEMY_TYPES[key];
+      return enemy && enemy.image && !enemy.isCrystallized && !enemy.astrorbGroup;
+    });
+  }
+
   function translate(key, params = {}) {
     if (key.startsWith('tower_') && key.endsWith('_name') && gameState.equippedSkins && gameState.equippedSkins['Global'] === 'pyce_morph') {
       const type = key.substring(6, key.length - 5);
-      const pyceKeys = Object.keys(ENEMY_TYPES).filter(k => ENEMY_TYPES[k] && ENEMY_TYPES[k].image);
+      const pyceKeys = getRandomizerEnemyKeys();
+      if (pyceKeys.length === 0) return key;
       let hash = 0;
       for (let i = 0; i < type.length; i++) hash += type.charCodeAt(i);
       const pyceId = pyceKeys[hash % pyceKeys.length];
@@ -7992,7 +8225,8 @@ function activateGTack(t) {
     const family = cfg.family || type;
 
     if (gameState.equippedSkins && gameState.equippedSkins['Global'] === 'pyce_morph') {
-      const pyceKeys = Object.keys(ENEMY_TYPES).filter(k => ENEMY_TYPES[k] && ENEMY_TYPES[k].image);
+      const pyceKeys = getRandomizerEnemyKeys();
+      if (pyceKeys.length === 0) return cfg.image;
       const towerKeys = Object.keys(TOWER_TYPES);
       const idx = towerKeys.indexOf(type);
       return ENEMY_TYPES[pyceKeys[idx % pyceKeys.length]].image;
@@ -8143,6 +8377,8 @@ function activateGTack(t) {
   function chooseMapAfterGame() {
     retryGame();
     document.getElementById('mode-selection').style.display = 'none';
+    gameState.selectedIsland = null;
+    renderMapSelection();
     document.getElementById('map-selection').style.display = 'flex';
   }
 
@@ -8210,6 +8446,11 @@ function activateGTack(t) {
           }
         }
       } else {
+        if (gameState.mode === 'dificil' && Object.prototype.hasOwnProperty.call(gameState.globlandHardWins, gameState.map)) {
+          gameState.globlandHardWins[gameState.map] = true;
+          checkFutureVoyageBadge();
+        }
+
         // Sunlight Seaside specific badges
         const isSunlightMap = (gameState.map || '') === 'sunlight_seaside';
         if (isSunlightMap) {

@@ -63,6 +63,10 @@ const TRANSLATIONS = {
     badge_titaniumBuilding_name: "Edificio de titanio", badge_titaniumBuilding_desc: "Pásate un mapa sin dañar la base",
     badge_encyclopediaMaster_name: "Maestro de la Enciclopedia", badge_encyclopediaMaster_desc: "Completa la enciclopedia Pyce y sube todas las familias de torres al máximo nivel al menos una vez",
     badge_unmenaced_name: "Desmenazado", badge_unmenaced_desc: "Completa el modo Interstellar. ¡Buen trabajo defendiendo la amenaza cristalina!",
+    badge_block_city_name: "Block City Quest", badge_block_city_desc: "Completa Block City Quest en Difícil.",
+    badge_old_blox_city_name: "Old Blox City", badge_old_blox_city_desc: "Completa Block City Quest con la skin de Block Tales o en dos victorias.",
+    badge_paracristal_dimension_name: "Dimensión Paralecristal", badge_paracristal_dimension_desc: "Completa la misión de la Dimensión Paralecristal.",
+    badge_future_voyage_name: "La travesía hacia el futuro", badge_future_voyage_desc: "Gana en Difícil en Gelatin Lake, Urbanistic Road y Sunlight Seaside y alcanza el nivel 25 del Duck Pass para abrir Windland Leaf.",
     badge_skinllector_name: "Skinecionable", badge_skinllector_desc: "Consigue al menos 7 skins diferentes.",
     badge_crystalizing_break_name: "Descristalizando Amenazas", badge_crystalizing_break_desc: "Enmarca todos los cristalizados.",
     badge_extended_marc_name: "Enmarcacion Extensa", badge_extended_marc_desc: "Enmarca todos los enemigos de la categoria 'Otros Enemigos'.",
@@ -87,7 +91,7 @@ const TRANSLATIONS = {
     tower_Soap_Glob_name: "Glob de Jabón",
     tower_Cotton_Glob_name: "Glob de Algodón",
     tower_ElectroClean_Glob_name: "ElectroClean Glob",
-    tower_ElectroClean_Glob_desc: "Ataca a gran velocidad y aturde siempre a sus objetivos. Sus descargas también pueden empujar a los enemigos hacia atrás.",
+    tower_ElectroClean_Glob_desc: "Un Glob totalmente limpio, se limpia constantemente y aparte ha sido electrificado para actuar como el autentico paron a los enemigos que osen tocar Gelatin Lake o a cualquiera de sus habitantes y amigos.",
     tower_Ducky_Glob_name: "Pato Glob",
     tower_Golden_Ducky_Glob_name: "Pato de Oro",
     tower_Comet_Glob_name: "Glob Cometa",
@@ -234,6 +238,14 @@ const TRANSLATIONS = {
     enemy_Old_Fungus_desc: "El anciano más respetado entre los Shrums. Posee poderes psíquicos capaces de intimidar incluso a los enemigos más valientes, además de utilizar una enorme seta tanto como bate como varita.<br><br>A su lado crece un pequeño Shrum que todavía está desarrollándose y que tampoco parece tener problemas en atacar a los Globs. Pueden ser ciegos, y quizá incluso sordos, pero su presencia y su característico bigote amarillento hacen que nadie se atreva a subestimarlos.",
     enemy_Pysh_desc: "Un pez Pyce cuyo nombre nace de la combinación de pez y Pyce. Originalmente habitaban en Bitlands, hasta que fueron transportados a Techspawn, su antiguo hogar. Recientemente han comenzado a aparecer también por los puertos de Sunlight Seaside, donde parecen disfrutar especialmente de la abundante luz solar.",
     enemy_Clown_Pysh_desc: "Pyces con forma de pez payaso que comparten origen con los Pysh. Siguen habitando en Bitlands, aunque ahora parecen estar disfrutando de unas pequeñas vacaciones junto a sus congéneres en Sunlight Seaside.<br><br>Eso sí, son bastante más resistentes que los Pysh normales, que parecen no durar ni un segundo cuando empieza el combate.",
+    enemy_Broksp_name: "Broksp",
+    enemy_Broksp_desc: "Una araña que ha ido creciendo alimentándose de pesadillas tan breves y pequeñas que no le han dado para crecer más... Aunque eso sí, está en proceso de ello.",
+    enemy_Pumpitch_name: "Pumpitch",
+    enemy_Pumpitch_desc: "Conocido en España como Calabacín, esta calabaza utiliza un sombrero de bruja pero, aun así, es masculino; cosa que se nota en su mirada ardiente y llena de ambición por ser algo más que una calabaza adorable.",
+    enemy_RIPslide_name: "RIPslide",
+    enemy_RIPslide_desc: "Una tumba zombi que se desliza cual pingüino en el hielo... Realmente adora asustar con ese falso \"RIP\" que en realidad son sus ojos y nariz... Pero no consigue hacer mucho en batalla, aunque rápido es, eso lo asegura Kirb.",
+    enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
+    enemy_SkeleBone_Pyce_desc: "Una mejora de la mejora Pyce de Noob Pyce, siguiendo la línea de las versiones mejoradas de Noob y Guest Pyce vistas en Urbanistic Road. Está hecho de huesos encontrados en el desierto y parece simpático con esa mirada y esos zapatos, pero no te confíes: puede lanzarte uno de sus huesos en un visto y no visto. Como los demás Pyces, es feliz de existir y leal, aunque no sea un ordenador convencional... ¿Verdad?",
     
     // Leafy Beach Party Bosses & Enemies
     enemy_PhantKeeper_name: "PhantKeeper",
@@ -275,7 +287,7 @@ const TRANSLATIONS = {
     tower_Youtuber_Glob_desc: "Finalmente alcanzó el éxito como un famoso Youtuber y tiene dinero para aventar... Aunque ya es hora de que deje el internet y busque un trabajo de verdad.",
 
     login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla", create_account: "Crear cuenta", skip_login: "Saltar login",
-    select_map: "Seleccionar Mapa",
+    select_map: "Seleccionar Isla",
     select_mode: "Seleccionar Modo",
     backToModes: "Selección de Modo",
 
@@ -640,6 +652,10 @@ const TRANSLATIONS = {
     badge_titaniumBuilding_name: "Titanium Building", badge_titaniumBuilding_desc: "Complete a map without taking base damage",
     badge_encyclopediaMaster_name: "Encyclopedia Master", badge_encyclopediaMaster_desc: "Complete the Pyce encyclopedia and upgrade all tower families to max level at least once",
     badge_unmenaced_name: "Unmenaced", badge_unmenaced_desc: "Complete Interstellar mode. Good job defending against the crystal threat!",
+    badge_block_city_name: "Block City Quest", badge_block_city_desc: "Complete Block City Quest on Hard.",
+    badge_old_blox_city_name: "Old Blox City", badge_old_blox_city_desc: "Complete Block City Quest with the Block Tales skin or in two victories.",
+    badge_paracristal_dimension_name: "Paracristal Dimension", badge_paracristal_dimension_desc: "Complete the Paracristal Dimension mission.",
+    badge_future_voyage_name: "Boat ride to the future", badge_future_voyage_desc: "Win on Hard in Gelatin Lake, Urbanistic Road, and Sunlight Seaside and reach Duck Pass level 25 to open Windland Leaf.",
     badge_skinllector_name: "Skinllector", badge_skinllector_desc: "Get at least 7 different skins.",
     badge_crystalizing_break_name: "Crystalizing Break", badge_crystalizing_break_desc: "Frame all crystallized variants.",
     badge_extended_marc_name: "Extended Marc", badge_extended_marc_desc: "Frame all enemies in the 'Other Enemies' category.",
@@ -664,7 +680,7 @@ const TRANSLATIONS = {
     tower_Soap_Glob_name: "Soap Glob",
     tower_Cotton_Glob_name: "Cotton Glob",
     tower_ElectroClean_Glob_name: "ElectroClean Glob",
-    tower_ElectroClean_Glob_desc: "Attacks rapidly and always stuns its targets. Its electric blasts can also push enemies backward.",
+    tower_ElectroClean_Glob_desc: "A spotless Glob that keeps cleaning itself. It has also been electrified to stop any enemy that dares touch Gelatin Lake, its inhabitants, or its friends.",
     tower_Bomb_Glob_name: "Bomb Glob",
     tower_TNT_Glob_name: "TNT Glob",
     tower_Nuclear_Glob_name: "Nuclear Glob",
@@ -815,6 +831,14 @@ const TRANSLATIONS = {
     enemy_Old_Fungus_desc: "The most respected elder among the Shrums. Possesses psychic powers capable of intimidating even the bravest enemies, while using a huge mushroom as both a bat and a wand.<br><br>Beside it grows a small developing Shrum that also has no problem attacking Globs. They may be blind, and perhaps even deaf, but their presence and characteristic yellowish mustache ensure no one dares to underestimate them.",
     enemy_Pysh_desc: "A Pyce fish whose name comes from the combination of fish and Pyce. They originally inhabited Bitlands until transported to Techspawn, their former home. Recently they've also started appearing around Sunlight Seaside's ports, seemingly enjoying the abundant sunlight.",
     enemy_Clown_Pysh_desc: "Clownfish-shaped Pyces that share origins with Pysh. They still inhabit Bitlands, though they now seem to be enjoying a vacation with their peers in Sunlight Seaside.<br><br>However, they are much tougher than normal Pysh, which seem to not last a second once combat begins.",
+    enemy_Broksp_name: "Broksp",
+    enemy_Broksp_desc: "A spider that has grown by feeding on nightmares so brief and small that they have not given it much room to grow... though it is still growing.",
+    enemy_Pumpitch_name: "Pumpitch",
+    enemy_Pumpitch_desc: "Known in Spain as Calabacín, this pumpkin wears a witch hat but is male, as shown by his burning gaze and ambition to become more than an adorable pumpkin.",
+    enemy_RIPslide_name: "RIPslide",
+    enemy_RIPslide_desc: "A zombie tomb that slides like a penguin on ice. It loves scaring people with its fake \"RIP\", which is actually its eyes and nose. It is not very useful in battle, though it is fast, Kirb assures us.",
+    enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
+    enemy_SkeleBone_Pyce_desc: "An upgrade of Noob Pyce's upgraded Pyce form, following the same line as the improved Noob and Guest Pyces seen in Urbanistic Road. Made from bones found in the desert, it looks friendly with that gaze and those shoes, but do not be fooled: it can throw a bone in the blink of an eye. Like the other Pyces, it is happy to exist and loyal, even if it is not a conventional computer... right?",
 
     // Leafy Beach Party Bosses & Enemies
     enemy_PhantKeeper_name: "PhantKeeper",
@@ -854,7 +878,7 @@ const TRANSLATIONS = {
     tower_DJ_Glob_desc: "Generates a radio fence that's very powerful offensively and defensively, and has an attack radius that slows and can stop the Pyce in front of it for a few seconds.<br><br>Far from being someone dedicated to music, he uses speakers as defense, but he is friends with both the pink and white families, cheering them up and making the city an urban disco.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
 
     login_user: "Username", login_pass: "Password", login_btn: "Join the battle", create_account: "Create account", skip_login: "Skip login",
-    select_map: "Select Map",
+    select_map: "Select Island",
     select_mode: "Select Mode",
     backToModes: "Mode Selection",
 
@@ -1180,6 +1204,11 @@ const IMAGE_PATHS = {
   'Cotton_Glob': 'img/Cotton_Glob.png',
   'ElectroClean_Glob': 'img/ElectroClean Glob (EVO3).png',
   'Omnipresent_Glob': 'Spooks in the Desert (UPD4)/PLACEHOLDERS/Omnipresent Glob (PLACEHOLDER).png',
+  'Broksp': 'Spooks in the Desert (UPD4)/Enemigos/Broksp.png',
+  'Pumpitch': 'Spooks in the Desert (UPD4)/Enemigos/Pumpitch.png',
+  'RIPslide': 'Spooks in the Desert (UPD4)/Enemigos/RIPslide.png',
+  'SkeleBone_Pyce': 'Spooks in the Desert (UPD4)/Pyces/SkeleBone Pyce (RW).png',
+  'SkeleBone_Bone': 'Spooks in the Desert (UPD4)/Pyces/Proyectil Hueso.png',
   'Ducky_Glob': 'img/Ducky_Glob.png',
   'Golden_Ducky_Glob': 'img/Golden_Ducky_Glob.png',
   'Comet_Glob': 'img/Comet_Glob.png',
@@ -1784,7 +1813,12 @@ const ENEMY_TYPES = {
   'PhantKeeper': { name: 'enemy_PhantKeeper_name', desc: 'enemy_PhantKeeper_desc', health: 3000, speed: 0.3, reward: 2000, image: IMAGE_PATHS.PhantKeeper, boss: true, mechanic_key: 'mechanic_boss', honeySlow: true, mapSource: 'sunlight_seaside' },
   'GlitchKeeper': { name: 'enemy_GlitchKeeper_name', desc: 'enemy_GlitchKeeper_desc', health: 4500, speed: 0.35, reward: 2500, image: IMAGE_PATHS.GlitchKeeper, boss: true, mechanic_key: 'mechanic_boss', blueHoneySlow: true, mapSource: 'sunlight_seaside', shieldRatio: 0.2 },
   'DarkSpirit': { name: 'enemy_DarkSpirit_name', desc: 'enemy_DarkSpirit_desc', health: 6000, speed: 0.4, reward: 3000, image: IMAGE_PATHS.DarkSpirit, boss: true, mechanic_key: 'mechanic_boss', darkAura: true, mapSource: 'sunlight_seaside', shieldRatio: 0.4 },
-  'Bushi_Brella': { name: 'enemy_Bushi_Brella_name', desc: 'enemy_Bushi_Brella_desc', health: 400, speed: 1.8, reward: 500, image: IMAGE_PATHS.Bushi_Brella, mimic: true, isSpecialMimic: true, mapSource: 'sunlight_seaside' }
+  'Bushi_Brella': { name: 'enemy_Bushi_Brella_name', desc: 'enemy_Bushi_Brella_desc', health: 400, speed: 1.8, reward: 500, image: IMAGE_PATHS.Bushi_Brella, mimic: true, isSpecialMimic: true, mapSource: 'sunlight_seaside' },
+
+  'Broksp': { name: 'enemy_Broksp_name', desc: 'enemy_Broksp_desc', health: 90, speed: 1.2, reward: 20, image: IMAGE_PATHS.Broksp, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+  'Pumpitch': { name: 'enemy_Pumpitch_name', desc: 'enemy_Pumpitch_desc', health: 150, speed: 1.0, reward: 35, image: IMAGE_PATHS.Pumpitch, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+  'RIPslide': { name: 'enemy_RIPslide_name', desc: 'enemy_RIPslide_desc', health: 70, speed: 3.0, reward: 25, image: IMAGE_PATHS.RIPslide, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+  'SkeleBone_Pyce': { name: 'enemy_SkeleBone_Pyce_name', desc: 'enemy_SkeleBone_Pyce_desc', health: 110, speed: 1.4, reward: 30, image: IMAGE_PATHS.SkeleBone_Pyce, projectile: 'bone', shooter: true, mapSource: 'spooktacular_ruins', enemyClass: 'shooter' }
 };
 
 // Tier de balance: controla cuándo aparece un enemigo y cuánto daño causa al llegar a la base.
@@ -1803,6 +1837,11 @@ const ENEMY_BALANCE = {
     basic: ['Piz', 'Baby_Shrum', 'Ren', 'Pysh'],
     medium: ['Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Umbrella_Pyce', 'Creamplet'],
     tank: ['Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers']
+  },
+  spooktacular_ruins: {
+    basic: ['Broksp', 'RIPslide'],
+    medium: ['Pumpitch', 'SkeleBone_Pyce'],
+    tank: ['Pumpitch', 'SkeleBone_Pyce']
   }
 };
 
@@ -1849,17 +1888,21 @@ const BADGES = {
   angelicFortress: { key: 'angelicFortress', icon: '😇', unlocked: false, reward: { pycoins: 500, xp: 250 }, category: 'modos' },
   titaniumBuilding: { key: 'titaniumBuilding', icon: '🛡️', unlocked: false, reward: { pycoins: 500, xp: 300 }, category: 'modos' },
   encyclopediaMaster: { key: 'encyclopediaMaster', icon: '📖', unlocked: false, reward: { pycoins: 500, duckpass: 500, xp: 2000 }, category: 'misiones' },
-  unmenaced: { key: 'unmenaced', icon: '🌠', unlocked: false, reward: { pycoins: 300, duckpass: 100 }, category: 'misiones' },
+  unmenaced: { key: 'unmenaced', icon: '🌠', unlocked: false, reward: { pycoins: 300, duckpass: 100 }, category: 'misiones', colorGroup: 'collab' },
+  block_city: { key: 'block_city', icon: '🧱', unlocked: false, reward: { xp: 0 }, category: 'misiones', colorGroup: 'mission' },
+  old_blox_city: { key: 'old_blox_city', icon: '🏙️', unlocked: false, reward: { xp: 0 }, category: 'misiones', colorGroup: 'mission' },
+  paracristal_dimension: { key: 'paracristal_dimension', icon: '💎', unlocked: false, reward: { xp: 0 }, category: 'misiones', colorGroup: 'mission' },
+  future_voyage: { key: 'future_voyage', icon: '<span class="windland-key-icon">🔑</span>', unlocked: false, reward: { xp: 0 }, category: 'misiones', colorGroup: 'key' },
   skinllector: { key: 'skinllector', icon: '👗', unlocked: false, reward: { pycoins: 400, duckpass: 200 }, category: 'misiones' },
-  crystalizing_break: { key: 'crystalizing_break', icon: '💎', unlocked: false, reward: { pycoins: 200, xp: 500 }, category: 'interacciones' },
-  extended_marc: { key: 'extended_marc', icon: '🖼️', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'misiones' },
+  crystalizing_break: { key: 'crystalizing_break', icon: '💎', unlocked: false, reward: { pycoins: 200, xp: 500 }, category: 'interacciones', colorGroup: 'collab' },
+  extended_marc: { key: 'extended_marc', icon: '🖼️', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'misiones', colorGroup: 'collab' },
 
-  fracstral_victory: { key: 'fracstral_victory', icon: '<img src="Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png" width="35" height="35" style="border-radius:6px; object-fit:contain;">', unlocked: false, reward: { pycoins: 500, xp: 500 }, category: 'misiones' },
+  fracstral_victory: { key: 'fracstral_victory', icon: '<img src="Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png" width="35" height="35" style="border-radius:6px; object-fit:contain;">', unlocked: false, reward: { pycoins: 500, xp: 500 }, category: 'misiones', colorGroup: 'collab' },
   chain_reaction: { key: 'chain_reaction', icon: '💥', unlocked: false, reward: { pycoins: 400, duckpass: 200 }, category: 'interacciones' },
   fenced_kaboom: { key: 'fenced_kaboom', icon: '🚧', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'interacciones' },
   wall_garden: { key: 'wall_garden', icon: '🧱', unlocked: false, reward: { pycoins: 300, xp: 400 }, category: 'interacciones' },
   urban_king: { key: 'urban_king', icon: '👑', unlocked: false, reward: { pycoins: 600, duckpass: 400 }, category: 'misiones' },
-  urban_crystals: { key: 'urban_crystals', icon: '💎', unlocked: false, reward: { pycoins: 700, duckpass: 500 }, category: 'misiones' },
+  urban_crystals: { key: 'urban_crystals', icon: '💎', unlocked: false, reward: { pycoins: 700, duckpass: 500 }, category: 'misiones', colorGroup: 'collab' },
   dangerous_set: { key: 'dangerous_set', icon: '⚠️', unlocked: false, reward: { pycoins: 800, xp: 1000 }, category: 'interacciones' },
   globiscal_debt: { key: 'globiscal_debt', icon: '💸', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'economia' },
 
@@ -1980,8 +2023,48 @@ const MAPS = {
         { x: 803, y: 298 }, { x: 1030, y: 298 }
       ]
     ]
+  },
+  spooktacular_ruins: {
+    name: "Aridez Escalofriante",
+    nameEn: "Spooktacular Ruins",
+    riverZones: [],
+    islandZones: [],
+    pathSegments: [],
+    roadIntersections: [{ x: 420, y: 180 }, { x: 567, y: 80 }],
+    enemyPaths: [
+      [
+        { x: 50, y: 95 }, { x: 170, y: 285 }, { x: 420, y: 180 },
+        { x: 567, y: 80 }, { x: 795, y: 380 }, { x: 947, y: 465 }
+      ],
+      [
+        { x: 50, y: 365 }, { x: 275, y: 20 }, { x: 420, y: 180 },
+        { x: 535, y: 350 }, { x: 567, y: 80 }, { x: 805, y: 50 }, { x: 947, y: 50 }
+      ]
+    ],
+    bossPlaceholders: { miniboss: null, boss: null }
   }
-}
+};
+
+const MAP_ISLANDS = [
+  {
+    id: 'globland_isle',
+    name: 'Globland Isle',
+    zones: [
+      { mapId: 'gelatin_lake', nameEs: 'Gelatin Lake', nameEn: 'Gelatin Lake', colors: ['#41b96c', '#28784b'] },
+      { mapId: 'urbanistic_road', nameEs: 'Urbanistic Road', nameEn: 'Urbanistic Road', colors: ['#92999c', '#424a51'] },
+      { mapId: 'sunlight_seaside', nameEs: 'Sunlight Seaside', nameEn: 'Sunlight Seaside', colors: ['#f0c75e', '#1e98b4'] }
+    ]
+  },
+  {
+    id: 'windland_leaf',
+    name: 'Windland Leaf',
+    zones: [
+      { mapId: 'spooktacular_ruins', nameEs: 'Aridez Escalofriante', nameEn: 'Spooktacular Ruins', colors: ['#d68738', '#684328'] },
+      { nameEs: 'Frosty Christmas (SOON)', nameEn: 'Frosty Christmas (SOON)', colors: ['#9deaff', '#f3fcff'], locked: true },
+      { nameEs: 'Darkness Forest (RELEASING NEXT YEAR)', nameEn: 'Darkness Forest (RELEASING NEXT YEAR)', colors: ['#47774a', '#59402b'], locked: true }
+    ]
+  }
+];
 
 const SKINS_DATA = {
   'Glob': [

@@ -191,6 +191,18 @@ They are useful when a wave becomes difficult or when several towers can benefit
 
 ## 🗺️ Maps
 
+Maps are grouped into islands and selected as zones.
+
+### Globland Isle
+
+Contains **Gelatin Lake**, **Urbanistic Road**, and **Sunlight Seaside**.
+
+### Windland Leaf
+
+Its first available zone is **Aridez Escalofriante**, known in English as **Spooktacular Ruins**. Two crossed routes connect the enemy pyramids on the left to allied oases on the right. The miniboss and boss slots are reserved for a future update.
+
+**Frosty Christmas (SOON)** and **Darkness Forest (RELEASING NEXT YEAR)** are shown as locked zones.
+
 ### 🌊 Gelatin Lake
 
 The valley where the Globs originated.
