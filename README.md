@@ -32,6 +32,13 @@ Existing progress saved in `localStorage` is migrated automatically the next tim
 
 Start in Cube Adventure searching for a portal to find a code to insert in here...
 
+### Free online co-op
+
+Co-op seeds support up to four players. To host over the Internet on Windows,
+follow the free Cloudflare Quick Tunnel steps in [`server/README.md`](./server/README.md).
+The host must keep the game server and tunnel running. Seeds are temporary and
+cannot be recovered after the host leaves or the server stops.
+
 ### Offline play
 
 If the game cannot reach its account database, login and account creation fall back to a local session so the game remains playable. Use **Play offline** to enter without contacting the server. Offline progress is saved in this browser and is not synchronized with an online account or other devices. Accounts used in offline mode are not verified by the server.

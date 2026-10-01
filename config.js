@@ -1815,7 +1815,7 @@ const ENEMY_TYPES = {
   'PhantKeeper': { name: 'enemy_PhantKeeper_name', desc: 'enemy_PhantKeeper_desc', health: 3000, speed: 0.3, reward: 2000, image: IMAGE_PATHS.PhantKeeper, boss: true, mechanic_key: 'mechanic_boss', honeySlow: true, mapSource: 'sunlight_seaside' },
   'GlitchKeeper': { name: 'enemy_GlitchKeeper_name', desc: 'enemy_GlitchKeeper_desc', health: 4500, speed: 0.35, reward: 2500, image: IMAGE_PATHS.GlitchKeeper, boss: true, mechanic_key: 'mechanic_boss', blueHoneySlow: true, mapSource: 'sunlight_seaside', shieldRatio: 0.2 },
   'DarkSpirit': { name: 'enemy_DarkSpirit_name', desc: 'enemy_DarkSpirit_desc', health: 6000, speed: 0.4, reward: 3000, image: IMAGE_PATHS.DarkSpirit, boss: true, mechanic_key: 'mechanic_boss', darkAura: true, mapSource: 'sunlight_seaside', shieldRatio: 0.4 },
-  'Bushi_Brella': { name: 'enemy_Bushi_Brella_name', desc: 'enemy_Bushi_Brella_desc', health: 400, speed: 1.8, reward: 500, image: IMAGE_PATHS.Bushi_Brella, mimic: true, isSpecialMimic: true, mapSource: 'sunlight_seaside' },
+  'Bushi_Brella': { name: 'enemy_Bushi_Brella_name', desc: 'enemy_Bushi_Brella_desc', health: 400, speed: 1.8, reward: 500, image: IMAGE_PATHS.Bushi_Brella, mimic: true, mapSource: 'sunlight_seaside' },
 
   'Broksp': { name: 'enemy_Broksp_name', desc: 'enemy_Broksp_desc', health: 90, speed: 1.2, reward: 20, image: IMAGE_PATHS.Broksp, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
   'Pumpitch': { name: 'enemy_Pumpitch_name', desc: 'enemy_Pumpitch_desc', health: 150, speed: 1.0, reward: 35, image: IMAGE_PATHS.Pumpitch, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },

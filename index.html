@@ -40,6 +40,7 @@
             <p id="seed-options-description">Elige cómo quieres guardar o compartir esta seed.</p>
             <div class="seed-options-actions">
                 <button id="show-seed-copy-btn" type="button" onclick="showSeedCopyText()">📋 Copiar seed</button>
+                <button id="show-invite-copy-btn" type="button" onclick="showInviteCopyText()">🔗 Copiar invitación</button>
                 <button id="download-seed-btn" type="button" onclick="downloadSeed()">⬇️ Descargar seed</button>
             </div>
             <label id="seed-copy-instructions" for="seed-copy-text" hidden>Selecciona el texto para copiarlo:</label>
@@ -105,6 +106,8 @@
             <div id="zone-selection" class="zone-selection" hidden></div>
             
             <div id="seed-controls" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                <label for="multiplayer-server-url" style="font-size:0.75rem; color:#cbd5e0;">Servidor online (deja vacío para jugar en este PC):</label>
+                <input type="url" id="multiplayer-server-url" placeholder="https://xxxx.trycloudflare.com" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 0.9rem;">
                 <button class="mode-btn" onclick="createSeed()" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); border-color: #8e44ad; font-size: 1.1rem; padding: 10px;">✨ Crear Seed</button>
                 <div style="display: flex; gap: 5px;">
                     <input type="text" id="seed-input" placeholder="Ej: G123456" style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: 'Press Start 2P', cursive; font-size: 0.8rem; text-transform: uppercase;">
@@ -214,6 +217,7 @@
                             <button class="mode-select-btn" onclick="chooseModeAfterGame()">⚔️ <span class="btn-text" data-i18n="choose_mode">Elegir modo</span></button>
                             <button class="map-select-btn" onclick="chooseMapAfterGame()">🗺️ <span class="btn-text" data-i18n="choose_map">Elegir mapa</span></button>
                             <button class="exit-btn" onclick="exitToLogin()">🚪 <span class="btn-text" data-i18n="exit_game">Salir</span></button>
+                            <button id="multiplayer-restart-btn" class="retry-btn" type="button" onclick="window.location.reload()" style="display:none;">🔄 Reiniciar desde cero</button>
                         </div>
                     </div>
                 </div>
@@ -580,7 +584,6 @@
     <div id="game-messages"></div>
     <div id="tooltip" class="tooltip" style="display: none;"></div>
 
-    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
     <script src="config.js"></script>
     <script src="game.js"></script>
 </body>

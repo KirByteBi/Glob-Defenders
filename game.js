@@ -8,11 +8,27 @@ let offlineModeActive = false;
 
 // --- MULTIPLAYER ---
 let socket = null;
+let socketClientLoad = null;
+let multiplayerServerUrl = null;
+let multiplayerServerClosed = false;
+let autoJoinAttempted = false;
 let currentSeed = null;
+let isSeedHost = false;
+let multiplayerSyncInterval = null;
+let multiplayerPlayerCount = 1;
+let multiplayerTowerLimits = null;
+let multiplayerEnabled = false;
+let multiplayerPlayers = [];
+let applyingMultiplayerAction = false;
+let multiplayerActionOwner = null;
 let sessionClockInterval = null;
 let sessionStartedAt = null;
 let nextBreakReminderAt = 2 * 60 * 60 * 1000;
 let lastBreakReminderIndex = -1;
+const RARE_ENEMY_WAVE_SPAWN_CHANCE = 0.3;
+const BUSHI_BRELLA_MAX_SPAWNS = 3;
+const BUSHI_BRELLA_SKIN_DROP_CHANCE = 0.01;
+const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set'];
 
 const BREAK_REMINDER_INTERVAL = 2 * 60 * 60 * 1000;
 const BREAK_REMINDERS = {
@@ -38,11 +54,137 @@ const BREAK_REMINDERS = {
   ]
 };
 
-function connectSocket() {
+function getMultiplayerProfile() {
+  return {
+    equippedTowers: Array.isArray(gameState.equippedTowers) ? [...gameState.equippedTowers] : ['Glob'],
+    towerLimits: { ...gameState.towerLimits }
+  };
+}
+
+function publishMultiplayerProfile() {
+  if (!socket?.connected || !currentSeed) return;
+  socket.emit('update-player-profile', {
+    seed: currentSeed,
+    profile: getMultiplayerProfile()
+  });
+}
+
+function getMultiplayerServerUrl() {
+  const input = document.getElementById('multiplayer-server-url');
+  const queryServer = new URLSearchParams(window.location.search).get('server');
+  const rawUrl = (queryServer || input?.value || 'http://localhost:3001').trim();
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(rawUrl);
+  } catch (error) {
+    throw new Error(currentLanguage === 'en' ? 'Enter a valid multiplayer server URL.' : 'Introduce una URL válida para el servidor multijugador.');
+  }
+  if (!['http:', 'https:'].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password ||
+      (parsedUrl.pathname !== '/' && parsedUrl.pathname !== '') || parsedUrl.search || parsedUrl.hash) {
+    throw new Error(currentLanguage === 'en'
+      ? 'Use the server address only, for example https://xxxx.trycloudflare.com.'
+      : 'Introduce solo la dirección del servidor, por ejemplo https://xxxx.trycloudflare.com.');
+  }
+  parsedUrl.pathname = '';
+  return parsedUrl.origin;
+}
+
+function loadSocketClient() {
+  if (typeof io !== 'undefined') return Promise.resolve();
+  if (socketClientLoad) return socketClientLoad;
+
+  socketClientLoad = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = new URL('vendor/socket.io.min.js', document.baseURI).href;
+    script.onload = () => {
+      if (typeof io === 'undefined') {
+        socketClientLoad = null;
+        reject(new Error(currentLanguage === 'en'
+          ? 'The server did not provide the Socket.IO client.'
+          : 'El servidor no proporcionó el cliente Socket.IO.'));
+        return;
+      }
+      resolve();
+    };
+    script.onerror = () => {
+      socketClientLoad = null;
+      reject(new Error(currentLanguage === 'en'
+        ? 'Could not load the bundled Socket.IO client.'
+        : 'No se pudo cargar el cliente Socket.IO incluido con el juego.'));
+    };
+    document.head.appendChild(script);
+  });
+  return socketClientLoad;
+}
+
+function showMultiplayerServerClosed() {
+  if (multiplayerServerClosed) return;
+  multiplayerServerClosed = true;
+  multiplayerEnabled = false;
+  if (multiplayerSyncInterval !== null) {
+    clearInterval(multiplayerSyncInterval);
+    multiplayerSyncInterval = null;
+  }
+  if (window._showMultiplayerServerClosed) window._showMultiplayerServerClosed();
+  socket?.disconnect();
+}
+
+function getMultiplayerInviteUrl() {
+  if (!currentSeed) return '';
+  const inviteUrl = new URL(window.location.href);
+  inviteUrl.search = '';
+  inviteUrl.hash = '';
+  inviteUrl.searchParams.set('server', multiplayerServerUrl || getMultiplayerServerUrl());
+  inviteUrl.searchParams.set('seed', currentSeed);
+  return inviteUrl.href;
+}
+
+function connectSocket(serverUrl) {
   if (typeof io !== 'undefined' && !socket) {
-    socket = io('http://localhost:3000');
+    multiplayerServerUrl = serverUrl;
+    socket = io(serverUrl, { reconnection: false });
     socket.on('player-joined', (data) => {
-      console.log('Jugador se unió a la seed:', data.id);
+      const username = data.username || 'Jugador';
+      multiplayerPlayerCount = Number(data.playerCount) || 2;
+      multiplayerEnabled = multiplayerPlayerCount > 1;
+      if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
+      console.log('Jugador se unió a la seed:', username, data.id);
+      if (window._showMultiplayerNotice) {
+        window._showMultiplayerNotice(
+          currentLanguage === 'en' ? `${username} joined your seed.` : `${username} se ha unido a tu seed.`
+        );
+      }
+    });
+    socket.on('player-left', (data) => {
+      multiplayerPlayerCount = Number(data.playerCount) || 1;
+      multiplayerEnabled = multiplayerPlayerCount > 1;
+      if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
+    });
+    socket.on('player-count', (data) => {
+      multiplayerPlayerCount = Math.min(4, Math.max(1, Number(data.playerCount) || 1));
+      multiplayerEnabled = multiplayerPlayerCount > 1;
+      if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
+    });
+    socket.on('player-roster', (data) => {
+      multiplayerPlayers = Array.isArray(data.players) ? data.players : [];
+      multiplayerPlayerCount = Math.min(4, Math.max(1, Number(data.playerCount) || multiplayerPlayers.length || 1));
+      multiplayerEnabled = multiplayerPlayerCount > 1;
+      if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
+    });
+    socket.on('game-state', (state) => {
+      if (!isSeedHost && window._applyMultiplayerGameState) {
+        window._applyMultiplayerGameState(state);
+      }
+    });
+    socket.on('game-action', (action) => {
+      if (window._applyMultiplayerAction) window._applyMultiplayerAction(action);
+    });
+    socket.on('host-disconnected', showMultiplayerServerClosed);
+    socket.on('disconnect', (reason) => {
+      if (currentSeed && !multiplayerServerClosed) {
+        console.warn('Se perdió la conexión con el servidor multijugador:', reason);
+        showMultiplayerServerClosed();
+      }
     });
     // Las funciones spawnEnemy/showNarratorMsg están en el scope interno del juego,
     // se exponen en window._spawnEnemy / window._showNarratorMsg desde allí.
@@ -52,6 +194,85 @@ function connectSocket() {
     socket.on('show-dialog', (data) => {
       if (window._showNarratorMsg) window._showNarratorMsg(data.id, data.img, data.name, data.text);
     });
+  }
+}
+
+async function joinMultiplayerSeed(seed, creating) {
+  let serverUrl;
+  try {
+    serverUrl = getMultiplayerServerUrl();
+    await loadSocketClient();
+  } catch (error) {
+    console.error('No se pudo preparar la conexión multijugador:', error);
+    alert(error.message);
+    return;
+  }
+  connectSocket(serverUrl);
+  if (!socket) {
+    alert(currentLanguage === 'en' ? 'Multiplayer server is unavailable.' : 'El servidor multijugador no está disponible.');
+    return;
+  }
+
+  multiplayerServerClosed = false;
+  const username = localStorage.getItem('glob_username') || 'Jugador';
+  socket.timeout(5000).emit('join-seed', { seed, username, profile: getMultiplayerProfile() }, (error, response) => {
+    if (error || !response?.success) {
+      const message = response?.error || (currentLanguage === 'en'
+        ? 'Could not connect to the multiplayer server.'
+        : 'No se pudo conectar con el servidor multijugador.');
+      alert(message);
+      console.error('No se pudo unir a la seed:', error || response?.error);
+      return;
+    }
+
+    currentSeed = seed;
+    isSeedHost = response.isHost;
+    multiplayerPlayerCount = Math.min(4, Math.max(1, Number(response.playerCount) || 1));
+    multiplayerEnabled = Boolean(response.snapshot?.multiplayerEnabled) || multiplayerPlayerCount > 1;
+    multiplayerTowerLimits = response.snapshot?.towerLimits || null;
+    multiplayerPlayers = Array.isArray(response.players)
+      ? response.players
+      : Array.isArray(response.snapshot?.players)
+        ? response.snapshot.players
+        : [];
+    updateSeedDisplay();
+
+    if (response.snapshot && window._applyMultiplayerGameState) {
+      window._applyMultiplayerGameState(response.snapshot);
+      if (window._showMultiplayerNotice) {
+        window._showMultiplayerNotice(
+          currentLanguage === 'en'
+            ? `Joined ${response.hostName || 'the host'}'s active match.`
+            : `Te has unido a la partida activa de ${response.hostName || 'el anfitrión'}.`
+        );
+      }
+    } else if (creating && response.isHost) {
+      alert((currentLanguage === 'en' ? 'Seed created: ' : 'Seed creada: ') + seed);
+    } else {
+      const message = response.isHost
+        ? (currentLanguage === 'en'
+          ? 'No active match was found for this seed; you are now its host.'
+          : 'No había una partida activa con esta seed; ahora eres su anfitrión.')
+        : (currentLanguage === 'en'
+          ? 'Connected to the seed. Waiting for the host to start the match.'
+          : 'Conectado a la seed. Esperando a que el anfitrión inicie la partida.');
+      if (window._showMultiplayerNotice) window._showMultiplayerNotice(message);
+      else alert(message);
+    }
+
+    if (isSeedHost && multiplayerSyncInterval === null) {
+      multiplayerSyncInterval = setInterval(() => {
+        if (!socket?.connected || !currentSeed || !window._getMultiplayerGameState) return;
+        const state = window._getMultiplayerGameState();
+        if (state) socket.emit('update-game-state', { seed: currentSeed, state });
+      }, 750);
+    }
+  });
+}
+
+function sendMultiplayerAction(action) {
+  if (socket?.connected && currentSeed && !applyingMultiplayerAction) {
+    socket.emit('game-action', { seed: currentSeed, action });
   }
 }
 
@@ -82,21 +303,16 @@ function updateSeedDisplay() {
 }
 
 window.createSeed = function() {
-  connectSocket();
-  currentSeed = generateSeed();
-  if (socket) socket.emit('join-seed', currentSeed);
-  updateSeedDisplay();
-  alert('Seed creada: ' + currentSeed + '\n¡A partir de ahora todo se sincronizará!');
+  joinMultiplayerSeed(generateSeed(), true);
 };
 
 window.loadSeed = function() {
   const input = document.getElementById('seed-input').value.trim().toUpperCase();
-  if (!input) return alert('Introduce una seed válida');
-  connectSocket();
-  currentSeed = input;
-  if (socket) socket.emit('join-seed', currentSeed);
-  updateSeedDisplay();
-  alert('Unido a la seed: ' + currentSeed);
+  if (!/^[A-Z][A-Z0-9]{6}$/.test(input)) {
+    alert(currentLanguage === 'en' ? 'Enter a valid seed.' : 'Introduce una seed válida.');
+    return;
+  }
+  joinMultiplayerSeed(input, false);
 };
 
 window.openSeedOptions = function() {
@@ -105,19 +321,21 @@ window.openSeedOptions = function() {
   const title = document.getElementById('seed-options-title');
   const description = document.getElementById('seed-options-description');
   const copyButton = document.getElementById('show-seed-copy-btn');
+  const inviteButton = document.getElementById('show-invite-copy-btn');
   const downloadButton = document.getElementById('download-seed-btn');
   const instructions = document.getElementById('seed-copy-instructions');
   const copyText = document.getElementById('seed-copy-text');
   const closeButton = modal?.querySelector('.seed-options-close');
   const isSpanish = currentLanguage !== 'en';
 
-  if (!modal || !title || !description || !copyButton || !downloadButton || !instructions || !copyText || !closeButton) {
+  if (!modal || !title || !description || !copyButton || !inviteButton || !downloadButton || !instructions || !copyText || !closeButton) {
     console.error('No se pudo abrir el menú de opciones de seed: faltan elementos del diálogo.');
     return;
   }
   title.textContent = isSpanish ? 'Opciones de seed' : 'Seed options';
   description.textContent = isSpanish ? 'Elige cómo quieres guardar o compartir esta seed.' : 'Choose how you want to save or share this seed.';
   copyButton.textContent = isSpanish ? '📋 Copiar seed' : '📋 Copy seed';
+  inviteButton.textContent = isSpanish ? '🔗 Copiar invitación' : '🔗 Copy invite link';
   downloadButton.textContent = isSpanish ? '⬇️ Descargar seed' : '⬇️ Download seed';
   instructions.textContent = isSpanish ? 'Selecciona el texto para copiarlo:' : 'Select the text to copy:';
   closeButton.setAttribute('aria-label', isSpanish ? 'Cerrar' : 'Close');
@@ -147,9 +365,45 @@ window.showSeedCopyText = function() {
   copyText.select();
 };
 
+window.showInviteCopyText = function() {
+  const copyText = document.getElementById('seed-copy-text');
+  const instructions = document.getElementById('seed-copy-instructions');
+  if (!copyText || !instructions || !currentSeed) return;
+  let inviteUrl;
+  try {
+    inviteUrl = getMultiplayerInviteUrl();
+  } catch (error) {
+    console.error('No se pudo crear el enlace de invitación:', error);
+    alert(error.message);
+    return;
+  }
+  const localPageWarning = window.location.protocol === 'file:'
+    ? (currentLanguage === 'en'
+      ? 'Open the game from its online website before sharing; this local file link will not work on other computers.'
+      : 'Abre el juego desde su página web antes de compartirlo; este enlace local no funcionará en otros ordenadores.')
+    : '';
+  instructions.textContent = localPageWarning || (currentLanguage === 'en'
+    ? 'Select and copy this invitation link:'
+    : 'Selecciona y copia este enlace de invitación:');
+  copyText.value = inviteUrl;
+  copyText.hidden = false;
+  instructions.hidden = false;
+  copyText.focus();
+  copyText.select();
+};
+
 window.downloadSeed = function() {
   if (!currentSeed) return;
-  const file = new Blob([`${currentSeed}\n`], { type: 'text/plain;charset=utf-8' });
+  let inviteUrl = '';
+  try {
+    inviteUrl = getMultiplayerInviteUrl();
+  } catch (error) {
+    console.error('No se pudo crear el enlace de invitación para la descarga:', error);
+  }
+  const contents = inviteUrl
+    ? `Glob Defenders - invitación multijugador\nSeed: ${currentSeed}\nEnlace: ${inviteUrl}\n`
+    : `${currentSeed}\n`;
+  const file = new Blob([contents], { type: 'text/plain;charset=utf-8' });
   const downloadUrl = URL.createObjectURL(file);
   const link = document.createElement('a');
   link.href = downloadUrl;
@@ -367,7 +621,8 @@ let gameState = {
   gtacks: { 'Glob': false, 'Red_Glob': false, 'Soap_Glob': false, 'Ducky_Glob': false, 'Comet_Glob': false, 'Old_Glob': false, 'Pirate_Glob': false, 'White': false, 'Pink': false },
   pycesKilled: {},
   globsPlaced: {},
-  mimicSpawned: 0,
+  rareEnemiesSpawned: {},
+  networkEntityCounter: 0,
   maxedFamilies: [],
   collectionMasterDialogueShown: false,
   wallGardenSoapMessageShown: false,
@@ -379,6 +634,82 @@ function getFamilyCount(baseType) {
   if (!cfg) return 0;
   const family = cfg.family || baseType;
   return gameState.towers.filter(t => (t.family || t.type) === family).length;
+}
+
+function getTowerFamily(type) {
+  const tower = TOWER_TYPES[type];
+  return tower?.family || type;
+}
+
+function getProfileTowerLimit(profile, family) {
+  const familyTypes = Object.keys(TOWER_TYPES).filter(type => getTowerFamily(type) === family);
+  const limits = familyTypes
+    .map(type => Number(profile?.profile?.towerLimits?.[type]))
+    .filter(limit => Number.isFinite(limit) && limit > 0);
+  const directLimit = Number(profile?.profile?.towerLimits?.[family]);
+  if (Number.isFinite(directLimit) && directLimit > 0) limits.push(directLimit);
+  return limits.length ? Math.max(...limits) : 0;
+}
+
+function profileHasTowerFamily(profile, family) {
+  return Array.isArray(profile?.profile?.equippedTowers) &&
+    profile.profile.equippedTowers.some(type => getTowerFamily(type) === family);
+}
+
+function getTowerPlacementLimits(type) {
+  const family = getTowerFamily(type);
+  let matchLimit = multiplayerPlayers.length
+    ? Math.max(0, ...multiplayerPlayers.map(player => getProfileTowerLimit(player, family)))
+    : 0;
+  if (!matchLimit) {
+    matchLimit = Number(multiplayerTowerLimits?.[type] || multiplayerTowerLimits?.[family] ||
+      gameState.towerLimits[type] || gameState.towerLimits[family] || 3);
+  }
+  const configuredLimit = matchLimit;
+
+  if (gameState.mode === 'interstellar' && !multiplayerEnabled) {
+    const defaultLimits = {
+      'Glob': 5, 'Red_Glob': 6, 'Soap_Glob': 3, 'Ducky_Glob': 3,
+      'Comet_Glob': 3, 'Old_Glob': 2, 'Work_Bombot': 1, 'White': 1, 'Pink': 1, 'IEx': 1, 'Worker_Glob': 2
+    };
+    matchLimit = Math.max(matchLimit, defaultLimits[type] || 3) + 2;
+  }
+
+  if (!multiplayerEnabled) {
+    return { perPlayerLimit: matchLimit, sharedLimit: matchLimit };
+  }
+
+  const players = multiplayerPlayers.length
+    ? multiplayerPlayers
+    : [{
+      playerId: socket?.id || localStorage.getItem('glob_username') || 'Jugador',
+      profile: getMultiplayerProfile()
+    }];
+  const eligiblePlayers = players.filter(player => profileHasTowerFamily(player, family));
+  const localPlayerId = multiplayerActionOwner || socket?.id || localStorage.getItem('glob_username') || 'Jugador';
+  const availablePlayers = multiplayerPlayers.length ? eligiblePlayers : players;
+  const playerIndex = availablePlayers.findIndex(player => player.playerId === localPlayerId);
+
+  if (configuredLimit === 1) {
+    return {
+      perPlayerLimit: playerIndex >= 0 ? 1 : 0,
+      sharedLimit: availablePlayers.length
+    };
+  }
+
+  const playerCount = Math.max(1, availablePlayers.length);
+  const baseQuota = Math.floor(matchLimit / playerCount);
+  const remainingSlots = matchLimit % playerCount;
+  const familySeed = `${currentSeed || ''}:${family}`;
+  const rotationStart = Array.from(familySeed).reduce((sum, char) => sum + char.charCodeAt(0), 0) % playerCount;
+  const extraSlotIndex = (rotationStart + playerIndex + playerCount) % playerCount;
+  const receivesExtraSlot = playerIndex >= 0 && extraSlotIndex < remainingSlots;
+  const perPlayerLimit = playerIndex >= 0 ? baseQuota + (receivesExtraSlot ? 1 : 0) : 0;
+
+  return {
+    perPlayerLimit,
+    sharedLimit: matchLimit
+  };
 }
 
 function checkFutureVoyageBadge() {
@@ -681,7 +1012,6 @@ function saveProgress() {
     upgradesResetV5: true,
     pycesKilled: gameState.pycesKilled,
     globsPlaced: gameState.globsPlaced,
-    mimicSpawned: gameState.mimicSpawned,
     maxedFamilies: gameState.maxedFamilies || [],
     collectionMasterDialogueShown: gameState.collectionMasterDialogueShown
   };
@@ -818,7 +1148,6 @@ function loadProgress(username) {
       }, progress.gtacks || {});
       gameState.pycesKilled = progress.pycesKilled || {};
       gameState.globsPlaced = progress.globsPlaced || {};
-      gameState.mimicSpawned = progress.mimicSpawned || 0;
       gameState.maxedFamilies = progress.maxedFamilies || [];
       gameState.collectionMasterDialogueShown = !!progress.collectionMasterDialogueShown;
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
@@ -972,6 +1301,16 @@ function startGameSession(username, offline) {
     gameState.selectedIsland = null;
     renderMapSelection();
     document.getElementById('map-selection').style.display = 'flex';
+    const serverInput = document.getElementById('multiplayer-server-url');
+    const inviteParams = new URLSearchParams(window.location.search);
+    const invitedServer = inviteParams.get('server');
+    const invitedSeed = inviteParams.get('seed');
+    if (serverInput && invitedServer) serverInput.value = invitedServer;
+    if (!autoJoinAttempted && invitedSeed && /^[A-Z][A-Z0-9]{6}$/.test(invitedSeed.toUpperCase())) {
+      autoJoinAttempted = true;
+      document.getElementById('seed-input').value = invitedSeed.toUpperCase();
+      setTimeout(() => window.loadSeed(), 0);
+    }
   };
 
   const loadingScreen = document.getElementById('loading-screen');
@@ -2719,9 +3058,17 @@ function drawTowerShop() {
     const t = TOWER_TYPES[type];
     if (!t) return;
 
-    const currentCount = getFamilyCount(type);
-    const limit = gameState.towerLimits[type] || 3;
-    const isFull = currentCount >= limit;
+    const capacity = getTowerPlacementLimits(type);
+    const family = t.family || type;
+    const ownerId = multiplayerActionOwner || socket?.id || localStorage.getItem('glob_username') || 'Jugador';
+    const currentCount = multiplayerEnabled
+      ? gameState.towers.filter(tower =>
+        (tower.family || tower.type) === family && tower.ownerId === ownerId
+      ).length
+      : getFamilyCount(type);
+    const limit = capacity.perPlayerLimit;
+    const isFull = currentCount >= limit ||
+      (multiplayerEnabled && getFamilyCount(type) >= capacity.sharedLimit);
     const displayImg = getTowerImage(type);
     const name = translate(t.name);
 
@@ -3580,6 +3927,9 @@ function selectAlmanacItem(id, category) {
 
 function bindEvents() {
   document.getElementById('pause-game')?.addEventListener('click', pauseGame);
+  document.querySelector('#game-over .retry-btn:not(#resume-game)')?.addEventListener('click', () => {
+    sendMultiplayerAction({ type: 'retry' });
+  });
   document.getElementById('login-btn').onclick = handleLogin;
   document.getElementById('offline-play-btn').onclick = handleSkipLogin;
   const createAccountButton = document.getElementById('create-account-btn');
@@ -4872,6 +5222,7 @@ window.toggleEquipTower = function (type) {
   saveProgress();
   drawShop();
   drawTowerShop();
+  publishMultiplayerProfile();
 };
 
 function drawEquipShop(container) {
@@ -5125,6 +5476,7 @@ function buyUpgrade(id, cost, type) {
   checkTowerCombinationBadges();
 
   updateMetaUI(); drawShop(); drawTowerShop(); saveProgress();
+  publishMultiplayerProfile();
 }
 
 function drawPass() {
@@ -5193,15 +5545,30 @@ function placeTower(spotId, type) {
   const tCfg = TOWER_TYPES[type];
   const family = tCfg.family || type;
   const currentCount = getFamilyCount(type);
-  let limit = gameState.towerLimits[type] || 3;
-  if (gameState.mode === 'interstellar') {
-    const defaultLimits = {
-      'Glob': 5, 'Red_Glob': 6, 'Soap_Glob': 3, 'Ducky_Glob': 3,
-      'Comet_Glob': 3, 'Old_Glob': 2, 'Work_Bombot': 1, 'White': 1, 'Pink': 1, 'IEx': 1, 'Worker_Glob': 2
-    };
-    limit = (defaultLimits[type] || 3) + 2; // +2 base capacity ignoring upgrades
+  const capacity = getTowerPlacementLimits(type);
+  const ownerId = multiplayerActionOwner || socket?.id || localStorage.getItem('glob_username') || 'Jugador';
+  if (multiplayerEnabled) {
+    const ownedCount = gameState.towers.filter(tower =>
+      (tower.family || tower.type) === family && tower.ownerId === ownerId
+    ).length;
+    if (ownedCount >= capacity.perPlayerLimit || currentCount >= capacity.sharedLimit) {
+      return showMessage(
+        translate('limit_reached', {
+          name: translate('tower_' + type + '_name'),
+          limit: Math.min(capacity.perPlayerLimit, Math.max(0, capacity.sharedLimit - currentCount))
+        }),
+        'error'
+      );
+    }
+  } else if (currentCount >= capacity.perPlayerLimit) {
+    return showMessage(
+      translate('limit_reached', {
+        name: translate('tower_' + type + '_name'),
+        limit: capacity.perPlayerLimit
+      }),
+      'error'
+    );
   }
-  if (currentCount >= limit) return showMessage(translate('limit_reached', { name: translate('tower_' + type + '_name'), limit: limit }), 'error');
 
   const spot = gameState.towerSpots[spotId];
   let discount = 0;
@@ -5227,7 +5594,7 @@ function placeTower(spotId, type) {
   applyTowerEffects(el, type);
   document.getElementById('map').appendChild(el);
 
-  const tower = { ...tCfg, type, x: spot.x, y: spot.y, el, cooldown: 0, spotId, stunned: 0, moneyTimer: 0 };
+  const tower = { ...tCfg, type, x: spot.x, y: spot.y, el, cooldown: 0, spotId, ownerId, stunned: 0, moneyTimer: 0 };
   tower.damage *= gameState.towerBuffs.damage;
   tower.range += gameState.towerBuffs.range;
   tower.speed *= gameState.towerBuffs.speed;
@@ -5252,6 +5619,7 @@ function placeTower(spotId, type) {
   if (typeof checkEncyclopediaMaster === 'function') checkEncyclopediaMaster();
   updateUI(); drawTowerShop();
   updateAllTowerRanges();
+  sendMultiplayerAction({ type: 'place-tower', spotId, towerType: type });
 }
 
 function selectTower(t) {
@@ -5493,6 +5861,7 @@ function activateGTack(t) {
     if (typeof checkEncyclopediaMaster === 'function') checkEncyclopediaMaster();
     updateAllTowerRanges();
     selectTower(tower); updateUI(); drawTowerShop();
+    sendMultiplayerAction({ type: 'evolve-tower', spotId: tower.spotId, towerType: nextType, cost });
   }
 
   function sellTower(tower) {
@@ -5513,6 +5882,7 @@ function activateGTack(t) {
     checkTowerCombinationBadges();
     recalculateAuras();
     deselectTower(); updateUI(); drawTowerShop();
+    sendMultiplayerAction({ type: 'sell-tower', spotId: tower.spotId });
   }
 
   function deselectTower() { gameState.selectedTower = null; document.getElementById('evolve-panel').style.display = 'none'; const p = document.getElementById('range-preview'); if (p) p.remove(); }
@@ -5581,15 +5951,15 @@ function activateGTack(t) {
   function getInfiniteWavePlan(mapKey, wave) {
     const mapPools = {
       gelatin_lake: {
-        enemies: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce'],
+        enemies: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', 'Stupid_GoldPyce'],
         bosses: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce']
       },
       urbanistic_road: {
-        enemies: ['BitY1', 'BitG2', 'BitP3', 'BitB4', 'HoloPyce', 'Rebel_Pyce', 'Strechy_Pyce', 'Bomb_Pyce', 'Fireflies', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Cannon_Pycer', 'Knight_Pyce', 'Spyware1', 'Spyware2', 'Spyware3', 'Stupid_GoldPyce', 'Mimic_Pyce'],
+        enemies: ['BitY1', 'BitG2', 'BitP3', 'BitB4', 'HoloPyce', 'Rebel_Pyce', 'Strechy_Pyce', 'Bomb_Pyce', 'Fireflies', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Cannon_Pycer', 'Knight_Pyce', 'Spyware1', 'Spyware2', 'Spyware3', 'Stupid_GoldPyce'],
         bosses: ['Arky', 'ArkyVoid', 'CrystArky', 'NOeye_Pyce', 'MoonStar_Pyce']
       },
       sunlight_seaside: {
-        enemies: ['Piz', 'Baby_Shrum', 'Ren', 'Pysh', 'Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers', 'Creamplet', 'Umbrella_Pyce', 'Bushi_Brella', 'Stupid_GoldPyce', 'Mimic_Pyce'],
+        enemies: ['Piz', 'Baby_Shrum', 'Ren', 'Pysh', 'Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers', 'Creamplet', 'Umbrella_Pyce', 'Stupid_GoldPyce'],
         bosses: ['PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'NOeye_Pyce', 'MoonStar_Pyce']
       },
       spooktacular_ruins: {
@@ -5661,6 +6031,7 @@ function activateGTack(t) {
     gameState.waveActive = true;
     gameState.spawningActive = true;
     gameState.wave = (gameState.wave || 0) + 1;
+    sendMultiplayerAction({ type: 'start-wave' });
     gameState.roundKills = [];
     gameState.roundIExExplosions = 0;
 
@@ -6034,7 +6405,7 @@ function activateGTack(t) {
         }
         
         if (mode !== 'facil' && wave >= 5 && Math.random() < 0.15) {
-           spawnList.push(Math.random() < 0.5 ? 'Stupid_GoldPyce' : 'Mimic_Pyce');
+           spawnList.push('Stupid_GoldPyce');
         }
       }
 
@@ -6094,6 +6465,40 @@ function activateGTack(t) {
       if (bossesToSpawn.length === 0 && isBossWave) isBossWave = false;
     }
 
+    const replaceRandomWaveEnemy = (rareType) => {
+      const replaceableIndices = spawnList
+        .map((type, index) => ({ type, index }))
+        .filter(({ type }) =>
+          ENEMY_TYPES[type] &&
+          !ENEMY_TYPES[type].boss &&
+          type !== 'Mimic_Pyce' &&
+          type !== 'Bushi_Brella'
+        )
+        .map(({ index }) => index);
+      if (replaceableIndices.length === 0) return false;
+      const replaceIndex = replaceableIndices[Math.floor(Math.random() * replaceableIndices.length)];
+      spawnList[replaceIndex] = rareType;
+      return true;
+    };
+
+    if (
+      wave >= 10 &&
+      mode !== 'interstellar' &&
+      !(gameState.rareEnemiesSpawned?.Mimic_Pyce > 0) &&
+      Math.random() < RARE_ENEMY_WAVE_SPAWN_CHANCE
+    ) {
+      replaceRandomWaveEnemy('Mimic_Pyce');
+    }
+
+    if (
+      wave >= 10 &&
+      mode !== 'interstellar' &&
+      mapKey === 'sunlight_seaside' &&
+      (gameState.rareEnemiesSpawned?.Bushi_Brella || 0) < BUSHI_BRELLA_MAX_SPAWNS &&
+      Math.random() < RARE_ENEMY_WAVE_SPAWN_CHANCE
+    ) {
+      replaceRandomWaveEnemy('Bushi_Brella');
+    }
 
     for (let i = spawnList.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -6154,14 +6559,29 @@ function activateGTack(t) {
           : '#ff4444';
   }
 
-  function spawnEnemy(type, boss = false, forcedPath = null) {
-    if (gameState.mimicSpawned < 2 && !boss && Math.random() < 0.001 && gameState.mode !== 'interstellar') {
-      if (gameState.map === 'sunlight_seaside') {
-        type = 'Bushi_Brella';
+  function spawnEnemy(type, boss = false, forcedPath = null, synchronized = false) {
+    const rareEnemyTypes = ['Mimic_Pyce', 'Bushi_Brella'];
+    const rareEnemiesSpawned = gameState.rareEnemiesSpawned || (gameState.rareEnemiesSpawned = {});
+    const mapKey = gameState.map || 'gelatin_lake';
+    let rareEnemyToRecord = null;
+
+    const chooseRareFallback = () => {
+      const basicEnemies = ENEMY_BALANCE[mapKey]?.basic
+        ?.filter(enemyType => ENEMY_TYPES[enemyType] && !rareEnemyTypes.includes(enemyType));
+      return basicEnemies?.[Math.floor(Math.random() * basicEnemies.length)] || 'Stupid_Pyce';
+    };
+
+    if (!synchronized && (type === 'Mimic_Pyce' || type === 'Bushi_Brella')) {
+      const isAvailableOnMap = gameState.mode !== 'interstellar' &&
+        (type !== 'Bushi_Brella' || mapKey === 'sunlight_seaside');
+      const spawnLimitReached = type === 'Mimic_Pyce'
+        ? (rareEnemiesSpawned[type] || 0) >= 1
+        : (rareEnemiesSpawned[type] || 0) >= BUSHI_BRELLA_MAX_SPAWNS;
+      if (!isAvailableOnMap || spawnLimitReached) {
+        type = chooseRareFallback();
       } else {
-        type = 'Mimic_Pyce';
+        rareEnemyToRecord = type;
       }
-      gameState.mimicSpawned++;
     }
 
     if (!type) {
@@ -6242,10 +6662,250 @@ function activateGTack(t) {
     const healthScaled = Math.max(1, (t.health || 10) * (1 + (gameState.wave || 1) * 0.15) * mult);
     const shieldVal = t.shieldRatio ? healthScaled * t.shieldRatio : (t.shield || 0) * (t.health || 10);
     const baseDamage = boss ? 10 : (ENEMY_TIER_DAMAGE[tier] || 2);
-    const enemyObj = { ...t, name, tier, baseDamage, el, x: chosenPath[0].x, y: chosenPath[0].y, pathIndex: 0, currentPath: chosenPath, health: healthScaled, maxHealth: healthScaled, hpFill, hpValue, statusIcons, shield: shieldVal, shieldMax: shieldVal, type, boss };
+    const enemyObj = {
+      ...t, name, tier, baseDamage, el, x: chosenPath[0].x, y: chosenPath[0].y,
+      pathIndex: 0, currentPath: chosenPath, health: healthScaled, maxHealth: healthScaled,
+      hpFill, hpValue, statusIcons, shield: shieldVal, shieldMax: shieldVal, type, boss,
+      networkId: `${socket?.id || 'offline'}-${++gameState.networkEntityCounter}`
+    };
     el.title = `${name} | HP: ${Math.ceil(healthScaled)}`;
     gameState.enemies.push(enemyObj);
+    if (rareEnemyToRecord) {
+      rareEnemiesSpawned[rareEnemyToRecord] = (rareEnemiesSpawned[rareEnemyToRecord] || 0) + 1;
+    }
   }
+
+  function serializeMultiplayerEntity(entity) {
+    return JSON.parse(JSON.stringify(entity, (key, value) => {
+      if (['el', 'rangeEl', 'hpFill', 'hpValue', 'statusIcons'].includes(key) || typeof value === 'function') {
+        return undefined;
+      }
+      return value;
+    }));
+  }
+
+  let synchronizedMatchKey = null;
+
+  function getMultiplayerGameState() {
+    if (!currentSeed || !gameState.modeConfirmed) return null;
+    return {
+      seed: currentSeed,
+      map: gameState.map,
+      mode: gameState.mode,
+      maxWaves: gameState.maxWaves,
+      health: gameState.health,
+      wave: gameState.wave,
+      waveActive: gameState.waveActive,
+      spawningActive: gameState.spawningActive,
+      paused: gameState.paused,
+      gameOver: gameState.gameOver,
+      globetines: gameState.globetines,
+      multiplayerEnabled: multiplayerPlayerCount > 1,
+      towerLimits: { ...gameState.towerLimits },
+      players: multiplayerPlayers,
+      towers: gameState.towers.map(serializeMultiplayerEntity),
+      enemies: gameState.enemies.map(serializeMultiplayerEntity)
+    };
+  }
+
+  function initializeMultiplayerMatch(snapshot) {
+    if (!MAPS[snapshot.map] || typeof snapshot.mode !== 'string') return false;
+    const matchKey = `${snapshot.seed || currentSeed}:${snapshot.map}:${snapshot.mode}`;
+    if (synchronizedMatchKey === matchKey) return true;
+
+    gameState.map = snapshot.map;
+    gameState.mode = snapshot.mode;
+    gameState.modeConfirmed = true;
+    gameState.maxWaves = Number(snapshot.maxWaves) || 15;
+    const island = MAP_ISLANDS.find(item => item.zones.some(zone => zone.mapId === snapshot.map));
+    gameState.selectedIsland = island?.id || null;
+
+    generateSpots();
+    createMap();
+    retryGame();
+
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('map-selection').style.display = 'none';
+    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('game-container').style.display = 'flex';
+    document.getElementById('meta-controls').style.display = 'flex';
+    synchronizedMatchKey = matchKey;
+    return true;
+  }
+
+  function applyMultiplayerGameState(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object' ||
+        !Array.isArray(snapshot.towers) || !Array.isArray(snapshot.enemies) ||
+        !initializeMultiplayerMatch(snapshot)) return;
+
+    const oldCapacityState = `${multiplayerEnabled}:${JSON.stringify(multiplayerTowerLimits)}`;
+    const oldTowerLayout = gameState.towers.map(tower =>
+      `${tower.spotId}:${tower.type}:${tower.ownerId || ''}`
+    ).join('|');
+    multiplayerEnabled = Boolean(snapshot.multiplayerEnabled);
+    multiplayerTowerLimits = snapshot.towerLimits && typeof snapshot.towerLimits === 'object'
+      ? snapshot.towerLimits
+      : multiplayerTowerLimits;
+    if (Array.isArray(snapshot.players)) {
+      multiplayerPlayers = snapshot.players;
+      multiplayerPlayerCount = Math.min(4, Math.max(1, Number(snapshot.playerCount) || snapshot.players.length || 1));
+    }
+    gameState.health = Number(snapshot.health) || 0;
+    gameState.wave = Number(snapshot.wave) || 0;
+    gameState.waveActive = Boolean(snapshot.waveActive);
+    gameState.spawningActive = Boolean(snapshot.spawningActive);
+    gameState.paused = Boolean(snapshot.paused);
+    gameState.gameOver = Boolean(snapshot.gameOver);
+    gameState.globetines = Number(snapshot.globetines) || 0;
+    gameState.maxWaves = Number(snapshot.maxWaves) || gameState.maxWaves;
+    gameState.modeConfirmed = true;
+
+    const towerStates = new Map(snapshot.towers.map(tower => [Number(tower.spotId), tower]));
+    gameState.towers = gameState.towers.filter(tower => {
+      if (towerStates.has(Number(tower.spotId))) return true;
+      tower.el.remove();
+      if (tower.rangeEl) tower.rangeEl.remove();
+      return false;
+    });
+    gameState.towerSpots.forEach(spot => { spot.occupied = false; });
+
+    snapshot.towers.forEach(towerState => {
+      const towerType = TOWER_TYPES[towerState.type];
+      const spotId = Number(towerState.spotId);
+      if (!towerType || !Number.isInteger(spotId) || !gameState.towerSpots[spotId]) return;
+
+      let tower = gameState.towers.find(item => Number(item.spotId) === spotId);
+      if (!tower) {
+        const el = document.createElement('div');
+        el.className = 'tower idle-jump';
+        el.style.setProperty('--idle-delay', '0s');
+        el.onerror = function () {
+          el.style.backgroundColor = '#9b59b6';
+          el.style.backgroundImage = 'none';
+        };
+        document.getElementById('map').appendChild(el);
+        tower = { ...towerType, el };
+        tower.el.onclick = event => {
+          event.stopPropagation();
+          selectTower(tower);
+        };
+        gameState.towers.push(tower);
+      }
+
+      const previousType = tower.type;
+      Object.assign(tower, towerState);
+      tower.el.style.left = `${tower.x}px`;
+      tower.el.style.top = `${tower.y}px`;
+      if (previousType !== tower.type || !tower.el.style.backgroundImage) {
+        tower.el.style.backgroundImage = `url('${encodeURI(getTowerImage(tower.type))}')`;
+        applyTowerEffects(tower.el, tower.type);
+      }
+      gameState.towerSpots[spotId].occupied = true;
+    });
+
+    const enemyStates = new Map(snapshot.enemies.map(enemy => [enemy.networkId, enemy]));
+    gameState.enemies = gameState.enemies.filter(enemy => {
+      if (enemyStates.has(enemy.networkId)) return true;
+      enemy.el.remove();
+      return false;
+    });
+    snapshot.enemies.forEach(enemyState => {
+      if (typeof enemyState.networkId !== 'string' || !ENEMY_TYPES[enemyState.type]) return;
+      let enemy = gameState.enemies.find(item => item.networkId === enemyState.networkId);
+      if (!enemy) {
+        spawnEnemy(enemyState.type, Boolean(enemyState.boss), enemyState.currentPath, true);
+        enemy = gameState.enemies[gameState.enemies.length - 1];
+        if (!enemy || enemy.type !== enemyState.type) return;
+      }
+      Object.assign(enemy, enemyState);
+      enemy.el.style.left = `${enemy.x}px`;
+      enemy.el.style.top = `${enemy.y}px`;
+      enemy.el.title = `${enemy.name} | HP: ${Math.ceil(enemy.health)}`;
+      updateEnemyStatusUI(enemy);
+    });
+
+    updateAllTowerRanges();
+    updateUI();
+    const newTowerLayout = gameState.towers.map(tower =>
+      `${tower.spotId}:${tower.type}:${tower.ownerId || ''}`
+    ).join('|');
+    if (oldCapacityState !== `${multiplayerEnabled}:${JSON.stringify(multiplayerTowerLimits)}` ||
+        oldTowerLayout !== newTowerLayout) {
+      drawTowerShop();
+    }
+    if (gameState.paused || gameState.gameOver) {
+      const modal = document.getElementById('game-over');
+      if (modal) modal.style.display = 'flex';
+    } else if (!gameState.gameOver) {
+      const modal = document.getElementById('game-over');
+      if (modal) modal.style.display = 'none';
+    }
+  }
+
+  function applyMultiplayerAction(action) {
+    if (!action || typeof action.type !== 'string') return;
+    applyingMultiplayerAction = true;
+    multiplayerActionOwner = action.playerId || null;
+    try {
+      if (action.type === 'place-tower') {
+        placeTower(action.spotId, action.towerType);
+      } else if (action.type === 'evolve-tower') {
+        const tower = gameState.towers.find(item => item.spotId === action.spotId);
+        if (tower) evolveTower(tower, action.towerType, action.cost);
+      } else if (action.type === 'sell-tower') {
+        const tower = gameState.towers.find(item => item.spotId === action.spotId);
+        if (tower) sellTower(tower);
+      } else if (action.type === 'start-wave') {
+        startWave();
+      } else if (action.type === 'pause') {
+        pauseGame();
+      } else if (action.type === 'resume') {
+        resumeGame();
+      } else if (action.type === 'retry') {
+        retryGame();
+      }
+    } finally {
+      applyingMultiplayerAction = false;
+      multiplayerActionOwner = null;
+      if (['place-tower', 'evolve-tower', 'sell-tower'].includes(action.type)) {
+        drawTowerShop();
+      }
+    }
+  }
+
+  window._getMultiplayerGameState = getMultiplayerGameState;
+  window._applyMultiplayerGameState = applyMultiplayerGameState;
+  window._applyMultiplayerAction = applyMultiplayerAction;
+  window._showMultiplayerNotice = text => showMessage(text, 'info');
+  window._showMultiplayerServerClosed = () => {
+    gameState.gameOver = true;
+    gameState.paused = false;
+    gameState.spawningActive = false;
+    const modal = document.getElementById('game-over');
+    const title = modal?.querySelector('h2');
+    const message = document.getElementById('game-over-msg');
+    const actions = modal?.querySelector('.game-over-actions');
+    if (!modal || !title || !message || !actions) {
+      console.error('No se pudo mostrar el cierre del servidor: faltan elementos del diálogo.');
+      return;
+    }
+    title.textContent = currentLanguage === 'en' ? 'SERVER CLOSED' : 'SERVIDOR CERRADO';
+    message.textContent = currentLanguage === 'en'
+      ? 'The host left or the server stopped. This match is lost and cannot be recovered. Restarting starts a new match.'
+      : 'El anfitrión se ha ido o el servidor se ha detenido. Esta partida se ha perdido y no se puede recuperar. Reiniciar empezará una partida nueva.';
+    modal.querySelector('.modal-content')?.classList.remove('paused', 'victory');
+    actions.querySelectorAll('button').forEach(button => {
+      button.style.display = button.classList.contains('exit-btn') || button.id === 'multiplayer-restart-btn'
+        ? 'inline-flex'
+        : 'none';
+    });
+    const exitButton = actions.querySelector('.exit-btn');
+    if (exitButton) exitButton.textContent = currentLanguage === 'en' ? '🚪 Exit' : '🚪 Salir';
+    const restartButton = document.getElementById('multiplayer-restart-btn');
+    if (restartButton) restartButton.textContent = currentLanguage === 'en' ? '🔄 Restart from scratch' : '🔄 Reiniciar desde cero';
+    modal.style.display = 'flex';
+  };
+  window._refreshMultiplayerUI = drawTowerShop;
 
   function spawnBoat(tower) {
     const typeDef = TOWER_TYPES[tower.type];
@@ -6656,18 +7316,10 @@ function activateGTack(t) {
               targetTowers.forEach(t => {
                 t.arkyVoidReduced = true;
                 t.originalRange = t.range;
+                t.arkyVoidTimer = 10;
                 t.range = t.range * 0.9;
                 if (t.el) t.el.style.filter = "drop-shadow(0 0 10px #ff69b4) hue-rotate(-50deg)";
-                showFloatingText(currentLanguage === 'es' ? "-10% Rango" : "-10% Range", t.x, t.y - 20, "#ff69b4");
-
-                setTimeout(() => {
-                  if (gameState.towers.includes(t)) {
-                    t.arkyVoidReduced = false;
-                    t.range = t.originalRange;
-                    if (t.el) t.el.style.filter = "";
-                    showFloatingText(currentLanguage === 'es' ? "Rango Restaurado" : "Range Restored", t.x, t.y - 20, "#ff69b4");
-                  }
-                }, 10000);
+                showEffect(t.x, t.y - 20, currentLanguage === 'es' ? "-10% Rango" : "-10% Range");
               });
             }
           }
@@ -6938,6 +7590,16 @@ function activateGTack(t) {
       }
 
       gameState.towers.forEach(t => {
+        if (t.arkyVoidReduced) {
+          t.arkyVoidTimer = Math.max(0, (t.arkyVoidTimer || 0) - dt);
+          if (t.arkyVoidTimer === 0) {
+            t.arkyVoidReduced = false;
+            t.range = t.originalRange;
+            delete t.originalRange;
+            if (t.el) t.el.style.filter = '';
+            showEffect(t.x, t.y - 20, currentLanguage === 'es' ? "Rango Restaurado" : "Range Restored");
+          }
+        }
         if (t.gTackCooldown && t.gTackCooldown > 0) {
           t.gTackCooldown -= dt;
           if (t.gTackCooldown < 0) t.gTackCooldown = 0;
@@ -8181,7 +8843,7 @@ function activateGTack(t) {
       const earnedPy = Math.round(5 * getPycoinMultiplier());
       gameState.pycoins += earnedPy;
       showMessage(translate('plus_pycoins', { amount: earnedPy }), 'success');
-      if (e.isSpecialMimic) {
+      if (e.type === 'Mimic_Pyce') {
         gameState.consecutiveMimics++;
         unlockBadge('mimic1');
         if (gameState.consecutiveMimics >= 2) unlockBadge('mimic2');
@@ -8191,6 +8853,34 @@ function activateGTack(t) {
           showMessage(translate('skin_unlocked_mimic'), 'success');
           saveProgress();
         }
+      }
+    }
+    if (e.type === 'Bushi_Brella') {
+      const eligibleSkins = Object.values(SKINS_DATA)
+        .flat()
+        .filter(skin => {
+          if (gameState.unlockedSkins.includes(skin.id)) return false;
+          if (REWAMPED_SKIN_IDS.includes(skin.id)) return true;
+          return skin.type === 'pycoin' &&
+            skin.cost > 0 &&
+            !skin.duckpass_cost &&
+            !skin.unlockCondition &&
+            !skin.isSpecial &&
+            !skin.isCommunity &&
+            !skin.category;
+        });
+
+      if (eligibleSkins.length > 0 && Math.random() < BUSHI_BRELLA_SKIN_DROP_CHANCE) {
+        const skin = eligibleSkins[Math.floor(Math.random() * eligibleSkins.length)];
+        gameState.unlockedSkins.push(skin.id);
+        showMessage(
+          currentLanguage === 'es'
+            ? `🎁 ¡Bushi-Brella te ha dejado una skin: ${translate(skin.name)}!`
+            : `🎁 Bushi-Brella dropped a skin for you: ${translate(skin.name)}!`,
+          'success'
+        );
+        saveProgress();
+        if (currentShopTab === 'skins') drawShop();
       }
     }
     e.el.remove();
@@ -8533,7 +9223,7 @@ function activateGTack(t) {
     gameState.usedGTackRed = false;
     gameState.usedGTackGrey = false;
     gameState.baseTookDamage = false;
-    gameState.mimicSpawned = 0;
+    gameState.rareEnemiesSpawned = {};
     gameState.consecutiveMimics = 0;
     gameState.uniquesBossSpawned = {};
     gameState.blockQuestStarted = false;
@@ -8550,6 +9240,8 @@ function activateGTack(t) {
     if (content) content.classList.remove('victory', 'paused');
     const resumeButton = document.getElementById('resume-game');
     if (resumeButton) resumeButton.style.display = 'none';
+    const serverRestartButton = document.getElementById('multiplayer-restart-btn');
+    if (serverRestartButton) serverRestartButton.style.display = 'none';
     document.querySelector('#game-over .mode-select-btn')?.style.removeProperty('display');
     document.querySelector('#game-over .map-select-btn')?.style.removeProperty('display');
     document.querySelector('#game-over .retry-btn:not(#resume-game)')?.style.removeProperty('display');
@@ -8559,6 +9251,7 @@ function activateGTack(t) {
   function pauseGame() {
     if (gameState.gameOver || gameState.paused) return;
     gameState.paused = true;
+    sendMultiplayerAction({ type: 'pause' });
     const modal = document.getElementById('game-over');
     const content = modal?.querySelector('.modal-content');
     const title = modal?.querySelector('h2');
@@ -8579,6 +9272,7 @@ function activateGTack(t) {
   function resumeGame() {
     if (!gameState.paused) return;
     gameState.paused = false;
+    sendMultiplayerAction({ type: 'resume' });
     lastGameFrameTime = performance.now();
     document.getElementById('game-over').style.display = 'none';
     const content = document.querySelector('#game-over .modal-content');
@@ -8603,6 +9297,17 @@ function activateGTack(t) {
     stopSessionClock();
     gameState.paused = false;
     retryGame();
+    currentSeed = null;
+    isSeedHost = false;
+    multiplayerEnabled = false;
+    if (multiplayerSyncInterval !== null) {
+      clearInterval(multiplayerSyncInterval);
+      multiplayerSyncInterval = null;
+    }
+    socket?.disconnect();
+    socket = null;
+    multiplayerServerClosed = false;
+    document.getElementById('seed-display').style.display = 'none';
     gameState.mode = null;
     gameState.map = null;
     gameState.modeConfirmed = false;
