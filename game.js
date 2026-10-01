@@ -140,6 +140,10 @@ function getMultiplayerInviteUrl() {
 }
 
 function connectSocket(serverUrl) {
+  if (socket && !socket.connected) {
+    socket.disconnect();
+    socket = null;
+  }
   if (typeof io !== 'undefined' && !socket) {
     multiplayerServerUrl = serverUrl;
     socket = io(serverUrl, { reconnection: false });
