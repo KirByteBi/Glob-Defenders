@@ -106,8 +106,7 @@
             <div id="zone-selection" class="zone-selection" hidden></div>
             
             <div id="seed-controls" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                <label for="multiplayer-server-url" style="font-size:0.75rem; color:#cbd5e0;">Servidor online (deja vacío para jugar en este PC):</label>
-                <input type="url" id="multiplayer-server-url" placeholder="https://xxxx.trycloudflare.com" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 0.9rem;">
+                <p style="font-size:0.75rem; color:#cbd5e0; margin:0;">Multijugador online mediante Supabase Realtime.</p>
                 <button class="mode-btn" onclick="createSeed()" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); border-color: #8e44ad; font-size: 1.1rem; padding: 10px;">✨ Crear Seed</button>
                 <div style="display: flex; gap: 5px;">
                     <input type="text" id="seed-input" placeholder="Ej: G123456" style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: 'Press Start 2P', cursive; font-size: 0.8rem; text-transform: uppercase;">
@@ -584,6 +583,8 @@
     <div id="game-messages"></div>
     <div id="tooltip" class="tooltip" style="display: none;"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
+    <script src="supabase-config.js"></script>
     <script src="config.js"></script>
     <script src="game.js"></script>
 </body>

@@ -21,26 +21,28 @@ HTTP 503 with code `DATABASE_UNAVAILABLE` for database-backed API requests. The
 game uses this response to enter its browser-local offline mode. No database
 schema or data is changed by this fallback.
 
-## Free temporary co-op hosting (Windows)
+## Supabase Realtime multiplayer
 
-The game API stays on port `3000`. Multiplayer Socket.IO runs separately on port
-`3001`, so a public Quick Tunnel exposes only the multiplayer service. The browser
-client is bundled with the game and does not execute code downloaded from the
-multiplayer server.
+Multiplayer connects directly from the game to Supabase Realtime; it does not
+need the Node server or a Cloudflare tunnel. The game uses ephemeral public
+Realtime channels named from the seed and Presence to keep the player list and
+detect when the host leaves. Up to four players can join. Match state exists
+only on the host and is broadcast to guests; it is not saved to PostgreSQL, so
+leaving the room loses the match.
 
-1. Install Node.js and the server dependencies (`npm install` inside `server`).
-2. Download Cloudflare's free
-   [Windows 64-bit `cloudflared`](https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe)
-   rename it to `cloudflared.exe`, and add its folder to `PATH`. Quick Tunnels
-   do not require a paid plan, account, or domain.
-3. From the repository root, run `.\server\start-public.ps1`.
-4. Copy the `https://....trycloudflare.com` address printed by cloudflared.
-5. Open the game from its public website, paste that address into **Servidor
-   online**, and create a seed. Use the seed button's **Copiar invitación** option
-   to share the auto-joining link.
+1. In the Supabase dashboard, open **Connect** and copy the project's HTTPS URL
+   and **publishable key**.
+2. Put the URL and key in the root `supabase-config.js` file. Never use or share
+   a `secret` or `service_role` key in browser code.
+3. Serve the game from its normal HTTPS website and allow the Supabase Realtime
+   connection. No SQL tables or database credentials are needed for this
+   multiplayer prototype.
+4. One player creates a seed; friends can load that seed or open its invitation
+   link. The host must remain connected for the match to continue.
 
-Keep the host computer, server window, and tunnel window running for the whole
-match. The tunnel address changes when restarted. A seed and its match snapshot
-exist only in server memory: if the host leaves or the server stops, the session
-is deleted and cannot be recovered. Restarting starts a new match. Up to four
-players can join one seed.
+This first version uses public channels: anyone who knows a seed can join and
+observe its traffic, and browser clients cannot be treated as trusted game
+servers. The four-player cap is client-side and can be bypassed, so treat this
+as an experiment, not a secured public matchmaking service. Do not use it for
+private data or a competitive mode. MySQL, PostgreSQL, and the local JSON
+account fallback remain separate in `db.js`.

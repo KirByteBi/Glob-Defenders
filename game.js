@@ -8,8 +8,7 @@ let offlineModeActive = false;
 
 // --- MULTIPLAYER ---
 let socket = null;
-let socketClientLoad = null;
-let multiplayerServerUrl = null;
+let supabaseClient = null;
 let multiplayerServerClosed = false;
 let autoJoinAttempted = false;
 let currentSeed = null;
@@ -69,52 +68,275 @@ function publishMultiplayerProfile() {
   });
 }
 
-function getMultiplayerServerUrl() {
-  const input = document.getElementById('multiplayer-server-url');
-  const queryServer = new URLSearchParams(window.location.search).get('server');
-  const rawUrl = (queryServer || input?.value || 'http://127.0.0.1:3001').trim();
-  let parsedUrl;
-  try {
-    parsedUrl = new URL(rawUrl);
-  } catch (error) {
-    throw new Error(currentLanguage === 'en' ? 'Enter a valid multiplayer server URL.' : 'Introduce una URL válida para el servidor multijugador.');
-  }
-  if (!['http:', 'https:'].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password ||
-      (parsedUrl.pathname !== '/' && parsedUrl.pathname !== '') || parsedUrl.search || parsedUrl.hash) {
+function getSupabaseClient() {
+  if (supabaseClient) return supabaseClient;
+  const settings = window.GLOB_DEFENDERS_SUPABASE;
+  if (!settings || typeof settings.url !== 'string' || typeof settings.publishableKey !== 'string' ||
+      !settings.url.trim() || !settings.publishableKey.trim()) {
     throw new Error(currentLanguage === 'en'
-      ? 'Use the server address only, for example https://xxxx.trycloudflare.com.'
-      : 'Introduce solo la dirección del servidor, por ejemplo https://xxxx.trycloudflare.com.');
+      ? 'Supabase is not configured. Set the project URL and publishable key in supabase-config.js.'
+      : 'Supabase no está configurado. Añade la URL del proyecto y la clave publishable en supabase-config.js.');
   }
-  parsedUrl.pathname = '';
-  return parsedUrl.origin;
+
+  const url = new URL(settings.url);
+  if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
+    throw new Error(currentLanguage === 'en'
+      ? 'The Supabase project URL is invalid; use the HTTPS project URL.'
+      : 'La URL del proyecto Supabase no es válida; usa la URL HTTPS del proyecto.');
+  }
+
+  const key = settings.publishableKey.trim();
+  if (key.startsWith('sb_secret_') || isSupabaseServiceRoleKey(key)) {
+    throw new Error(currentLanguage === 'en'
+      ? 'A secret/service-role key cannot be used in the browser. Use the publishable key.'
+      : 'No se puede usar una clave secret/service_role en el navegador. Usa la clave publishable.');
+  }
+  if (!window.supabase?.createClient) {
+    throw new Error(currentLanguage === 'en'
+      ? 'The Supabase client library could not be loaded.'
+      : 'No se pudo cargar la librería cliente de Supabase.');
+  }
+
+  supabaseClient = window.supabase.createClient(url.origin, key, {
+    realtime: { params: { eventsPerSecond: 10 } }
+  });
+  return supabaseClient;
 }
 
-function loadSocketClient() {
-  if (typeof io !== 'undefined') return Promise.resolve();
-  if (socketClientLoad) return socketClientLoad;
+function isSupabaseServiceRoleKey(key) {
+  const parts = key.split('.');
+  if (parts.length !== 3) return false;
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')));
+    return payload.role === 'service_role';
+  } catch (error) {
+    return false;
+  }
+}
 
-  socketClientLoad = new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = new URL('vendor/socket.io.min.js', document.baseURI).href;
-    script.onload = () => {
-      if (typeof io === 'undefined') {
-        socketClientLoad = null;
-        reject(new Error(currentLanguage === 'en'
-          ? 'The server did not provide the Socket.IO client.'
-          : 'El servidor no proporcionó el cliente Socket.IO.'));
-        return;
+function wait(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+class SupabaseGameConnection {
+  constructor(seed, username, profile) {
+    this.id = crypto.randomUUID();
+    this.connected = false;
+    this.isHost = false;
+    this.hostId = null;
+    this.handlers = new Map();
+    this.previousPlayers = new Map();
+    this.intentionalDisconnect = false;
+    this.rejected = false;
+    this.presence = {
+      playerId: this.id,
+      username,
+      profile,
+      joinedAt: Date.now(),
+      isHost: false
+    };
+    this.channel = getSupabaseClient().channel(`glob-seed-${seed}`, {
+      config: {
+        broadcast: { self: false, ack: true },
+        presence: { key: this.id }
       }
-      resolve();
-    };
-    script.onerror = () => {
-      socketClientLoad = null;
-      reject(new Error(currentLanguage === 'en'
-        ? 'Could not load the bundled Socket.IO client.'
-        : 'No se pudo cargar el cliente Socket.IO incluido con el juego.'));
-    };
-    document.head.appendChild(script);
-  });
-  return socketClientLoad;
+    });
+    this.channel
+      .on('broadcast', { event: 'game-event' }, message => this.handleBroadcast(message.payload))
+      .on('presence', { event: 'sync' }, () => this.syncPresence());
+  }
+
+  on(eventName, handler) {
+    if (!this.handlers.has(eventName)) this.handlers.set(eventName, new Set());
+    this.handlers.get(eventName).add(handler);
+    return this;
+  }
+
+  off(eventName, handler) {
+    this.handlers.get(eventName)?.delete(handler);
+    return this;
+  }
+
+  dispatch(eventName, data) {
+    this.handlers.get(eventName)?.forEach(handler => handler(data));
+  }
+
+  async subscribe() {
+    await new Promise((resolve, reject) => {
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        reject(new Error(currentLanguage === 'en'
+          ? 'Timed out connecting to Supabase Realtime.'
+          : 'Se agotó el tiempo al conectar con Supabase Realtime.'));
+      }, 10000);
+      this.channel.subscribe(status => {
+        if (status === 'SUBSCRIBED' && !settled) {
+          settled = true;
+          clearTimeout(timeout);
+          this.connected = true;
+          resolve();
+        } else if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status) && !settled) {
+          settled = true;
+          clearTimeout(timeout);
+          reject(new Error(currentLanguage === 'en'
+            ? `Supabase Realtime connection failed (${status}).`
+            : `Falló la conexión con Supabase Realtime (${status}).`));
+        } else if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status) &&
+            this.connected && !this.intentionalDisconnect) {
+          this.connected = false;
+          showMultiplayerServerClosed();
+        }
+      });
+    });
+
+    const trackResult = await this.channel.track(this.presence);
+    if (trackResult !== 'ok') {
+      throw new Error(currentLanguage === 'en'
+        ? `Supabase could not publish player presence (${trackResult}).`
+        : `Supabase no pudo publicar la presencia del jugador (${trackResult}).`);
+    }
+    await wait(500);
+    this.syncPresence();
+  }
+
+  getPlayers() {
+    const presenceState = this.channel.presenceState();
+    return Object.values(presenceState)
+      .flat()
+      .filter(player => player && typeof player.playerId === 'string')
+      .map(player => ({
+        playerId: player.playerId,
+        username: player.username || 'Jugador',
+        profile: player.profile || { equippedTowers: ['Glob'], towerLimits: {} },
+        joinedAt: Number(player.joinedAt) || 0,
+        isHost: Boolean(player.isHost)
+      }));
+  }
+
+  syncPresence() {
+    if (!this.connected) return;
+    const players = this.getPlayers();
+    if (!players.some(player => player.playerId === this.id)) return;
+    const orderedPlayers = [...players].sort((a, b) =>
+      a.joinedAt - b.joinedAt || a.playerId.localeCompare(b.playerId));
+    const admittedPlayers = new Set(orderedPlayers.slice(0, 4).map(player => player.playerId));
+    if (players.length > 4 && !admittedPlayers.has(this.id)) {
+      this.rejected = true;
+      this.dispatch('room-full', { playerCount: players.length });
+      this.disconnect();
+      return;
+    }
+    const declaredHosts = players.filter(player => player.isHost).sort((a, b) => a.playerId.localeCompare(b.playerId));
+    const electedHost = declaredHosts[0] || [...players].sort((a, b) =>
+      a.joinedAt - b.joinedAt || a.playerId.localeCompare(b.playerId))[0];
+    if (!electedHost) return;
+
+    const previousHostId = this.hostId;
+    this.hostId = electedHost.playerId;
+    this.isHost = this.hostId === this.id;
+    if (this.presence.isHost !== this.isHost) {
+      this.presence.isHost = this.isHost;
+      this.channel.track(this.presence).catch(error => {
+        console.error('No se pudo actualizar el estado del anfitrión en Supabase:', error);
+      });
+    }
+
+    const nextPlayers = new Map(players.map(player => [player.playerId, player]));
+    const roster = players.map(({ playerId, username, profile }) => ({ playerId, username, profile }));
+    multiplayerPlayers = roster;
+    multiplayerPlayerCount = Math.max(1, roster.length);
+    multiplayerEnabled = multiplayerPlayerCount > 1;
+    if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
+    this.dispatch('player-count', { playerCount: multiplayerPlayerCount });
+    this.dispatch('player-roster', { players: roster, playerCount: multiplayerPlayerCount });
+
+    if (this.isHost) {
+      players.forEach(player => {
+        if (!this.previousPlayers.has(player.playerId) && player.playerId !== this.id) {
+          this.dispatch('player-joined', { id: player.playerId, username: player.username, playerCount: roster.length });
+        }
+      });
+    }
+    if (this.previousPlayers.size > 0) {
+      this.previousPlayers.forEach((player, playerId) => {
+        if (!nextPlayers.has(playerId)) this.dispatch('player-left', { playerCount: roster.length });
+      });
+    }
+    this.previousPlayers = nextPlayers;
+
+    if (previousHostId && previousHostId !== this.id && !nextPlayers.has(previousHostId)) {
+      showMultiplayerServerClosed();
+    }
+  }
+
+  handleBroadcast(message) {
+    if (!message || typeof message.event !== 'string' || !message.data ||
+        message.senderId === this.id || (message.targetId && message.targetId !== this.id)) return;
+
+    if (message.event === 'join-request' && this.isHost) {
+      const response = {
+        hostName: this.presence.username,
+        playerCount: multiplayerPlayers.length,
+        players: multiplayerPlayers,
+        snapshot: window._getMultiplayerGameState ? window._getMultiplayerGameState() : null
+      };
+      this.send('join-response', response, message.senderId).catch(error => {
+        console.error('No se pudo transferir el estado a un jugador recién conectado:', error);
+      });
+      return;
+    }
+    this.dispatch(message.event, message.data);
+  }
+
+  async send(eventName, data, targetId = null) {
+    if (!this.connected) throw new Error('La conexión con Supabase Realtime no está activa.');
+    const response = await this.channel.send({
+      type: 'broadcast',
+      event: 'game-event',
+      payload: { event: eventName, data, senderId: this.id, targetId }
+    });
+    if (response !== 'ok') {
+      throw new Error(`Supabase Realtime rechazó el evento ${eventName} (${response}).`);
+    }
+  }
+
+  emit(eventName, data) {
+    if (eventName === 'update-player-profile') {
+      this.presence.profile = data.profile;
+      this.channel.track(this.presence).catch(error => {
+        console.error('No se pudo publicar el perfil multijugador:', error);
+        window._showMultiplayerNotice?.(currentLanguage === 'en'
+          ? 'Could not update the player profile in the room.'
+          : 'No se pudo actualizar el perfil del jugador en la sala.');
+      });
+      return;
+    }
+
+    if (eventName === 'update-game-state' && !this.isHost) return;
+    if (eventName === 'game-action') {
+      data = { ...data, playerId: this.id };
+    }
+    this.send(eventName, data).catch(error => {
+      console.error(`No se pudo enviar el evento multijugador ${eventName}:`, error);
+      window._showMultiplayerNotice?.(currentLanguage === 'en'
+        ? 'The multiplayer message could not be sent.'
+        : 'No se pudo enviar el mensaje multijugador.');
+    });
+  }
+
+  disconnect() {
+    this.intentionalDisconnect = true;
+    this.connected = false;
+    this.channel.unsubscribe().catch(error => {
+      console.error('No se pudo cerrar el canal Supabase Realtime:', error);
+    });
+    getSupabaseClient().removeChannel(this.channel).catch(error => {
+      console.error('No se pudo retirar el canal Supabase Realtime:', error);
+    });
+  }
 }
 
 function showMultiplayerServerClosed() {
@@ -134,144 +356,110 @@ function getMultiplayerInviteUrl() {
   const inviteUrl = new URL(window.location.href);
   inviteUrl.search = '';
   inviteUrl.hash = '';
-  inviteUrl.searchParams.set('server', multiplayerServerUrl || getMultiplayerServerUrl());
   inviteUrl.searchParams.set('seed', currentSeed);
   return inviteUrl.href;
 }
 
-function connectSocket(serverUrl) {
-  if (socket && !socket.connected) {
-    socket.disconnect();
-    socket = null;
-  }
-  if (typeof io !== 'undefined' && !socket) {
-    multiplayerServerUrl = serverUrl;
-    socket = io(serverUrl, { reconnection: false });
-    socket.on('player-joined', (data) => {
-      const username = data.username || 'Jugador';
-      multiplayerPlayerCount = Number(data.playerCount) || 2;
-      multiplayerEnabled = multiplayerPlayerCount > 1;
-      if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
-      console.log('Jugador se unió a la seed:', username, data.id);
-      if (window._showMultiplayerNotice) {
-        window._showMultiplayerNotice(
-          currentLanguage === 'en' ? `${username} joined your seed.` : `${username} se ha unido a tu seed.`
-        );
-      }
-    });
-    socket.on('player-left', (data) => {
-      multiplayerPlayerCount = Number(data.playerCount) || 1;
-      multiplayerEnabled = multiplayerPlayerCount > 1;
-      if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
-    });
-    socket.on('player-count', (data) => {
-      multiplayerPlayerCount = Math.min(4, Math.max(1, Number(data.playerCount) || 1));
-      multiplayerEnabled = multiplayerPlayerCount > 1;
-      if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
-    });
-    socket.on('player-roster', (data) => {
-      multiplayerPlayers = Array.isArray(data.players) ? data.players : [];
-      multiplayerPlayerCount = Math.min(4, Math.max(1, Number(data.playerCount) || multiplayerPlayers.length || 1));
-      multiplayerEnabled = multiplayerPlayerCount > 1;
-      if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
-    });
-    socket.on('game-state', (state) => {
-      if (!isSeedHost && window._applyMultiplayerGameState) {
-        window._applyMultiplayerGameState(state);
-      }
-    });
-    socket.on('game-action', (action) => {
-      if (window._applyMultiplayerAction) window._applyMultiplayerAction(action);
-    });
-    socket.on('host-disconnected', showMultiplayerServerClosed);
-    socket.on('disconnect', (reason) => {
-      if (currentSeed && !multiplayerServerClosed) {
-        console.warn('Se perdió la conexión con el servidor multijugador:', reason);
-        showMultiplayerServerClosed();
-      }
-    });
-    // Las funciones spawnEnemy/showNarratorMsg están en el scope interno del juego,
-    // se exponen en window._spawnEnemy / window._showNarratorMsg desde allí.
-    socket.on('spawn-enemy', (data) => {
-      if (window._spawnEnemy) window._spawnEnemy(data.enemyType, data.boss, data.forcedPath);
-    });
-    socket.on('show-dialog', (data) => {
-      if (window._showNarratorMsg) window._showNarratorMsg(data.id, data.img, data.name, data.text);
-    });
-  }
-}
-
 async function joinMultiplayerSeed(seed, creating) {
-  let serverUrl;
+  let connection;
   try {
-    serverUrl = getMultiplayerServerUrl();
-    await loadSocketClient();
+    if (socket?.connected) socket.disconnect();
+    connection = new SupabaseGameConnection(
+      seed,
+      localStorage.getItem('glob_username') || 'Jugador',
+      getMultiplayerProfile()
+    );
+    connection.on('room-full', () => {
+      window._showMultiplayerNotice?.(currentLanguage === 'en'
+        ? 'This seed is full (maximum 4 players).'
+        : 'Esta seed está llena (máximo 4 jugadores).');
+    });
+    socket = connection;
+    currentSeed = seed;
+    multiplayerServerClosed = false;
+    await connection.subscribe();
   } catch (error) {
-    console.error('No se pudo preparar la conexión multijugador:', error);
+    connection?.disconnect();
+    socket = null;
+    currentSeed = null;
+    console.error('No se pudo preparar la conexión con Supabase Realtime:', error);
     alert(error.message);
     return;
   }
-  connectSocket(serverUrl);
-  if (!socket) {
-    alert(currentLanguage === 'en' ? 'Multiplayer server is unavailable.' : 'El servidor multijugador no está disponible.');
+  if (connection.rejected) {
+    if (socket === connection) socket = null;
+    currentSeed = null;
+    multiplayerEnabled = false;
+    alert(currentLanguage === 'en' ? 'This room is full (maximum 4 players).' : 'La sala está llena (máximo 4 jugadores).');
     return;
   }
+  isSeedHost = connection.isHost;
 
-  multiplayerServerClosed = false;
-  const username = localStorage.getItem('glob_username') || 'Jugador';
-  socket.timeout(5000).emit('join-seed', { seed, username, profile: getMultiplayerProfile() }, (error, response) => {
-    if (error || !response?.success) {
-      const message = response?.error || (currentLanguage === 'en'
-        ? 'Could not connect to the multiplayer server.'
-        : 'No se pudo conectar con el servidor multijugador.');
-      alert(message);
-      console.error('No se pudo unir a la seed:', error || response?.error);
-      return;
-    }
-
-    currentSeed = seed;
-    isSeedHost = response.isHost;
-    multiplayerPlayerCount = Math.min(4, Math.max(1, Number(response.playerCount) || 1));
-    multiplayerEnabled = Boolean(response.snapshot?.multiplayerEnabled) || multiplayerPlayerCount > 1;
-    multiplayerTowerLimits = response.snapshot?.towerLimits || null;
-    multiplayerPlayers = Array.isArray(response.players)
-      ? response.players
-      : Array.isArray(response.snapshot?.players)
-        ? response.snapshot.players
-        : [];
-    updateSeedDisplay();
-
-    if (response.snapshot && window._applyMultiplayerGameState) {
-      window._applyMultiplayerGameState(response.snapshot);
-      if (window._showMultiplayerNotice) {
-        window._showMultiplayerNotice(
-          currentLanguage === 'en'
-            ? `Joined ${response.hostName || 'the host'}'s active match.`
-            : `Te has unido a la partida activa de ${response.hostName || 'el anfitrión'}.`
-        );
-      }
-    } else if (creating && response.isHost) {
-      alert((currentLanguage === 'en' ? 'Seed created: ' : 'Seed creada: ') + seed);
-    } else {
-      const message = response.isHost
-        ? (currentLanguage === 'en'
-          ? 'No active match was found for this seed; you are now its host.'
-          : 'No había una partida activa con esta seed; ahora eres su anfitrión.')
-        : (currentLanguage === 'en'
-          ? 'Connected to the seed. Waiting for the host to start the match.'
-          : 'Conectado a la seed. Esperando a que el anfitrión inicie la partida.');
-      if (window._showMultiplayerNotice) window._showMultiplayerNotice(message);
-      else alert(message);
-    }
-
-    if (isSeedHost && multiplayerSyncInterval === null) {
-      multiplayerSyncInterval = setInterval(() => {
-        if (!socket?.connected || !currentSeed || !window._getMultiplayerGameState) return;
-        const state = window._getMultiplayerGameState();
-        if (state) socket.emit('update-game-state', { seed: currentSeed, state });
-      }, 750);
-    }
+  connection.on('game-state', state => {
+    if (!isSeedHost && window._applyMultiplayerGameState) window._applyMultiplayerGameState(state);
   });
+  connection.on('player-joined', data => {
+    window._showMultiplayerNotice?.(currentLanguage === 'en'
+      ? `${data.username} joined your seed.`
+      : `${data.username} se ha unido a tu seed.`);
+  });
+  connection.on('game-action', action => {
+    if (window._applyMultiplayerAction) window._applyMultiplayerAction(action);
+  });
+  connection.on('spawn-enemy', data => {
+    if (window._spawnEnemy) window._spawnEnemy(data.enemyType, data.boss, data.forcedPath);
+  });
+  connection.on('show-dialog', data => {
+    if (window._showNarratorMsg) window._showNarratorMsg(data.id, data.img, data.name, data.text);
+  });
+  updateSeedDisplay();
+
+  if (isSeedHost) {
+    if (creating) alert((currentLanguage === 'en' ? 'Seed created: ' : 'Seed creada: ') + seed);
+    else window._showMultiplayerNotice?.(currentLanguage === 'en'
+      ? 'No active match was found for this seed; you are now its host.'
+      : 'No había una partida activa con esta seed; ahora eres su anfitrión.');
+  } else {
+    let receivedResponse = false;
+    const onResponse = response => {
+      receivedResponse = true;
+      connection.off('join-response', onResponse);
+      if (response.snapshot && window._applyMultiplayerGameState) {
+        window._applyMultiplayerGameState(response.snapshot);
+        window._showMultiplayerNotice?.(currentLanguage === 'en'
+          ? `Joined ${response.hostName || 'the host'}'s active match.`
+          : `Te has unido a la partida activa de ${response.hostName || 'el anfitrión'}.`);
+      } else {
+        window._showMultiplayerNotice?.(currentLanguage === 'en'
+          ? 'Connected to the room. Waiting for the host to start the match.'
+          : 'Conectado a la sala. Esperando a que el anfitrión inicie la partida.');
+      }
+    };
+    connection.on('join-response', onResponse);
+    try {
+      await connection.send('join-request', { requesterId: connection.id }, connection.hostId);
+    } catch (error) {
+      console.error('No se pudo solicitar el estado al anfitrión:', error);
+      window._showMultiplayerNotice?.(currentLanguage === 'en'
+        ? 'Could not request the current match from the host.'
+        : 'No se pudo solicitar la partida actual al anfitrión.');
+    }
+    setTimeout(() => {
+      if (receivedResponse) return;
+      connection.off('join-response', onResponse);
+      window._showMultiplayerNotice?.(currentLanguage === 'en'
+        ? 'The host did not answer. Check that they are still connected and try joining again.'
+        : 'El anfitrión no ha respondido. Comprueba que siga conectado e intenta unirte otra vez.');
+    }, 6000);
+  }
+
+  if (isSeedHost && multiplayerSyncInterval === null) {
+    multiplayerSyncInterval = setInterval(() => {
+      if (!socket?.connected || !currentSeed || !window._getMultiplayerGameState) return;
+      const state = window._getMultiplayerGameState();
+      if (state) socket.emit('update-game-state', { seed: currentSeed, state });
+    }, 750);
+  }
 }
 
 function sendMultiplayerAction(action) {
@@ -1305,11 +1493,8 @@ function startGameSession(username, offline) {
     gameState.selectedIsland = null;
     renderMapSelection();
     document.getElementById('map-selection').style.display = 'flex';
-    const serverInput = document.getElementById('multiplayer-server-url');
     const inviteParams = new URLSearchParams(window.location.search);
-    const invitedServer = inviteParams.get('server');
     const invitedSeed = inviteParams.get('seed');
-    if (serverInput && invitedServer) serverInput.value = invitedServer;
     if (!autoJoinAttempted && invitedSeed && /^[A-Z][A-Z0-9]{6}$/.test(invitedSeed.toUpperCase())) {
       autoJoinAttempted = true;
       document.getElementById('seed-input').value = invitedSeed.toUpperCase();

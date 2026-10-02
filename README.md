@@ -34,10 +34,11 @@ Start in Cube Adventure searching for a portal to find a code to insert in here.
 
 ### Free online co-op
 
-Co-op seeds support up to four players. To host over the Internet on Windows,
-follow the free Cloudflare Quick Tunnel steps in [`server/README.md`](./server/README.md).
-The host must keep the game server and tunnel running. Seeds are temporary and
-cannot be recovered after the host leaves or the server stops.
+Co-op seeds support up to four players through Supabase Realtime, without
+running a public Node server or tunnel. Configure the project's publishable key
+and HTTPS URL in `supabase-config.js`, then follow the setup notes in
+[`server/README.md`](./server/README.md). The host must stay connected; matches
+are temporary and cannot be recovered after the host leaves.
 
 ### Offline play
 
