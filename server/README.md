@@ -46,3 +46,18 @@ servers. The four-player cap is client-side and can be bypassed, so treat this
 as an experiment, not a secured public matchmaking service. Do not use it for
 private data or a competitive mode. MySQL, PostgreSQL, and the local JSON
 account fallback remain separate in `db.js`.
+
+## Supabase account login and cloud progress
+
+The game website uses Supabase Auth directly for online username/password sign-in;
+players do not provide a real email address. The username is mapped internally
+to a non-deliverable Supabase Auth email identity. In the Supabase dashboard,
+enable the Email provider, disable email confirmation, configure the project's
+allowed redirect URLs and Site URL for the website, and run the root
+`supabase-progress-schema.sql` script in the SQL Editor. The script creates a `player_progress` table with row-level
+security, so authenticated users can read and write only their own save.
+
+Only the project's HTTPS URL and publishable key belong in the browser
+configuration. Never put a Supabase secret or service-role key in the game.
+MySQL/PostgreSQL account endpoints in this Node server are legacy/local and are
+not the storage used by Supabase Auth or cloud progress.

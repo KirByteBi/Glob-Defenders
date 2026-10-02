@@ -28,6 +28,7 @@
         <span id="seed-code"></span>
         <button id="copy-seed-btn" type="button" onclick="openSeedOptions()" aria-label="Opciones de seed" title="Opciones de seed">📋</button>
     </div>
+    <section id="multiplayer-player-list" class="multiplayer-player-list" aria-label="Jugadores de la seed" hidden></section>
     <time id="session-clock" class="session-clock" aria-label="Hora local" style="display: none;">
         <span id="session-date-time"></span>
         <span id="session-play-time"></span>
@@ -50,10 +51,22 @@
 
     <!-- Meta Controls (Visible after login) -->
     <div id="meta-controls" style="display: none;">
+        <button id="open-profile" class="meta-btn" type="button" onclick="openUserProfile()">👤 <span class="meta-btn-text">Perfil</span></button>
         <button id="open-shop" class="meta-btn">🛒 <span class="meta-btn-text">Tienda de Kirb</span></button>
         <button id="open-pass" class="meta-btn">🦆 <span class="meta-btn-text">Pass</span></button>
         <button id="open-story-logs" class="meta-btn">📖 <span class="meta-btn-text">Historia y Logs</span></button>
         <button id="badges-toggle-btn" class="meta-btn" title="Logros">🏆 <span class="meta-btn-text">Logros</span></button>
+    </div>
+
+    <div id="profile-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+        <div class="modal-content profile-content">
+            <div class="profile-modal-header">
+                <h2 id="profile-title">Perfil de usuario</h2>
+                <button class="close-btn" type="button" onclick="closeUserProfile()" aria-label="Cerrar">✖</button>
+            </div>
+            <div id="profile-content"></div>
+            <button class="profile-shop-button" type="button" onclick="closeUserProfile(); openShop(); switchShopTab('profile')">🛒 <span>Personalización de perfil</span></button>
+        </div>
     </div>
 
     <!-- Login Screen -->
@@ -62,7 +75,7 @@
         <div class="login-box">
             <img src="img/GlobDefendersLogoRewamped.png" alt="Glob Defenders Logo" class="login-logo">
             <div class="login-inputs">
-                <input type="text" id="username-input" data-i18n="login_user" data-i18n-attr="placeholder" placeholder="Nombre de Usuario">
+                <input type="text" id="username-input" data-i18n="login_user" data-i18n-attr="placeholder" placeholder="Nombre de usuario" autocomplete="username">
                 <input type="password" id="password-input" data-i18n="login_pass" data-i18n-attr="placeholder" placeholder="Contraseña">
             </div>
             <div id="login-msg"></div>
@@ -140,6 +153,7 @@
             <img src="img/GlobDefendersLogoRewamped.png" alt="Glob Defenders" class="game-logo">
             <div id="admin-indicator" class="admin-indicator" style="display: none;" data-role="">👑 ADMIN MODE</div>
             <div id="offline-indicator" data-i18n="offline_mode_notice" style="display: none;"></div>
+            <div id="account-save-status" role="status" aria-live="polite" style="display: none;"></div>
         </div>
 
         <div id="game-ui">

@@ -264,6 +264,179 @@ body {
     text-align: center;
 }
 
+#account-save-status {
+    max-width: min(90vw, 520px);
+    margin: 6px auto;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 110, 110, 0.7);
+    border-radius: 10px;
+    background: rgba(70, 12, 12, 0.9);
+    color: #fff;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.profile-content {
+    width: min(920px, 94vw);
+    max-width: 920px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+#profile-modal {
+    z-index: 12002;
+}
+
+.profile-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.profile-modal-header h2 {
+    margin: 0;
+    color: #ffd700;
+}
+
+.profile-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 4px auto 22px;
+    text-align: center;
+}
+
+.profile-avatar-frame {
+    width: 112px;
+    height: 112px;
+    padding: 5px;
+    border: 5px solid var(--profile-border-start);
+    outline: 3px solid var(--profile-border-end);
+    outline-offset: 2px;
+    border-radius: 50%;
+    background: var(--profile-border-end);
+    box-shadow: 0 0 18px rgba(255, 215, 0, 0.28);
+}
+
+.profile-avatar-frame img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--profile-border-end);
+}
+
+.profile-choice-grid,
+.profile-border-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin: 12px 0 22px;
+}
+
+.profile-choice,
+.profile-border-choice {
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid #465365;
+    border-radius: 12px;
+    background: rgba(15, 22, 34, 0.9);
+    color: #fff;
+    cursor: pointer;
+}
+
+.profile-choice.selected,
+.profile-border-choice.selected {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+}
+
+.profile-choice img {
+    display: block;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 7px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #050505;
+}
+
+.profile-choice span,
+.profile-border-choice span:last-child {
+    display: block;
+    overflow-wrap: anywhere;
+    font-size: 0.78rem;
+}
+
+.profile-border-swatch,
+.profile-placeholder-sample {
+    display: block;
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 8px;
+    border: 5px solid var(--profile-border-start);
+    outline: 2px solid var(--profile-border-end);
+    outline-offset: 1px;
+    border-radius: 50%;
+    background: var(--profile-border-end);
+}
+
+.profile-shop-button {
+    display: block;
+    margin: 4px auto 0;
+    padding: 10px 16px;
+    border: 1px solid #a66bd4;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7541a2, #35245d);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.profile-shop-heading {
+    grid-column: 1 / -1;
+    color: #ffd700;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.profile-shop-image {
+    display: block;
+    width: 82px;
+    height: 82px;
+    margin: 0 auto 10px;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+.profile-placeholder-sample {
+    --profile-border-start: #777;
+    --profile-border-end: #050505;
+}
+
+.profile-avatar-frame.rainbow,
+.profile-border-swatch.rainbow {
+    border-color: transparent;
+    background: conic-gradient(#ff4b4b, #ffb84b, #ffe84b, #56d56c, #4bb8ff, #a85cff, #ff4bce, #ff4b4b);
+    animation: profile-rainbow-spin 5s linear infinite;
+}
+
+.profile-avatar-frame.rainbow {
+    outline-color: #ff69d4;
+}
+
+.profile-avatar-frame.rainbow img {
+    background: #202833;
+}
+
+@keyframes profile-rainbow-spin {
+    to { filter: hue-rotate(360deg); }
+}
+
 #map-selection, #mode-selection {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -359,6 +532,206 @@ body {
     cursor: pointer;
 }
 
+.multiplayer-player-list {
+    position: fixed;
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    z-index: 12001;
+    width: min(180px, calc(50vw - 24px));
+    max-height: min(30vh, 160px);
+    overflow-y: auto;
+    padding: 6px 8px;
+    border: 1px solid rgba(105, 195, 255, 0.35);
+    border-radius: 10px;
+    background: rgba(9, 15, 28, 0.68);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(5px);
+    opacity: 0.72;
+    transition: opacity 0.2s ease;
+}
+
+body.touch-landscape .multiplayer-player-list {
+    top: 46px;
+    bottom: auto;
+    right: 80px;
+    left: 80px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: auto;
+    max-height: 50px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 3px 6px;
+    opacity: 0.9;
+    scrollbar-width: thin;
+}
+
+body.touch-landscape .multiplayer-player-list h2 {
+    flex: 0 0 auto;
+    margin: 0 4px 0 0;
+    font-size: 0.65rem;
+    white-space: nowrap;
+}
+
+body.touch-landscape .multiplayer-player-row {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding: 0 5px;
+}
+
+body.touch-landscape .multiplayer-player-details strong {
+    max-width: 92px;
+}
+
+body.touch-landscape.match-active #offline-indicator {
+    display: none !important;
+}
+
+body.tablet-landscape .multiplayer-player-list {
+    right: 104px;
+    left: 104px;
+}
+
+body.multiplayer-spectator #game-ui,
+body.multiplayer-spectator #game-area,
+body.multiplayer-spectator #tower-shop,
+body.multiplayer-spectator #game-over .game-over-actions {
+    pointer-events: none !important;
+}
+
+body.fullscreen-map.match-active .game-scale-wrapper {
+    height: calc(100dvh - var(--multiplayer-player-list-space, 100px)) !important;
+}
+
+body.fullscreen-map.match-active #game-area {
+    height: calc(100dvh - var(--multiplayer-player-list-space, 100px)) !important;
+}
+
+body.touch-landscape.fullscreen-map.match-active .game-scale-wrapper {
+    top: 92px !important;
+    height: calc(100dvh - 96px) !important;
+}
+
+body.touch-landscape.fullscreen-map.match-active #game-area {
+    height: calc(100dvh - 96px) !important;
+}
+
+.multiplayer-player-list:hover,
+.multiplayer-player-list:focus-within {
+    opacity: 1;
+}
+
+.multiplayer-player-list[hidden] {
+    display: none;
+}
+
+.multiplayer-player-list h2 {
+    margin: 0 0 4px;
+    color: #8fd4ff;
+    font-size: 0.72rem;
+    text-align: center;
+}
+
+.multiplayer-player-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    padding: 3px 2px;
+}
+
+.multiplayer-player-row + .multiplayer-player-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.multiplayer-player-details {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.multiplayer-player-details strong,
+.multiplayer-player-details small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.multiplayer-player-details strong {
+    color: #fff;
+    font-size: 0.72rem;
+}
+
+.multiplayer-player-details small {
+    color: #aebdca;
+    font-size: 0.62rem;
+}
+
+.multiplayer-spectator-notice {
+    flex: 0 0 auto;
+    margin: 4px 0 0;
+    padding-top: 4px;
+    border-top: 1px solid rgba(143, 212, 255, 0.25);
+    color: #a8dfff;
+    font-size: 0.64rem;
+    text-align: center;
+}
+
+body.touch-landscape .multiplayer-spectator-notice {
+    margin: 0 4px;
+    padding: 0;
+    border-top: 0;
+    white-space: nowrap;
+}
+
+.multiplayer-profile-badge {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 3px;
+    border: 3px solid var(--profile-border-start, #8796a5);
+    outline: 1px solid var(--profile-border-end, #202833);
+    outline-offset: 1px;
+    border-radius: 50%;
+    background: var(--profile-border-end, #202833);
+}
+
+.multiplayer-profile-badge img {
+    display: block;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #202833;
+}
+
+.multiplayer-profile-badge.rainbow {
+    border-color: transparent;
+    background: conic-gradient(#ff4b4b, #ffb84b, #ffe84b, #56d56c, #4bb8ff, #a85cff, #ff4bce, #ff4b4b);
+}
+
+.multiplayer-join-notice {
+    position: fixed;
+    top: 64px;
+    left: 50%;
+    z-index: 12010;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(420px, 90vw);
+    padding: 12px 16px;
+    transform: translateX(-50%);
+    border: 1px solid rgba(105, 195, 255, 0.7);
+    border-radius: 14px;
+    background: rgba(10, 17, 31, 0.96);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-weight: 700;
+    animation: popIn 0.25s ease-out;
+}
+
 .session-clock {
     position: fixed;
     top: 12px;
@@ -383,6 +756,10 @@ body {
         top: auto;
         bottom: 10px;
         right: 8px;
+    }
+
+    body.match-active .multiplayer-player-list {
+        bottom: 52px;
     }
 }
 
@@ -3496,10 +3873,10 @@ body.touch-landscape .controls button {
 
 body.touch-landscape .game-scale-wrapper {
     position: absolute;
-    top: 42px;
+    top: 92px;
     left: 80px;
     width: calc(100vw - 160px);
-    height: calc(100dvh - 46px);
+    height: calc(100dvh - 96px);
     overflow: visible;
     align-items: center;
 }

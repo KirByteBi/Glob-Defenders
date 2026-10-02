@@ -24,9 +24,22 @@ You can play on PC, mobile and tablet. The game is designed to work horizontally
 
 ## 💾 Progress storage
 
-The game stores each player's badges, skins, currencies and settings in the browser's **IndexedDB** database, without requiring an installation or an external account.
+Online accounts use only a username and password. The game maps the username to
+an internal, non-deliverable Supabase Auth identity; players do not enter or
+need a real email address. In the Supabase dashboard, disable email
+confirmation for the Email provider. Badges, skins, currencies, unlocks and
+settings are saved in the account's private `player_progress` row and loaded
+after sign-in, so they follow the account to another PC. The table is protected
+by row-level security; the browser can access only the signed-in user's progress.
 
-Existing progress saved in `localStorage` is migrated automatically the next time it is loaded. `localStorage` remains as a compatibility backup. This storage is local to the browser and does not synchronize between devices; online synchronization can be added later without changing the badge system.
+Run [`supabase-progress-schema.sql`](./supabase-progress-schema.sql) once in the
+SQL Editor in the Supabase project dashboard before using online accounts.
+Supabase's Email provider must be enabled, with email confirmation disabled.
+
+The game also keeps a local backup in IndexedDB and `localStorage`. Offline play
+uses only that local backup and does not synchronize. If an online account has
+no cloud save and a local save for the same player name exists, the game asks
+before importing it; declining leaves the local save untouched.
 
 ## 🌌 Interstellar Menace
 
@@ -40,9 +53,40 @@ and HTTPS URL in `supabase-config.js`, then follow the setup notes in
 [`server/README.md`](./server/README.md). The host must stay connected; matches
 are temporary and cannot be recovered after the host leaves.
 
+Interstellar co-op requires each guest to have entered the mission access code
+and unlocked Interstellar. Guests who do not meet both requirements can still
+join as spectators and see the player roster and live match, but cannot send
+gameplay actions. Spectators do not earn badges, currencies, or saved progress;
+the match's shared Globets display is restored to their own balance when
+they leave the room.
+
 ### Offline play
 
-If the game cannot reach its account database, login and account creation fall back to a local session so the game remains playable. Use **Play offline** to enter without contacting the server. Offline progress is saved in this browser and is not synchronized with an online account or other devices. Accounts used in offline mode are not verified by the server.
+Use **Play offline** to enter without contacting Supabase. Offline progress is
+saved in this browser and is not synchronized with an online account or other
+devices. Offline play does not verify an account, and seed creation/joining is
+disabled until you sign in online. Your local profile still appears during an
+offline match, but it is only a visual identity and does not enable multiplayer.
+
+## 👤 User profiles
+
+Each account can choose a profile portrait and frame. Classic and green frames
+are free; additional colored frames are earned at Duck Pass levels 10, 20, 35
+and 60, or bought with Duckpasses. Spooky and Pumpkin each cost 500
+Duckpasses. Special frames with themed backgrounds unlock through their
+specified achievements or purchase: Interstellar and map frames require their
+respective victories, Placeholder costs 250 Duckpasses, and the
+`ONLINE-AVATARS` code unlocks Coded. Kirb's pink/green frame is reserved for the
+KirByteBi username. There are also rumors of a reward for completing every
+available profile-frame challenge.
+
+Glob-family portraits unlock when the family is owned; the original portrait
+is separate from its Rewamp portrait, which requires the corresponding Rewamp
+skin. The max-evolution portrait is available after maxing that family once
+and costs 300 PyCoins plus 150 Duckpasses for each available style. Enemy
+portraits unlock when that enemy is framed in the encyclopedia. The free Glob
+and Red Glob portraits use their original, non-Rewamp artwork. There are also
+rumors of a hidden reward for players who complete their collections.
 
 ---
 

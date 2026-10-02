@@ -286,7 +286,7 @@ const TRANSLATIONS = {
     tower_Gamer_Glob_desc: "Con el tiempo se convirtió en un gamer competitivo reconocido en toda la ciudad, pero la fama aún no era suficiente.",
     tower_Youtuber_Glob_desc: "Finalmente alcanzó el éxito como un famoso Youtuber y tiene dinero para aventar... Aunque ya es hora de que deje el internet y busque un trabajo de verdad.",
 
-    login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla", create_account: "Crear cuenta", skip_login: "Saltar login",
+    login_user: "Nombre de usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla", create_account: "Crear cuenta", skip_login: "Saltar login",
     select_map: "Seleccionar Isla",
     select_mode: "Seleccionar Modo",
     backToModes: "Selección de Modo",

@@ -9,6 +9,12 @@ let offlineModeActive = false;
 // --- MULTIPLAYER ---
 let socket = null;
 let supabaseClient = null;
+let activeCloudUserId = null;
+let cloudProgressReady = false;
+let cloudProgressSaveTimer = null;
+let cloudProgressSaveQueue = Promise.resolve();
+let pendingCloudProgressSave = null;
+let cloudProgressSaveError = null;
 let multiplayerServerClosed = false;
 let autoJoinAttempted = false;
 let currentSeed = null;
@@ -18,6 +24,8 @@ let multiplayerPlayerCount = 1;
 let multiplayerTowerLimits = null;
 let multiplayerEnabled = false;
 let multiplayerPlayers = [];
+let multiplayerSpectator = false;
+let multiplayerSpectatorSavedGlobetines = null;
 let applyingMultiplayerAction = false;
 let multiplayerActionOwner = null;
 let sessionClockInterval = null;
@@ -54,18 +62,167 @@ const BREAK_REMINDERS = {
 };
 
 function getMultiplayerProfile() {
+  const avatar = getProfileAvatarById(gameState.profileAvatar || 'glob:Glob');
+  const border = getProfileBorderById(gameState.profileBorder || 'default');
   return {
     equippedTowers: Array.isArray(gameState.equippedTowers) ? [...gameState.equippedTowers] : ['Glob'],
-    towerLimits: { ...gameState.towerLimits }
+    towerLimits: { ...gameState.towerLimits },
+    avatar: gameState.profileAvatar || 'glob:Glob',
+    avatarImage: avatar?.image || IMAGE_PATHS.Glob,
+    avatarLabel: avatar?.label || 'Glob',
+    border: gameState.profileBorder || 'default',
+    borderLabel: border?.label || (currentLanguage === 'en' ? 'Classic' : 'Clásico'),
+    borderColors: border?.colors || ['#8796a5', '#202833'],
+    rainbowBorder: Boolean(border?.rainbow)
   };
 }
 
 function publishMultiplayerProfile() {
   if (!socket?.connected || !currentSeed) return;
+  const profile = getMultiplayerProfile();
   socket.emit('update-player-profile', {
     seed: currentSeed,
-    profile: getMultiplayerProfile()
+    profile
   });
+}
+
+function getSafeProfileImageUrl(imagePath) {
+  if (typeof imagePath !== 'string' || !imagePath.trim() ||
+      /^[a-z][a-z\d+.-]*:/i.test(imagePath) || imagePath.startsWith('/') || imagePath.startsWith('\\')) {
+    return new URL(IMAGE_PATHS.Glob, document.baseURI).href;
+  }
+  try {
+    const url = new URL(imagePath, document.baseURI);
+    const base = new URL('.', document.baseURI);
+    return url.origin === base.origin && url.protocol === base.protocol && url.pathname.startsWith(base.pathname)
+      ? url.href
+      : new URL(IMAGE_PATHS.Glob, document.baseURI).href;
+  } catch (error) {
+    console.error('No se pudo validar la imagen del perfil multijugador:', error);
+    return new URL(IMAGE_PATHS.Glob, document.baseURI).href;
+  }
+}
+
+function getSafeProfileColors(profile) {
+  const fallback = ['#8796a5', '#202833'];
+  const colors = profile?.borderColors;
+  if (!Array.isArray(colors) || colors.length < 2) return fallback;
+  const safe = colors.slice(0, 2).map(color => {
+    if (typeof color !== 'string') return null;
+    if (/^#[0-9a-f]{6}$/i.test(color)) return color;
+    if (/^rgba\((?:\d{1,3}),\s*(?:\d{1,3}),\s*(?:\d{1,3}),\s*(?:0(?:\.\d+)?|1(?:\.0+)?)\)$/i.test(color)) return color;
+    return null;
+  });
+  return safe.every(Boolean) ? safe : fallback;
+}
+
+function createMultiplayerProfileBadge(profile, size = 38) {
+  const frame = document.createElement('span');
+  frame.className = `multiplayer-profile-badge${profile?.rainbowBorder ? ' rainbow' : ''}`;
+  frame.style.width = `${size}px`;
+  frame.style.height = `${size}px`;
+  const colors = getSafeProfileColors(profile);
+  frame.style.setProperty('--profile-border-start', colors[0]);
+  frame.style.setProperty('--profile-border-end', colors[1]);
+
+  const image = document.createElement('img');
+  image.src = getSafeProfileImageUrl(profile?.avatarImage);
+  image.alt = typeof profile?.avatarLabel === 'string' ? profile.avatarLabel : 'Glob';
+  image.width = size - 10;
+  image.height = size - 10;
+  image.addEventListener('error', () => {
+    image.src = new URL(IMAGE_PATHS.Glob, document.baseURI).href;
+  }, { once: true });
+  frame.appendChild(image);
+  return frame;
+}
+
+function renderMultiplayerPlayerList(players) {
+  const panel = document.getElementById('multiplayer-player-list');
+  if (!panel) return;
+  if (!gameState.modeConfirmed) {
+    panel.hidden = true;
+    panel.replaceChildren();
+    document.body.classList.remove('match-active');
+    document.body.style.removeProperty('--multiplayer-player-list-space');
+    return;
+  }
+  const localOnly = isOfflineSession() || !currentSeed;
+  const visiblePlayers = localOnly
+    ? [{
+        username: localStorage.getItem('glob_username') || (currentLanguage === 'en' ? 'Player' : 'Jugador'),
+        profile: getMultiplayerProfile(),
+        isHost: false
+      }]
+    : (Array.isArray(players) ? players : []);
+  if (visiblePlayers.length === 0) {
+    panel.hidden = true;
+    panel.replaceChildren();
+    document.body.classList.remove('match-active');
+    document.body.style.removeProperty('--multiplayer-player-list-space');
+    return;
+  }
+  panel.replaceChildren();
+  const heading = document.createElement('h2');
+  heading.textContent = localOnly
+    ? (currentLanguage === 'en' ? 'Your profile' : 'Tu perfil')
+    : (currentLanguage === 'en' ? `Seed players (${visiblePlayers.length}/4)` : `Jugadores (${visiblePlayers.length}/4)`);
+  panel.setAttribute('aria-label', heading.textContent);
+  panel.appendChild(heading);
+  visiblePlayers.forEach(player => {
+    const row = document.createElement('div');
+    row.className = 'multiplayer-player-row';
+    row.appendChild(createMultiplayerProfileBadge(player.profile));
+    const details = document.createElement('span');
+    details.className = 'multiplayer-player-details';
+    const name = document.createElement('strong');
+    name.textContent = player.username || (currentLanguage === 'en' ? 'Player' : 'Jugador');
+    details.appendChild(name);
+    const role = document.createElement('small');
+    role.textContent = localOnly
+      ? isOfflineSession()
+        ? (currentLanguage === 'en' ? 'Offline · local' : 'Sin conexión · local')
+        : (currentLanguage === 'en' ? 'In this match' : 'En esta partida')
+      : multiplayerSpectator && player.playerId === socket?.id
+        ? (currentLanguage === 'en' ? 'Spectating' : 'Observando')
+      : player.isHost
+      ? (currentLanguage === 'en' ? 'Host' : 'Anfitrión')
+      : (player.profile?.borderLabel || (currentLanguage === 'en' ? 'Player' : 'Jugador'));
+    details.appendChild(role);
+    row.appendChild(details);
+    panel.appendChild(row);
+  });
+  if (multiplayerSpectator) {
+    const notice = document.createElement('p');
+    notice.className = 'multiplayer-spectator-notice';
+    notice.textContent = currentLanguage === 'en'
+      ? 'Access requirements not met · view only'
+      : 'Faltan requisitos de acceso · solo lectura';
+    panel.appendChild(notice);
+  }
+  panel.hidden = false;
+  document.body.classList.add('match-active');
+  document.body.style.setProperty(
+    '--multiplayer-player-list-space',
+    `${Math.ceil(panel.getBoundingClientRect().height + 24)}px`
+  );
+}
+
+function showPlayerJoinedNotice(player) {
+  const existing = document.getElementById('multiplayer-join-notice');
+  existing?.remove();
+  const notice = document.createElement('div');
+  notice.id = 'multiplayer-join-notice';
+  notice.className = 'multiplayer-join-notice';
+  notice.setAttribute('role', 'status');
+  notice.appendChild(createMultiplayerProfileBadge(player.profile, 50));
+  const text = document.createElement('span');
+  text.textContent = currentLanguage === 'en'
+    ? `${player.username || 'A player'} joined the seed.`
+    : `${player.username || 'Un jugador'} se ha unido a tu seed.`;
+  notice.appendChild(text);
+  document.body.appendChild(notice);
+  setTimeout(() => notice.remove(), 6000);
 }
 
 function getSupabaseClient() {
@@ -98,7 +255,8 @@ function getSupabaseClient() {
   }
 
   supabaseClient = window.supabase.createClient(url.origin, key, {
-    realtime: { params: { eventsPerSecond: 10 } }
+    realtime: { params: { eventsPerSecond: 10 } },
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
   return supabaseClient;
 }
@@ -127,12 +285,14 @@ class SupabaseGameConnection {
     this.hostId = null;
     this.handlers = new Map();
     this.previousPlayers = new Map();
+    this.presenceInitialized = false;
     this.intentionalDisconnect = false;
     this.rejected = false;
     this.presence = {
       playerId: this.id,
       username,
       profile,
+      interstellarAccess: hasInterstellarEntryAccess(),
       joinedAt: Date.now(),
       isHost: false
     };
@@ -211,6 +371,7 @@ class SupabaseGameConnection {
         playerId: player.playerId,
         username: player.username || 'Jugador',
         profile: player.profile || { equippedTowers: ['Glob'], towerLimits: {} },
+        interstellarAccess: Boolean(player.interstellarAccess),
         joinedAt: Number(player.joinedAt) || 0,
         isHost: Boolean(player.isHost)
       }));
@@ -245,18 +406,24 @@ class SupabaseGameConnection {
     }
 
     const nextPlayers = new Map(players.map(player => [player.playerId, player]));
-    const roster = players.map(({ playerId, username, profile }) => ({ playerId, username, profile }));
+    const roster = players.map(({ playerId, username, profile, isHost }) => ({ playerId, username, profile, isHost }));
     multiplayerPlayers = roster;
     multiplayerPlayerCount = Math.max(1, roster.length);
     multiplayerEnabled = multiplayerPlayerCount > 1;
+    renderMultiplayerPlayerList(roster);
     if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
     this.dispatch('player-count', { playerCount: multiplayerPlayerCount });
     this.dispatch('player-roster', { players: roster, playerCount: multiplayerPlayerCount });
 
-    if (this.isHost) {
+    if (this.presenceInitialized) {
       players.forEach(player => {
         if (!this.previousPlayers.has(player.playerId) && player.playerId !== this.id) {
-          this.dispatch('player-joined', { id: player.playerId, username: player.username, playerCount: roster.length });
+          this.dispatch('player-joined', {
+            id: player.playerId,
+            username: player.username,
+            profile: player.profile,
+            playerCount: roster.length
+          });
         }
       });
     }
@@ -266,6 +433,7 @@ class SupabaseGameConnection {
       });
     }
     this.previousPlayers = nextPlayers;
+    this.presenceInitialized = true;
 
     if (previousHostId && previousHostId !== this.id && !nextPlayers.has(previousHostId)) {
       showMultiplayerServerClosed();
@@ -277,16 +445,23 @@ class SupabaseGameConnection {
         message.senderId === this.id || (message.targetId && message.targetId !== this.id)) return;
 
     if (message.event === 'join-request' && this.isHost) {
+      const snapshot = window._getMultiplayerGameState ? window._getMultiplayerGameState() : null;
+      const requester = this.getPlayers().find(player => player.playerId === message.senderId);
       const response = {
         hostName: this.presence.username,
         playerCount: multiplayerPlayers.length,
         players: multiplayerPlayers,
-        snapshot: window._getMultiplayerGameState ? window._getMultiplayerGameState() : null
+        snapshot,
+        spectator: snapshot?.mode === 'interstellar' && !requester?.interstellarAccess
       };
       this.send('join-response', response, message.senderId).catch(error => {
         console.error('No se pudo transferir el estado a un jugador recién conectado:', error);
       });
       return;
+    }
+    if (message.event === 'game-action' && gameState.mode === 'interstellar') {
+      const sender = this.getPlayers().find(player => player.playerId === message.senderId);
+      if (!sender?.interstellarAccess) return;
     }
     this.dispatch(message.event, message.data);
   }
@@ -306,6 +481,7 @@ class SupabaseGameConnection {
   emit(eventName, data) {
     if (eventName === 'update-player-profile') {
       this.presence.profile = data.profile;
+      this.presence.interstellarAccess = hasInterstellarEntryAccess();
       this.channel.track(this.presence).catch(error => {
         console.error('No se pudo publicar el perfil multijugador:', error);
         window._showMultiplayerNotice?.(currentLanguage === 'en'
@@ -316,10 +492,12 @@ class SupabaseGameConnection {
     }
 
     if (eventName === 'update-game-state' && !this.isHost) return;
+    if (eventName === 'game-action' && multiplayerSpectator) return;
     if (eventName === 'game-action') {
       data = { ...data, playerId: this.id };
     }
-    this.send(eventName, data).catch(error => {
+    const broadcastEvent = eventName === 'update-game-state' ? 'game-state' : eventName;
+    this.send(broadcastEvent, data).catch(error => {
       console.error(`No se pudo enviar el evento multijugador ${eventName}:`, error);
       window._showMultiplayerNotice?.(currentLanguage === 'en'
         ? 'The multiplayer message could not be sent.'
@@ -330,6 +508,11 @@ class SupabaseGameConnection {
   disconnect() {
     this.intentionalDisconnect = true;
     this.connected = false;
+    setMultiplayerSpectator(false);
+    multiplayerPlayers = [];
+    multiplayerPlayerCount = 1;
+    multiplayerEnabled = false;
+    renderMultiplayerPlayerList([]);
     this.channel.unsubscribe().catch(error => {
       console.error('No se pudo cerrar el canal Supabase Realtime:', error);
     });
@@ -342,6 +525,7 @@ class SupabaseGameConnection {
 function showMultiplayerServerClosed() {
   if (multiplayerServerClosed) return;
   multiplayerServerClosed = true;
+  setMultiplayerSpectator(false);
   multiplayerEnabled = false;
   if (multiplayerSyncInterval !== null) {
     clearInterval(multiplayerSyncInterval);
@@ -360,7 +544,47 @@ function getMultiplayerInviteUrl() {
   return inviteUrl.href;
 }
 
+function isOfflineSession() {
+  return offlineModeActive || localStorage.getItem('glob_offline_mode') === 'true';
+}
+
+function hasInterstellarEntryAccess() {
+  return gameState.debugState === 'unlocked' ||
+    gameState.cheatedModeActive ||
+    (gameState.unlockedInterstellar && Boolean(gameState.usedCodes?.['CR1-M3-CA+GLD']));
+}
+
+function setMultiplayerSpectator(spectator) {
+  const changed = multiplayerSpectator !== spectator;
+  if (changed && spectator) {
+    multiplayerSpectatorSavedGlobetines = gameState.globetines;
+  } else if (changed && !spectator && multiplayerSpectatorSavedGlobetines !== null) {
+    gameState.globetines = multiplayerSpectatorSavedGlobetines;
+    multiplayerSpectatorSavedGlobetines = null;
+    updateUI();
+  }
+  multiplayerSpectator = spectator;
+  document.body.classList.toggle('multiplayer-spectator', spectator);
+  if (!changed) return;
+  renderMultiplayerPlayerList(multiplayerPlayers);
+  if (!spectator) return;
+  window._showMultiplayerNotice?.(currentLanguage === 'en'
+    ? 'This Interstellar mission requires the access code and the Interstellar unlock. You can watch the players, but joining the mission is not available yet. Keep progressing and come back when you meet both requirements.'
+    : 'Esta misión de Interstellar requiere el código de acceso y haber desbloqueado el modo. Puedes observar a los jugadores, pero todavía no participar. Sigue avanzando y vuelve cuando cumplas ambos requisitos.');
+}
+
+function blockOfflineSeedAccess() {
+  if (!isOfflineSession()) return false;
+  alert(currentLanguage === 'en'
+    ? 'Seeds require an online session. Sign in online to create or load a seed.'
+    : 'Las seeds requieren una sesión online. Inicia sesión online para crear o cargar una seed.');
+  return true;
+}
+
 async function joinMultiplayerSeed(seed, creating) {
+  if (blockOfflineSeedAccess()) return;
+
+  setMultiplayerSpectator(false);
   let connection;
   try {
     if (socket?.connected) socket.disconnect();
@@ -396,18 +620,20 @@ async function joinMultiplayerSeed(seed, creating) {
   isSeedHost = connection.isHost;
 
   connection.on('game-state', state => {
-    if (!isSeedHost && window._applyMultiplayerGameState) window._applyMultiplayerGameState(state);
+    if (isSeedHost) return;
+    setMultiplayerSpectator(
+      state?.mode === 'interstellar' && !hasInterstellarEntryAccess()
+    );
+    if (window._applyMultiplayerGameState) window._applyMultiplayerGameState(state);
   });
   connection.on('player-joined', data => {
-    window._showMultiplayerNotice?.(currentLanguage === 'en'
-      ? `${data.username} joined your seed.`
-      : `${data.username} se ha unido a tu seed.`);
+    showPlayerJoinedNotice(data);
   });
   connection.on('game-action', action => {
-    if (window._applyMultiplayerAction) window._applyMultiplayerAction(action);
+    if (!multiplayerSpectator && window._applyMultiplayerAction) window._applyMultiplayerAction(action);
   });
   connection.on('spawn-enemy', data => {
-    if (window._spawnEnemy) window._spawnEnemy(data.enemyType, data.boss, data.forcedPath);
+    if (!multiplayerSpectator && window._spawnEnemy) window._spawnEnemy(data.enemyType, data.boss, data.forcedPath);
   });
   connection.on('show-dialog', data => {
     if (window._showNarratorMsg) window._showNarratorMsg(data.id, data.img, data.name, data.text);
@@ -425,10 +651,16 @@ async function joinMultiplayerSeed(seed, creating) {
       receivedResponse = true;
       connection.off('join-response', onResponse);
       if (response.snapshot && window._applyMultiplayerGameState) {
+        setMultiplayerSpectator(
+          response.snapshot.mode === 'interstellar' &&
+          (!hasInterstellarEntryAccess() || Boolean(response.spectator))
+        );
         window._applyMultiplayerGameState(response.snapshot);
-        window._showMultiplayerNotice?.(currentLanguage === 'en'
-          ? `Joined ${response.hostName || 'the host'}'s active match.`
-          : `Te has unido a la partida activa de ${response.hostName || 'el anfitrión'}.`);
+        if (!multiplayerSpectator) {
+          window._showMultiplayerNotice?.(currentLanguage === 'en'
+            ? `Joined ${response.hostName || 'the host'}'s active match.`
+            : `Te has unido a la partida activa de ${response.hostName || 'el anfitrión'}.`);
+        }
       } else {
         window._showMultiplayerNotice?.(currentLanguage === 'en'
           ? 'Connected to the room. Waiting for the host to start the match.'
@@ -437,7 +669,10 @@ async function joinMultiplayerSeed(seed, creating) {
     };
     connection.on('join-response', onResponse);
     try {
-      await connection.send('join-request', { requesterId: connection.id }, connection.hostId);
+      await connection.send('join-request', {
+        requesterId: connection.id,
+        interstellarAccess: hasInterstellarEntryAccess()
+      }, connection.hostId);
     } catch (error) {
       console.error('No se pudo solicitar el estado al anfitrión:', error);
       window._showMultiplayerNotice?.(currentLanguage === 'en'
@@ -463,7 +698,7 @@ async function joinMultiplayerSeed(seed, creating) {
 }
 
 function sendMultiplayerAction(action) {
-  if (socket?.connected && currentSeed && !applyingMultiplayerAction) {
+  if (!multiplayerSpectator && socket?.connected && currentSeed && !applyingMultiplayerAction) {
     socket.emit('game-action', { seed: currentSeed, action });
   }
 }
@@ -495,10 +730,12 @@ function updateSeedDisplay() {
 }
 
 window.createSeed = function() {
+  if (blockOfflineSeedAccess()) return;
   joinMultiplayerSeed(generateSeed(), true);
 };
 
 window.loadSeed = function() {
+  if (blockOfflineSeedAccess()) return;
   const input = document.getElementById('seed-input').value.trim().toUpperCase();
   if (!/^[A-Z][A-Z0-9]{6}$/.test(input)) {
     alert(currentLanguage === 'en' ? 'Enter a valid seed.' : 'Introduce una seed válida.');
@@ -816,10 +1053,34 @@ let gameState = {
   rareEnemiesSpawned: {},
   networkEntityCounter: 0,
   maxedFamilies: [],
+  profileMaxAvatars: [],
+  profileMaxRewampAvatars: [],
+  profileAvatar: 'glob:Glob',
+  profileBorder: 'default',
+  profilePurchasedBorders: [],
+  profileMapModeWins: {},
   collectionMasterDialogueShown: false,
   wallGardenSoapMessageShown: false,
   uniquesBossSpawned: {}  // Tracks NOeye_Pyce, MoonStar_Pyce (only 1 per game)
 };
+
+const DEFAULT_ACCOUNT_GAME_STATE = JSON.parse(JSON.stringify(gameState));
+const DEFAULT_ACCOUNT_BADGES = Object.fromEntries(Object.entries(BADGES).map(([key, badge]) => [key, badge.unlocked]));
+const DEFAULT_ACCOUNT_TOWER_UNLOCKS = Object.fromEntries(
+  Object.entries(TOWER_TYPES).map(([type, tower]) => [type, tower.unlocked])
+);
+
+function resetAccountProgress() {
+  gameState = JSON.parse(JSON.stringify(DEFAULT_ACCOUNT_GAME_STATE));
+  musicEnabled = true;
+  showHitbox = false;
+  Object.entries(DEFAULT_ACCOUNT_BADGES).forEach(([key, unlocked]) => {
+    if (BADGES[key]) BADGES[key].unlocked = unlocked;
+  });
+  Object.entries(DEFAULT_ACCOUNT_TOWER_UNLOCKS).forEach(([type, unlocked]) => {
+    if (TOWER_TYPES[type]) TOWER_TYPES[type].unlocked = unlocked;
+  });
+}
 
 function getFamilyCount(baseType) {
   const cfg = TOWER_TYPES[baseType];
@@ -919,64 +1180,6 @@ function saveUsers() {
 const PROGRESS_DB_NAME = 'glob-defenders-db';
 const PROGRESS_DB_VERSION = 1;
 const PROGRESS_STORE_NAME = 'progress';
-const OFFLINE_ACCOUNTS_STORAGE_KEY = 'glob_offline_accounts';
-
-function getOfflineAccounts() {
-  const saved = localStorage.getItem(OFFLINE_ACCOUNTS_STORAGE_KEY);
-  return saved ? JSON.parse(saved) : {};
-}
-
-function normalizeUsername(username) {
-  return username.trim().toLowerCase();
-}
-
-function bytesToHex(bytes) {
-  return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
-}
-
-async function hashOfflinePassword(password, salt) {
-  if (!window.crypto || !window.crypto.subtle) {
-    throw new Error('El navegador no permite proteger las credenciales offline.');
-  }
-
-  const key = await window.crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(password),
-    'PBKDF2',
-    false,
-    ['deriveBits']
-  );
-  const hash = await window.crypto.subtle.deriveBits({
-    name: 'PBKDF2',
-    salt,
-    iterations: 120000,
-    hash: 'SHA-256'
-  }, key, 256);
-  return bytesToHex(new Uint8Array(hash));
-}
-
-async function saveOfflineAccount(username, password, replace = false) {
-  const accounts = getOfflineAccounts();
-  const key = normalizeUsername(username);
-  if (accounts[key] && !replace) return false;
-
-  const salt = window.crypto.getRandomValues(new Uint8Array(16));
-  accounts[key] = {
-    username,
-    salt: bytesToHex(salt),
-    passwordHash: await hashOfflinePassword(password, salt)
-  };
-  localStorage.setItem(OFFLINE_ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
-  return true;
-}
-
-async function verifyOfflineAccount(password, account) {
-  if (!/^[\da-f]{32}$/i.test(account.salt) || !/^[\da-f]{64}$/i.test(account.passwordHash)) {
-    throw new Error('El respaldo local de la cuenta no tiene un formato válido.');
-  }
-  const salt = new Uint8Array(account.salt.match(/.{2}/g).map(byte => parseInt(byte, 16)));
-  return (await hashOfflinePassword(password, salt)) === account.passwordHash;
-}
 
 function openProgressDatabase() {
   return new Promise((resolve, reject) => {
@@ -1018,6 +1221,81 @@ function loadProgressFromDatabase(user) {
     request.onerror = () => reject(request.error || new Error('No se pudo leer IndexedDB.'));
     transaction.oncomplete = () => db.close();
   }));
+}
+
+async function loadCloudProgress(userId) {
+  const { data, error } = await getSupabaseClient()
+    .from('player_progress')
+    .select('progress')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.progress || null;
+}
+
+async function saveCloudProgress(userId, progress) {
+  const { error } = await getSupabaseClient()
+    .from('player_progress')
+    .upsert({ user_id: userId, progress, updated_at: new Date().toISOString() });
+  if (error) throw error;
+}
+
+function scheduleCloudProgressSave(progress) {
+  if (!activeCloudUserId || !cloudProgressReady) return;
+  if (cloudProgressSaveTimer !== null) clearTimeout(cloudProgressSaveTimer);
+  pendingCloudProgressSave = {
+    userId: activeCloudUserId,
+    progress: JSON.parse(JSON.stringify(progress))
+  };
+  cloudProgressSaveTimer = setTimeout(() => {
+    cloudProgressSaveTimer = null;
+    const pending = pendingCloudProgressSave;
+    pendingCloudProgressSave = null;
+    if (!pending) return;
+    cloudProgressSaveError = null;
+    cloudProgressSaveQueue = cloudProgressSaveQueue.catch(() => {}).then(async () => {
+      await saveCloudProgress(pending.userId, pending.progress);
+      const status = document.getElementById('account-save-status');
+      if (status) {
+        status.textContent = '';
+        status.style.display = 'none';
+      }
+    }).catch(error => {
+      cloudProgressSaveError = error;
+      console.error('No se pudo guardar el progreso de la cuenta en Supabase:', error);
+      const status = document.getElementById('account-save-status');
+      if (status) {
+        status.textContent = currentLanguage === 'en'
+          ? 'Cloud save failed. Check your connection; progress is still stored on this device.'
+          : 'No se pudo guardar en la nube. Comprueba la conexión; el progreso sigue guardado en este dispositivo.';
+        status.style.display = 'block';
+      }
+    });
+  }, 700);
+}
+
+async function flushCloudProgressSave() {
+  if (cloudProgressSaveTimer !== null) {
+    clearTimeout(cloudProgressSaveTimer);
+    cloudProgressSaveTimer = null;
+  }
+  if (pendingCloudProgressSave) {
+    const pending = pendingCloudProgressSave;
+    pendingCloudProgressSave = null;
+    cloudProgressSaveError = null;
+    cloudProgressSaveQueue = cloudProgressSaveQueue.catch(() => {}).then(async () => {
+      await saveCloudProgress(pending.userId, pending.progress);
+    }).catch(error => {
+      cloudProgressSaveError = error;
+      console.error('No se pudo completar el guardado en la nube antes de cambiar de cuenta:', error);
+    });
+  }
+  await cloudProgressSaveQueue;
+  if (cloudProgressSaveError) {
+    throw new Error(currentLanguage === 'en'
+      ? 'Your latest cloud save could not be completed. Please retry before switching accounts.'
+      : 'No se pudo completar el último guardado en la nube. Inténtalo de nuevo antes de cambiar de cuenta.');
+  }
 }
 
 function loadUsers() {
@@ -1100,6 +1378,45 @@ function installMissingImageFallback() {
 }
 installMissingImageFallback();
 
+function installInspectionNotice() {
+  console.warn(
+    '%cAviso legal: Las modificaciones o la piratería de Glob Defenders requieren el consentimiento de KirByte_Bi. El uso ilegal o no autorizado de sus productos puede ser sancionado.',
+    'color:#ff4545;font-weight:bold;font-size:14px;'
+  );
+  console.warn(
+    '%cLegal notice: Modifications or piracy of Glob Defenders require consent from KirByte_Bi. Illegal or unauthorized use of its products may be subject to sanctions.',
+    'color:#55aaff;font-weight:bold;font-size:14px;'
+  );
+
+  let noticeTimer = null;
+  const showNotice = () => {
+    let notice = document.getElementById('inspection-notice');
+    if (!notice) {
+      notice = document.createElement('div');
+      notice.id = 'inspection-notice';
+      notice.setAttribute('role', 'status');
+      notice.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:100000;max-width:min(720px,94vw);padding:12px 16px;border:1px solid #ff4545;border-radius:12px;background:rgba(10,12,20,.96);box-shadow:0 6px 24px #000a;text-align:center;font:700 13px/1.45 sans-serif;';
+      notice.innerHTML = '<span style="display:block;color:#ff5555">Las modificaciones o la piratería de Glob Defenders requieren el consentimiento de KirByte_Bi. El uso ilegal o no autorizado de sus productos puede ser sancionado.</span><span style="display:block;color:#55aaff;margin-top:6px">Modifications or piracy of Glob Defenders require consent from KirByte_Bi. Illegal or unauthorized use of its products may be subject to sanctions.</span>';
+      document.body.appendChild(notice);
+    }
+    notice.style.display = 'block';
+    if (noticeTimer !== null) clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => {
+      notice.style.display = 'none';
+      noticeTimer = null;
+    }, 9000);
+  };
+
+  document.addEventListener('keydown', event => {
+    const key = event.key.toLowerCase();
+    const devToolsShortcut = event.key === 'F12' ||
+      ((event.ctrlKey || event.metaKey) && event.shiftKey && ['i', 'j', 'c'].includes(key)) ||
+      ((event.ctrlKey || event.metaKey) && key === 'u');
+    if (devToolsShortcut) showNotice();
+  }, true);
+}
+installInspectionNotice();
+
 function init() {
   console.log("Iniciando Glob Defenders...");
   updateSessionClock();
@@ -1147,6 +1464,7 @@ function init() {
 }
 
 function saveProgress() {
+  if (multiplayerSpectator) return;
   const user = localStorage.getItem('glob_username') || 'default';
   const progress = {
     badges: Object.fromEntries(Object.entries(BADGES).map(([k, v]) => [k, v.unlocked])),
@@ -1205,20 +1523,27 @@ function saveProgress() {
     pycesKilled: gameState.pycesKilled,
     globsPlaced: gameState.globsPlaced,
     maxedFamilies: gameState.maxedFamilies || [],
+    profileMaxAvatars: gameState.profileMaxAvatars || [],
+    profileMaxRewampAvatars: gameState.profileMaxRewampAvatars || [],
+    profileAvatar: gameState.profileAvatar || 'glob:Glob',
+    profileBorder: gameState.profileBorder || 'default',
+    profilePurchasedBorders: gameState.profilePurchasedBorders || [],
+    profileMapModeWins: gameState.profileMapModeWins || {},
     collectionMasterDialogueShown: gameState.collectionMasterDialogueShown
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
   saveProgressToDatabase(user, progress);
+  scheduleCloudProgressSave(progress);
 }
 
-function loadProgress(username) {
+function loadProgress(username, allowLocalProgress = true) {
   try {
     const user = username || localStorage.getItem('glob_username');
     if (!user) return;
 
-    let data = localStorage.getItem('glob_progress_' + user);
+    let data = allowLocalProgress ? localStorage.getItem('glob_progress_' + user) : null;
 
-    if (!data) {
+    if (allowLocalProgress && !data) {
       data = localStorage.getItem('glob_progress');
       if (data) {
         console.log("Migrando progreso global al usuario:", user);
@@ -1226,7 +1551,7 @@ function loadProgress(username) {
       }
     }
 
-    if (!data) {
+    if (allowLocalProgress && !data) {
       loadProgressFromDatabase(user).then(progress => {
         if (progress) {
           localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
@@ -1341,6 +1666,12 @@ function loadProgress(username) {
       gameState.pycesKilled = progress.pycesKilled || {};
       gameState.globsPlaced = progress.globsPlaced || {};
       gameState.maxedFamilies = progress.maxedFamilies || [];
+      gameState.profileMaxAvatars = progress.profileMaxAvatars || [];
+      gameState.profileMaxRewampAvatars = progress.profileMaxRewampAvatars || [];
+      gameState.profileAvatar = progress.profileAvatar || 'glob:Glob';
+      gameState.profileBorder = progress.profileBorder || 'default';
+      gameState.profilePurchasedBorders = progress.profilePurchasedBorders || [];
+      gameState.profileMapModeWins = progress.profileMapModeWins || {};
       gameState.collectionMasterDialogueShown = !!progress.collectionMasterDialogueShown;
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
@@ -1452,20 +1783,63 @@ function playSound(file) {
 
 function checkLogin() {
   try {
+    const savedLoginName = localStorage.getItem('glob_login_username');
     const savedName = localStorage.getItem('glob_username');
     offlineModeActive = localStorage.getItem('glob_offline_mode') === 'true';
-    if (savedName) {
-      document.getElementById('username-input').value = savedName;
-      loadProgress(savedName);
-    }
+    if (savedLoginName) document.getElementById('username-input').value = savedLoginName;
+    else if (savedName) document.getElementById('username-input').value = savedName;
   } catch (e) { console.warn("LocalStorage no disponible"); }
 }
 
 function scheduleSkipLoginButton() { /* desactivado */ }
 
-function startGameSession(username, offline) {
+function getSupabaseAuthEmail(username) {
+  const normalizedUsername = username.trim().toLowerCase();
+  if (!/^[a-z0-9_.-]{3,24}$/.test(normalizedUsername)) {
+    throw new Error(currentLanguage === 'en'
+      ? 'Username must be 3-24 characters and use only letters, numbers, dots, dashes, or underscores.'
+      : 'El usuario debe tener entre 3 y 24 caracteres y usar solo letras, números, puntos, guiones o guiones bajos.');
+  }
+  return `${normalizedUsername}@accounts.glob-defenders.invalid`;
+}
+
+async function startGameSession(username, offline, accountId = null) {
+  cloudProgressReady = false;
+  activeCloudUserId = offline ? null : accountId;
+  resetAccountProgress();
+  if (activeCloudUserId) {
+    let cloudProgress;
+    try {
+      cloudProgress = await loadCloudProgress(activeCloudUserId);
+      if (!cloudProgress && localStorage.getItem('glob_username') === username) {
+        const localProgress = localStorage.getItem('glob_progress_' + username);
+        if (localProgress && window.confirm(currentLanguage === 'en'
+          ? 'A local save with this player name was found. Import it into this account?'
+          : 'Se encontró un guardado local con este nombre. ¿Quieres importarlo a esta cuenta?')) {
+          cloudProgress = JSON.parse(localProgress);
+          await saveCloudProgress(activeCloudUserId, cloudProgress);
+        }
+      }
+    } catch (error) {
+      activeCloudUserId = null;
+      console.error('No se pudo cargar el progreso de la cuenta desde Supabase:', error);
+      throw new Error(currentLanguage === 'en'
+        ? 'Could not load your cloud save. Check your connection and make sure the player_progress table is set up in Supabase.'
+        : 'No se pudo cargar el guardado en la nube. Comprueba la conexión y que la tabla player_progress esté creada en Supabase.');
+    }
+    if (cloudProgress) {
+      localStorage.setItem('glob_progress_' + username, JSON.stringify(cloudProgress));
+      loadProgress(username, false);
+    }
+    cloudProgressReady = true;
+  } else {
+    activeCloudUserId = null;
+    loadProgress(username);
+  }
+
   startSessionClock();
   localStorage.setItem('glob_username', username);
+  if (!offline) localStorage.setItem('glob_login_username', document.getElementById('username-input').value.trim().toLowerCase());
   if (offline) {
     localStorage.setItem('glob_offline_mode', 'true');
   } else {
@@ -1477,7 +1851,6 @@ function startGameSession(username, offline) {
   const offlineIndicator = document.getElementById('offline-indicator');
   if (offlineIndicator) offlineIndicator.style.display = offline ? 'block' : 'none';
 
-  loadProgress(username);
   drawBadges();
   updateMetaUI();
   drawTowerShop();
@@ -1489,16 +1862,21 @@ function startGameSession(username, offline) {
     const gameContainer = document.getElementById('game-container');
     if (gameContainer) gameContainer.style.display = 'flex';
     document.getElementById('meta-controls').style.display = 'flex';
+    const seedControls = document.getElementById('seed-controls');
+    if (seedControls) seedControls.style.display = offline ? 'none' : 'flex';
     document.getElementById('mode-selection').style.display = 'none';
     gameState.selectedIsland = null;
     renderMapSelection();
     document.getElementById('map-selection').style.display = 'flex';
     const inviteParams = new URLSearchParams(window.location.search);
     const invitedSeed = inviteParams.get('seed');
-    if (!autoJoinAttempted && invitedSeed && /^[A-Z][A-Z0-9]{6}$/.test(invitedSeed.toUpperCase())) {
+    if (!autoJoinAttempted && !offline && invitedSeed && /^[A-Z][A-Z0-9]{6}$/.test(invitedSeed.toUpperCase())) {
       autoJoinAttempted = true;
       document.getElementById('seed-input').value = invitedSeed.toUpperCase();
       setTimeout(() => window.loadSeed(), 0);
+    } else if (offline && invitedSeed && /^[A-Z][A-Z0-9]{6}$/.test(invitedSeed.toUpperCase())) {
+      autoJoinAttempted = true;
+      blockOfflineSeedAccess();
     }
   };
 
@@ -1557,41 +1935,6 @@ function showLoginError(message) {
   msgEl.style.color = 'red';
 }
 
-async function enterOfflineSession(username, password, saveCredentials) {
-  const name = username.trim() || 'Invitado';
-  let accounts;
-  try {
-    accounts = getOfflineAccounts();
-  } catch (error) {
-    console.error('No se pudo leer el respaldo local de las cuentas:', error);
-    showLoginError(translate('offline_account_error'));
-    return false;
-  }
-
-  const account = accounts[normalizeUsername(name)];
-  if (account && password) {
-    try {
-      if (!await verifyOfflineAccount(password, account)) {
-        showLoginError(translate('loginError'));
-        return false;
-      }
-    } catch (error) {
-      console.error('No se pudo verificar la cuenta local:', error);
-      showLoginError(translate('offline_account_error'));
-      return false;
-    }
-  } else if (password && saveCredentials) {
-    try {
-      await saveOfflineAccount(name, password);
-    } catch (error) {
-      console.error('No se pudo guardar el respaldo local de la cuenta:', error);
-    }
-  }
-
-  startGameSession(name, true);
-  return true;
-}
-
 function getSessionUserRole() {
   const username = localStorage.getItem('glob_username') || '';
   return typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
@@ -1618,86 +1961,91 @@ function updateRoleIndicator() {
 }
 
 async function handleLogin() {
-  const nameInput = document.getElementById('username-input');
+  const usernameInput = document.getElementById('username-input');
   const passInput = document.getElementById('password-input');
-  const name = nameInput ? nameInput.value.trim() : "";
+  const username = usernameInput ? usernameInput.value.trim() : '';
   const password = passInput ? passInput.value : "";
 
-  if (!name || !password) {
+  if (!username || !password) {
     const msgEl = document.getElementById('login-msg');
-    if (msgEl) msgEl.textContent = translate('loginError');
+    if (msgEl) msgEl.textContent = currentLanguage === 'en'
+      ? 'Enter your username and password.'
+      : 'Introduce tu nombre de usuario y contraseña.';
     return;
   }
 
   try {
-    const response = await fetch('http://localhost:3000/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: name, password: password })
+    await flushCloudProgressSave();
+    const { data, error } = await getSupabaseClient().auth.signInWithPassword({
+      email: getSupabaseAuthEmail(username),
+      password
     });
-    const data = await response.json();
-
-    if (!response.ok) {
-      if (response.status === 503 && data.code === 'DATABASE_UNAVAILABLE') {
-        await enterOfflineSession(name, password, true);
-      } else if (response.status === 400 && getOfflineAccounts()[normalizeUsername(name)]) {
-        await enterOfflineSession(name, password, false);
-      } else {
-        showLoginError(data.error || translate('loginError'));
-      }
+    if (error) throw error;
+    if (!data.session || !data.user) {
+      showLoginError(currentLanguage === 'en'
+        ? 'Sign-in was not completed. Check your email for a confirmation link.'
+        : 'El inicio de sesión no se completó. Revisa tu correo para confirmar la cuenta.');
       return;
     }
 
-    try {
-      await saveOfflineAccount(name, password, true);
-    } catch (error) {
-      console.error('No se pudo actualizar el respaldo local de la cuenta:', error);
-    }
-    startGameSession(name, false);
-  } catch (err) {
-    console.error("Error en handleLogin:", err);
-    await enterOfflineSession(name, password, true);
+    const playerName = data.user.user_metadata?.player_name || username.trim();
+    await startGameSession(playerName, false, data.user.id);
+  } catch (error) {
+    console.error('Error al iniciar sesión con Supabase:', error);
+    showLoginError(error.message || translate('loginError'));
   }
 }
 
 async function handleCreateAccount() {
-  const nameInput = document.getElementById('username-input');
+  const usernameInput = document.getElementById('username-input');
   const passInput = document.getElementById('password-input');
   const msgEl = document.getElementById('login-msg');
-  const name = nameInput ? nameInput.value.trim() : '';
+  const username = usernameInput ? usernameInput.value.trim() : '';
   const password = passInput ? passInput.value : '';
+  const playerName = username;
 
-  if (!name || !password) {
+  if (!username || !password || !playerName) {
     if (msgEl) msgEl.textContent = currentLanguage === 'es'
-      ? 'Introduce un usuario y una contraseña para crear la cuenta.'
+      ? 'Introduce nombre de usuario y contraseña para crear la cuenta.'
       : 'Enter a username and password to create the account.';
     return;
   }
 
   try {
-    const response = await fetch('http://localhost:3000/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: name, password: password })
+    await flushCloudProgressSave();
+    const { data, error } = await getSupabaseClient().auth.signUp({
+      email: getSupabaseAuthEmail(username),
+      password,
+      options: { data: { player_name: playerName } }
     });
-    const data = await response.json();
-
-    if (response.ok) {
-      await handleLogin();
-    } else if (response.status === 503 && data.code === 'DATABASE_UNAVAILABLE') {
-      await enterOfflineSession(name, password, true);
-    } else {
-      showLoginError(data.error || 'Error al crear la cuenta.');
+    if (error) throw error;
+    if (!data.session || !data.user) {
+      const confirmationMessage = currentLanguage === 'en'
+        ? 'Account created, but this Supabase project requires email confirmation. Disable Confirm email in Authentication settings to use username-only accounts.'
+        : 'La cuenta se creó, pero Supabase exige confirmar un correo. Desactiva Confirm email en los ajustes de Authentication para usar cuentas solo con usuario.';
+      const confirmation = document.getElementById('login-msg');
+      if (confirmation) {
+        confirmation.textContent = confirmationMessage;
+        confirmation.style.color = '#2ecc71';
+      }
+      return;
     }
-  } catch (err) {
-    console.error("Error en handleCreateAccount:", err);
-    await enterOfflineSession(name, password, true);
+    document.getElementById('username-input').value = username.toLowerCase();
+    await startGameSession(playerName, false, data.user.id);
+  } catch (error) {
+    console.error('Error al crear la cuenta en Supabase:', error);
+    showLoginError(error.message || (currentLanguage === 'en' ? 'Could not create the account.' : 'No se pudo crear la cuenta.'));
   }
 }
 
-function handleSkipLogin() {
+async function handleSkipLogin() {
   const username = document.getElementById('username-input')?.value.trim() || 'Invitado';
-  startGameSession(username, true);
+  try {
+    await startGameSession(username, true);
+  } catch (error) {
+    console.error('No se pudo iniciar la sesión sin conexión:', error);
+    showLoginError(error.message);
+  }
 }
 
 function isIslandUnlocked(islandId) {
@@ -1745,9 +2093,14 @@ function renderMapSelection() {
     return;
   }
 
+  const selectedIslandName = selectedIsland.id === 'globland_isle'
+    ? 'Globland'
+    : (currentLanguage === 'en'
+      ? selectedIsland.nameEn
+      : selectedIsland.nameEs) || 'Globland';
   title.textContent = currentLanguage === 'en'
-    ? `${selectedIsland.name} Zones`
-    : `Zonas de ${selectedIsland.name}`;
+    ? `${selectedIslandName} Zones`
+    : `Zonas de ${selectedIslandName}`;
 
   const backButton = document.createElement('button');
   backButton.type = 'button';
@@ -1777,6 +2130,8 @@ function selectMap(mapId) {
   const owningIsland = MAP_ISLANDS.find(island => island.zones.some(item => item.mapId === mapId));
   if (!zone || zone.locked || !MAPS[mapId] || !owningIsland || !isIslandUnlocked(owningIsland.id)) return;
   gameState.map = mapId;
+  gameState.modeConfirmed = false;
+  renderMultiplayerPlayerList([]);
   const mapScreen = document.getElementById('map-selection');
   if (mapScreen) mapScreen.style.display = 'none';
 
@@ -1788,6 +2143,8 @@ function selectMap(mapId) {
 }
 
 function showModeSelection() {
+  gameState.modeConfirmed = false;
+  renderMultiplayerPlayerList([]);
   document.getElementById('mode-selection').style.display = 'flex';
   if (gameState.antiNormalActive) {
     document.getElementById('mode-selection').classList.add('glitch-state');
@@ -2029,6 +2386,8 @@ function selectMode(mode) {
   document.getElementById('mode-selection').classList.remove('glitch-state');
 
   retryGame();
+  renderMultiplayerPlayerList(multiplayerPlayers);
+  applyScale();
 
   gameState.globetines = 500;
   updateUI();
@@ -2089,6 +2448,8 @@ function startInterstellarMission(enableParacristalQuest) {
   gameState.modeConfirmed = true;
   gameState.maxWaves = 40;
   retryGame();
+  renderMultiplayerPlayerList(multiplayerPlayers);
+  applyScale();
   gameState.health = 200;
   gameState.globetines = 500;
   updateUI();
@@ -3383,6 +3744,7 @@ function drawBadges() {
 }
 
 function unlockBadge(key) {
+  if (multiplayerSpectator) return;
   if (BADGES[key] && !BADGES[key].unlocked) {
     BADGES[key].unlocked = true;
     saveProgress();
@@ -3478,6 +3840,7 @@ function showEncyclopediaPopup(enemy) {
 }
 
 function grantBadgeReward(badge) {
+  if (multiplayerSpectator) return;
   if (gameState.claimedRewards.includes(badge.key)) return;
 
   const hasReward = Object.values(badge.reward || {}).some(value => Number(value) > 0);
@@ -4124,15 +4487,6 @@ function bindEvents() {
   const createAccountButton = document.getElementById('create-account-btn');
   if (createAccountButton) createAccountButton.onclick = handleCreateAccount;
   
-  const nameInput = document.getElementById('username-input');
-  if (nameInput) {
-    nameInput.addEventListener('input', () => {
-      const name = nameInput.value.trim();
-      if (name) loadProgress(name);
-      updateMetaUI();
-    });
-  }
-
   const loadingFamilyTips = {
     es: {
       Glob: ['Los Glob básicos sostienen la defensa temprana; colócalos bien para controlar la primera oleada.', 'Los Glob no son los más fuertes, pero son el núcleo de tu ritmo de juego y de tu economía.'],
@@ -4201,6 +4555,7 @@ function bindEvents() {
       target.closest('input, textarea, select, [contenteditable="true"]')
     );
     if (isEditingText) return;
+    if (multiplayerSpectator) return;
 
     const key = e.key.toLowerCase();
     const upgradeMenu = document.getElementById('tower-upgrade-menu');
@@ -4328,7 +4683,26 @@ function bindEvents() {
     }
 
     if (code === 'CR1-M3-CA+GLD') {
+      gameState.usedCodes[code] = true;
+      saveProgress();
+      publishMultiplayerProfile();
       startInterstellarMission(false);
+      input.value = '';
+      return;
+    }
+
+    if (code === 'ONLINE-AVATARS') {
+      if (!gameState.profilePurchasedBorders.includes('coded')) {
+        gameState.profilePurchasedBorders.push('coded');
+      }
+      gameState.usedCodes[code] = true;
+      updateMetaUI();
+      saveProgress();
+      if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+      showMessage(
+        currentLanguage === 'en' ? 'Coded profile frame unlocked!' : '¡Borde de perfil Coded desbloqueado!',
+        'success'
+      );
       input.value = '';
       return;
     }
@@ -4419,6 +4793,13 @@ function bindEvents() {
         unlockedInfinite: gameState.unlockedInfinite,
         unlockedInterstellar: gameState.unlockedInterstellar,
         claimedRewards: [...(gameState.claimedRewards || [])],
+        maxedFamilies: [...(gameState.maxedFamilies || [])],
+        profileMaxAvatars: [...(gameState.profileMaxAvatars || [])],
+        profileMaxRewampAvatars: [...(gameState.profileMaxRewampAvatars || [])],
+        profilePurchasedBorders: [...(gameState.profilePurchasedBorders || [])],
+        profileMapModeWins: JSON.parse(JSON.stringify(gameState.profileMapModeWins || {})),
+        profileAvatar: gameState.profileAvatar,
+        profileBorder: gameState.profileBorder,
         badges: Object.fromEntries(Object.entries(BADGES).map(([k, v]) => [k, v.unlocked])),
         pycesKilled: JSON.parse(JSON.stringify(gameState.pycesKilled || {})),
         towerTypes: JSON.parse(JSON.stringify(
@@ -4441,6 +4822,17 @@ function bindEvents() {
       const allSkinIds = [];
       Object.values(SKINS_DATA).forEach(arr => arr.forEach(s => allSkinIds.push(s.id)));
       allSkinIds.forEach(id => { if (!gameState.unlockedSkins.includes(id)) gameState.unlockedSkins.push(id); });
+      gameState.maxedFamilies = getProfileGlobFamilies().map(({ family }) => family);
+      gameState.profileMaxAvatars = [...gameState.maxedFamilies];
+      gameState.profileMaxRewampAvatars = [...gameState.maxedFamilies];
+      gameState.profilePurchasedBorders = [
+        'placeholder',
+        'coded',
+        ...PROFILE_SHOP_BORDERS.map(border => border.id)
+      ];
+      gameState.profileMapModeWins = Object.fromEntries(
+        PROFILE_MAP_BORDERS.map(border => [border.map, [...PROFILE_MAP_MODES]])
+      );
       // Reveal entire encyclopedia: max out all kill counters
       Object.keys(ENEMY_TYPES).forEach(type => {
         const target = typeof getPyceKillTarget === 'function' ? getPyceKillTarget(type) : 9999;
@@ -4465,6 +4857,13 @@ function bindEvents() {
         gameState.unlockedInfinite = snap.unlockedInfinite;
         gameState.unlockedInterstellar = snap.unlockedInterstellar;
         gameState.claimedRewards = snap.claimedRewards;
+        gameState.maxedFamilies = snap.maxedFamilies || [];
+        gameState.profileMaxAvatars = snap.profileMaxAvatars || [];
+        gameState.profileMaxRewampAvatars = snap.profileMaxRewampAvatars || [];
+        gameState.profilePurchasedBorders = snap.profilePurchasedBorders || [];
+        gameState.profileMapModeWins = snap.profileMapModeWins || {};
+        gameState.profileAvatar = snap.profileAvatar || 'glob:Glob';
+        gameState.profileBorder = snap.profileBorder || 'default';
         Object.keys(BADGES).forEach(k => { BADGES[k].unlocked = !!snap.badges[k]; });
         // Restore encyclopedia kill counters
         if (snap.pycesKilled) gameState.pycesKilled = JSON.parse(JSON.stringify(snap.pycesKilled));
@@ -4476,7 +4875,9 @@ function bindEvents() {
     }
     drawShop();
     drawTowerShop();
+    if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
     updateUI();
+    publishMultiplayerProfile();
     if (role === 'OWNER' || role === 'DEVBUILD') {
       showOwnerDebugPanel();
       document.getElementById('debug-panel-toggle')?.classList.add('visible');
@@ -4710,11 +5111,13 @@ function updateResponsiveGameLayout() {
 
   const sideWidth = mobileLayout ? 76 : 100;
   const topOffset = 42;
+  const gameTopOffset = 92;
   const availableWidth = Math.max(320, viewportWidth - (sideWidth * 2) - 8);
-  const availableHeight = Math.max(220, viewportHeight - topOffset - 4);
+  const availableHeight = Math.max(220, viewportHeight - gameTopOffset - 4);
   const scale = Math.min(availableWidth / 1000, availableHeight / 600, 1);
 
   wrapper.style.left = `${sideWidth + 4}px`;
+  wrapper.style.top = `${gameTopOffset}px`;
   wrapper.style.width = `${availableWidth}px`;
   wrapper.style.height = `${availableHeight}px`;
   gameArea.style.width = '1000px';
@@ -4738,6 +5141,10 @@ function updateResponsiveGameLayout() {
   metaControls?.style.setProperty('left', 'auto', 'important');
   metaControls?.style.setProperty('right', '4px', 'important');
   metaControls?.style.setProperty('top', '92px', 'important');
+
+  const playerList = document.getElementById('multiplayer-player-list');
+  playerList?.style.setProperty('left', `${sideWidth + 4}px`);
+  playerList?.style.setProperty('right', `${sideWidth + 4}px`);
 }
 
 const GAME_DESIGN_W = 1000;
@@ -4767,7 +5174,7 @@ function applyScale() {
     return;
   }
 
-  ['tower-shop', 'language-toggle', 'options-toggle', 'meta-controls'].forEach(id => {
+  ['tower-shop', 'language-toggle', 'options-toggle', 'meta-controls', 'multiplayer-player-list'].forEach(id => {
     const element = document.getElementById(id);
     if (!element) return;
     ['position', 'left', 'right', 'top'].forEach(property => element.style.removeProperty(property));
@@ -4779,6 +5186,7 @@ function applyScale() {
     area.style.transform = 'none';
   }
   if (wrapper) {
+    ['left', 'top', 'width'].forEach(property => wrapper.style.removeProperty(property));
     wrapper.style.height = GAME_DESIGN_H + 'px';
   }
 
@@ -4792,7 +5200,11 @@ function applyScale() {
   const cWidth = 1000;
   const cHeight = container.scrollHeight;
   const availW = viewportWidth;
-  const availH = viewportHeight;
+  const playerList = document.getElementById('multiplayer-player-list');
+  const profileSpace = gameState.modeConfirmed && playerList && !playerList.hidden
+    ? Math.ceil(playerList.getBoundingClientRect().height + 24)
+    : 0;
+  const availH = Math.max(160, viewportHeight - profileSpace);
 
   const scaleW = availW / cWidth;
   const scaleH = availH / cHeight;
@@ -4842,6 +5254,7 @@ function getDuckpassMultiplier() {
 }
 
 function addXP(amount) {
+  if (multiplayerSpectator) return;
   gameState.duckPassXP += amount;
   while (gameState.duckPassXP >= 100) {
     gameState.duckPassLevel++;
@@ -4899,6 +5312,434 @@ function isTowerOwned(t) {
   return false;
 }
 
+const PROFILE_MAP_MODES = ['facil', 'normal', 'dificil', 'extremo', 'corrupto', 'antiNormal'];
+const PROFILE_MAP_BORDERS = [
+  { id: 'map:gelatin_lake', map: 'gelatin_lake', label: 'Gelatin Lake', colors: ['#b7d98b', '#75543b'] },
+  { id: 'map:urbanistic_road', map: 'urbanistic_road', label: 'Urbanistic Road', colors: ['#aeb5ba', '#17191d'] },
+  { id: 'map:sunlight_seaside', map: 'sunlight_seaside', label: 'Sunlight Seaside', colors: ['#eed28b', '#b8e2ac'] },
+  { id: 'map:spooktacular_ruins', map: 'spooktacular_ruins', label: 'Spooktacular Ruins', colors: ['#ed7d32', '#452817'] }
+];
+const PROFILE_FREE_BORDERS = [
+  { id: 'color:green', label: 'Verde', labelEn: 'Green', colors: ['#72e36b', '#202833'] }
+];
+const PROFILE_PASS_BORDERS = [
+  { id: 'color:blue', label: 'Azul', labelEn: 'Blue', colors: ['#62b8ff', '#202833'], level: 10 },
+  { id: 'color:pink', label: 'Rosa', labelEn: 'Pink', colors: ['#ff83d2', '#202833'], level: 20 },
+  { id: 'color:yellow', label: 'Amarillo', labelEn: 'Yellow', colors: ['#ffe45c', '#202833'], level: 35 },
+  { id: 'color:orange', label: 'Naranja', labelEn: 'Orange', colors: ['#ffa34f', '#202833'], level: 60 }
+];
+const PROFILE_SHOP_BORDERS = [
+  { id: 'color:red', label: 'Rojo', labelEn: 'Red', colors: ['#ff5555', '#202833'], cost: 250 },
+  { id: 'color:purple', label: 'Morado', labelEn: 'Purple', colors: ['#c18aff', '#202833'], cost: 350 },
+  { id: 'color:cyan', label: 'Cian', labelEn: 'Cyan', colors: ['#67e6e1', '#202833'], cost: 350 },
+  { id: 'spooky', label: 'Fantasmal', labelEn: 'Spooky', colors: ['#175b30', 'rgba(56, 190, 92, 0.35)'], cost: 500 },
+  { id: 'pumpkin', label: 'Calabaza', labelEn: 'Pumpkin', colors: ['#65c86e', '#d77b28'], cost: 500 }
+];
+
+function getProfileGlobFamilies() {
+  const evolvedTypes = new Set(Object.values(TOWER_TYPES).map(tower => tower.evolution).filter(Boolean));
+  const families = new Map();
+  Object.keys(TOWER_TYPES).forEach(type => {
+    const family = getTowerFamily(type);
+    if (family === 'Special') return;
+    if (!families.has(family)) families.set(family, []);
+    families.get(family).push(type);
+  });
+
+  return [...families.entries()].map(([family, types]) => {
+    const firstType = types.find(type => !evolvedTypes.has(type));
+    if (!firstType) return null;
+    let finalType = firstType;
+    while (TOWER_TYPES[finalType]?.evolution && types.includes(TOWER_TYPES[finalType].evolution)) {
+      finalType = TOWER_TYPES[finalType].evolution;
+    }
+    return { family, firstType, finalType };
+  }).filter(Boolean);
+}
+
+function getProfileTowerImage(type) {
+  const tower = TOWER_TYPES[type];
+  return tower?.image || IMAGE_PATHS[type] || IMAGE_PATHS.Omnipresent_Glob;
+}
+
+function getProfileRewampSkin(family, type) {
+  return SKINS_DATA[family]?.find(item =>
+    REWAMPED_SKIN_IDS.includes(item.id) && item.skins?.[type]
+  ) || null;
+}
+
+function isProfileRewampUnlocked(family, type) {
+  const skin = getProfileRewampSkin(family, type);
+  return Boolean(skin && gameState.unlockedSkins.includes(skin.id));
+}
+
+function isProfileEnemyFramed(type) {
+  return Boolean(ENEMY_TYPES[type] && window._isEnemyFramed?.(type));
+}
+
+function getProfileRainbowRewampImage() {
+  return getProfileRewampSkin('Glob', 'Rainbow_Glob')?.skins.Rainbow_Glob || null;
+}
+
+function hasUnlockedAllProfileImages() {
+  if (gameState.debugState === 'unlocked') return true;
+  const families = getProfileGlobFamilies();
+  const globImagesComplete = families.every(({ family, finalType }) => {
+    const rewamp = getProfileRewampSkin(family, finalType);
+    return isTowerOwned(family) &&
+      gameState.maxedFamilies.includes(family) &&
+      gameState.profileMaxAvatars.includes(family) &&
+      (!rewamp || (
+        gameState.unlockedSkins.includes(rewamp.id) &&
+        gameState.profileMaxRewampAvatars.includes(family)
+      ));
+  });
+  const enemyImagesComplete = Object.keys(ENEMY_TYPES).every(isProfileEnemyFramed);
+  return globImagesComplete && enemyImagesComplete;
+}
+
+function hasUnlockedAllProfileBorders() {
+  if (gameState.debugState === 'unlocked') return true;
+  const requiredBorderIds = [
+    'default',
+    ...PROFILE_FREE_BORDERS.map(border => border.id),
+    ...PROFILE_PASS_BORDERS.map(border => border.id),
+    ...PROFILE_SHOP_BORDERS.map(border => border.id),
+    'interstellar',
+    'placeholder',
+    'coded',
+    ...PROFILE_MAP_BORDERS.map(border => border.id)
+  ];
+  return requiredBorderIds.every(borderId => {
+    if (borderId === 'default') return true;
+    if (borderId === 'interstellar') {
+      return Boolean(BADGES.unmenaced?.unlocked || BADGES.paracristal_dimension?.unlocked);
+    }
+    if (borderId.startsWith('map:')) {
+      const map = PROFILE_MAP_BORDERS.find(border => border.id === borderId)?.map;
+      const wonModes = gameState.profileMapModeWins[map] || [];
+      return PROFILE_MAP_MODES.every(mode => wonModes.includes(mode));
+    }
+    if (PROFILE_PASS_BORDERS.some(border => border.id === borderId)) {
+      const passBorder = PROFILE_PASS_BORDERS.find(border => border.id === borderId);
+      return gameState.duckPassLevel >= passBorder.level;
+    }
+    return gameState.profilePurchasedBorders.includes(borderId);
+  });
+}
+
+function getAvailableProfileBorders() {
+  const borders = [{ id: 'default', label: currentLanguage === 'en' ? 'Classic' : 'Clásico', colors: ['#8796a5', '#202833'] }];
+  borders.push(...PROFILE_FREE_BORDERS.map(border => ({
+    id: border.id,
+    label: currentLanguage === 'en' ? border.labelEn : border.label,
+    colors: border.colors
+  })));
+  PROFILE_PASS_BORDERS.forEach(border => {
+    if (gameState.duckPassLevel >= border.level) {
+      borders.push({
+        id: border.id,
+        label: currentLanguage === 'en' ? border.labelEn : border.label,
+        colors: border.colors
+      });
+    }
+  });
+  PROFILE_SHOP_BORDERS.forEach(border => {
+    if (gameState.profilePurchasedBorders.includes(border.id)) {
+      borders.push({
+        id: border.id,
+        label: currentLanguage === 'en' ? border.labelEn : border.label,
+        colors: border.colors
+      });
+    }
+  });
+  if (BADGES.unmenaced?.unlocked || BADGES.paracristal_dimension?.unlocked) {
+    borders.push({ id: 'interstellar', label: 'Interstellar', colors: ['#ff68d1', '#174caa'] });
+  }
+  if (gameState.debugState === 'unlocked' ||
+      (localStorage.getItem('glob_username') || '').toLowerCase() === 'kirbytebi') {
+    borders.push({ id: 'kirb', label: 'Kirb', colors: ['#a8ef9c', '#ffb8dc'] });
+  }
+  if (gameState.profilePurchasedBorders.includes('placeholder')) {
+    borders.push({ id: 'placeholder', label: 'Placeholder', colors: ['#777777', '#050505'] });
+  }
+  if (gameState.profilePurchasedBorders.includes('coded')) {
+    borders.push({ id: 'coded', label: 'Coded', colors: ['#050505', '#258a45'] });
+  }
+  PROFILE_MAP_BORDERS.forEach(border => {
+    const wonModes = gameState.profileMapModeWins[border.map] || [];
+    if (PROFILE_MAP_MODES.every(mode => wonModes.includes(mode))) {
+      borders.push({ ...border, label: border.label });
+    }
+  });
+  if (hasUnlockedAllProfileBorders()) {
+    borders.push({ id: 'rainbow', label: currentLanguage === 'en' ? 'Rainbow Secret' : 'Arcoíris secreto', colors: ['#ff5050', '#202833'], rainbow: true });
+  }
+  return borders;
+}
+
+function getProfileAvatarChoices() {
+  const avatars = [{
+    id: 'glob:Glob',
+    label: currentLanguage === 'en' ? 'Glob' : 'Glob',
+    image: getProfileTowerImage('Glob')
+  }];
+  if (isTowerOwned('Red_Glob')) {
+    avatars.push({
+      id: 'glob:Red_Glob',
+      label: translate(TOWER_TYPES.Red_Glob.name),
+      image: getProfileTowerImage('Red_Glob')
+    });
+  }
+  getProfileGlobFamilies().forEach(({ family, firstType, finalType }) => {
+    if (!isTowerOwned(family)) return;
+    const firstAvatarId = `glob:${firstType}`;
+    if (!avatars.some(avatar => avatar.id === firstAvatarId)) {
+      avatars.push({
+        id: firstAvatarId,
+        label: translate(TOWER_TYPES[firstType].name),
+        image: getProfileTowerImage(firstType)
+      });
+    }
+    if (isProfileRewampUnlocked(family, firstType)) {
+      const rewampSkin = getProfileRewampSkin(family, firstType);
+      avatars.push({
+        id: `glob:${firstType}:rewamp`,
+        label: `${translate(TOWER_TYPES[firstType].name)} Rewamp`,
+        image: rewampSkin.skins[firstType]
+      });
+    }
+    if (gameState.profileMaxAvatars.includes(family)) {
+      avatars.push({
+        id: `glob:${finalType}`,
+        label: translate(TOWER_TYPES[finalType].name),
+        image: getProfileTowerImage(finalType)
+      });
+    }
+    if (gameState.profileMaxRewampAvatars.includes(family) &&
+        isProfileRewampUnlocked(family, finalType)) {
+      const rewampSkin = getProfileRewampSkin(family, finalType);
+      avatars.push({
+        id: `glob:${finalType}:rewamp`,
+        label: `${translate(TOWER_TYPES[finalType].name)} Rewamp`,
+        image: rewampSkin.skins[finalType]
+      });
+    }
+  });
+  Object.keys(ENEMY_TYPES).forEach(type => {
+    if (!isProfileEnemyFramed(type)) return;
+    avatars.push({
+      id: `enemy:${type}`,
+      label: translate(ENEMY_TYPES[type].name),
+      image: ENEMY_TYPES[type].image || IMAGE_PATHS[type]
+    });
+  });
+  if (gameState.debugState === 'unlocked' ||
+      (localStorage.getItem('glob_username') || '').toLowerCase() === 'kirbytebi') {
+    avatars.push({
+      id: 'special:kirbytebi',
+      label: currentLanguage === 'en' ? 'Kirb (placeholder)' : 'Kirb (placeholder)',
+      image: IMAGE_PATHS.Omnipresent_Glob
+    });
+  }
+  if (hasUnlockedAllProfileImages()) {
+    const rainbowRewampImage = getProfileRainbowRewampImage();
+    if (rainbowRewampImage) {
+      avatars.push({
+        id: 'special:rainbow-rewamp',
+        label: currentLanguage === 'en' ? 'Rainbow Rewamp Glob' : 'Glob Rewamp Arcoíris',
+        image: rainbowRewampImage
+      });
+    }
+  }
+  return avatars;
+}
+
+function getProfileAvatarById(avatarId) {
+  return getProfileAvatarChoices().find(avatar => avatar.id === avatarId) || getProfileAvatarChoices()[0];
+}
+
+function getProfileBorderById(borderId) {
+  return getAvailableProfileBorders().find(border => border.id === borderId) ||
+    getAvailableProfileBorders()[0];
+}
+
+function renderProfileShop(container) {
+  const heading = document.createElement('div');
+  heading.className = 'profile-shop-heading';
+  heading.textContent = currentLanguage === 'en'
+    ? 'Profile collection'
+    : 'Colección de perfil';
+  container.appendChild(heading);
+
+  getProfileGlobFamilies().forEach(({ family, finalType }) => {
+    if (!isTowerOwned(family) || !gameState.maxedFamilies.includes(family)) return;
+    const variants = [{ rewamp: false, image: getProfileTowerImage(finalType) }];
+    if (isProfileRewampUnlocked(family, finalType)) {
+      variants.push({ rewamp: true, image: getProfileRewampSkin(family, finalType).skins[finalType] });
+    }
+    variants.forEach(({ rewamp, image }) => {
+      const owned = (rewamp ? gameState.profileMaxRewampAvatars : gameState.profileMaxAvatars).includes(family);
+      const card = document.createElement('div');
+      card.className = `meta-item ${owned ? 'unlocked' : ''}`;
+      card.innerHTML = `
+        <img class="profile-shop-image" src="${encodeURI(image)}" alt="">
+        <h3>${currentLanguage === 'en' ? 'Max evolution' : 'Evolución máxima'}${rewamp ? ' Rewamp' : ''}: ${translate(TOWER_TYPES[finalType].name)}</h3>
+        <p>${rewamp
+          ? (currentLanguage === 'en' ? 'Requires the Rewamp skin and maxing this family at least once.' : 'Requiere la skin Rewamp y haber maxeado esta familia al menos una vez.')
+          : (currentLanguage === 'en' ? 'Unlocked after maxing this family at least once.' : 'Disponible tras maxear esta familia al menos una vez.')}</p>
+        <div class="cost">${owned ? '✅' : '<img src="img/Tokens/PyCoin.png" width="18"> 300 + <img src="img/Tokens/DuckPass.png" width="18"> 150'}</div>
+        <button class="meta-buy-btn" ${owned || gameState.pycoins < 300 || gameState.duckPassCurrency < 150 ? 'disabled' : ''}
+          onclick="buyProfileMaxAvatar('${family}', ${rewamp})">${owned ? (currentLanguage === 'en' ? 'Owned' : 'Comprado') : translate('buy')}</button>`;
+      container.appendChild(card);
+    });
+  });
+
+  const placeholderOwned = gameState.profilePurchasedBorders.includes('placeholder');
+  const placeholderCard = document.createElement('div');
+  placeholderCard.className = `meta-item ${placeholderOwned ? 'unlocked' : ''}`;
+  placeholderCard.innerHTML = `
+    <div class="profile-placeholder-sample" aria-hidden="true"></div>
+    <h3>Placeholder</h3>
+    <p>${currentLanguage === 'en' ? 'Black background with a grey frame.' : 'Fondo negro con borde gris.'}</p>
+    <div class="cost">${placeholderOwned ? '✅' : '<img src="img/Tokens/DuckPass.png" width="18"> 250'}</div>
+    <button class="meta-buy-btn" ${placeholderOwned || gameState.duckPassCurrency < 250 ? 'disabled' : ''}
+      onclick="buyProfileBorder('placeholder')">${placeholderOwned ? (currentLanguage === 'en' ? 'Owned' : 'Comprado') : translate('buy')}</button>`;
+  container.appendChild(placeholderCard);
+
+  PROFILE_SHOP_BORDERS.forEach(border => {
+    const owned = gameState.profilePurchasedBorders.includes(border.id);
+    const card = document.createElement('div');
+    card.className = `meta-item ${owned ? 'unlocked' : ''}`;
+    card.innerHTML = `
+      <div class="profile-placeholder-sample" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};" aria-hidden="true"></div>
+      <h3>${currentLanguage === 'en' ? border.labelEn : border.label}</h3>
+      <p>${border.id === 'spooky'
+        ? (currentLanguage === 'en' ? 'Translucent green background with a dark green frame.' : 'Fondo verde translúcido con borde verde oscuro.')
+        : border.id === 'pumpkin'
+          ? (currentLanguage === 'en' ? 'Orange background with a green frame.' : 'Fondo naranja con borde verde.')
+          : (currentLanguage === 'en' ? 'A colored profile frame.' : 'Un borde de perfil de color.')}</p>
+      <div class="cost">${owned ? '✅' : `<img src="img/Tokens/DuckPass.png" width="18"> ${border.cost}`}</div>
+      <button class="meta-buy-btn" ${owned || gameState.duckPassCurrency < border.cost ? 'disabled' : ''}
+        onclick="buyProfileBorder('${border.id}')">${owned ? (currentLanguage === 'en' ? 'Owned' : 'Comprado') : translate('buy')}</button>`;
+    container.appendChild(card);
+  });
+}
+
+window.buyProfileMaxAvatar = function(family, rewamp = false) {
+  const familyInfo = getProfileGlobFamilies().find(item => item.family === family);
+  if (!familyInfo || !isTowerOwned(family) || !gameState.maxedFamilies.includes(family) ||
+      (rewamp
+        ? (!isProfileRewampUnlocked(family, familyInfo.finalType) || gameState.profileMaxRewampAvatars.includes(family))
+        : gameState.profileMaxAvatars.includes(family))) return;
+  if (gameState.pycoins < 300 || gameState.duckPassCurrency < 150) {
+    showMessage(translate('notEnoughMoney'), 'error');
+    return;
+  }
+  gameState.pycoins -= 300;
+  gameState.duckPassCurrency -= 150;
+  (rewamp ? gameState.profileMaxRewampAvatars : gameState.profileMaxAvatars).push(family);
+  drawShop();
+  updateMetaUI();
+  saveProgress();
+  showMessage(
+    rewamp
+      ? (currentLanguage === 'en' ? 'Rewamp max-evolution profile picture unlocked!' : '¡Imagen Rewamp de evolución máxima desbloqueada!')
+      : (currentLanguage === 'en' ? 'Max-evolution profile picture unlocked!' : '¡Imagen de perfil de evolución máxima desbloqueada!'),
+    'success'
+  );
+};
+
+window.buyProfileBorder = function(borderId) {
+  const shopBorder = PROFILE_SHOP_BORDERS.find(border => border.id === borderId);
+  if ((borderId !== 'placeholder' && !shopBorder) || gameState.profilePurchasedBorders.includes(borderId)) return;
+  const cost = shopBorder?.cost || 250;
+  if (gameState.duckPassCurrency < cost) {
+    showMessage(translate('notEnoughMoney'), 'error');
+    return;
+  }
+  gameState.duckPassCurrency -= cost;
+  gameState.profilePurchasedBorders.push(borderId);
+  drawShop();
+  updateMetaUI();
+  saveProgress();
+  if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+  const borderName = shopBorder
+    ? (currentLanguage === 'en' ? shopBorder.labelEn : shopBorder.label)
+    : 'Placeholder';
+  showMessage(
+    currentLanguage === 'en' ? `${borderName} profile frame unlocked!` : `¡Borde ${borderName} desbloqueado!`,
+    'success'
+  );
+};
+
+window.openUserProfile = function() {
+  drawUserProfile();
+  document.getElementById('profile-modal').style.display = 'flex';
+};
+
+window.closeUserProfile = function() {
+  closeModal('profile-modal');
+};
+
+window.equipProfileAvatar = function(avatarId) {
+  if (!getProfileAvatarChoices().some(avatar => avatar.id === avatarId)) return;
+  gameState.profileAvatar = avatarId;
+  saveProgress();
+  drawUserProfile();
+  publishMultiplayerProfile();
+};
+
+window.equipProfileBorder = function(borderId) {
+  if (!getAvailableProfileBorders().some(border => border.id === borderId)) return;
+  gameState.profileBorder = borderId;
+  saveProgress();
+  drawUserProfile();
+  publishMultiplayerProfile();
+};
+
+function drawUserProfile() {
+  const container = document.getElementById('profile-content');
+  if (!container) return;
+  const title = document.getElementById('profile-title');
+  if (title) title.textContent = currentLanguage === 'en' ? 'User profile' : 'Perfil de usuario';
+  const profileButton = document.getElementById('open-profile');
+  if (profileButton) {
+    profileButton.innerHTML = `👤 <span class="meta-btn-text">${currentLanguage === 'en' ? 'Profile' : 'Perfil'}</span>`;
+  }
+  const shopButtonLabel = document.querySelector('.profile-shop-button span');
+  if (shopButtonLabel) shopButtonLabel.textContent = currentLanguage === 'en' ? 'Profile customization shop' : 'Tienda de personalización';
+  const avatar = getProfileAvatarById(gameState.profileAvatar);
+  const border = getProfileBorderById(gameState.profileBorder);
+  if (!avatar || !border) return;
+  const username = localStorage.getItem('glob_username') || (currentLanguage === 'en' ? 'Player' : 'Jugador');
+  container.innerHTML = `
+    <div class="profile-preview">
+      <div class="profile-avatar-frame ${border.rainbow ? 'rainbow' : ''}" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};">
+        <img src="${encodeURI(avatar.image)}" alt="${avatar.label}">
+      </div>
+      <h3>${username}</h3>
+      <p>${currentLanguage === 'en' ? 'Avatar' : 'Imagen'}: ${avatar.label} · ${currentLanguage === 'en' ? 'Frame' : 'Borde'}: ${border.label}</p>
+    </div>
+    <h3>${currentLanguage === 'en' ? 'Choose an avatar' : 'Elige una imagen'}</h3>
+    <div class="profile-choice-grid">
+      ${getProfileAvatarChoices().map(choice => `
+        <button class="profile-choice ${choice.id === avatar.id ? 'selected' : ''}" type="button"
+          onclick="equipProfileAvatar('${choice.id}')">
+          <img src="${encodeURI(choice.image)}" alt=""><span>${choice.label}</span>
+        </button>`).join('')}
+    </div>
+    <h3>${currentLanguage === 'en' ? 'Choose a frame' : 'Elige un borde'}</h3>
+    <div class="profile-border-grid">
+      ${getAvailableProfileBorders().map(choice => `
+        <button class="profile-border-choice ${choice.id === border.id ? 'selected' : ''}" type="button"
+          style="--profile-border-start:${choice.colors[0]};--profile-border-end:${choice.colors[1]};"
+          onclick="equipProfileBorder('${choice.id}')">
+          <span class="profile-border-swatch ${choice.rainbow ? 'rainbow' : ''}"></span><span>${choice.label}</span>
+        </button>`).join('')}
+    </div>`;
+}
+
 function drawShop() {
   const container = document.getElementById('shop-items');
   if (!container) return;
@@ -4909,6 +5750,7 @@ function drawShop() {
       <button class="shop-tab-btn ${currentShopTab === 'gtacks' ? 'active' : ''}" onclick="switchShopTab('gtacks')">G-Tacks</button>
       <button class="shop-tab-btn ${currentShopTab === 'equip' ? 'active' : ''}" onclick="switchShopTab('equip')">${translate('shop_equip')}</button>
       <button class="shop-tab-btn ${currentShopTab === 'skins' ? 'active' : ''}" onclick="switchShopTab('skins')">${translate('shop_skins')}</button>
+      <button class="shop-tab-btn ${currentShopTab === 'profile' ? 'active' : ''}" onclick="switchShopTab('profile')">${currentLanguage === 'en' ? 'Profile' : 'Perfil'}</button>
     </div>
     <div class="shop-balance">
       <div class="balance-item"><img src="img/Tokens/PyCoin.png" width="20"> <span>${Math.floor(gameState.pycoins)} PyCoins</span></div>
@@ -5385,6 +6227,8 @@ function drawShop() {
 
       container.appendChild(spacer);
     }
+  } else if (currentShopTab === 'profile') {
+    renderProfileShop(container);
   }
 }
 
@@ -5726,6 +6570,25 @@ function drawPass() {
         <p style="font-size:0.8rem; color:#ccc; margin-bottom:10px;">${translate(skin.desc)}</p>
       </div>
       ${skin.buff && unlocked ? `<b style="color:#2ecc71;">${translate('active')}</b>` : btnHTML}`;
+    container.appendChild(el);
+  });
+
+  const profilePassHeading = document.createElement('div');
+  profilePassHeading.className = 'pass-separator';
+  profilePassHeading.innerHTML = `<h2 style="color:#79d6a0;text-align:center;margin:20px 0;">${currentLanguage === 'es' ? '👤 BORDES DE PERFIL' : '👤 PROFILE FRAMES'}</h2>`;
+  container.appendChild(profilePassHeading);
+  PROFILE_PASS_BORDERS.forEach(border => {
+    const unlocked = gameState.duckPassLevel >= border.level;
+    const el = document.createElement('div');
+    el.className = `pass-node ${unlocked ? 'unlocked' : 'locked'}`;
+    el.innerHTML = `
+      <div class="pass-level-badge">LVL ${border.level}</div>
+      <div class="pass-node-content">
+        <span class="profile-border-swatch" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};"></span>
+        <h3 style="font-size:1rem;margin-top:10px;">${currentLanguage === 'en' ? border.labelEn : border.label}</h3>
+        <p style="font-size:0.8rem;color:#ccc;margin-bottom:10px;">${currentLanguage === 'en' ? 'Profile frame unlocked at this Duck Pass level.' : 'Borde de perfil desbloqueado al alcanzar este nivel del Duck Pass.'}</p>
+      </div>
+      <b style="color:${unlocked ? '#2ecc71' : '#aaa'};">${unlocked ? (currentLanguage === 'en' ? 'UNLOCKED' : 'DESBLOQUEADO') : translate('req_level', { level: border.level })}</b>`;
     container.appendChild(el);
   });
 }
@@ -6918,6 +7781,8 @@ function activateGTack(t) {
     document.getElementById('mode-selection').style.display = 'none';
     document.getElementById('game-container').style.display = 'flex';
     document.getElementById('meta-controls').style.display = 'flex';
+    renderMultiplayerPlayerList(multiplayerPlayers);
+    applyScale();
     synchronizedMatchKey = matchKey;
     return true;
   }
@@ -7032,7 +7897,7 @@ function activateGTack(t) {
   }
 
   function applyMultiplayerAction(action) {
-    if (!action || typeof action.type !== 'string') return;
+    if (multiplayerSpectator || !action || typeof action.type !== 'string') return;
     applyingMultiplayerAction = true;
     multiplayerActionOwner = action.playerId || null;
     try {
@@ -7379,7 +8244,7 @@ function activateGTack(t) {
   }
 
   function gameLoop(timestamp = performance.now()) {
-    if (gameState.gameOver || gameState.paused) {
+    if (multiplayerSpectator || gameState.gameOver || gameState.paused) {
       requestAnimationFrame(gameLoop);
       return;
     }
@@ -8804,6 +9669,18 @@ function activateGTack(t) {
     };
     return targets[type] || 9999;
   }
+  window._isEnemyFramed = function(type) {
+    if (!ENEMY_TYPES[type]) return false;
+    if (type.startsWith('Bit')) {
+      return ['BitY1', 'BitB4', 'BitG2', 'BitP3']
+        .reduce((sum, bit) => sum + (gameState.pycesKilled[bit] || 0), 0) >= getPyceKillTarget(type);
+    }
+    if (type.startsWith('Byte')) {
+      return ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4']
+        .reduce((sum, byte) => sum + (gameState.pycesKilled[byte] || 0), 0) >= getPyceKillTarget(type);
+    }
+    return (gameState.pycesKilled[type] || 0) >= getPyceKillTarget(type);
+  };
 
   function checkPyceMorphUnlock() {
     if (!gameState.unlockedSkins.includes('pyce_morph')) {
@@ -9201,6 +10078,11 @@ function activateGTack(t) {
       if (parent.id === 'resume-game') el.textContent = currentLanguage === 'en' ? 'Resume' : 'Reanudar';
       else if (parent.classList.contains('retry-btn')) el.textContent = translate('playAgain');
     });
+    const profileButton = document.getElementById('open-profile');
+    if (profileButton) {
+      profileButton.innerHTML = `👤 <span class="meta-btn-text">${currentLanguage === 'en' ? 'Profile' : 'Perfil'}</span>`;
+    }
+    if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
     const resumeButton = document.getElementById('resume-game');
     if (resumeButton) resumeButton.innerHTML = `▶️ ${currentLanguage === 'en' ? 'Resume' : 'Reanudar'}`;
 
@@ -9476,6 +10358,9 @@ function activateGTack(t) {
 
   function chooseMapAfterGame() {
     retryGame();
+    gameState.modeConfirmed = false;
+    setMultiplayerSpectator(false);
+    renderMultiplayerPlayerList([]);
     document.getElementById('mode-selection').style.display = 'none';
     gameState.selectedIsland = null;
     renderMapSelection();
@@ -9500,6 +10385,7 @@ function activateGTack(t) {
     gameState.mode = null;
     gameState.map = null;
     gameState.modeConfirmed = false;
+    renderMultiplayerPlayerList([]);
     document.getElementById('game-over').style.display = 'none';
     document.getElementById('map-selection').style.display = 'none';
     document.getElementById('mode-selection').style.display = 'none';
@@ -9510,6 +10396,7 @@ function activateGTack(t) {
   }
 
   function endGame(victory = false) {
+    if (multiplayerSpectator) return;
     gameState.gameOver = true;
     gameState.paused = false;
     gameState.spawningActive = false;
@@ -9525,6 +10412,13 @@ function activateGTack(t) {
     if (resumeButton) resumeButton.style.display = 'none';
 
     if (victory) {
+      if (PROFILE_MAP_MODES.includes(gameState.mode) && gameState.profileMapModeWins[gameState.map]) {
+        if (!gameState.profileMapModeWins[gameState.map].includes(gameState.mode)) {
+          gameState.profileMapModeWins[gameState.map].push(gameState.mode);
+        }
+      } else if (PROFILE_MAP_MODES.includes(gameState.mode) && gameState.map) {
+        gameState.profileMapModeWins[gameState.map] = [gameState.mode];
+      }
       if (content) content.classList.add('victory');
       if (title) {
         if (gameState.mode === 'interstellar') {
@@ -9691,6 +10585,7 @@ function activateGTack(t) {
           gameState.pycoins += 400;
           gameState.duckPassCurrency += 500;
           showMessage("⭐ +400 PyCoins / +500 DuckPass", 'success');
+          publishMultiplayerProfile();
         } else {
           gameState.pycoins += 250;
           gameState.duckPassCurrency += 350;
@@ -9964,7 +10859,20 @@ function activateGTack(t) {
     } else if (currentStoryTab === 'logs') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
-        <h3 style="color:#ff69b4;">📋 Historial de Actualizaciones (GlD v4.2.2 - Responvidad y Revision. (1))</h3>
+        <h3 style="color:#75df9a;">📋 Historial de Actualizaciones (GlD v4.3.0 - ONLINE &amp; AVATARES)</h3>
+        <p style="color:#75df9a;">¡Tus partidas, tu identidad y tu estilo Glob se conectan como nunca!</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🌐 <strong style="color:#75df9a;">Multijugador online con Supabase</strong>: Crea una seed e invita a otras personas desde sus propios ordenadores. La partida se sincroniza en tiempo real mientras el anfitrión siga conectado.</li>
+          <li>🔐 <strong>Cuentas y progreso en la nube</strong>: Inicia sesión con usuario y contraseña; el progreso de cuenta, compras, emblemas y personalización se guarda asociado a tu cuenta. El modo offline mantiene su progreso local y no permite crear ni cargar seeds.</li>
+          <li>👤 <strong>Perfiles personalizables</strong>: Equipa retratos de Globs y enemigos enmarcados, y elige entre bordes de colores, bordes de mapas y estilos especiales. En las seeds verás los nombres, fotos y bordes del resto de jugadores, incluso en el aviso de entrada.</li>
+          <li>🖼️ <strong>Retratos originales y Rewamp</strong>: Glob y Glob Rojo incluyen gratis su arte original. Los retratos Rewamp requieren desbloquear la skin correspondiente; los retratos de evolución máxima se compran después de maxear la familia.</li>
+          <li>🎨 <strong>Nuevos bordes para coleccionar</strong>: Consigue bordes al avanzar por el Duck Pass, cómpralos con Duckpasses o desbloquea los especiales completando sus requisitos. Fantasmal y Calabaza cuestan 500 Duckpasses cada uno.</li>
+          <li>🌈 <strong>Rumores de coleccionista</strong>: Se dice que completar ciertas colecciones podría traer una recompensa especial, aunque nadie ha confirmado qué hay detrás.</li>
+          <li>🔑 <strong>Código nuevo</strong>: Canjea <code>ONLINE-AVATARS</code> para obtener el borde Coded.</li>
+        </ul>
+
+        <h3 style="color:#ff69b4;">📋 Historial de Actualizaciones (GlD v4.0.2 - Responvidad y Revision. (1))</h3>
         <p style="color:#ff69b4;">Pequeños misterios, respuestas más expresivas y una revisión general de la experiencia.</p>
         <h4>Novedades del Parche:</h4>
         <ul>
@@ -9975,7 +10883,7 @@ function activateGTack(t) {
         </ul>
         <p style="text-align:center; font-style:italic; color:#ff69b4; font-size:0.9rem; margin-top:20px;">Psst... prueba el código "BLOCK_QUEST" en Urbanistic Road, en Difícil o superior.</p>
 
-        <h3 style="color:#7ec850;">📋 Historial de Actualizaciones (GlD v4.2.1 - LEAFY BEACH PARTY HOTFIX)</h3>
+        <h3 style="color:#7ec850;">📋 Historial de Actualizaciones (GlD v4.0.1 - LEAFY BEACH PARTY HOTFIX)</h3>
         <p style="color:#7ec850;">Correcciones, mejoras de animación y actualizaciones visuales sin nuevas salas.</p>
         <h4>Novedades del Parche:</h4>
         <ul>
@@ -9990,7 +10898,7 @@ function activateGTack(t) {
           <li>🎮 <strong>Recompensas Anti-Normal</strong>: Todos los modos Anti-Normal ahora dan 500 PyCoins, 450 DuckPasses y XP. En Sunlight Seaside, además, +50 DuckPasses extra.</li>
         </ul>
 
-        <h3 style="color:#e3c08d;">📋 Historial de Actualizaciones (GlD v4.2.0 - LEAFY BEACH PARTY - BIG UPD4)</h3>
+        <h3 style="color:#e3c08d;">📋 Historial de Actualizaciones (GlD v4.0.0 - LEAFY BEACH PARTY - BIG UPD4)</h3>
         <p style="color:#e3c08d;">¡El verano llega con la gran playa soleada y una temática pirata inigualable!</p>
         <h4>Novedades del Parche:</h4>
         <ul>
@@ -10008,7 +10916,7 @@ function activateGTack(t) {
         </ul>
         <p style="text-align:center; font-style:italic; color:#888; font-size:0.9rem; margin-top:20px;">Psst... intenta canjear el código "SUMMERS-OVER"</p>
 
-        <h3 style="color:#4fc3f7;">📋 Historial de Actualizaciones (GlD v4.1.0 - INTERSTELLAR MENACE)</h3>
+        <h3 style="color:#4fc3f7;">📋 Historial de Actualizaciones (GlD v3.0.0 - INTERSTELLAR MENACE)</h3>
         <p style="color:#4fc3f7;">¡La amenaza cristalina ha llegado, y con ella una misión completamente nueva!</p>
         <h4>Novedades del Parche:</h4>
         <ul>
@@ -10022,7 +10930,7 @@ function activateGTack(t) {
         </ul>
         <p style="color:#ff69b4; font-size:0.82rem; margin-top:10px; font-style:italic;">🌐 Quizás para iniciar la misión necesites visitar cierto juego en agosto... <span id="interstellar-game-link"><a href="https://eithancrea.itch.io/cube-adventure" target="_blank" style="color:#4fc3f7;">Cube Adventure</a></span></p>
 
-        <h3>📋 Historial de Actualizaciones (GlD v4.0.1 - TACTICAL LOADOUT)</h3>
+        <h3>📋 Historial de Actualizaciones (GlD v2.0.1 - TACTICAL LOADOUT)</h3>
         <p>¡El sistema de equipación ha llegado para cambiar la estrategia por completo!</p>
         <h4>Novedades del Parche:</h4>
         <ul>
@@ -10030,7 +10938,7 @@ function activateGTack(t) {
           <li>⚙️ <strong>Menú Táctico</strong>: La barra de torres dentro del juego ahora se adapta para mostrar únicamente tu selección táctica.</li>
         </ul>
 
-        <h3>📋 Historial de Actualizaciones (GlD v4.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
+        <h3>📋 Historial de Actualizaciones (GlD v2.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
         <div style="text-align:center; margin: 10px 0;">
           <img src="img/Urban Road_Reborn Logo.png" alt="Urban Road Reborn Logo" style="max-width:100%; max-height:220px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
         </div>
@@ -10044,7 +10952,7 @@ function activateGTack(t) {
           <li>💎 <strong>Próximamente</strong>: Y quizás pronto lleguen las primeras skins para estas torres urbanas, pero démosle tiempo... Hay cristales en el horizonte que esperan caer muy pronto.</li>
         </ul>
 
-        <h3>📋 Historial de Actualizaciones (GlD v3.2.0 - ENCICLOPEDIA DORADA Y ATAJOS)</h3>
+        <h3>📋 Historial de Actualizaciones (GlD v1.2.0 - ENCICLOPEDIA DORADA Y ATAJOS)</h3>
         <p>¡Más formas de jugar y recompensas por completar la enciclopedia!</p>
         <h4>Novedades del Parche:</h4>
         <ul>
@@ -10057,7 +10965,7 @@ function activateGTack(t) {
           <li>💬 <strong>Rehabilitación de Diálogos</strong>: ¡Hemos añadido nuevos diálogos y dado un poco de lore oculto a los NPCs! Presta atención a lo que dicen durante las oleadas o cuando aparecen jefes.</li>
         </ul>
 
-        <h3>📋 Historial de Actualizaciones (GlD v3.1.0 - ENCICLOPEDIA VIVIENTE Y PERSONALIDAD DIALOGADA)</h3>
+        <h3>📋 Historial de Actualizaciones (GlD v1.1.0 - ENCICLOPEDIA VIVIENTE Y PERSONALIDAD DIALOGADA)</h3>
         <p>¡Los enemigos cobran vida y los misterios del sistema se revelan!</p>
         
         <h4>Novedades del Parche:</h4>
@@ -10068,7 +10976,7 @@ function activateGTack(t) {
           <li>🔧 <strong>Correcciones Menores</strong>: Los nombres y estadísticas se han estandarizado según los archivos originales del juego.</li>
         </ul>
 
-        <h3>📋 Historial de Actualizaciones (GlD v3.0.0 - LANZAMIENTO)</h3>
+        <h3>📋 Historial de Actualizaciones (GlD v1.0.0 - LANZAMIENTO)</h3>
         <p>¡El esperado lanzamiento oficial con mejoras visuales y colaboraciones exclusivas!</p>
 
         <h4>Novedades del Parche:</h4>
@@ -10079,13 +10987,26 @@ function activateGTack(t) {
           <li>🎁 <strong>Muchos códigos nuevos</strong>: Encuéntralos por ahí ocultos o simplemente usa tu imaginación.</li>
         </ul>
 
-        <h3>📋 Versiones Pre-Lanzamiento (v2.x.x y anteriores)</h3>
+        <h3>📋 Versiones Pre-Lanzamiento (v0.x.x y anteriores)</h3>
         <p>Se realizaron múltiples pruebas durante la fase beta, añadiendo sistemas como G-Tacks, modos de historia, y reajustes del progreso general para dar forma a lo que hoy es Glob Defenders.</p>
         <p style="text-align:center; font-style:italic; color:#888; font-size:0.9rem; margin-top:20px;">Psst... intenta canjear el código "GLOBS-ARE-AWESOME"</p>
       `;
       } else {
         container.innerHTML = `
-        <h3 style="color:#ff69b4;">📋 Update Logs (GlD v4.2.2 - Responvidad y Revision. (1))</h3>
+        <h3 style="color:#75df9a;">📋 Update Logs (GlD v4.3.0 - ONLINE &amp; AVATARS)</h3>
+        <p style="color:#75df9a;">Your matches, identity and Glob style are more connected than ever!</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🌐 <strong style="color:#75df9a;">Supabase online multiplayer</strong>: Create a seed and invite other players from their own computers. Matches synchronize in real time while the host remains connected.</li>
+          <li>🔐 <strong>Accounts and cloud progress</strong>: Sign in with a username and password; account progress, purchases, badges and profile customization are saved to your account. Offline progress stays local, and offline play cannot create or join seeds.</li>
+          <li>👤 <strong>Custom profiles</strong>: Equip Glob portraits and framed-enemy portraits, then choose from colored, map-themed and special frames. Seeds show every player's name, portrait and frame, including the join notification.</li>
+          <li>🖼️ <strong>Original and Rewamp portraits</strong>: Glob and Red Glob include their original artwork for free. Rewamp portraits require the corresponding skin; max-evolution portraits can be purchased after maxing the family.</li>
+          <li>🎨 <strong>More frames to collect</strong>: Earn frames through Duck Pass levels, buy them with Duckpasses, or unlock special styles by completing their requirements. Spooky and Pumpkin each cost 500 Duckpasses.</li>
+          <li>🌈 <strong>Collector rumors</strong>: Some say completing certain collections may bring a special reward, though no one has confirmed what lies behind them.</li>
+          <li>🔑 <strong>New code</strong>: Redeem <code>ONLINE-AVATARS</code> to get the Coded frame.</li>
+        </ul>
+
+        <h3 style="color:#ff69b4;">📋 Update Logs (GlD v4.0.2 - Responvidad y Revision. (1))</h3>
         <p style="color:#ff69b4;">Small mysteries, more expressive replies, and a general pass over the experience.</p>
         <h4>What's New in this Patch:</h4>
         <ul>
@@ -10096,7 +11017,7 @@ function activateGTack(t) {
         </ul>
         <p style="text-align:center; font-style:italic; color:#ff69b4; font-size:0.9rem; margin-top:20px;">Psst... try the code "BLOCK_QUEST" on Urbanistic Road, Hard difficulty or higher.</p>
 
-        <h3 style="color:#7ec850;">📋 Update Logs (GlD v4.2.1 - LEAFY BEACH PARTY HOTFIX)</h3>
+        <h3 style="color:#7ec850;">📋 Update Logs (GlD v4.0.1 - LEAFY BEACH PARTY HOTFIX)</h3>
         <p style="color:#7ec850;">Fixes, animation improvements and visual updates — no new stages.</p>
         <h4>What's New in this Patch:</h4>
         <ul>
@@ -10111,7 +11032,7 @@ function activateGTack(t) {
           <li>🎮 <strong>Anti-Normal rewards</strong>: All Anti-Normal modes now award 500 PyCoins, 450 DuckPasses and XP. On Sunlight Seaside an additional +50 DuckPasses are granted.</li>
         </ul>
 
-        <h3 style="color:#e3c08d;">📋 Update Logs (GlD v4.2.0 - LEAFY BEACH PARTY - BIG UPD4)</h3>
+        <h3 style="color:#e3c08d;">📋 Update Logs (GlD v4.0.0 - LEAFY BEACH PARTY - BIG UPD4)</h3>
         <p style="color:#e3c08d;">Summer arrives with the great sunny beach and an unparalleled pirate theme!</p>
         <h4>What's New in this Patch:</h4>
         <ul>
@@ -10129,7 +11050,7 @@ function activateGTack(t) {
         </ul>
         <p style="text-align:center; font-style:italic; color:#888; font-size:0.9rem; margin-top:20px;">Psst... try redeeming the code "SUMMERS-OVER"</p>
 
-        <h3 style="color:#4fc3f7;">📋 Update Logs (GlD v4.1.0 - INTERSTELLAR MENACE)</h3>
+        <h3 style="color:#4fc3f7;">📋 Update Logs (GlD v3.0.0 - INTERSTELLAR MENACE)</h3>
         <p style="color:#4fc3f7;">The crystal threat has arrived, and with it a brand new quest!</p>
         <h4>What's New in this Patch:</h4>
         <ul>
@@ -10143,7 +11064,7 @@ function activateGTack(t) {
         </ul>
         <p style="color:#ff69b4; font-size:0.82rem; margin-top:10px; font-style:italic;">🌐 Maybe to start the mission you'll need to visit a certain game in August... <span id="interstellar-game-link-en"><a href="https://eithancrea.itch.io/cube-adventure" target="_blank" style="color:#4fc3f7;">Cube Adventure</a></span></p>
 
-        <h3>📋 Update Logs (GlD v4.0.1 - TACTICAL LOADOUT)</h3>
+        <h3>📋 Update Logs (GlD v2.0.1 - TACTICAL LOADOUT)</h3>
         <p>The equipment system has arrived to completely change the strategy!</p>
         <h4>What's New in this Patch:</h4>
         <ul>
@@ -10151,7 +11072,7 @@ function activateGTack(t) {
           <li>⚙️ <strong>Tactical Menu</strong>: The in-game tower bar now adapts to show only your tactical selection.</li>
         </ul>
 
-        <h3>📋 Update Logs (GlD v4.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
+        <h3>📋 Update Logs (GlD v2.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
         <div style="text-align:center; margin: 10px 0;">
           <img src="img/Urban Road_Reborn Logo.png" alt="Urban Road Reborn Logo" style="max-width:100%; max-height:220px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
         </div>
@@ -10165,7 +11086,7 @@ function activateGTack(t) {
           <li>💎 <strong>Coming Soon</strong>: And maybe the first skins for these urban towers will arrive soon, but let's give it time... There are crystals on the horizon waiting to fall very soon.</li>
         </ul>
 
-        <h3>📋 Update Logs (GlD v3.2.0 - GOLDEN ENCYCLOPEDIA & HOTKEYS)</h3>
+        <h3>📋 Update Logs (GlD v1.2.0 - GOLDEN ENCYCLOPEDIA & HOTKEYS)</h3>
         <p>More ways to play and rewards for completing the encyclopedia!</p>
         <h4>What's New in this Patch:</h4>
         <ul>
@@ -10178,7 +11099,7 @@ function activateGTack(t) {
           <li>💬 <strong>Dialogue Rehabilitation</strong>: We added new dialogues and even some hidden lore from NPCs! Pay close attention to what they say during waves or when bosses appear.</li>
         </ul>
 
-        <h3>📋 Update Logs (GlD v3.1.0 - LIVING ENCYCLOPEDIA AND DIALOGUED PERSONALITY)</h3>
+        <h3>📋 Update Logs (GlD v1.1.0 - LIVING ENCYCLOPEDIA AND DIALOGUED PERSONALITY)</h3>
         <p>The enemies come to life and the system's mysteries are revealed!</p>
         
         <h4>What's New in this Patch:</h4>
@@ -10189,7 +11110,7 @@ function activateGTack(t) {
           <li>🔧 <strong>Minor Fixes</strong>: Names and stats have been standardized according to the original game files.</li>
         </ul>
 
-        <h3>📋 Update Logs (GlD v3.0.0 - LAUNCH)</h3>
+        <h3>📋 Update Logs (GlD v1.0.0 - LAUNCH)</h3>
         <p>The highly anticipated official launch featuring visual overhauls and exclusive collaborations!</p>
 
         <h4>What's New in this Patch:</h4>
@@ -10200,7 +11121,7 @@ function activateGTack(t) {
           <li>🎁 <strong>Many new codes</strong>: Find them hidden around or simply use your imagination.</li>
         </ul>
 
-        <h3>📋 Pre-Launch Versions (v2.x.x and older)</h3>
+        <h3>📋 Pre-Launch Versions (v0.x.x and older)</h3>
         <p>Multiple tests were performed during the beta phase, adding systems like G-Tacks, story modes, and overall progression rebalances to shape Glob Defenders into what it is today.</p>
         <p style="text-align:center; font-style:italic; color:#888; font-size:0.9rem; margin-top:20px;">Psst... try redeeming the code "GLOBS-ARE-AWESOME"</p>
       `;
