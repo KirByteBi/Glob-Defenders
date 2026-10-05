@@ -1228,6 +1228,7 @@ const IMAGE_PATHS = {
   'Cotton_Glob': 'img/Cotton_Glob.png',
   'ElectroClean_Glob': 'img/ElectroClean Glob (EVO3).png',
   'Omnipresent_Glob': 'Spooks in the Desert (UPD4)/PLACEHOLDERS/Omnipresent Glob (PLACEHOLDER).png',
+  'Kirb_Glob': 'Spooks in the Desert (UPD4)/KirByte (GOD)/Kirb (GOD).png',
   'Broksp': 'Spooks in the Desert (UPD4)/Enemigos/Broksp.png',
   'Pumpitch': 'Spooks in the Desert (UPD4)/Enemigos/Pumpitch.png',
   'RIPslide': 'Spooks in the Desert (UPD4)/Enemigos/RIPslide.png',
@@ -2113,8 +2114,8 @@ const SKINS_DATA = {
       },
       rgbTypes: ['Glob', 'Poop_Glob', 'Golden_Glob', 'Rainbow_Glob'],
       names: {
-        'Glob': 'GreenRGBSR1',
-        'Rainbow_Glob': 'GreenRGBSR4'
+        'Glob': 'RGreenB1',
+        'Rainbow_Glob': 'RGreenB4'
       }
     },
     {
@@ -2160,8 +2161,8 @@ const SKINS_DATA = {
       },
       rgbTypes: ['Red_Glob', 'Molten_Glob', 'Robotic_Glob'],
       names: {
-        'Red_Glob': 'RedRGBSR1',
-        'Robotic_Glob': 'RedRGBSR3'
+        'Red_Glob': 'RedGB1',
+        'Robotic_Glob': 'RedGB3'
       }
     },
     {
@@ -2212,8 +2213,8 @@ const SKINS_DATA = {
       },
       rgbTypes: ['Soap_Glob', 'Cotton_Glob', 'ElectroClean_Glob'],
       names: {
-        'Soap_Glob': 'BlueRGBSR1',
-        'ElectroClean_Glob': 'BlueRGBSR3'
+        'Soap_Glob': 'RGBlue1',
+        'ElectroClean_Glob': 'RGBlue3'
       }
     }
   ],
@@ -2492,12 +2493,12 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Set Azul Remasterizado",
   "skin_rewamped_blue_desc": "Una versión mejorada visualmente de la familia azul original.",
-  "skin_green_rgb_sr_name": "Green RGB Secret Rewamp",
-  "skin_green_rgb_sr_desc": "El primer y último nivel del Rewamp verde con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil.",
-  "skin_red_rgb_sr_name": "Red RGB Secret Rewamp",
-  "skin_red_rgb_sr_desc": "El primer y último nivel del Rewamp rojo con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil.",
-  "skin_blue_rgb_sr_name": "Blue RGB Secret Rewamp",
-  "skin_blue_rgb_sr_desc": "El primer y último nivel del Rewamp azul con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil."
+  "skin_green_rgb_sr_name": "RGB Verde Secreto",
+  "skin_green_rgb_sr_desc": "La primera y última evolución del Rewamp verde con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RGreenB. Curiosidad: las familias Verde, Roja y Azul son las familias originales de Globs y las primeras en recibir skins Rewamp.",
+  "skin_red_rgb_sr_name": "RGB Rojo Secreto",
+  "skin_red_rgb_sr_desc": "La primera y última evolución del Rewamp rojo con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RedGB. Curiosidad: las familias Verde, Roja y Azul son las familias originales de Globs y las primeras en recibir skins Rewamp.",
+  "skin_blue_rgb_sr_name": "RGB Azul Secreto",
+  "skin_blue_rgb_sr_desc": "La primera y última evolución del Rewamp azul con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RGBlue. Curiosidad: las familias Verde, Roja y Azul son las familias originales de Globs y las primeras en recibir skins Rewamp."
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
@@ -2536,11 +2537,11 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_rewamped_blue_name": "Remastered Blue Set",
   "skin_rewamped_blue_desc": "A visually improved version of the original blue family.",
   "skin_green_rgb_sr_name": "Green RGB Secret Rewamp",
-  "skin_green_rgb_sr_desc": "The first and final levels of the green Rewamp with an animated RGB effect. Unlock by collecting every profile image.",
+  "skin_green_rgb_sr_desc": "The first and final levels of the green Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RGreenB. Fun fact: Green, Red, and Blue are the original Glob families and the first families to receive Rewamp skins.",
   "skin_red_rgb_sr_name": "Red RGB Secret Rewamp",
-  "skin_red_rgb_sr_desc": "The first and final levels of the red Rewamp with an animated RGB effect. Unlock by collecting every profile image.",
+  "skin_red_rgb_sr_desc": "The first and final levels of the red Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RedGB. Fun fact: Green, Red, and Blue are the original Glob families and the first families to receive Rewamp skins.",
   "skin_blue_rgb_sr_name": "Blue RGB Secret Rewamp",
-  "skin_blue_rgb_sr_desc": "The first and final levels of the blue Rewamp with an animated RGB effect. Unlock by collecting every profile image."
+  "skin_blue_rgb_sr_desc": "The first and final levels of the blue Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RGBlue. Fun fact: Green, Red, and Blue are the original Glob families and the first families to receive Rewamp skins."
 });
 
 window.SKIN_META = window.SKIN_META || {};

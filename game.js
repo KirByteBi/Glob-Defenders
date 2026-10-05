@@ -1089,6 +1089,7 @@ let gameState = {
   maxedFamilies: [],
   profileMaxAvatars: [],
   profileMaxRewampAvatars: [],
+  profileSpecialAvatars: [],
   profileAvatar: 'glob:Glob',
   profileBorder: 'default',
   profilePurchasedBorders: [],
@@ -1559,6 +1560,7 @@ function saveProgress() {
     maxedFamilies: gameState.maxedFamilies || [],
     profileMaxAvatars: gameState.profileMaxAvatars || [],
     profileMaxRewampAvatars: gameState.profileMaxRewampAvatars || [],
+    profileSpecialAvatars: gameState.profileSpecialAvatars || [],
     profileAvatar: gameState.profileAvatar || 'glob:Glob',
     profileBorder: gameState.profileBorder || 'default',
     profilePurchasedBorders: gameState.profilePurchasedBorders || [],
@@ -1702,6 +1704,7 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.maxedFamilies = progress.maxedFamilies || [];
       gameState.profileMaxAvatars = progress.profileMaxAvatars || [];
       gameState.profileMaxRewampAvatars = progress.profileMaxRewampAvatars || [];
+      gameState.profileSpecialAvatars = progress.profileSpecialAvatars || [];
       gameState.profileAvatar = progress.profileAvatar || 'glob:Glob';
       gameState.profileBorder = progress.profileBorder || 'default';
       gameState.profilePurchasedBorders = progress.profilePurchasedBorders || [];
@@ -1878,6 +1881,23 @@ async function startGameSession(username, offline, accountId = null) {
     localStorage.setItem('glob_offline_mode', 'true');
   } else {
     localStorage.removeItem('glob_offline_mode');
+  }
+  if (!offline && localStorage.getItem('glob_placeholder_glob_pending') === 'true') {
+    gameState.profileSpecialAvatars = gameState.profileSpecialAvatars || [];
+    if (!gameState.profileSpecialAvatars.includes('placeholder-glob')) {
+      gameState.profileSpecialAvatars.push('placeholder-glob');
+      localStorage.removeItem('glob_placeholder_glob_pending');
+      saveProgress();
+      const loginMessage = document.getElementById('login-msg');
+      if (loginMessage) {
+        loginMessage.textContent = currentLanguage === 'en'
+          ? 'Placeholder Glob has been unlocked for this account!'
+          : '¡Placeholder Glob se ha desbloqueado para esta cuenta!';
+        loginMessage.style.color = '#2ecc71';
+      }
+    } else {
+      localStorage.removeItem('glob_placeholder_glob_pending');
+    }
   }
   offlineModeActive = offline;
   updateRoleIndicator();
@@ -2263,6 +2283,23 @@ let mysteryBugRecentMessages = [];
 
 function handleLogoClick(logo) {
   gameState.logoClicks++;
+  if (logo.classList.contains('login-logo') &&
+      document.getElementById('login-screen')?.style.display !== 'none') {
+    const clickCount = Number(localStorage.getItem('glob_placeholder_glob_login_clicks') || 0) + 1;
+    if (clickCount >= 637) {
+      localStorage.removeItem('glob_placeholder_glob_login_clicks');
+      localStorage.setItem('glob_placeholder_glob_pending', 'true');
+      const loginMessage = document.getElementById('login-msg');
+      if (loginMessage) {
+        loginMessage.textContent = currentLanguage === 'en'
+          ? 'Secret unlocked! Sign in online to add Placeholder Glob to that account.'
+          : '¡Secreto desbloqueado! Inicia sesión online para añadir Placeholder Glob a esa cuenta.';
+        loginMessage.style.color = '#2ecc71';
+      }
+    } else {
+      localStorage.setItem('glob_placeholder_glob_login_clicks', String(clickCount));
+    }
+  }
   logo.classList.remove('glitch-effect');
   void logo.offsetWidth;
   logo.classList.add('glitch-effect');
@@ -5549,7 +5586,11 @@ function getAvailableProfileBorders() {
   }
   if (gameState.debugState === 'unlocked' ||
       (localStorage.getItem('glob_username') || '').toLowerCase() === 'kirbytebi') {
-    borders.push({ id: 'kirb', label: 'Kirb', colors: ['#a8ef9c', '#ffb8dc'] });
+    borders.push({
+      id: 'kirb',
+      label: currentLanguage === 'en' ? 'Binary Love' : 'Amor Binario',
+      colors: ['#a8ef9c', '#ffb8dc']
+    });
   }
   if (gameState.profilePurchasedBorders.includes('placeholder')) {
     borders.push({ id: 'placeholder', label: 'Placeholder', colors: ['#777777', '#050505'] });
@@ -5648,7 +5689,15 @@ function getProfileAvatarChoices() {
       (localStorage.getItem('glob_username') || '').toLowerCase() === 'kirbytebi') {
     avatars.push({
       id: 'special:kirbytebi',
-      label: currentLanguage === 'en' ? 'Kirb (placeholder)' : 'Kirb (placeholder)',
+      label: currentLanguage === 'en' ? 'Kirb' : 'Kirb',
+      image: IMAGE_PATHS.Kirb_Glob
+    });
+  }
+  if (gameState.debugState === 'unlocked' ||
+      gameState.profileSpecialAvatars.includes('placeholder-glob')) {
+    avatars.push({
+      id: 'special:placeholder-glob',
+      label: 'Placeholder Glob',
       image: IMAGE_PATHS.Omnipresent_Glob
     });
   }

@@ -76,8 +76,10 @@ and 60, or bought with Duckpasses. Spooky and Pumpkin each cost 500
 Duckpasses. Special frames with themed backgrounds unlock through their
 specified achievements or purchase: Interstellar and map frames require their
 respective victories, Placeholder costs 250 Duckpasses, and the
-`ONLINE-AVATARS` code unlocks Coded. Kirb's pink/green frame is reserved for the
-KirByteBi username. There are also rumors of a reward for completing every
+`ONLINE-AVATARS` code unlocks Coded. The pink/green Binary Love frame and Kirb
+portrait are reserved for KirByteBi (debug mode can unlock all profile items).
+Placeholder Glob has a separate hidden unlock. There are also rumors of a
+reward for completing every
 available profile-frame challenge.
 
 Glob-family portraits unlock when the family is owned; the original portrait
@@ -92,8 +94,10 @@ use their original, non-Rewamp artwork. There are also rumors of a hidden
 reward for players who complete their collections.
 
 Collecting every available profile image also unlocks the animated RGB effects
-for all levels of the Green, Red, and Blue Secret Rewamp skins. The profile
-offers RGB portraits for each family's first and final level.
+for the Green, Red, and Blue Secret Rewamp skins. Their original skin names
+remain unchanged; RGreenB, RedGB, and RGBlue are honorific names mentioned in
+their descriptions. Fun fact: Green, Red, and Blue are the original Glob
+families and the first families to receive Rewamp skins.
 
 ---
 
