@@ -52,10 +52,17 @@ account fallback remain separate in `db.js`.
 The game website uses Supabase Auth directly for online username/password sign-in;
 players do not provide a real email address. The username is mapped internally
 to a non-deliverable Supabase Auth email identity. In the Supabase dashboard,
-enable the Email provider, disable email confirmation, configure the project's
-allowed redirect URLs and Site URL for the website, and run the root
+enable the Email provider and disable **Confirm email** under
+**Authentication > Providers > Email**. Otherwise Supabase attempts to send
+confirmation emails to the non-deliverable username identities and may reject
+signups with an email rate-limit error. Configure the project's allowed redirect
+URLs and Site URL for the website, and run the root
 `supabase-progress-schema.sql` script in the SQL Editor. The script creates a `player_progress` table with row-level
 security, so authenticated users can read and write only their own save.
+
+If signups still hit an email rate limit with confirmation disabled, wait for
+Supabase's limit to reset or configure custom SMTP in the Supabase dashboard.
+The game cannot increase or bypass Supabase Auth's email limits.
 
 Only the project's HTTPS URL and publishable key belong in the browser
 configuration. Never put a Supabase secret or service-role key in the game.

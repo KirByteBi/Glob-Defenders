@@ -83,10 +83,17 @@ available profile-frame challenge.
 Glob-family portraits unlock when the family is owned; the original portrait
 is separate from its Rewamp portrait, which requires the corresponding Rewamp
 skin. The max-evolution portrait is available after maxing that family once
-and costs 300 PyCoins plus 150 Duckpasses for each available style. Enemy
-portraits unlock when that enemy is framed in the encyclopedia. The free Glob
-and Red Glob portraits use their original, non-Rewamp artwork. There are also
-rumors of a hidden reward for players who complete their collections.
+and costs 300 PyCoins plus 150 Duckpasses for each available style. In
+multiform enemy families, the base portrait unlocks after reaching the family's
+total kill target across all its forms; each alternate portrait requires at
+least one quarter of that target in kills for that specific form. Identical
+artwork is represented by one portrait. The free Glob and Red Glob portraits
+use their original, non-Rewamp artwork. There are also rumors of a hidden
+reward for players who complete their collections.
+
+Collecting every available profile image also unlocks the animated RGB effects
+for all levels of the Green, Red, and Blue Secret Rewamp skins. The profile
+offers RGB portraits for each family's first and final level.
 
 ---
 

@@ -170,9 +170,20 @@ const TRANSLATIONS = {
     enemy_Strechy_Pyce_desc: "Un Pyce con forma de robloxiano que muy a pesar de dictar que NO SERIA un Pyce, pues lo acabo siendo, vistiendose como uno. ¿O acaso eso no son ropas? ¿Ah no, que es un Pyce y no un cosplay? Ayayay... En fin, es mas amable que cualquier Pyce supuestamente.",
     enemy_Rebel_Pyce_desc: "Nacido en Bitlands como clon del Pyce 2.0, este rebelde pintarrajea y grafitea por la ciudad cuando se le da la gana y se escabulle... Para ser una copia, es muy distinto al original y no para quieto!",
     enemy_Spyware_name: "Spyware",
+    enemy_Spyware1_name: "Spyware 1",
+    enemy_Spyware2_name: "Spyware 2",
+    enemy_Spyware3_name: "Spyware 3",
     enemy_Spyware_desc: "Pese a ser familiares de los Bits, la función de estos espías es simple, entrar en el casino y robar tanta información como puedan... Pertenecen a una organización un tanto dudosa, que crea distintos seres digitales a la realidad.",
     enemy_Bit_name: "Bit",
+    enemy_BitY1_name: "Bit Amarillo",
+    enemy_BitB4_name: "Bit Azul",
+    enemy_BitG2_name: "Bit Verde",
+    enemy_BitP3_name: "Bit Morado",
     enemy_Byte_name: "Byte",
+    enemy_ByteGB1_name: "Byte Verde-Azul",
+    enemy_ByteYP2_name: "Byte Amarillo-Morado",
+    enemy_BytePG3_name: "Byte Morado-Verde",
+    enemy_ByteYB4_name: "Byte Amarillo-Azul",
     enemy_BitY1_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Feliz)",
     enemy_BitB4_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Enfadada)",
     enemy_BitG2_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Tranquila)",
@@ -764,9 +775,20 @@ const TRANSLATIONS = {
     enemy_Strechy_Pyce_desc: "A Pyce in the shape of a Robloxian that, despite dictating that it WOULD NOT BE a Pyce, ended up being one, dressing like one. Or are those not clothes? Oh, it's a Pyce and not a cosplay? Oh my... Anyway, it's supposedly friendlier than any Pyce.",
     enemy_Rebel_Pyce_desc: "Born in Bitlands as a clone of Pyce 2.0, this rebel paints and graffitis around the city whenever it wants and sneaks away... For a copy, it's very different from the original and won't stay still!",
     enemy_Spyware_name: "Spyware",
+    enemy_Spyware1_name: "Spyware 1",
+    enemy_Spyware2_name: "Spyware 2",
+    enemy_Spyware3_name: "Spyware 3",
     enemy_Spyware_desc: "Despite being related to Bits, the function of these spies is simple: enter the casino and steal as much information as they can... They belong to a somewhat dubious organization that creates different digital beings from reality.",
     enemy_Bit_name: "Bit",
+    enemy_BitY1_name: "Yellow Bit",
+    enemy_BitB4_name: "Blue Bit",
+    enemy_BitG2_name: "Green Bit",
+    enemy_BitP3_name: "Purple Bit",
     enemy_Byte_name: "Byte",
+    enemy_ByteGB1_name: "Green-Blue Byte",
+    enemy_ByteYP2_name: "Yellow-Purple Byte",
+    enemy_BytePG3_name: "Purple-Green Byte",
+    enemy_ByteYB4_name: "Yellow-Blue Byte",
     enemy_BitY1_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Happy Variant)",
     enemy_BitB4_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Angry Variant)",
     enemy_BitG2_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Calm Variant)",
@@ -1755,19 +1777,19 @@ const ENEMY_TYPES = {
   'Rebel_Pyce': { name: 'enemy_Rebel_Pyce_name', desc: 'enemy_Rebel_Pyce_desc', health: 150, speed: 2.8, reward: 45, image: IMAGE_PATHS.Rebel_Pyce },
   
   // Gambling Enemies
-  'BitY1': { name: 'enemy_Bit_name', desc: 'enemy_BitY1_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitY1, category: 'gambling' },
-  'BitB4': { name: 'enemy_Bit_name', desc: 'enemy_BitB4_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitB4, category: 'gambling' },
-  'BitG2': { name: 'enemy_Bit_name', desc: 'enemy_BitG2_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitG2, category: 'gambling' },
-  'BitP3': { name: 'enemy_Bit_name', desc: 'enemy_BitP3_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitP3, category: 'gambling' },
-  'ByteGB1': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteGB1, category: 'gambling' },
-  'ByteYP2': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYP2, category: 'gambling' },
-  'BytePG3': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.BytePG3, category: 'gambling' },
-  'ByteYB4': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYB4, category: 'gambling' },
+  'BitY1': { name: 'enemy_BitY1_name', desc: 'enemy_BitY1_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitY1, category: 'gambling' },
+  'BitB4': { name: 'enemy_BitB4_name', desc: 'enemy_BitB4_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitB4, category: 'gambling' },
+  'BitG2': { name: 'enemy_BitG2_name', desc: 'enemy_BitG2_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitG2, category: 'gambling' },
+  'BitP3': { name: 'enemy_BitP3_name', desc: 'enemy_BitP3_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitP3, category: 'gambling' },
+  'ByteGB1': { name: 'enemy_ByteGB1_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteGB1, category: 'gambling' },
+  'ByteYP2': { name: 'enemy_ByteYP2_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYP2, category: 'gambling' },
+  'BytePG3': { name: 'enemy_BytePG3_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.BytePG3, category: 'gambling' },
+  'ByteYB4': { name: 'enemy_ByteYB4_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYB4, category: 'gambling' },
   'Fireflies': { name: 'enemy_Fireflies_name', desc: 'enemy_Fireflies_desc', health: 30, speed: 1.8, reward: 20, image: IMAGE_PATHS.Fireflies, category: 'gambling', fireImmune: true },
   'Spyware': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling', stealth: true },
-  'Spyware1': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling', stealth: true },
-  'Spyware2': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware2, category: 'gambling', stealth: true },
-  'Spyware3': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware3, category: 'gambling', stealth: true },
+  'Spyware1': { name: 'enemy_Spyware1_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling', stealth: true },
+  'Spyware2': { name: 'enemy_Spyware2_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware2, category: 'gambling', stealth: true },
+  'Spyware3': { name: 'enemy_Spyware3_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware3, category: 'gambling', stealth: true },
   'Arky': { name: 'enemy_Arky_name', desc: 'enemy_Arky_desc', mechanic_key: 'mechanic_arky', health: 1000, speed: 0.4, reward: 1000, image: IMAGE_PATHS.Arky, boss: true, arkyType: 'normal', category: 'gambling', shieldRatio: 0.4 },
   'CrystArky': { name: 'enemy_CrystArky_name', desc: 'enemy_CrystArky_desc', mechanic_key: 'mechanic_crystarky', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.CrystArky, boss: true, arkyType: 'crystal', category: 'gambling', shieldRatio: 0.2 },
   'ArkyVoid': { name: 'enemy_ArkyVoid_name', desc: 'enemy_ArkyVoid_desc', mechanic_key: 'mechanic_arkyvoid', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.ArkyVoid, boss: true, arkyType: 'void', category: 'gambling', shieldRatio: 0.4 },
@@ -2082,6 +2104,20 @@ const SKINS_DATA = {
       }
     },
     {
+      id: 'green_rgb_sr', name: 'skin_green_rgb_sr_name', desc: 'skin_green_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
+        'Poop_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO2.png',
+        'Golden_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO3.png',
+        'Rainbow_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO4.png'
+      },
+      rgbTypes: ['Glob', 'Poop_Glob', 'Golden_Glob', 'Rainbow_Glob'],
+      names: {
+        'Glob': 'GreenRGBSR1',
+        'Rainbow_Glob': 'GreenRGBSR4'
+      }
+    },
+    {
       id: 'military_set', name: 'skin_military_name', desc: 'skin_military_desc', cost: 350, type: 'pycoin',
       skins: {
         'Glob': 'img/Skins/Verde Base/Untrained Glob (SK-EVO1).png',
@@ -2113,6 +2149,19 @@ const SKINS_DATA = {
         'Red_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO1.png',
         'Molten_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO2.png',
         'Robotic_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO3.png'
+      }
+    },
+    {
+      id: 'red_rgb_sr', name: 'skin_red_rgb_sr_name', desc: 'skin_red_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Red_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO1.png',
+        'Molten_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO2.png',
+        'Robotic_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO3.png'
+      },
+      rgbTypes: ['Red_Glob', 'Molten_Glob', 'Robotic_Glob'],
+      names: {
+        'Red_Glob': 'RedRGBSR1',
+        'Robotic_Glob': 'RedRGBSR3'
       }
     },
     {
@@ -2152,6 +2201,19 @@ const SKINS_DATA = {
         'Soap_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
         'Cotton_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
         'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
+      }
+    },
+    {
+      id: 'blue_rgb_sr', name: 'skin_blue_rgb_sr_name', desc: 'skin_blue_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Soap_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
+        'Cotton_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
+        'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
+      },
+      rgbTypes: ['Soap_Glob', 'Cotton_Glob', 'ElectroClean_Glob'],
+      names: {
+        'Soap_Glob': 'BlueRGBSR1',
+        'ElectroClean_Glob': 'BlueRGBSR3'
       }
     }
   ],
@@ -2429,7 +2491,13 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Set Azul Remasterizado",
-  "skin_rewamped_blue_desc": "Una versión mejorada visualmente de la familia azul original."
+  "skin_rewamped_blue_desc": "Una versión mejorada visualmente de la familia azul original.",
+  "skin_green_rgb_sr_name": "Green RGB Secret Rewamp",
+  "skin_green_rgb_sr_desc": "El primer y último nivel del Rewamp verde con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil.",
+  "skin_red_rgb_sr_name": "Red RGB Secret Rewamp",
+  "skin_red_rgb_sr_desc": "El primer y último nivel del Rewamp rojo con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil.",
+  "skin_blue_rgb_sr_name": "Blue RGB Secret Rewamp",
+  "skin_blue_rgb_sr_desc": "El primer y último nivel del Rewamp azul con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil."
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
@@ -2466,7 +2534,13 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Frogs that fish and grow... But their lily pads do deal damage!<br><span style='font-size:0.8em; color: teal;'>Skin designed and drawn by \"Victorillo\", current artwork by KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Remastered Blue Set",
-  "skin_rewamped_blue_desc": "A visually improved version of the original blue family."
+  "skin_rewamped_blue_desc": "A visually improved version of the original blue family.",
+  "skin_green_rgb_sr_name": "Green RGB Secret Rewamp",
+  "skin_green_rgb_sr_desc": "The first and final levels of the green Rewamp with an animated RGB effect. Unlock by collecting every profile image.",
+  "skin_red_rgb_sr_name": "Red RGB Secret Rewamp",
+  "skin_red_rgb_sr_desc": "The first and final levels of the red Rewamp with an animated RGB effect. Unlock by collecting every profile image.",
+  "skin_blue_rgb_sr_name": "Blue RGB Secret Rewamp",
+  "skin_blue_rgb_sr_desc": "The first and final levels of the blue Rewamp with an animated RGB effect. Unlock by collecting every profile image."
 });
 
 window.SKIN_META = window.SKIN_META || {};

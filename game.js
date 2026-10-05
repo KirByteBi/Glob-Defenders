@@ -36,6 +36,17 @@ const RARE_ENEMY_WAVE_SPAWN_CHANCE = 0.3;
 const BUSHI_BRELLA_MAX_SPAWNS = 3;
 const BUSHI_BRELLA_SKIN_DROP_CHANCE = 0.01;
 const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set'];
+const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr'];
+const PROFILE_ENEMY_VARIANT_GROUPS = [
+  { canonical: 'BitY1', types: ['BitY1', 'BitB4', 'BitG2', 'BitP3'] },
+  { canonical: 'ByteGB1', types: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'] },
+  { canonical: 'Spyware', types: ['Spyware', 'Spyware1', 'Spyware2', 'Spyware3'] },
+  { canonical: 'Arky', types: ['Arky', 'CrystArky', 'ArkyVoid'] },
+  { canonical: 'AstrorbOrbe', types: ['AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb'] },
+  { canonical: 'NOeye_Pyce', types: ['NOeye_Pyce', 'NO_CrystEye_CB'] },
+  { canonical: 'Monster', types: ['Monster', 'Cristalized_Monster'] },
+  { canonical: 'Leni_the_big_Hammer', types: ['Leni_the_big_Hammer', 'Lenistal'] }
+];
 
 const BREAK_REMINDER_INTERVAL = 2 * 60 * 60 * 1000;
 const BREAK_REMINDERS = {
@@ -70,6 +81,7 @@ function getMultiplayerProfile() {
     avatar: gameState.profileAvatar || 'glob:Glob',
     avatarImage: avatar?.image || IMAGE_PATHS.Glob,
     avatarLabel: avatar?.label || 'Glob',
+    rgbAvatar: Boolean(avatar?.rgb),
     border: gameState.profileBorder || 'default',
     borderLabel: border?.label || (currentLanguage === 'en' ? 'Classic' : 'Clásico'),
     borderColors: border?.colors || ['#8796a5', '#202833'],
@@ -116,23 +128,45 @@ function getSafeProfileColors(profile) {
   return safe.every(Boolean) ? safe : fallback;
 }
 
+function createProfileAvatarImage(avatar, size, alt = '') {
+  const imageUrl = getSafeProfileImageUrl(avatar?.image);
+  const image = document.createElement('img');
+  image.src = imageUrl;
+  image.alt = alt;
+  image.width = size;
+  image.height = size;
+  image.addEventListener('error', () => {
+    const fallbackUrl = new URL(IMAGE_PATHS.Glob, document.baseURI).href;
+    image.src = fallbackUrl;
+    if (image.parentElement?.classList.contains('rgb-avatar-image')) {
+      image.parentElement.style.setProperty('--rgb-avatar-mask-image', `url("${fallbackUrl}")`);
+    }
+  }, { once: true });
+
+  if (!avatar?.rgb) return image;
+
+  const wrapper = document.createElement('span');
+  wrapper.className = 'rgb-avatar-image';
+  wrapper.style.width = `${size}px`;
+  wrapper.style.height = `${size}px`;
+  wrapper.style.setProperty('--rgb-avatar-mask-image', `url("${imageUrl}")`);
+  wrapper.appendChild(image);
+  return wrapper;
+}
+
 function createMultiplayerProfileBadge(profile, size = 38) {
   const frame = document.createElement('span');
-  frame.className = `multiplayer-profile-badge${profile?.rainbowBorder ? ' rainbow' : ''}`;
+  frame.className = `multiplayer-profile-badge${profile?.rainbowBorder ? ' rainbow' : ''}${profile?.rgbAvatar ? ' rgb-avatar' : ''}`;
   frame.style.width = `${size}px`;
   frame.style.height = `${size}px`;
   const colors = getSafeProfileColors(profile);
   frame.style.setProperty('--profile-border-start', colors[0]);
   frame.style.setProperty('--profile-border-end', colors[1]);
 
-  const image = document.createElement('img');
-  image.src = getSafeProfileImageUrl(profile?.avatarImage);
-  image.alt = typeof profile?.avatarLabel === 'string' ? profile.avatarLabel : 'Glob';
-  image.width = size - 10;
-  image.height = size - 10;
-  image.addEventListener('error', () => {
-    image.src = new URL(IMAGE_PATHS.Glob, document.baseURI).href;
-  }, { once: true });
+  const image = createProfileAvatarImage({
+    image: profile?.avatarImage,
+    rgb: Boolean(profile?.rgbAvatar)
+  }, size - 10, typeof profile?.avatarLabel === 'string' ? profile.avatarLabel : 'Glob');
   frame.appendChild(image);
   return frame;
 }
@@ -2034,6 +2068,12 @@ async function handleCreateAccount() {
     await startGameSession(playerName, false, data.user.id);
   } catch (error) {
     console.error('Error al crear la cuenta en Supabase:', error);
+    if (/email rate limit exceeded/i.test(error.message || '')) {
+      showLoginError(currentLanguage === 'en'
+        ? 'Supabase is rate-limiting signup emails. Disable email confirmation in Authentication > Providers > Email. If it is already disabled, configure custom SMTP or wait for the limit to reset.'
+        : 'Supabase está limitando los correos de registro. Desactiva la confirmación por correo en Authentication > Providers > Email. Si ya está desactivada, configura un SMTP propio o espera a que se reinicie el límite.');
+      return;
+    }
     showLoginError(error.message || (currentLanguage === 'en' ? 'Could not create the account.' : 'No se pudo crear la cuenta.'));
   }
 }
@@ -5374,11 +5414,60 @@ function isProfileRewampUnlocked(family, type) {
 }
 
 function isProfileEnemyFramed(type) {
-  return Boolean(ENEMY_TYPES[type] && window._isEnemyFramed?.(type));
+  const imageGroup = getUniqueProfileEnemies().find(enemy => enemy.types.includes(type));
+  if (!imageGroup) return false;
+  if (!imageGroup.variantGroup) return Boolean(window._isEnemyFramed?.(type));
+
+  const { canonical, types } = imageGroup.variantGroup;
+  const totalTarget = window._getPyceKillTarget?.(canonical);
+  if (!Number.isFinite(totalTarget)) return false;
+
+  if (imageGroup.types.includes(canonical)) {
+    const totalKills = types.reduce((sum, enemyType) =>
+      sum + (gameState.pycesKilled[enemyType] || 0), 0
+    );
+    return totalKills >= totalTarget;
+  }
+
+  const variantTarget = Math.ceil(totalTarget / 4);
+  return imageGroup.types.some(enemyType =>
+    (gameState.pycesKilled[enemyType] || 0) >= variantTarget
+  );
 }
 
-function getProfileRainbowRewampImage() {
-  return getProfileRewampSkin('Glob', 'Rainbow_Glob')?.skins.Rainbow_Glob || null;
+function getUniqueProfileEnemies() {
+  const enemiesByImage = new Map();
+  Object.entries(ENEMY_TYPES).forEach(([type, enemy]) => {
+    const image = enemy.image || IMAGE_PATHS[type];
+    if (!image) return;
+    if (!enemiesByImage.has(image)) {
+      enemiesByImage.set(image, { type, image, types: [] });
+    }
+    enemiesByImage.get(image).types.push(type);
+  });
+  return [...enemiesByImage.values()].map(enemy => ({
+    ...enemy,
+    variantGroup: PROFILE_ENEMY_VARIANT_GROUPS.find(group =>
+      group.types.some(type => enemy.types.includes(type))
+    ) || null
+  }));
+}
+
+function getProfileRgbRewampSkin(family, type) {
+  return SKINS_DATA[family]?.find(item =>
+    RGB_REWAMP_SKIN_IDS.includes(item.id) && item.rgbTypes?.includes(type) && item.skins?.[type]
+  ) || null;
+}
+
+function isProfileRgbRewampUnlocked(skin) {
+  return Boolean(skin && (
+    gameState.unlockedSkins.includes(skin.id) ||
+    isProfileImageUnlockConditionMet(skin)
+  ));
+}
+
+function isProfileImageUnlockConditionMet(skin) {
+  return skin.unlockCondition === 'all_profile_images' && hasUnlockedAllProfileImages();
 }
 
 function hasUnlockedAllProfileImages() {
@@ -5394,7 +5483,9 @@ function hasUnlockedAllProfileImages() {
         gameState.profileMaxRewampAvatars.includes(family)
       ));
   });
-  const enemyImagesComplete = Object.keys(ENEMY_TYPES).every(isProfileEnemyFramed);
+  const enemyImagesComplete = getUniqueProfileEnemies().every(enemy =>
+    enemy.types.some(isProfileEnemyFramed)
+  );
   return globImagesComplete && enemyImagesComplete;
 }
 
@@ -5509,6 +5600,15 @@ function getProfileAvatarChoices() {
         image: rewampSkin.skins[firstType]
       });
     }
+    const firstRgbSkin = getProfileRgbRewampSkin(family, firstType);
+    if (isProfileRgbRewampUnlocked(firstRgbSkin)) {
+      avatars.push({
+        id: `glob:${firstType}:rgb-rewamp`,
+        label: firstRgbSkin.names?.[firstType] || `${translate(TOWER_TYPES[firstType].name)} RGB`,
+        image: firstRgbSkin.skins[firstType],
+        rgb: true
+      });
+    }
     if (gameState.profileMaxAvatars.includes(family)) {
       avatars.push({
         id: `glob:${finalType}`,
@@ -5525,13 +5625,23 @@ function getProfileAvatarChoices() {
         image: rewampSkin.skins[finalType]
       });
     }
+    const finalRgbSkin = getProfileRgbRewampSkin(family, finalType);
+    if (gameState.profileMaxAvatars.includes(family) &&
+        isProfileRgbRewampUnlocked(finalRgbSkin)) {
+      avatars.push({
+        id: `glob:${finalType}:rgb-rewamp`,
+        label: finalRgbSkin.names?.[finalType] || `${translate(TOWER_TYPES[finalType].name)} RGB`,
+        image: finalRgbSkin.skins[finalType],
+        rgb: true
+      });
+    }
   });
-  Object.keys(ENEMY_TYPES).forEach(type => {
-    if (!isProfileEnemyFramed(type)) return;
+  getUniqueProfileEnemies().forEach(({ type, image, types }) => {
+    if (!types.some(isProfileEnemyFramed)) return;
     avatars.push({
       id: `enemy:${type}`,
       label: translate(ENEMY_TYPES[type].name),
-      image: ENEMY_TYPES[type].image || IMAGE_PATHS[type]
+      image
     });
   });
   if (gameState.debugState === 'unlocked' ||
@@ -5542,21 +5652,15 @@ function getProfileAvatarChoices() {
       image: IMAGE_PATHS.Omnipresent_Glob
     });
   }
-  if (hasUnlockedAllProfileImages()) {
-    const rainbowRewampImage = getProfileRainbowRewampImage();
-    if (rainbowRewampImage) {
-      avatars.push({
-        id: 'special:rainbow-rewamp',
-        label: currentLanguage === 'en' ? 'Rainbow Rewamp Glob' : 'Glob Rewamp Arcoíris',
-        image: rainbowRewampImage
-      });
-    }
-  }
   return avatars;
 }
 
 function getProfileAvatarById(avatarId) {
-  return getProfileAvatarChoices().find(avatar => avatar.id === avatarId) || getProfileAvatarChoices()[0];
+  const avatars = getProfileAvatarChoices();
+  const legacyRainbowRewamp = avatars.find(avatar => avatar.id === 'glob:Rainbow_Glob:rgb-rewamp');
+  return avatars.find(avatar => avatar.id === avatarId) ||
+    (avatarId === 'special:rainbow-rewamp' ? legacyRainbowRewamp : null) ||
+    avatars[0];
 }
 
 function getProfileBorderById(borderId) {
@@ -5716,7 +5820,7 @@ function drawUserProfile() {
   container.innerHTML = `
     <div class="profile-preview">
       <div class="profile-avatar-frame ${border.rainbow ? 'rainbow' : ''}" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};">
-        <img src="${encodeURI(avatar.image)}" alt="${avatar.label}">
+        ${getProfileAvatarImageMarkup(avatar)}
       </div>
       <h3>${username}</h3>
       <p>${currentLanguage === 'en' ? 'Avatar' : 'Imagen'}: ${avatar.label} · ${currentLanguage === 'en' ? 'Frame' : 'Borde'}: ${border.label}</p>
@@ -5726,7 +5830,7 @@ function drawUserProfile() {
       ${getProfileAvatarChoices().map(choice => `
         <button class="profile-choice ${choice.id === avatar.id ? 'selected' : ''}" type="button"
           onclick="equipProfileAvatar('${choice.id}')">
-          <img src="${encodeURI(choice.image)}" alt=""><span>${choice.label}</span>
+          ${getProfileAvatarImageMarkup(choice)}<span>${choice.label}</span>
         </button>`).join('')}
     </div>
     <h3>${currentLanguage === 'en' ? 'Choose a frame' : 'Elige un borde'}</h3>
@@ -5738,6 +5842,14 @@ function drawUserProfile() {
           <span class="profile-border-swatch ${choice.rainbow ? 'rainbow' : ''}"></span><span>${choice.label}</span>
         </button>`).join('')}
     </div>`;
+}
+
+function getProfileAvatarImageMarkup(avatar) {
+  const imageUrl = encodeURI(avatar.image);
+  const image = `<img src="${imageUrl}" alt="${avatar.rgb ? '' : avatar.label}">`;
+  return avatar.rgb
+    ? `<span class="rgb-avatar-image" style="--rgb-avatar-mask-image:url('${imageUrl}')">${image}</span>`
+    : image;
 }
 
 function drawShop() {
@@ -6018,8 +6130,12 @@ function drawShop() {
         const isSpecialDrop = ['mimic_set', ...storeUnlockableIds].includes(skin.id);
         if (!skin.unlockCondition && !isSpecialDrop) return;
         
-        const isUnlocked = gameState.unlockedSkins.includes(skin.id);
-        const isAlwaysVisible = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'judicial_set', ...storeUnlockableIds].includes(skin.id);
+        const isUnlocked = gameState.unlockedSkins.includes(skin.id) ||
+          isProfileImageUnlockConditionMet(skin);
+        const isAlwaysVisible = [
+          'rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set',
+          ...RGB_REWAMP_SKIN_IDS, 'judicial_set', ...storeUnlockableIds
+        ].includes(skin.id);
 
         // Solo mostrar si está desbloqueada, o si es de las siempre visibles
         if (!isUnlocked && !isAlwaysVisible) return;
@@ -6055,6 +6171,9 @@ function drawShop() {
       function getUnlockConditionText(skinId, condition) {
         if (skinId === 'mimic_set') return currentLanguage === 'es' ? '🎁 Derrota a un Mimic Pyce Especial' : '🎁 Defeat a Special Mimic Pyce';
         if (skinId === 'pyce_morph') return currentLanguage === 'es' ? '🎁 Recompensa Secreta' : '🎁 Secret Reward';
+        if (condition === 'all_profile_images') return currentLanguage === 'es'
+          ? '🖼️ Reúne todas las imágenes de perfil disponibles'
+          : '🖼️ Collect every available profile image';
         if (skinId === 'cuby_bombot') return currentLanguage === 'es' ? '👑 Derrota a Astrorb True Form' : '👑 Defeat Astrorb True Form';
         if (skinId === 'froggy_set') return currentLanguage === 'es' ? '🏖️ Puedes obtenerla gratis superando Sunlight Summer en Anti-Normal' : '🏖️ You can get it for free by beating Sunlight Summer in Anti-Normal';
         if (condition === 'mission_block_tales') return currentLanguage === 'es' ? '🗡️ Completa la misión de Block Tales' : '🗡️ Complete the Block Tales mission';
@@ -6102,6 +6221,10 @@ function drawShop() {
             previewImg = 'img/Glob_DEF.png';
           }
           const conditionText = getUnlockConditionText(skin.id, skin.unlockCondition);
+          const rgbPreviewClass = skin.rgbTypes ? 'rgb-rewamp-preview' : '';
+          const rgbPreviewStyle = skin.rgbTypes
+            ? `--rgb-rewamp-mask-image:url('${encodeURI(previewImg)}')`
+            : '';
 
           let costDisplay = '';
           let btnText = '';
@@ -6128,7 +6251,7 @@ function drawShop() {
             
             el.innerHTML = `
               <div class="special-badge" style="background:${skinColor}; color:#000;">🔓 ${currentLanguage === 'es' ? 'DESBLOQUEABLE' : 'UNLOCKABLE'}</div>
-              <div class="skin-preview" style="filter:grayscale(0.4) brightness(0.8)"><img src="${previewImg}" style="width:100%; height:100%;"></div>
+              <div class="skin-preview ${rgbPreviewClass}" style="filter:grayscale(0.4) brightness(0.8);${rgbPreviewStyle}"><img src="${previewImg}" style="width:100%; height:100%;"></div>
               <h3>${translate(skin.name)}</h3>
               ${skin.pyce_morph ? `<div style="font-size:0.7rem; color:#e67e22; font-weight:bold; margin:-6px 0 6px; text-transform:uppercase; letter-spacing:1px;">⚡ ${currentLanguage === 'en' ? 'General' : 'General'}</div>` : ''}
               <p>${translate(skin.desc)}</p>
@@ -6143,7 +6266,7 @@ function drawShop() {
 
             el.innerHTML = `
               <div class="special-badge" style="background:${skinColor}; color:#000;">🌟 ${currentLanguage === 'es' ? 'DESBLOQUEADA' : 'UNLOCKED'}</div>
-              <div class="skin-preview ${skin.class || ''}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
+              <div class="skin-preview ${skin.class || ''} ${rgbPreviewClass}" style="${rgbPreviewStyle}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
               <h3>${translate(skin.name)}</h3>
               ${skin.pyce_morph ? `<div style="font-size:0.7rem; color:#e67e22; font-weight:bold; margin:-6px 0 6px; text-transform:uppercase; letter-spacing:1px;">⚡ ${currentLanguage === 'en' ? 'General' : 'General'}</div>` : ''}
               <p>${translate(skin.desc)}</p>
@@ -6433,7 +6556,20 @@ function buySkin(family, skinId, cost) {
 }
 
 function equipSkin(family, skinId) {
+  const skin = SKINS_DATA[family]?.find(item => item.id === skinId);
+  if (skin?.unlockCondition === 'all_profile_images' &&
+      !gameState.unlockedSkins.includes(skin.id) &&
+      !isProfileImageUnlockConditionMet(skin)) {
+    showMessage(currentLanguage === 'en'
+      ? 'Collect every available profile image to unlock this skin.'
+      : 'Reúne todas las imágenes de perfil disponibles para desbloquear esta skin.', 'warning');
+    return;
+  }
   gameState.equippedSkins[family] = skinId;
+  if (skin?.unlockCondition === 'all_profile_images' &&
+      !gameState.unlockedSkins.includes(skin.id)) {
+    gameState.unlockedSkins.push(skin.id);
+  }
   gameState.towers.forEach(t => { if (t.family === family || family === 'Global') { t.el.style.backgroundImage = `url('${encodeURI(getTowerImage(t.type))}')`; applyTowerEffects(t.el, t.type); } });
   if (currentShopTab === 'skins') drawShop();
   if (document.getElementById('pass-modal').style.display === 'flex') drawPass();
@@ -9669,6 +9805,7 @@ function activateGTack(t) {
     };
     return targets[type] || 9999;
   }
+  window._getPyceKillTarget = getPyceKillTarget;
   window._isEnemyFramed = function(type) {
     if (!ENEMY_TYPES[type]) return false;
     if (type.startsWith('Bit')) {
@@ -10227,6 +10364,15 @@ function activateGTack(t) {
     }
     const family = cfg.family || type;
     const equippedSkin = gameState.equippedSkins[family];
+    const skinSet = SKINS_DATA[family]?.find(skin => skin.id === equippedSkin);
+    if (globalSkin !== 'pyce_morph' &&
+        skinSet?.rgbTypes?.includes(type) &&
+        RGB_REWAMP_SKIN_IDS.includes(equippedSkin)) {
+      el.classList.add('rgb-rewamp');
+      el.style.setProperty('--rgb-rewamp-mask-image', `url("${encodeURI(getTowerImage(type))}")`);
+    } else {
+      el.style.removeProperty('--rgb-rewamp-mask-image');
+    }
     const enemyBasedSkins = ['pyce_morph', 'mimic_set', 'astrorb_set', 'crystal_bombot'];
     if (enemyBasedSkins.includes(globalSkin) || enemyBasedSkins.includes(equippedSkin)) {
       el.classList.add('enemy-skin-flipped');

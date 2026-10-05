@@ -321,12 +321,49 @@ body {
     box-shadow: 0 0 18px rgba(255, 215, 0, 0.28);
 }
 
-.profile-avatar-frame img {
+.profile-avatar-frame > img,
+.profile-avatar-frame > .rgb-avatar-image {
     width: 100%;
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
     background: var(--profile-border-end);
+}
+
+.rgb-avatar-image {
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+.rgb-avatar-image > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rgb-avatar-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
+    background-size: 100% 100%;
+    opacity: 0.9;
+    mix-blend-mode: color;
+    pointer-events: none;
+    animation: rgb-rewamp-shift 1.5s linear infinite;
+    mask-image: var(--rgb-avatar-mask-image);
+    -webkit-mask-image: var(--rgb-avatar-mask-image);
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
 }
 
 .profile-choice-grid,
@@ -354,7 +391,8 @@ body {
     box-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
 }
 
-.profile-choice img {
+.profile-choice > img,
+.profile-choice > .rgb-avatar-image {
     display: block;
     width: 72px;
     height: 72px;
@@ -431,6 +469,67 @@ body {
 
 .profile-avatar-frame.rainbow img {
     background: #202833;
+}
+
+.profile-choice .rgb-avatar-image,
+.profile-avatar-frame .rgb-avatar-image,
+.multiplayer-profile-badge .rgb-avatar-image {
+    border-radius: 50%;
+}
+
+.multiplayer-profile-badge .rgb-avatar-image {
+    width: 100%;
+    height: 100%;
+}
+
+.tower.rgb-rewamp::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
+    background-size: 100% 100%;
+    opacity: 0.9;
+    mix-blend-mode: color;
+    pointer-events: none;
+    animation: rgb-rewamp-shift 1.5s linear infinite;
+    mask-image: var(--rgb-rewamp-mask-image);
+    -webkit-mask-image: var(--rgb-rewamp-mask-image);
+    mask-size: contain;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
+}
+
+.skin-preview.rgb-rewamp-preview {
+    position: relative;
+}
+
+.skin-preview.rgb-rewamp-preview::after {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    z-index: 1;
+    background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
+    background-size: 100% 100%;
+    opacity: 0.9;
+    mix-blend-mode: color;
+    pointer-events: none;
+    animation: rgb-rewamp-shift 1.5s linear infinite;
+    mask-image: var(--rgb-rewamp-mask-image);
+    -webkit-mask-image: var(--rgb-rewamp-mask-image);
+    mask-size: contain;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
+}
+
+@keyframes rgb-rewamp-shift {
+    to { filter: hue-rotate(360deg); }
 }
 
 @keyframes profile-rainbow-spin {
