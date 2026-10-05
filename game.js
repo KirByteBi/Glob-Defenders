@@ -11861,7 +11861,7 @@ function activateGTack(t) {
     } else if (currentStoryTab === 'logs') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
-        <h3 style="color:#ff9f43;">📋 Historial de Actualizaciones (GlD v5.0.0 - ARIDEZ ESCALOFRIANTE — PT1: GETTING STARTED)</h3>
+        <h3 style="color:#ff9f43;">📋 Historial de Actualizaciones (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
         <p style="color:#ff9f43;">¡Empieza una nueva aventura! Esta primera parte prepara el juego con nuevas formas de jugar, guardar tu progreso y descubrir secretos.</p>
         <h4>Novedades de la PT1:</h4>
         <ul>
@@ -12008,7 +12008,7 @@ function activateGTack(t) {
       `;
       } else {
         container.innerHTML = `
-        <h3 style="color:#ff9f43;">📋 Update Logs (GlD v5.0.0 - SPOOKTACULAR RUINS — PT1: GETTING STARTED)</h3>
+        <h3 style="color:#ff9f43;">📋 Update Logs (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
         <p style="color:#ff9f43;">A new adventure begins! This first part prepares the game with new ways to play, save your progress, and uncover secrets.</p>
         <h4>What's New in PT1:</h4>
         <ul>
