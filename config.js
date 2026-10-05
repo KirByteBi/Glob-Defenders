@@ -257,6 +257,8 @@ const TRANSLATIONS = {
     enemy_RIPslide_desc: "Una tumba zombi que se desliza cual pingüino en el hielo... Realmente adora asustar con ese falso \"RIP\" que en realidad son sus ojos y nariz... Pero no consigue hacer mucho en batalla, aunque rápido es, eso lo asegura Kirb.",
     enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
     enemy_SkeleBone_Pyce_desc: "Una mejora de la mejora Pyce de Noob Pyce, siguiendo la línea de las versiones mejoradas de Noob y Guest Pyce vistas en Urbanistic Road. Está hecho de huesos encontrados en el desierto y parece simpático con esa mirada y esos zapatos, pero no te confíes: puede lanzarte uno de sus huesos en un visto y no visto. Como los demás Pyces, es feliz de existir y leal, aunque no sea un ordenador convencional... ¿Verdad?",
+    enemy_Curse_Boneker_name: "Curse Boneker",
+    enemy_Curse_Boneker_desc: "Entre el cielo y el infierno hay almas que no pertenecen a ninguno de los dos. Curse Boneker las encuentra, las elige y las encierra en la pirámide a la que sirve, convencido de que así les ahorra el tormento de vagar sin destino. Lo sabe porque él también fue una de ellas: murió desorientado en el desierto, caminando en círculos hasta olvidar qué era el horizonte. Ahora la pirámide es su brújula y su prisión. Cuando lanza sus huesos malditos, no apunta a destruir tus torres, sino a silenciarlas el tiempo suficiente para que ninguna pueda guiar a esas almas de vuelta a casa.",
     
     // Leafy Beach Party Bosses & Enemies
     enemy_PhantKeeper_name: "PhantKeeper",
@@ -867,6 +869,8 @@ const TRANSLATIONS = {
     enemy_RIPslide_desc: "A zombie tomb that slides like a penguin on ice. It loves scaring people with its fake \"RIP\", which is actually its eyes and nose. It is not very useful in battle, though it is fast, Kirb assures us.",
     enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
     enemy_SkeleBone_Pyce_desc: "An upgrade of Noob Pyce's upgraded Pyce form, following the same line as the improved Noob and Guest Pyces seen in Urbanistic Road. Made from bones found in the desert, it looks friendly with that gaze and those shoes, but do not be fooled: it can throw a bone in the blink of an eye. Like the other Pyces, it is happy to exist and loyal, even if it is not a conventional computer... right?",
+    enemy_Curse_Boneker_name: "Curse Boneker",
+    enemy_Curse_Boneker_desc: "Between Heaven and Hell, some souls belong to neither. Curse Boneker finds them, chooses them, and seals them inside the pyramid he serves, certain that he is sparing them an eternity of aimless wandering. He knows that limbo well: he was one of those lost souls himself. He died disoriented in the desert, walking in circles until he could no longer tell the horizon from the sand beneath his feet. Now the pyramid is both his compass and his prison. When he hurls his cursed bones, he is not trying to destroy your towers—only to silence them long enough to keep them from guiding those souls home.",
 
     // Leafy Beach Party Bosses & Enemies
     enemy_PhantKeeper_name: "PhantKeeper",
@@ -1244,6 +1248,7 @@ const IMAGE_PATHS = {
   'RIPslide': 'Spooks in the Desert (UPD4)/Enemigos/RIPslide.png',
   'SkeleBone_Pyce': 'Spooks in the Desert (UPD4)/Pyces/SkeleBone Pyce (RW).png',
   'SkeleBone_Bone': 'Spooks in the Desert (UPD4)/Pyces/Proyectil Hueso.png',
+  'Curse_Boneker': 'Spooks in the Desert (UPD4)/Jefes/Curse Boneker.png',
   'Ducky_Glob': 'img/Ducky_Glob.png',
   'Golden_Ducky_Glob': 'img/Golden_Ducky_Glob.png',
   'Comet_Glob': 'img/Comet_Glob.png',
@@ -1853,7 +1858,8 @@ const ENEMY_TYPES = {
   'Broksp': { name: 'enemy_Broksp_name', desc: 'enemy_Broksp_desc', health: 90, speed: 1.2, reward: 20, image: IMAGE_PATHS.Broksp, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
   'Pumpitch': { name: 'enemy_Pumpitch_name', desc: 'enemy_Pumpitch_desc', health: 150, speed: 1.0, reward: 35, image: IMAGE_PATHS.Pumpitch, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
   'RIPslide': { name: 'enemy_RIPslide_name', desc: 'enemy_RIPslide_desc', health: 70, speed: 3.0, reward: 25, image: IMAGE_PATHS.RIPslide, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
-  'SkeleBone_Pyce': { name: 'enemy_SkeleBone_Pyce_name', desc: 'enemy_SkeleBone_Pyce_desc', health: 110, speed: 1.4, reward: 30, image: IMAGE_PATHS.SkeleBone_Pyce, projectile: 'bone', shooter: true, mapSource: 'spooktacular_ruins', enemyClass: 'shooter' }
+  'SkeleBone_Pyce': { name: 'enemy_SkeleBone_Pyce_name', desc: 'enemy_SkeleBone_Pyce_desc', health: 110, speed: 1.4, reward: 30, image: IMAGE_PATHS.SkeleBone_Pyce, projectile: 'bone', shooter: true, mapSource: 'spooktacular_ruins', enemyClass: 'shooter' },
+  'Curse_Boneker': { name: 'enemy_Curse_Boneker_name', desc: 'enemy_Curse_Boneker_desc', health: 7000, speed: 0.3, reward: 5000, image: IMAGE_PATHS.Curse_Boneker, boss: true, mapSource: 'spooktacular_ruins', enemyClass: 'boss' }
 };
 
 // Tier de balance: controla cuándo aparece un enemigo y cuánto daño causa al llegar a la base.

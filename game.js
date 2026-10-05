@@ -1821,6 +1821,7 @@ const HYPERMUTATED_CLICK_KEY = 'glob_hypermutated_decoration_clicks';
 const HYPERMUTATED_GLOBS_KEY = 'glob_hypermutated_clicked_globs';
 const HYPERMUTATED_PENDING_KEY = 'glob_hypermutated_pending';
 const HALLOWEEN_LOGIN_ENEMIES = new Set(['Broksp', 'Pumpitch', 'RIPslide', 'SkeleBone_Pyce']);
+const HALLOWEEN_ENEMY_TYPES = new Set([...HALLOWEEN_LOGIN_ENEMIES, 'Curse_Boneker']);
 
 function getGlobDecorationType(imagePath) {
   const type = Object.keys(IMAGE_PATHS).find(key => IMAGE_PATHS[key] === imagePath && TOWER_TYPES[key]);
@@ -1855,6 +1856,23 @@ function isHalloweenLoginEnemy(imagePath) {
   return Object.keys(IMAGE_PATHS).some(type =>
     HALLOWEEN_LOGIN_ENEMIES.has(type) && IMAGE_PATHS[type] === imagePath
   );
+}
+
+function triggerHalloweenJumpscare(type, enemyElement) {
+  if (!HALLOWEEN_ENEMY_TYPES.has(type) || enemyElement?.dataset.jumpscareTriggered) return;
+  if (enemyElement) enemyElement.dataset.jumpscareTriggered = 'true';
+  const imagePath = ENEMY_TYPES[type]?.image;
+  if (!imagePath) return;
+
+  const jumpscare = document.createElement('div');
+  jumpscare.className = 'halloween-jumpscare-overlay';
+  jumpscare.setAttribute('aria-hidden', 'true');
+  const image = document.createElement('div');
+  image.className = 'halloween-jumpscare-image';
+  image.style.backgroundImage = `url('${imagePath}')`;
+  jumpscare.appendChild(image);
+  document.body.appendChild(jumpscare);
+  setTimeout(() => jumpscare.remove(), 900);
 }
 
 function unlockHypermutatedEffect() {
@@ -1986,17 +2004,10 @@ function spawnDecorations(containerId) {
         const isGlob = imgPath.toLowerCase().includes('glob');
         playSound(isGlob ? 'sounds/Slurp.mp3' : 'sounds/Bipbip.mp3');
         if (isHalloweenLoginEnemy(imgPath)) {
-          const jumpscare = document.createElement('div');
-          jumpscare.className = 'halloween-jumpscare-overlay';
-          jumpscare.setAttribute('aria-hidden', 'true');
-          const image = document.createElement('div');
-          image.className = 'halloween-jumpscare-image';
-          image.style.backgroundImage = `url('${imgPath}')`;
-          jumpscare.appendChild(image);
-          document.body.appendChild(jumpscare);
+          const enemyType = Object.keys(IMAGE_PATHS).find(type => IMAGE_PATHS[type] === imgPath);
+          triggerHalloweenJumpscare(enemyType);
           img.remove();
           setTimeout(() => {
-            jumpscare.remove();
             const nextGlobImage = remainingGlobImages.shift();
             if (nextGlobImage && container.isConnected) {
               container.appendChild(createFloatingCharacter(nextGlobImage));
@@ -2107,7 +2118,7 @@ async function startGameSession(username, offline, accountId = null) {
     }
     if (cloudProgress) {
       localStorage.setItem('glob_progress_' + username, JSON.stringify(cloudProgress));
-      loadProgress(username, false);
+      loadProgress(username);
     }
     cloudProgressReady = true;
   } else {
@@ -2664,6 +2675,10 @@ function handleLogoClick(logo) {
       localStorage.setItem('glob_placeholder_glob_login_clicks', String(clickCount));
     }
   }
+  logo.classList.remove('logo-click-feedback');
+  void logo.offsetWidth;
+  logo.classList.add('logo-click-feedback');
+  setTimeout(() => logo.classList.remove('logo-click-feedback'), 650);
   logo.classList.remove('glitch-effect');
   void logo.offsetWidth;
   logo.classList.add('glitch-effect');
@@ -3651,8 +3666,8 @@ const DEBUG_ENEMY_GROUP_ALIASES = {
   water: ['Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
   aquatic: ['Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
   acuaticos: ['Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
-  bosses: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Arky', 'CrystArky', 'ArkyVoid', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'Crystal_Bombot'],
-  jefes: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Arky', 'CrystArky', 'ArkyVoid', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'Crystal_Bombot'],
+  bosses: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Arky', 'CrystArky', 'ArkyVoid', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'Crystal_Bombot', 'Curse_Boneker'],
+  jefes: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Arky', 'CrystArky', 'ArkyVoid', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'Crystal_Bombot', 'Curse_Boneker'],
   gambling: ['BitY1', 'BitB4', 'BitG2', 'BitP3', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Fireflies', 'Spyware', 'Spyware1', 'Spyware2', 'Spyware3', 'Arky', 'CrystArky', 'ArkyVoid'],
   urban: ['BitY1', 'BitB4', 'BitG2', 'BitP3', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Fireflies', 'Spyware', 'Spyware1', 'Spyware2', 'Spyware3', 'Arky', 'CrystArky', 'ArkyVoid', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce'],
   leafy: ['Ren', 'Thunren', 'Renibig', 'Treeper', 'Big_Treeper', 'Stacked_Treepers', 'Baby_Shrum', 'Shrum', 'Old_Fungus', 'Pysh', 'Clown_Pysh', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'Piz', 'Followishers', 'Creamplet', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Bushi_Brella'],
@@ -5058,6 +5073,11 @@ function bindEvents() {
 
   document.querySelectorAll('.login-logo, .game-logo').forEach(logo => {
     logo.onclick = () => handleLogoClick(logo);
+    logo.onkeydown = event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      handleLogoClick(logo);
+    };
   });
 
   document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => btn.onclick = () => selectMode(btn.dataset.mode));
@@ -6408,6 +6428,7 @@ window.equipProfileAvatar = function(avatarId) {
   gameState.profileAvatar = avatarId;
   saveProgress();
   drawUserProfile();
+  if (isOfflineSession() || !currentSeed) renderMultiplayerPlayerList([]);
   publishMultiplayerProfile();
 };
 
@@ -6416,6 +6437,7 @@ window.equipProfileBorder = function(borderId) {
   gameState.profileBorder = borderId;
   saveProgress();
   drawUserProfile();
+  if (isOfflineSession() || !currentSeed) renderMultiplayerPlayerList([]);
   publishMultiplayerProfile();
 };
 
@@ -8286,6 +8308,9 @@ function activateGTack(t) {
             if (mode === 'corrupto') bossesToSpawn.push('GlitchKeeper');
             else if (mode === 'antiNormal') bossesToSpawn.push('DarkSpirit');
             else bossesToSpawn.push('PhantKeeper'); 
+         } else if (mapKey === 'spooktacular_ruins') {
+             if (mode === 'antiNormal') bossesToSpawn.push('Curse_Boneker');
+             else isBossWave = false;
          }
       }
       
@@ -8473,6 +8498,12 @@ function activateGTack(t) {
     const el = document.createElement('div'); el.className = 'enemy' + enemyMotionClass + (t.isCrystallized ? ' enemy-crystal' : '');
     el.style.left = `${chosenPath[0].x}px`; el.style.top = `${chosenPath[0].y}px`;
     el.style.setProperty('--enemy-delay', `${-(Math.random() * 1.8).toFixed(2)}s`);
+    if (HALLOWEEN_ENEMY_TYPES.has(type)) {
+      el.addEventListener('click', event => {
+        event.stopPropagation();
+        triggerHalloweenJumpscare(type, el);
+      });
+    }
 
     let imgStr = t.image;
     if (type === 'Spyware') {
@@ -9512,6 +9543,27 @@ function activateGTack(t) {
             if (targetTower) {
               shoot(e, targetTower, { isEnemy: true, image: IMAGE_PATHS.SkeleBone_Bone, speed: 7, stun: 0.75 });
             }
+          }
+        }
+        if (e.type === 'Curse_Boneker') {
+          e.boneVolleyTimer = (e.boneVolleyTimer || 0) + dt;
+          if (e.boneVolleyTimer >= 6 && gameState.towers.length > 0) {
+            e.boneVolleyTimer = 0;
+            const targetCount = Math.min(
+              gameState.towers.length,
+              2 + Math.floor(Math.random() * 4)
+            );
+            const targetTowers = [...gameState.towers]
+              .sort(() => Math.random() - 0.5)
+              .slice(0, targetCount);
+            targetTowers.forEach(targetTower => {
+              shoot(e, targetTower, {
+                isEnemy: true,
+                image: IMAGE_PATHS.SkeleBone_Bone,
+                speed: 6,
+                stun: 2
+              });
+            });
           }
         }
 
@@ -10706,6 +10758,7 @@ function activateGTack(t) {
 
 
   function die(e, idx) {
+    triggerHalloweenJumpscare(e.type, e.el);
     if (e.type === 'Sharowd') {
       finishBlockQuest();
     }
@@ -11868,7 +11921,9 @@ function activateGTack(t) {
           <li>💾 <strong style="color:#ff9f43;">Guardar y reanudar partidas</strong>: Guarda una ronda desde el menú de pausa y cárgala desde las islas. La partida guardada muestra el mapa, el modo y la oleada; también puedes guardar y cerrar sesión o guardar y salir.</li>
           <li>🌐 <strong>Semillas más fáciles de compartir</strong>: Copia la seed o la invitación desde sus opciones, o descarga la seed como archivo de texto.</li>
           <li>👤 <strong>Perfiles en partidas online</strong>: Consulta el progreso, los logros, las familias maximizadas y las victorias de otros jugadores de la partida.</li>
+          <li>🎨 <strong>Perfil persistente</strong>: Tu imagen y tu marco elegidos se conservan al volver a iniciar sesión.</li>
           <li>🎃 <strong>Un login más vivo</strong>: Los Globs y enemigos aparecen sin duplicados; los enemigos de Halloween pueden sorprenderte al hacer clic en ellos.</li>
+          <li>💀 <strong>Nuevo jefe Anti-Normal</strong>: En la última oleada de Spooktacular Ruins, Curse Boneker lanza de 2 a 5 huesos malditos contra tus torres para aturdirlas.</li>
           <li>✨ <strong>Efectos secretos</strong>: Descubre Hipermutado y Glitch en Ajustes → Especial. Puedes equiparlos juntos, y también afectan a Work-Bombot.</li>
           <li>🕒 <strong>Reloj y recordatorios</strong>: Consulta la hora y el tiempo de juego; cada cierto tiempo aparecerá un mensaje que te recordará descansar o comprobar si sigues ahí.</li>
           <li>🖼️ <strong>Mejoras visuales y correcciones</strong>: El login usa el logo Rewamp, y Omnipresent Glob sirve de respaldo cuando no se puede cargar una imagen.</li>
@@ -12015,7 +12070,9 @@ function activateGTack(t) {
           <li>💾 <strong style="color:#ff9f43;">Save and resume games</strong>: Save a round from the pause menu and load it from the island screen. Saved games show the map, mode, and wave; you can also save and log out or save and exit.</li>
           <li>🌐 <strong>Easier seed sharing</strong>: Copy the seed or invitation from its options, or download the seed as a text file.</li>
           <li>👤 <strong>Profiles in online matches</strong>: View other players' progress, badges, maxed families, and victories in the match.</li>
+          <li>🎨 <strong>Persistent profile</strong>: Your chosen portrait and frame are kept when you sign in again.</li>
           <li>🎃 <strong>A livelier login screen</strong>: Globs and enemies appear without duplicates; Halloween enemies can surprise you when clicked.</li>
+          <li>💀 <strong>New Anti-Normal boss</strong>: In the final wave of Spooktacular Ruins, Curse Boneker hurls 2 to 5 cursed bones at your towers to stun them.</li>
           <li>✨ <strong>Secret effects</strong>: Discover Hipermutado and Glitch in Settings → Special. Equip them together, and they also affect Work-Bombot.</li>
           <li>🕒 <strong>Clock and reminders</strong>: Keep an eye on the time and your play session; a message will periodically remind you to rest or check if you're still there.</li>
           <li>🖼️ <strong>Visual improvements and fixes</strong>: The login screen uses the Rewamp logo, and Omnipresent Glob is used as a fallback when an image cannot load.</li>
