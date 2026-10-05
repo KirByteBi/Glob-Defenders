@@ -126,6 +126,7 @@
                     <button class="mode-btn" onclick="loadSeed()" style="background: linear-gradient(135deg, #34495e, #2c3e50); border-color: #2c3e50; font-size: 0.9rem; padding: 10px;">Cargar</button>
                 </div>
             </div>
+            <button id="load-saved-round-btn" class="mode-btn" type="button" onclick="loadSavedRound()" style="margin-top:10px; background: linear-gradient(135deg, #27ae60, #1e8449); border-color: #1e8449; font-size: 0.9rem; padding: 10px;">Cargar partida</button>
         </div>
     </div>
 
@@ -226,6 +227,9 @@
                         <p id="game-over-msg">Llegaste a la oleada <span id="final-wave">0</span></p>
                         <div class="game-over-actions">
                             <button id="resume-game" class="retry-btn" onclick="resumeGame()" style="display:none;">▶️ <span class="btn-text">Reanudar</span></button>
+                            <button id="save-paused-game" class="retry-btn pause-save-action" onclick="savePausedRound()" style="display:none;">💾 Guardar partida</button>
+                            <button id="save-and-login" class="retry-btn pause-save-action" onclick="savePausedRoundAndLogout()" style="display:none;">💾 Guardar y cerrar sesión</button>
+                            <button id="save-and-close" class="retry-btn pause-save-action" onclick="savePausedRoundAndClose()" style="display:none;">🚪 Guardar y salir</button>
                             <button class="retry-btn" onclick="retryGame()">🔄 <span class="btn-text" data-i18n="playAgain">Reintentar</span></button>
                             <button class="mode-select-btn" onclick="chooseModeAfterGame()">⚔️ <span class="btn-text" data-i18n="choose_mode">Elegir modo</span></button>
                             <button class="map-select-btn" onclick="chooseMapAfterGame()">🗺️ <span class="btn-text" data-i18n="choose_map">Elegir mapa</span></button>
@@ -460,6 +464,35 @@
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="opt-old-achievements" onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section" id="hypermutated-settings" style="display:none;">
+                <div class="settings-section-header">
+                    <span class="settings-section-icon">🧬</span>
+                    <span class="settings-section-title" data-i18n="settings_special">Especial</span>
+                </div>
+                <div class="settings-section-body">
+                    <div class="option-row" id="hypermutated-effect-row">
+                        <div class="option-label">
+                            <span class="option-icon">🌀</span>
+                            <span data-i18n="hypermutated_effect">Efecto Hipermutado</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-hypermutated" onchange="updateSettings()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-row" id="glitch-effect-row">
+                        <div class="option-label">
+                            <span class="option-icon">📺</span>
+                            <span data-i18n="glitch_effect">Efecto Glitch</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="opt-glitch" onchange="updateSettings()">
                             <span class="slider"></span>
                         </label>
                     </div>

@@ -361,6 +361,11 @@ const TRANSLATIONS = {
     shop_skins: "Skins",
     mode_selected: "Modo {mode} seleccionado",
     settings_title: "⚙ Ajustes",
+    settings_special: "Especial",
+    hypermutated_effect: "Efecto Hipermutado",
+    hypermutated_unlocked: "¡Efecto Hipermutado desbloqueado! Actívalo en Ajustes → Especial.",
+    glitch_effect: "Efecto Glitch",
+    glitch_unlocked: "¡Efecto Glitch desbloqueado! Has completado el 100% auténtico. Actívalo en Ajustes → Especial.",
     shop_equip: "Equipación",
     show_shop_desc: "Mostrar descripción en tienda",
     show_total_damage: "Ver Daño Total de torres",
@@ -965,6 +970,11 @@ const TRANSLATIONS = {
     shop_skins: "Skins",
     mode_selected: "{mode} mode selected",
     settings_title: "⚙ï¸  Settings",
+    settings_special: "Special",
+    hypermutated_effect: "Hypermutated Effect",
+    hypermutated_unlocked: "Hypermutated Effect unlocked! Enable it in Settings → Special.",
+    glitch_effect: "Glitch Effect",
+    glitch_unlocked: "Glitch Effect unlocked! You achieved the true 100% completion. Enable it in Settings → Special.",
     shop_equip: "Equip",
     show_shop_desc: "Show description in shop",
     show_total_damage: "View total tower damage",
@@ -1433,7 +1443,7 @@ const NARRATOR_DATA = {
   },
   glob: {
     img: IMAGE_PATHS.Glob, es: {
-      name: "Glob (DEF)", msgs: [
+      name: "Glob", msgs: [
         "Me pregunto por que atacamos a los Pyces. ¿No son amigos?",
         "¿No viven los Pyces 2.0 en Bitlands? ¡Si este es mi hogar!",
         "¡Ojala pudiera darles su merecido a esos corruptos...",
@@ -1442,7 +1452,7 @@ const NARRATOR_DATA = {
         "¿Alguien tiene un paraguas? Creo que va a llover... Pyces."
       ]
     }, en: {
-      name: "Glob (DEF)", msgs: [
+      name: "Glob", msgs: [
         "I wonder why we attack the Pyces. Aren't they friends?",
         "Don't the Pyces 2.0 live in Bitlands? This is my home!",
         "I wish I could give those corrupt ones what they deserve...",

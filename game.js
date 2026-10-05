@@ -26,10 +26,12 @@ let multiplayerEnabled = false;
 let multiplayerPlayers = [];
 let multiplayerSpectator = false;
 let multiplayerSpectatorSavedGlobetines = null;
+let multiplayerViewedProfile = null;
 let applyingMultiplayerAction = false;
 let multiplayerActionOwner = null;
 let sessionClockInterval = null;
 let sessionStartedAt = null;
+let roundCheckpointInterval = null;
 let nextBreakReminderAt = 2 * 60 * 60 * 1000;
 let lastBreakReminderIndex = -1;
 const RARE_ENEMY_WAVE_SPAWN_CHANCE = 0.3;
@@ -81,11 +83,24 @@ function getMultiplayerProfile() {
     avatar: gameState.profileAvatar || 'glob:Glob',
     avatarImage: avatar?.image || IMAGE_PATHS.Glob,
     avatarLabel: avatar?.label || 'Glob',
-    rgbAvatar: Boolean(avatar?.rgb),
+    rgbAvatar: Boolean(avatar?.rgb || border?.rainbow),
     border: gameState.profileBorder || 'default',
     borderLabel: border?.label || (currentLanguage === 'en' ? 'Classic' : 'Clásico'),
     borderColors: border?.colors || ['#8796a5', '#202833'],
-    rainbowBorder: Boolean(border?.rainbow)
+    rainbowBorder: Boolean(border?.rainbow),
+    duckPassLevel: Math.max(1, Number(gameState.duckPassLevel) || 1),
+    duckPassXP: Math.max(0, Number(gameState.duckPassXP) || 0),
+    unlockedBadges: Object.values(BADGES)
+      .filter(badge => badge.unlocked)
+      .map(badge => badge.key),
+    maxedFamilies: [...new Set(gameState.maxedFamilies || [])],
+    maxedRewampFamilies: [...new Set(gameState.profileMaxRewampAvatars || [])],
+    mapModeWins: Object.fromEntries(
+      PROFILE_MAP_BORDERS.map(({ map }) => [
+        map,
+        PROFILE_MAP_MODES.filter(mode => (gameState.profileMapModeWins[map] || []).includes(mode))
+      ])
+    )
   };
 }
 
@@ -206,6 +221,17 @@ function renderMultiplayerPlayerList(players) {
   visiblePlayers.forEach(player => {
     const row = document.createElement('div');
     row.className = 'multiplayer-player-row';
+    row.tabIndex = 0;
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-label', currentLanguage === 'en'
+      ? `View ${player.username || 'player'} profile`
+      : `Ver perfil de ${player.username || 'jugador'}`);
+    row.addEventListener('click', () => openMultiplayerPlayerProfile(player.playerId, player));
+    row.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      openMultiplayerPlayerProfile(player.playerId, player);
+    });
     row.appendChild(createMultiplayerProfileBadge(player.profile));
     const details = document.createElement('span');
     details.className = 'multiplayer-player-details';
@@ -652,6 +678,12 @@ async function joinMultiplayerSeed(seed, creating) {
     return;
   }
   isSeedHost = connection.isHost;
+  if (gameState.waveActive && isSeedHost && roundCheckpointInterval === null) {
+    roundCheckpointInterval = setInterval(() => window._checkpointActiveRound?.(), 5000);
+  } else if (!isSeedHost && roundCheckpointInterval !== null) {
+    clearInterval(roundCheckpointInterval);
+    roundCheckpointInterval = null;
+  }
 
   connection.on('game-state', state => {
     if (isSeedHost) return;
@@ -1068,7 +1100,9 @@ let gameState = {
   usedGTackRed: false,
   usedGTackGrey: false,
   baseTookDamage: false,
-  settings: { showShopDesc: true, showTotalDamage: false, oldAchievements: false, autoEnglish: false, hideDate: false },
+  settings: { showShopDesc: true, showTotalDamage: false, oldAchievements: false, autoEnglish: false, hideDate: false, hypermutatedEffect: false, glitchEffect: false },
+  hypermutatedUnlocked: false,
+  glitchUnlocked: false,
   duckgrades: {},
   blockQuestActive: false,
   blockQuestStage: 0,
@@ -1094,6 +1128,12 @@ let gameState = {
   profileBorder: 'default',
   profilePurchasedBorders: [],
   profileMapModeWins: {},
+  savedRoundSnapshot: null,
+  waveSpawnQueue: [],
+  waveSpawnIndex: 0,
+  waveSpawnIsBoss: false,
+  waveBossTypes: [],
+  waveSpawnIntervalMs: 0,
   collectionMasterDialogueShown: false,
   wallGardenSoapMessageShown: false,
   uniquesBossSpawned: {}  // Tracks NOeye_Pyce, MoonStar_Pyce (only 1 per game)
@@ -1127,6 +1167,32 @@ function getFamilyCount(baseType) {
 function getTowerFamily(type) {
   const tower = TOWER_TYPES[type];
   return tower?.family || type;
+}
+
+function updateHypermutatedTowers() {
+  const enabled = (gameState.hypermutatedUnlocked || gameState.debugState === 'unlocked') &&
+    gameState.settings.hypermutatedEffect;
+  gameState.towers.forEach(tower => {
+    tower.el.classList.toggle('hypermutated', enabled);
+  });
+}
+
+function setTowerGlitchEffect(element, enabled) {
+  element.classList.toggle('glitch', enabled);
+  let overlay = element.querySelector('.tower-glitch-overlay');
+  if (enabled && !overlay) {
+    overlay = document.createElement('span');
+    overlay.className = 'tower-glitch-overlay';
+    element.appendChild(overlay);
+  } else if (!enabled && overlay) {
+    overlay.remove();
+  }
+}
+
+function updateGlitchTowers() {
+  const enabled = (gameState.glitchUnlocked || gameState.debugState === 'unlocked') &&
+    gameState.settings.glitchEffect;
+  gameState.towers.forEach(tower => setTowerGlitchEffect(tower.el, enabled));
 }
 
 function getProfileTowerLimit(profile, family) {
@@ -1344,8 +1410,7 @@ loadUsers();
 function installMissingImageFallback() {
   const fallbackPath = IMAGE_PATHS.Omnipresent_Glob;
   const fallbackUrl = new URL(fallbackPath, document.baseURI).href;
-  const checkedBackgrounds = new Set();
-  const missingBackgrounds = new Set();
+  const backgroundLoads = new Map();
   const inspectedBackgrounds = new WeakMap();
 
   document.querySelectorAll('img').forEach(image => {
@@ -1375,23 +1440,27 @@ function installMissingImageFallback() {
     const imageUrl = new URL(match[2], document.baseURI).href;
     if (imageUrl === fallbackUrl) return;
     const useFallback = () => {
-      const currentBackground = element.style.backgroundImage || background;
-      element.style.backgroundImage = currentBackground.replace(/url\((['"]?)(.*?)\1\)/i, `url("${fallbackPath}")`);
+      const currentBackground = element.style.backgroundImage || getComputedStyle(element).backgroundImage;
+      const currentMatch = currentBackground.match(/url\((['"]?)(.*?)\1\)/i);
+      if (!currentMatch || new URL(currentMatch[2], document.baseURI).href !== imageUrl) return;
+      element.style.backgroundImage = currentBackground.replace(
+        /url\((['"]?)(.*?)\1\)/i,
+        `url("${fallbackPath}")`
+      );
     };
-    if (missingBackgrounds.has(imageUrl)) {
-      useFallback();
-      return;
+    let load = backgroundLoads.get(imageUrl);
+    if (!load) {
+      load = new Promise(resolve => {
+        const probe = new Image();
+        probe.onload = () => resolve(true);
+        probe.onerror = () => resolve(false);
+        probe.src = imageUrl;
+      });
+      backgroundLoads.set(imageUrl, load);
     }
-    if (checkedBackgrounds.has(imageUrl)) return;
-
-    checkedBackgrounds.add(imageUrl);
-    const probe = new Image();
-    probe.onload = () => {};
-    probe.onerror = () => {
-      missingBackgrounds.add(imageUrl);
-      if (element.isConnected) useFallback();
-    };
-    probe.src = imageUrl;
+    load.then(loaded => {
+      if (!loaded && element.isConnected) useFallback();
+    });
   };
 
   const inspectTree = node => {
@@ -1454,6 +1523,14 @@ installInspectionNotice();
 
 function init() {
   console.log("Iniciando Glob Defenders...");
+  window.addEventListener('beforeunload', event => {
+    if (!window._checkpointActiveRound?.()) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') window._checkpointActiveRound?.();
+  });
   updateSessionClock();
   if (sessionClockInterval === null) {
     sessionClockInterval = setInterval(() => {
@@ -1565,6 +1642,9 @@ function saveProgress() {
     profileBorder: gameState.profileBorder || 'default',
     profilePurchasedBorders: gameState.profilePurchasedBorders || [],
     profileMapModeWins: gameState.profileMapModeWins || {},
+    savedRoundSnapshot: gameState.savedRoundSnapshot || null,
+    hypermutatedUnlocked: gameState.hypermutatedUnlocked,
+    glitchUnlocked: gameState.glitchUnlocked,
     collectionMasterDialogueShown: gameState.collectionMasterDialogueShown
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
@@ -1660,6 +1740,8 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.pycoins = Number(progress.pycoins || 0);
       gameState.totalDamage = Number(progress.totalDamage || 0);
       gameState.settings = { ...gameState.settings, ...progress.settings };
+      gameState.hypermutatedUnlocked = Boolean(progress.hypermutatedUnlocked);
+      gameState.glitchUnlocked = Boolean(progress.glitchUnlocked);
       gameState.duckPassXP = progress.duckPassXP || 0;
       gameState.duckPassLevel = progress.duckPassLevel || 1;
       gameState.duckPassCurrency = progress.duckPassCurrency || 0;
@@ -1709,6 +1791,7 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.profileBorder = progress.profileBorder || 'default';
       gameState.profilePurchasedBorders = progress.profilePurchasedBorders || [];
       gameState.profileMapModeWins = progress.profileMapModeWins || {};
+      gameState.savedRoundSnapshot = progress.savedRoundSnapshot || null;
       gameState.collectionMasterDialogueShown = !!progress.collectionMasterDialogueShown;
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
@@ -1721,6 +1804,7 @@ function loadProgress(username, allowLocalProgress = true) {
       if (gameState.settings.autoEnglish) { currentLanguage = 'en'; updateLanguage(); }
       updateSessionClock();
       checkFutureVoyageBadge();
+      checkGlitchEffectUnlock();
       updateMuteButton();
       updateAchievementsBtnUI();
       gameState.health = 100 + (gameState.baseHealthLevel * 20);
@@ -1733,39 +1817,113 @@ function loadProgress(username, allowLocalProgress = true) {
   }
 }
 
+const HYPERMUTATED_CLICK_KEY = 'glob_hypermutated_decoration_clicks';
+const HYPERMUTATED_GLOBS_KEY = 'glob_hypermutated_clicked_globs';
+const HYPERMUTATED_PENDING_KEY = 'glob_hypermutated_pending';
+const HALLOWEEN_LOGIN_ENEMIES = new Set(['Broksp', 'Pumpitch', 'RIPslide', 'SkeleBone_Pyce']);
+
+function getGlobDecorationType(imagePath) {
+  const type = Object.keys(IMAGE_PATHS).find(key => IMAGE_PATHS[key] === imagePath && TOWER_TYPES[key]);
+  return type && getTowerFamily(type) !== 'Special' ? type : null;
+}
+
+function getLoginGlobDecorationTypes() {
+  const families = new Map();
+  const evolvedTypes = new Set(Object.values(TOWER_TYPES).map(tower => tower.evolution).filter(Boolean));
+  Object.keys(TOWER_TYPES).forEach(type => {
+    const family = getTowerFamily(type);
+    if (family === 'Special') return;
+    if (!families.has(family)) families.set(family, []);
+    families.get(family).push(type);
+  });
+
+  const visibleTypes = new Set();
+  families.forEach(types => {
+    const family = getTowerFamily(types[0]);
+    if (!isTowerOwned(family)) return;
+    let type = types.find(candidate => !evolvedTypes.has(candidate));
+    for (let level = 0; type && level < 2; level++) {
+      visibleTypes.add(type);
+      const nextType = TOWER_TYPES[type].evolution;
+      type = types.includes(nextType) ? nextType : null;
+    }
+  });
+  return visibleTypes;
+}
+
+function isHalloweenLoginEnemy(imagePath) {
+  return Object.keys(IMAGE_PATHS).some(type =>
+    HALLOWEEN_LOGIN_ENEMIES.has(type) && IMAGE_PATHS[type] === imagePath
+  );
+}
+
+function unlockHypermutatedEffect() {
+  localStorage.removeItem(HYPERMUTATED_PENDING_KEY);
+  if (gameState.hypermutatedUnlocked) return;
+  gameState.hypermutatedUnlocked = true;
+  gameState.settings.hypermutatedEffect = false;
+  saveProgress();
+  const section = document.getElementById('hypermutated-settings');
+  if (section) section.style.display = '';
+  const message = translate('hypermutated_unlocked');
+  showMessage(message, 'success');
+}
+
+function recordHypermutatedDecorationClick(imagePath, availableGlobPaths) {
+  if (gameState.hypermutatedUnlocked || localStorage.getItem(HYPERMUTATED_PENDING_KEY) === 'true') return;
+
+  const clickCount = Math.max(0, Number.parseInt(localStorage.getItem(HYPERMUTATED_CLICK_KEY) || '0', 10) || 0) + 1;
+  localStorage.setItem(HYPERMUTATED_CLICK_KEY, String(clickCount));
+
+  let clickedGlobs;
+  try {
+    const storedGlobs = JSON.parse(localStorage.getItem(HYPERMUTATED_GLOBS_KEY) || '[]');
+    clickedGlobs = new Set(Array.isArray(storedGlobs) ? storedGlobs.filter(path => typeof path === 'string') : []);
+  } catch (error) {
+    console.error('No se pudo leer el progreso secreto de Hipermutado:', error);
+    clickedGlobs = new Set();
+  }
+  if (availableGlobPaths.includes(imagePath)) clickedGlobs.add(imagePath);
+  localStorage.setItem(HYPERMUTATED_GLOBS_KEY, JSON.stringify([...clickedGlobs]));
+
+  const clickedEveryGlob = availableGlobPaths.length > 0 &&
+    availableGlobPaths.every(path => clickedGlobs.has(path));
+  if (clickCount >= 701 || clickedEveryGlob) {
+    localStorage.setItem(HYPERMUTATED_PENDING_KEY, 'true');
+    if (document.getElementById('login-screen')?.style.display === 'none') {
+      unlockHypermutatedEffect();
+    }
+  }
+}
+
 function spawnDecorations(containerId) {
   try {
     const container = document.getElementById(containerId);
     if (!container) return;
-    const allImages = Object.values(IMAGE_PATHS);
+    container.replaceChildren();
+    const allImages = [...new Set(Object.values(IMAGE_PATHS))];
 
     // For login/mode screens, exclude collab assets and check unlocks
     const isLoginScreen = (containerId === 'login-decorations' || containerId === 'mode-decorations' || containerId === 'map-decorations');
     let images = allImages;
     if (isLoginScreen) {
+      const loginGlobTypes = getLoginGlobDecorationTypes();
       images = allImages.filter(p => {
-        if (p.includes('Interestelar Menace') || p.includes('Collabs') || p.includes('Skins/') || p.includes('Astrorb') || p.includes('Crystal')) return false;
-        
-        // Find the key in IMAGE_PATHS for this path
+        if (p === IMAGE_PATHS.Omnipresent_Glob || p === IMAGE_PATHS.Kirb_Glob) return false;
         const key = Object.keys(IMAGE_PATHS).find(k => IMAGE_PATHS[k] === p);
         if (!key) return true;
+
+        if (getGlobDecorationType(p)) return loginGlobTypes.has(key);
+        if (HALLOWEEN_LOGIN_ENEMIES.has(key)) return true;
+        if (p.includes('Interestelar Menace') || p.includes('Collabs') || p.includes('Skins/') || p.includes('Astrorb') || p.includes('Crystal')) return false;
 
         // Simple enemies always appear
         const simpleEnemies = ['Stupid_Pyce', 'Guest_Pyce', 'Noob_Pyce', 'Pyce2', 'Flower_Pyce', 'Symbol_Pyce', 'SO_Pyce'];
         if (simpleEnemies.includes(key)) return true;
 
-        // 1st & 2nd Evo Globs always appear
-        const basicGlobs = ['Glob', 'Poop_Glob', 'Red_Glob', 'Molten_Glob', 'Soap_Glob', 'Cotton_Glob', 'Ducky_Glob', 'Golden_Ducky_Glob', 'Comet_Glob', 'Dark_Glob', 'Pyce_Glob', 'Old_Glob'];
-        if (basicGlobs.includes(key)) return true;
-
         // Other enemies check if killed > 0
         if (key.includes('Pyce') || key.includes('Bit') || key.includes('Byte')) {
           return (gameState.pycesKilled && gameState.pycesKilled[key] > 0);
-        }
-
-        // Other globs check if unlocked
-        if (TOWER_TYPES[key]) {
-          return TOWER_TYPES[key].unlocked;
         }
 
         return false;
@@ -1773,9 +1931,39 @@ function spawnDecorations(containerId) {
     }
 
     const pool = images.length > 0 ? images : allImages;
+    const availableGlobPaths = images.filter(imagePath => getGlobDecorationType(imagePath));
+    const shuffledPool = [...pool];
+    for (let i = shuffledPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledPool[i], shuffledPool[j]] = [shuffledPool[j], shuffledPool[i]];
+    }
+    let clickedGlobPaths;
+    try {
+      const storedGlobs = JSON.parse(localStorage.getItem(HYPERMUTATED_GLOBS_KEY) || '[]');
+      clickedGlobPaths = new Set(Array.isArray(storedGlobs) ? storedGlobs.filter(path => typeof path === 'string') : []);
+    } catch (error) {
+      console.error('No se pudo leer la lista de Globs secretos ya descubiertos:', error);
+      clickedGlobPaths = new Set();
+    }
+    const globImagesToShow = shuffledPool.filter(path =>
+      availableGlobPaths.includes(path) && !clickedGlobPaths.has(path)
+    );
+    const selectedGlobImages = globImagesToShow.slice(0, 8);
+    const selectedImages = [...selectedGlobImages];
+    const halloweenImages = shuffledPool.filter(isHalloweenLoginEnemy);
+    selectedImages.push(...halloweenImages);
+    for (const imagePath of shuffledPool) {
+      if (selectedImages.length >= 15) break;
+      if (
+        !selectedImages.includes(imagePath) &&
+        (!availableGlobPaths.includes(imagePath) || globImagesToShow.length <= 8)
+      ) {
+        selectedImages.push(imagePath);
+      }
+    }
+    const remainingGlobImages = globImagesToShow.filter(path => !selectedGlobImages.includes(path));
 
-    for (let i = 0; i < 15; i++) {
-      const imgPath = pool[Math.floor(Math.random() * pool.length)];
+    const createFloatingCharacter = imgPath => {
       const img = document.createElement('div');
       img.className = 'floating-char';
       img.style.backgroundImage = `url('${imgPath}')`;
@@ -1792,12 +1980,65 @@ function spawnDecorations(containerId) {
       img.style.animationDelay = `${Math.random() * 10}s`;
 
       img.onclick = () => {
+        if (img.dataset.launched) return;
+        img.dataset.launched = 'true';
+        recordHypermutatedDecorationClick(imgPath, availableGlobPaths);
         const isGlob = imgPath.toLowerCase().includes('glob');
         playSound(isGlob ? 'sounds/Slurp.mp3' : 'sounds/Bipbip.mp3');
+        if (isHalloweenLoginEnemy(imgPath)) {
+          const jumpscare = document.createElement('div');
+          jumpscare.className = 'halloween-jumpscare-overlay';
+          jumpscare.setAttribute('aria-hidden', 'true');
+          const image = document.createElement('div');
+          image.className = 'halloween-jumpscare-image';
+          image.style.backgroundImage = `url('${imgPath}')`;
+          jumpscare.appendChild(image);
+          document.body.appendChild(jumpscare);
+          img.remove();
+          setTimeout(() => {
+            jumpscare.remove();
+            const nextGlobImage = remainingGlobImages.shift();
+            if (nextGlobImage && container.isConnected) {
+              container.appendChild(createFloatingCharacter(nextGlobImage));
+            }
+          }, 850);
+          return;
+        }
+        const rect = img.getBoundingClientRect();
+        const angle = Math.random() * Math.PI * 2;
+        const dx = Math.cos(angle);
+        const dy = Math.sin(angle);
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const distanceToHorizontalEdge = dx > 0
+          ? (window.innerWidth - centerX) / dx
+          : -centerX / dx;
+        const distanceToVerticalEdge = dy > 0
+          ? (window.innerHeight - centerY) / dy
+          : -centerY / dy;
+        const distance = Math.min(distanceToHorizontalEdge, distanceToVerticalEdge) + rect.width;
+        img.style.animation = 'none';
+        img.style.left = `${rect.left}px`;
+        img.style.top = `${rect.top}px`;
+        img.style.transform = 'translate(0, 0)';
+        img.style.opacity = '0.8';
+        void img.offsetWidth;
+        img.style.transition = 'transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1)';
+        img.style.transform = `translate(${dx * distance}px, ${dy * distance}px) rotate(${360 + Math.random() * 720}deg)`;
+        const removeAndRefill = () => {
+          if (!img.isConnected) return;
+          img.remove();
+          const nextGlobImage = remainingGlobImages.shift();
+          if (nextGlobImage) container.appendChild(createFloatingCharacter(nextGlobImage));
+        };
+        img.addEventListener('transitionend', removeAndRefill, { once: true });
+        setTimeout(removeAndRefill, 800);
       };
 
-      container.appendChild(img);
-    }
+      return img;
+    };
+
+    selectedImages.forEach(imgPath => container.appendChild(createFloatingCharacter(imgPath)));
   } catch (e) { console.warn("Error en decoraciones:", e); }
 }
 
@@ -1881,6 +2122,9 @@ async function startGameSession(username, offline, accountId = null) {
     localStorage.setItem('glob_offline_mode', 'true');
   } else {
     localStorage.removeItem('glob_offline_mode');
+  }
+  if (localStorage.getItem(HYPERMUTATED_PENDING_KEY) === 'true') {
+    unlockHypermutatedEffect();
   }
   if (!offline && localStorage.getItem('glob_placeholder_glob_pending') === 'true') {
     gameState.profileSpecialAvatars = gameState.profileSpecialAvatars || [];
@@ -2116,11 +2360,47 @@ function isIslandUnlocked(islandId) {
   return false;
 }
 
+function getMapDisplayName(mapId) {
+  const zone = MAP_ISLANDS.flatMap(island => island.zones).find(item => item.mapId === mapId);
+  return zone ? (currentLanguage === 'en' ? zone.nameEn : zone.nameEs) : mapId;
+}
+
+function getModeDisplayName(mode) {
+  const modeNames = {
+    facil: ['Fácil', 'Easy'],
+    normal: ['Normal', 'Normal'],
+    dificil: ['Difícil', 'Hard'],
+    extremo: ['Extremo', 'Extreme'],
+    infinito: ['Infinito', 'Infinite'],
+    corrupto: ['Corrupto', 'Corrupted'],
+    antiNormal: ['Anti-Normal', 'Anti-Normal'],
+    interstellar: ['Interstellar', 'Interstellar']
+  };
+  const names = modeNames[mode];
+  return names ? names[currentLanguage === 'en' ? 1 : 0] : mode;
+}
+
+function updateLoadSavedRoundButton() {
+  const button = document.getElementById('load-saved-round-btn');
+  if (!button) return;
+  const snapshot = gameState.savedRoundSnapshot;
+  if (!snapshot) {
+    button.textContent = currentLanguage === 'en' ? 'Load saved game' : 'Cargar partida';
+    return;
+  }
+  const mapName = getMapDisplayName(snapshot.map);
+  const modeName = getModeDisplayName(snapshot.mode);
+  button.textContent = currentLanguage === 'en'
+    ? `Load saved game · ${mapName} · Wave ${snapshot.wave} · ${modeName}`
+    : `Cargar partida · ${mapName} · Oleada ${snapshot.wave} · ${modeName}`;
+}
+
 function renderMapSelection() {
   const title = document.getElementById('map-selection-title');
   const islandGrid = document.getElementById('island-selection');
   const zoneGrid = document.getElementById('zone-selection');
   if (!title || !islandGrid || !zoneGrid) return;
+  updateLoadSavedRoundButton();
 
   const selectedIsland = MAP_ISLANDS.find(island => island.id === gameState.selectedIsland);
   islandGrid.innerHTML = '';
@@ -2184,6 +2464,90 @@ function renderMapSelection() {
     zoneGrid.appendChild(button);
   });
 }
+
+window.loadSavedRound = async function() {
+  const snapshot = gameState.savedRoundSnapshot;
+  if (!snapshot) {
+    const dialogueOptions = [
+      {
+        speaker: 'omnipresent',
+        name: '???',
+        messages: {
+          es: [
+            '¿En serio? No hay ninguna partida guardada. Mira mejor la próxima vez.',
+            'Este espacio está vacío. Igual que tu memoria, por lo visto.',
+            '¿Cargar qué? No hay nada. Me haces perder el tiempo.',
+            'Vuelve cuando hayas guardado una partida. No pienso inventármela para ti.'
+          ],
+          en: [
+            "Seriously? There's no saved game. Try looking properly next time.",
+            'This space is empty. Just like your memory, apparently.',
+            "Load what? There's nothing here. You're wasting my time.",
+            "Come back after you've saved a game. I'm not going to make one up for you."
+          ]
+        }
+      },
+      {
+        speaker: 'bombot',
+        name: NARRATOR_DATA.bombot[currentLanguage].name,
+        messages: {
+          es: [
+            'Escaneo completado: no se detectan partidas guardadas. ¡Inicia una ronda y guárdala!',
+            'No hay datos de ronda que recuperar. Mis sistemas están listos cuando tú lo estés.',
+            'Aviso: memoria de partidas vacía. No puedo cargar una ronda que aún no se ha guardado.'
+          ],
+          en: [
+            'Scan complete: no saved games detected. Start a round and save it first!',
+            'There is no round data to recover. My systems are ready when you are.',
+            'Warning: match memory is empty. I cannot load a round that has not been saved.'
+          ]
+        }
+      },
+      {
+        speaker: 'glob',
+        name: NARRATOR_DATA.glob[currentLanguage].name,
+        messages: {
+          es: [
+            '¿No hay partida guardada? ¡Pues juguemos una y la guardamos para luego!',
+            'He mirado por todas partes y no encuentro ninguna ronda guardada.',
+            '¡Aquí no hay nada que cargar! Avísame cuando tengamos una partida.'
+          ],
+          en: [
+            'No saved game? Then let us play one and save it for later!',
+            "I looked everywhere, but I can't find a saved round.",
+            "There's nothing to load here! Let me know when we have a game saved."
+          ]
+        }
+      }
+    ];
+    const dialogue = dialogueOptions[Math.floor(Math.random() * dialogueOptions.length)];
+    const messages = dialogue.messages[currentLanguage] || dialogue.messages.es;
+    const message = messages[Math.floor(Math.random() * messages.length)];
+    const speaker = NARRATOR_DATA[dialogue.speaker];
+    window._showNarratorMsg?.(dialogue.speaker, speaker.img, dialogue.name, message);
+    return;
+  }
+
+  if (snapshot.mode === 'interstellar' && !hasInterstellarEntryAccess()) {
+    window._showMultiplayerNotice?.(currentLanguage === 'en'
+      ? 'This saved Interstellar round requires the access code and mission unlock.'
+      : 'Esta ronda guardada de Interstellar requiere el código de acceso y desbloquear la misión.');
+    return;
+  }
+
+  if (!window._restoreSavedRoundSnapshot?.(snapshot)) {
+    window._showMultiplayerNotice?.(currentLanguage === 'en'
+      ? 'This saved round could not be loaded. It may be incompatible or incomplete.'
+      : 'No se pudo cargar la ronda guardada. Puede estar incompleta o ser incompatible.');
+    return;
+  }
+
+  gameState.savedRoundSnapshot = null;
+  saveProgress();
+  if (snapshot.seed && !isOfflineSession()) {
+    await joinMultiplayerSeed(snapshot.seed, true);
+  }
+};
 
 function selectMap(mapId) {
   const zone = MAP_ISLANDS.flatMap(island => island.zones).find(item => item.mapId === mapId);
@@ -2921,12 +3285,16 @@ function confirmReset() {
     const user = localStorage.getItem('glob_username') || 'default';
     localStorage.removeItem('glob_progress_' + user);
     localStorage.removeItem('glob_defenders_save');
+    localStorage.removeItem(HYPERMUTATED_CLICK_KEY);
+    localStorage.removeItem(HYPERMUTATED_GLOBS_KEY);
+    localStorage.removeItem(HYPERMUTATED_PENDING_KEY);
     alert(translate('reset_done') || "Progreso completamente reseteado.");
     location.reload();
   }
 }
 
 function openOptions() {
+  checkGlitchEffectUnlock();
   resetCounter = 0;
   const btn = document.getElementById('reset-btn');
   if (btn) btn.textContent = translate('reset_progress_btn');
@@ -2948,6 +3316,19 @@ function openOptions() {
   if (optHideDate) optHideDate.checked = !!gameState.settings.hideDate;
   const hitboxCheck = document.getElementById('opt-show-hitbox');
   if (hitboxCheck) hitboxCheck.checked = showHitbox;
+  const hypermutatedSection = document.getElementById('hypermutated-settings');
+  const hypermutatedCheck = document.getElementById('opt-hypermutated');
+  const canUseSpecialEffects = gameState.debugState === 'unlocked';
+  const canUseHypermutated = gameState.hypermutatedUnlocked || canUseSpecialEffects;
+  const canUseGlitch = gameState.glitchUnlocked || canUseSpecialEffects;
+  if (hypermutatedSection) hypermutatedSection.style.display = canUseHypermutated || canUseGlitch ? '' : 'none';
+  const hypermutatedRow = document.getElementById('hypermutated-effect-row');
+  if (hypermutatedRow) hypermutatedRow.style.display = canUseHypermutated ? '' : 'none';
+  if (hypermutatedCheck) hypermutatedCheck.checked = canUseHypermutated && !!gameState.settings.hypermutatedEffect;
+  const glitchRow = document.getElementById('glitch-effect-row');
+  if (glitchRow) glitchRow.style.display = canUseGlitch ? '' : 'none';
+  const glitchCheck = document.getElementById('opt-glitch');
+  if (glitchCheck) glitchCheck.checked = canUseGlitch && !!gameState.settings.glitchEffect;
 
   const cheatedRow = document.getElementById('admin-cheated-row');
   const adminSection = document.getElementById('admin-section');
@@ -3624,6 +4005,14 @@ function updateSettings() {
   if (optAutoEn) gameState.settings.autoEnglish = optAutoEn.checked;
   const optHideDate = document.getElementById('opt-hide-date');
   if (optHideDate) gameState.settings.hideDate = optHideDate.checked;
+  const hypermutatedCheck = document.getElementById('opt-hypermutated');
+  gameState.settings.hypermutatedEffect = (gameState.hypermutatedUnlocked || gameState.debugState === 'unlocked') &&
+    Boolean(hypermutatedCheck?.checked);
+  updateHypermutatedTowers();
+  const glitchCheck = document.getElementById('opt-glitch');
+  gameState.settings.glitchEffect = (gameState.glitchUnlocked || gameState.debugState === 'unlocked') &&
+    Boolean(glitchCheck?.checked);
+  updateGlitchTowers();
 
   updateSessionClock();
   applyMetaButtonMode();
@@ -3827,6 +4216,7 @@ function unlockBadge(key) {
     saveProgress();
     drawBadges();
     showBadgePopup(BADGES[key]);
+    publishMultiplayerProfile();
   }
 }
 
@@ -4776,6 +5166,7 @@ function bindEvents() {
       updateMetaUI();
       saveProgress();
       if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+      publishMultiplayerProfile();
       showMessage(
         currentLanguage === 'en' ? 'Coded profile frame unlocked!' : '¡Borde de perfil Coded desbloqueado!',
         'success'
@@ -4877,6 +5268,8 @@ function bindEvents() {
         profileMapModeWins: JSON.parse(JSON.stringify(gameState.profileMapModeWins || {})),
         profileAvatar: gameState.profileAvatar,
         profileBorder: gameState.profileBorder,
+        hypermutatedEffect: !!gameState.settings.hypermutatedEffect,
+        glitchEffect: !!gameState.settings.glitchEffect,
         badges: Object.fromEntries(Object.entries(BADGES).map(([k, v]) => [k, v.unlocked])),
         pycesKilled: JSON.parse(JSON.stringify(gameState.pycesKilled || {})),
         towerTypes: JSON.parse(JSON.stringify(
@@ -4941,15 +5334,20 @@ function bindEvents() {
         gameState.profileMapModeWins = snap.profileMapModeWins || {};
         gameState.profileAvatar = snap.profileAvatar || 'glob:Glob';
         gameState.profileBorder = snap.profileBorder || 'default';
+        gameState.settings.hypermutatedEffect = !!snap.hypermutatedEffect;
+        gameState.settings.glitchEffect = !!snap.glitchEffect;
         Object.keys(BADGES).forEach(k => { BADGES[k].unlocked = !!snap.badges[k]; });
         // Restore encyclopedia kill counters
         if (snap.pycesKilled) gameState.pycesKilled = JSON.parse(JSON.stringify(snap.pycesKilled));
       }
       gameState.debugState = null;
       gameState.debugSnapshot = null;
+      saveProgress();
       updateRoleIndicator();
       showMessage('🔄 DEBUG: Estado restaurado al original.', 'warning');
     }
+    updateHypermutatedTowers();
+    updateGlitchTowers();
     drawShop();
     drawTowerShop();
     if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
@@ -5332,6 +5730,7 @@ function getDuckpassMultiplier() {
 
 function addXP(amount) {
   if (multiplayerSpectator) return;
+  const previousLevel = gameState.duckPassLevel;
   gameState.duckPassXP += amount;
   while (gameState.duckPassXP >= 100) {
     gameState.duckPassLevel++;
@@ -5348,6 +5747,7 @@ function addXP(amount) {
   }
   updateMetaUI();
   checkFutureVoyageBadge();
+  if (gameState.duckPassLevel !== previousLevel) publishMultiplayerProfile();
 }
 
 function updateMetaUI() {
@@ -5556,6 +5956,31 @@ function hasUnlockedAllProfileBorders() {
   });
 }
 
+function checkGlitchEffectUnlock() {
+  if (gameState.glitchUnlocked || gameState.debugState === 'unlocked') return false;
+
+  const interstellarBadges = ['unmenaced', 'urban_crystals', 'paracristal_dimension', 'fracstral_victory'];
+  const completedSpecialMaps = PROFILE_MAP_BORDERS.every(({ map }) =>
+    ['corrupto', 'antiNormal'].every(mode =>
+      (gameState.profileMapModeWins[map] || []).includes(mode)
+    )
+  );
+  const completedInterstellar = interstellarBadges.every(key => BADGES[key]?.unlocked);
+  if (
+    !hasUnlockedAllProfileImages() ||
+    !hasUnlockedAllProfileBorders() ||
+    !completedSpecialMaps ||
+    !completedInterstellar
+  ) return false;
+
+  gameState.glitchUnlocked = true;
+  saveProgress();
+  const section = document.getElementById('hypermutated-settings');
+  if (section) section.style.display = '';
+  showMessage(translate('glitch_unlocked'), 'success');
+  return true;
+}
+
 function getAvailableProfileBorders() {
   const borders = [{ id: 'default', label: currentLanguage === 'en' ? 'Classic' : 'Clásico', colors: ['#8796a5', '#202833'] }];
   borders.push(...PROFILE_FREE_BORDERS.map(border => ({
@@ -5604,8 +6029,13 @@ function getAvailableProfileBorders() {
       borders.push({ ...border, label: border.label });
     }
   });
-  if (hasUnlockedAllProfileBorders()) {
-    borders.push({ id: 'rainbow', label: currentLanguage === 'en' ? 'Rainbow Secret' : 'Arcoíris secreto', colors: ['#ff5050', '#202833'], rainbow: true });
+  if (hasUnlockedAllProfileImages() && hasUnlockedAllProfileBorders()) {
+    borders.push({
+      id: 'rainbow',
+      label: currentLanguage === 'en' ? 'Rainbow Fever' : 'Fiebre Arcoiris',
+      colors: ['#ff5050', '#202833'],
+      rainbow: true
+    });
   }
   return borders;
 }
@@ -5801,6 +6231,7 @@ window.buyProfileMaxAvatar = function(family, rewamp = false) {
       : (currentLanguage === 'en' ? 'Max-evolution profile picture unlocked!' : '¡Imagen de perfil de evolución máxima desbloqueada!'),
     'success'
   );
+  publishMultiplayerProfile();
 };
 
 window.buyProfileBorder = function(borderId) {
@@ -5827,13 +6258,150 @@ window.buyProfileBorder = function(borderId) {
 };
 
 window.openUserProfile = function() {
+  multiplayerViewedProfile = null;
   drawUserProfile();
   document.getElementById('profile-modal').style.display = 'flex';
 };
 
 window.closeUserProfile = function() {
+  multiplayerViewedProfile = null;
   closeModal('profile-modal');
 };
+
+function openMultiplayerPlayerProfile(playerId, fallbackPlayer) {
+  const player = multiplayerPlayers.find(item => item.playerId === playerId) || fallbackPlayer;
+  if (!player) return;
+  multiplayerViewedProfile = {
+    playerId,
+    username: typeof player.username === 'string' ? player.username : (currentLanguage === 'en' ? 'Player' : 'Jugador'),
+    profile: player.profile && typeof player.profile === 'object' ? player.profile : {}
+  };
+  drawViewedMultiplayerProfile();
+  document.getElementById('profile-modal').style.display = 'flex';
+}
+
+function appendPublicProfileStat(container, label, value) {
+  const stat = document.createElement('div');
+  stat.className = 'public-profile-stat';
+  const valueElement = document.createElement('strong');
+  valueElement.textContent = String(value);
+  const labelElement = document.createElement('span');
+  labelElement.textContent = label;
+  stat.append(valueElement, labelElement);
+  container.appendChild(stat);
+}
+
+function drawViewedMultiplayerProfile() {
+  const viewed = multiplayerViewedProfile;
+  const container = document.getElementById('profile-content');
+  if (!viewed || !container) return;
+  const profile = viewed.profile;
+  const title = document.getElementById('profile-title');
+  if (title) title.textContent = currentLanguage === 'en'
+    ? `${viewed.username}'s profile`
+    : `Perfil de ${viewed.username}`;
+  const shopButton = document.querySelector('.profile-shop-button');
+  if (shopButton) shopButton.hidden = true;
+  container.replaceChildren();
+
+  const preview = document.createElement('div');
+  preview.className = 'profile-preview public-profile-preview';
+  preview.appendChild(createMultiplayerProfileBadge(profile, 88));
+  const name = document.createElement('h3');
+  name.textContent = viewed.username;
+  preview.appendChild(name);
+  const cosmetics = document.createElement('p');
+  cosmetics.textContent = `${currentLanguage === 'en' ? 'Avatar' : 'Imagen'}: ${profile.avatarLabel || 'Glob'} · ${currentLanguage === 'en' ? 'Frame' : 'Borde'}: ${profile.borderLabel || (currentLanguage === 'en' ? 'Classic' : 'Clásico')}`;
+  preview.appendChild(cosmetics);
+  container.appendChild(preview);
+
+  const badges = Array.isArray(profile.unlockedBadges)
+    ? [...new Set(profile.unlockedBadges.filter(key => typeof key === 'string' && BADGES[key]))]
+    : [];
+  const totalBadges = Object.keys(BADGES).length;
+  const level = Math.max(1, Number(profile.duckPassLevel) || 1);
+  const xp = Math.max(0, Math.min(99, Number(profile.duckPassXP) || 0));
+  const families = Array.isArray(profile.maxedFamilies) ? new Set(profile.maxedFamilies) : new Set();
+  const rewampFamilies = Array.isArray(profile.maxedRewampFamilies) ? new Set(profile.maxedRewampFamilies) : new Set();
+  const stats = document.createElement('div');
+  stats.className = 'public-profile-stats';
+  appendPublicProfileStat(stats, currentLanguage === 'en' ? 'Duck Pass level' : 'Nivel del Duck Pass', level);
+  appendPublicProfileStat(stats, currentLanguage === 'en' ? 'Pass progress' : 'Progreso del Pass', `${xp}/100 XP`);
+  appendPublicProfileStat(stats, currentLanguage === 'en' ? 'Achievements' : 'Logros', `${badges.length}/${totalBadges}`);
+  appendPublicProfileStat(stats, currentLanguage === 'en' ? 'Maxed families' : 'Familias al máximo', `${families.size}/${getProfileGlobFamilies().length}`);
+  appendPublicProfileStat(stats, currentLanguage === 'en' ? 'Rewamp families' : 'Familias Rewamp', rewampFamilies.size);
+  container.appendChild(stats);
+
+  const mapHeading = document.createElement('h3');
+  mapHeading.textContent = currentLanguage === 'en' ? 'Map records' : 'Récords por mapa';
+  container.appendChild(mapHeading);
+  const mapRecords = document.createElement('div');
+  mapRecords.className = 'public-profile-maps';
+  PROFILE_MAP_BORDERS.forEach(({ map }) => {
+    const record = document.createElement('p');
+    const wins = profile.mapModeWins?.[map];
+    const modes = Array.isArray(wins) ? wins.filter(mode => PROFILE_MAP_MODES.includes(mode)) : [];
+    const modeLabels = modes.map(mode => {
+      const labels = currentLanguage === 'en'
+        ? { facil: 'Easy', normal: 'Normal', dificil: 'Hard', extremo: 'Extreme', corrupto: 'Corrupt', antiNormal: 'Anti-Normal' }
+        : { facil: 'Fácil', normal: 'Normal', dificil: 'Difícil', extremo: 'Extremo', corrupto: 'Corrupto', antiNormal: 'Anti-Normal' };
+      return labels[mode];
+    });
+    record.textContent = `${MAPS[map]?.name || map}: ${modeLabels.length ? modeLabels.join(', ') : (currentLanguage === 'en' ? 'No victories yet' : 'Sin victorias todavía')}`;
+    mapRecords.appendChild(record);
+  });
+  container.appendChild(mapRecords);
+
+  const achievementHeading = document.createElement('h3');
+  achievementHeading.textContent = currentLanguage === 'en' ? 'Achievements' : 'Logros';
+  container.appendChild(achievementHeading);
+  const categoryFilter = document.createElement('select');
+  categoryFilter.className = 'public-profile-achievement-filter';
+  categoryFilter.setAttribute('aria-label', currentLanguage === 'en' ? 'Filter achievements by category' : 'Filtrar logros por categoría');
+  const categories = [...new Set(badges.map(key => BADGES[key].category))].sort();
+  const allOption = document.createElement('option');
+  allOption.value = 'all';
+  allOption.textContent = currentLanguage === 'en' ? 'All categories' : 'Todas las categorías';
+  categoryFilter.appendChild(allOption);
+  const categoryLabels = currentLanguage === 'en'
+    ? { modos: 'Modes', misiones: 'Missions', interacciones: 'Interactions', economia: 'Economy' }
+    : { modos: 'Modos', misiones: 'Misiones', interacciones: 'Interacciones', economia: 'Economía' };
+  categories.forEach(category => {
+    const option = document.createElement('option');
+    option.value = category;
+    option.textContent = categoryLabels[category] || category;
+    categoryFilter.appendChild(option);
+  });
+  const achievementList = document.createElement('ul');
+  achievementList.className = 'public-profile-achievements';
+  const drawAchievements = () => {
+    achievementList.replaceChildren();
+    const filtered = badges.filter(key => categoryFilter.value === 'all' || BADGES[key].category === categoryFilter.value);
+    if (!filtered.length) {
+      const empty = document.createElement('li');
+      empty.textContent = currentLanguage === 'en' ? 'No achievements in this category.' : 'No hay logros en esta categoría.';
+      achievementList.appendChild(empty);
+      return;
+    }
+    filtered.forEach(key => {
+      const badge = BADGES[key];
+      const item = document.createElement('li');
+      const icon = document.createElement('span');
+      icon.textContent = typeof badge.icon === 'string' && !badge.icon.includes('<') ? badge.icon : '🏆';
+      const text = document.createElement('span');
+      const name = document.createElement('strong');
+      name.textContent = translate(`badge_${badge.key}_name`);
+      const description = document.createElement('small');
+      description.textContent = translate(`badge_${badge.key}_desc`);
+      text.append(name, description);
+      item.append(icon, text);
+      achievementList.appendChild(item);
+    });
+  };
+  categoryFilter.addEventListener('change', drawAchievements);
+  drawAchievements();
+  container.append(categoryFilter, achievementList);
+}
 
 window.equipProfileAvatar = function(avatarId) {
   if (!getProfileAvatarChoices().some(avatar => avatar.id === avatarId)) return;
@@ -5852,6 +6420,10 @@ window.equipProfileBorder = function(borderId) {
 };
 
 function drawUserProfile() {
+  if (multiplayerViewedProfile) {
+    drawViewedMultiplayerProfile();
+    return;
+  }
   const container = document.getElementById('profile-content');
   if (!container) return;
   const title = document.getElementById('profile-title');
@@ -5862,6 +6434,8 @@ function drawUserProfile() {
   }
   const shopButtonLabel = document.querySelector('.profile-shop-button span');
   if (shopButtonLabel) shopButtonLabel.textContent = currentLanguage === 'en' ? 'Profile customization shop' : 'Tienda de personalización';
+  const shopButton = document.querySelector('.profile-shop-button');
+  if (shopButton) shopButton.hidden = false;
   const avatar = getProfileAvatarById(gameState.profileAvatar);
   const border = getProfileBorderById(gameState.profileBorder);
   if (!avatar || !border) return;
@@ -5869,7 +6443,7 @@ function drawUserProfile() {
   container.innerHTML = `
     <div class="profile-preview">
       <div class="profile-avatar-frame ${border.rainbow ? 'rainbow' : ''}" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};">
-        ${getProfileAvatarImageMarkup(avatar)}
+        ${getProfileAvatarImageMarkup(avatar, border.rainbow)}
       </div>
       <h3>${username}</h3>
       <p>${currentLanguage === 'en' ? 'Avatar' : 'Imagen'}: ${avatar.label} · ${currentLanguage === 'en' ? 'Frame' : 'Borde'}: ${border.label}</p>
@@ -5893,10 +6467,11 @@ function drawUserProfile() {
     </div>`;
 }
 
-function getProfileAvatarImageMarkup(avatar) {
+function getProfileAvatarImageMarkup(avatar, applyRgbEffect = false) {
   const imageUrl = encodeURI(avatar.image);
-  const image = `<img src="${imageUrl}" alt="${avatar.rgb ? '' : avatar.label}">`;
-  return avatar.rgb
+  const rgb = avatar.rgb || applyRgbEffect;
+  const image = `<img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">`;
+  return rgb
     ? `<span class="rgb-avatar-image" style="--rgb-avatar-mask-image:url('${imageUrl}')">${image}</span>`
     : image;
 }
@@ -6850,6 +7425,7 @@ function placeTower(spotId, type) {
   spot.occupied = true;
   if (!tCfg.evolution && !gameState.maxedFamilies.includes(family)) {
     gameState.maxedFamilies.push(family);
+    publishMultiplayerProfile();
   }
 
   recalculateAuras();
@@ -7090,6 +7666,7 @@ function activateGTack(t) {
       unlockBadge('evolution');
       if (!gameState.maxedFamilies.includes(tower.family)) {
         gameState.maxedFamilies.push(tower.family);
+        publishMultiplayerProfile();
       }
     }
 
@@ -7244,6 +7821,49 @@ function activateGTack(t) {
     showMessage(currentLanguage === 'es' ? '🦆 ¡Ducky Glob ha aparecido! Has superado el Infinito.' : '🦆 Ducky Glob has appeared! You conquered Endless.', 'success');
   }
 
+  let waveSpawnInterval = null;
+
+  function stopWaveSpawnInterval() {
+    if (waveSpawnInterval !== null) {
+      clearInterval(waveSpawnInterval);
+      waveSpawnInterval = null;
+    }
+  }
+
+  function startWaveSpawnInterval() {
+    stopWaveSpawnInterval();
+    if (!gameState.waveSpawnQueue?.length ||
+        gameState.waveSpawnIndex >= gameState.waveSpawnQueue.length) {
+      gameState.spawningActive = false;
+      return;
+    }
+    const spawnInterval = Math.max(100, Number(gameState.waveSpawnIntervalMs) || 500);
+    waveSpawnInterval = setInterval(() => {
+      if (gameState.paused) return;
+      if (gameState.gameOver || !gameState.waveActive) {
+        stopWaveSpawnInterval();
+        gameState.spawningActive = false;
+        return;
+      }
+      const spawned = gameState.waveSpawnIndex;
+      const type = gameState.waveSpawnQueue[spawned];
+      if (!type) {
+        stopWaveSpawnInterval();
+        gameState.spawningActive = false;
+        return;
+      }
+      const isThisBoss = gameState.waveSpawnIsBoss &&
+        gameState.waveBossTypes.includes(type) &&
+        spawned < gameState.waveBossTypes.length;
+      spawnEnemy(type, isThisBoss);
+      gameState.waveSpawnIndex++;
+      if (gameState.waveSpawnIndex >= gameState.waveSpawnQueue.length) {
+        stopWaveSpawnInterval();
+        gameState.spawningActive = false;
+      }
+    }, spawnInterval);
+  }
+
   function startWave() {
     console.log("🔥 startWave() iniciada");
     console.log("waveActive:", gameState.waveActive);
@@ -7271,6 +7891,9 @@ function activateGTack(t) {
     sendMultiplayerAction({ type: 'start-wave' });
     gameState.roundKills = [];
     gameState.roundIExExplosions = 0;
+    if (roundCheckpointInterval === null && (!currentSeed || isSeedHost)) {
+      roundCheckpointInterval = setInterval(checkpointActiveRound, 5000);
+    }
 
     if (gameState.blockQuestPending && gameState.wave >= Math.ceil(maxWaves / 2)) {
       gameState.blockQuestPending = false;
@@ -7748,28 +8371,15 @@ function activateGTack(t) {
     }
 
     // 5. Iniciar secuencia de generación con temporizador
-    let spawned = 0;
     const mobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-    const spawnInterval = mobileDevice
+    gameState.waveSpawnQueue = [...spawnList];
+    gameState.waveSpawnIndex = 0;
+    gameState.waveSpawnIsBoss = isBossWave;
+    gameState.waveBossTypes = [...bossesToSpawn];
+    gameState.waveSpawnIntervalMs = mobileDevice
       ? Math.max(240, 650 - Math.min(420, wave * 22))
       : Math.max(300, 800 - Math.min(500, wave * 25));
-    const interval = setInterval(() => {
-      if (gameState.paused) return;
-      if (gameState.gameOver || !gameState.waveActive) {
-        clearInterval(interval);
-        gameState.spawningActive = false;
-        return;
-      }
-      const type = spawnList[spawned];
-      const isThisBoss = isBossWave && bossesToSpawn.includes(type) && (spawned < bossesToSpawn.length);
-      console.log(`👾 Spawn enemigo ${spawned + 1}/${spawnList.length}: ${type}`);
-      spawnEnemy(type, isThisBoss);
-      spawned++;
-      if (spawned >= spawnList.length) {
-        clearInterval(interval);
-        gameState.spawningActive = false;
-      }
-    }, spawnInterval);
+    startWaveSpawnInterval();
   }
 
   function updateEnemyStatusUI(e) {
@@ -7923,8 +8533,8 @@ function activateGTack(t) {
 
   let synchronizedMatchKey = null;
 
-  function getMultiplayerGameState() {
-    if (!currentSeed || !gameState.modeConfirmed) return null;
+  function getMultiplayerGameState(allowLocalMatch = false) {
+    if ((!currentSeed && !allowLocalMatch) || !gameState.modeConfirmed) return null;
     return {
       seed: currentSeed,
       map: gameState.map,
@@ -7941,7 +8551,30 @@ function activateGTack(t) {
       towerLimits: { ...gameState.towerLimits },
       players: multiplayerPlayers,
       towers: gameState.towers.map(serializeMultiplayerEntity),
-      enemies: gameState.enemies.map(serializeMultiplayerEntity)
+      enemies: gameState.enemies.map(serializeMultiplayerEntity),
+      waveSpawnQueue: [...(gameState.waveSpawnQueue || [])],
+      waveSpawnIndex: gameState.waveSpawnIndex || 0,
+      waveSpawnIsBoss: Boolean(gameState.waveSpawnIsBoss),
+      waveBossTypes: [...(gameState.waveBossTypes || [])],
+      waveSpawnIntervalMs: gameState.waveSpawnIntervalMs || 0,
+      matchStats: {
+        totalDamage: gameState.totalDamage,
+        moneySpentThisGame: gameState.moneySpentThisGame,
+        baseTookDamage: gameState.baseTookDamage,
+        rareEnemiesSpawned: gameState.rareEnemiesSpawned || {},
+        uniquesBossSpawned: gameState.uniquesBossSpawned || {},
+        roundKills: gameState.roundKills || [],
+        roundIExExplosions: gameState.roundIExExplosions || 0,
+        blockQuestStarted: gameState.blockQuestStarted,
+        blockQuestPending: gameState.blockQuestPending,
+        interstellarStory: gameState.interstellarStory || {},
+        interstellarParacristalQuest: gameState.interstellarParacristalQuest,
+        paracristalActive: gameState.paracristalActive,
+        paracristalEnergy: gameState.paracristalEnergy,
+        paracristalAstrorbSeen: gameState.paracristalAstrorbSeen,
+        paracristalFinal: gameState.paracristalFinal,
+        infiniteCompleted: gameState.infiniteCompleted
+      }
     };
   }
 
@@ -7998,6 +8631,14 @@ function activateGTack(t) {
     gameState.globetines = Number(snapshot.globetines) || 0;
     gameState.maxWaves = Number(snapshot.maxWaves) || gameState.maxWaves;
     gameState.modeConfirmed = true;
+    gameState.waveSpawnQueue = Array.isArray(snapshot.waveSpawnQueue) ? [...snapshot.waveSpawnQueue] : [];
+    gameState.waveSpawnIndex = Math.max(0, Number(snapshot.waveSpawnIndex) || 0);
+    gameState.waveSpawnIsBoss = Boolean(snapshot.waveSpawnIsBoss);
+    gameState.waveBossTypes = Array.isArray(snapshot.waveBossTypes) ? [...snapshot.waveBossTypes] : [];
+    gameState.waveSpawnIntervalMs = Math.max(0, Number(snapshot.waveSpawnIntervalMs) || 0);
+    if (snapshot.matchStats && typeof snapshot.matchStats === 'object') {
+      Object.assign(gameState, snapshot.matchStats);
+    }
 
     const towerStates = new Map(snapshot.towers.map(tower => [Number(tower.spotId), tower]));
     gameState.towers = gameState.towers.filter(tower => {
@@ -8079,6 +8720,7 @@ function activateGTack(t) {
       const modal = document.getElementById('game-over');
       if (modal) modal.style.display = 'none';
     }
+    return true;
   }
 
   function applyMultiplayerAction(action) {
@@ -8112,9 +8754,65 @@ function activateGTack(t) {
     }
   }
 
+  function checkpointActiveRound() {
+    if (!gameState.modeConfirmed || gameState.gameOver || multiplayerSpectator ||
+        (currentSeed && !isSeedHost)) return false;
+    const snapshot = getMultiplayerGameState(true);
+    if (!snapshot) return false;
+    snapshot.paused = false;
+    snapshot.gameOver = false;
+    snapshot.savedAt = Date.now();
+    gameState.savedRoundSnapshot = snapshot;
+    saveProgress();
+    return true;
+  }
+
+  function restoreSavedRoundSnapshot(snapshot) {
+    if (!snapshot || !MAPS[snapshot.map] ||
+        typeof snapshot.mode !== 'string' ||
+        !Array.isArray(snapshot.towers) ||
+        !Array.isArray(snapshot.enemies) ||
+        !Array.isArray(snapshot.waveSpawnQueue) ||
+        !Number.isFinite(Number(snapshot.wave)) ||
+        (snapshot.mode === 'interstellar' && !hasInterstellarEntryAccess())) return false;
+
+    const restoredSnapshot = {
+      ...snapshot,
+      seed: null,
+      multiplayerEnabled: false,
+      players: [],
+      paused: false,
+      gameOver: false
+    };
+    if (!applyMultiplayerGameState(restoredSnapshot)) return false;
+
+    gameState.paused = false;
+    gameState.gameOver = false;
+    gameState.savedRoundSnapshot = null;
+    if (gameState.waveActive && gameState.spawningActive) {
+      startWaveSpawnInterval();
+    } else {
+      gameState.spawningActive = false;
+    }
+    if (gameState.waveActive && roundCheckpointInterval === null) {
+      roundCheckpointInterval = setInterval(checkpointActiveRound, 5000);
+    }
+    lastGameFrameTime = performance.now();
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('map-selection').style.display = 'none';
+    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('game-container').style.display = 'flex';
+    document.getElementById('meta-controls').style.display = 'flex';
+    renderMultiplayerPlayerList([]);
+    applyScale();
+    return true;
+  }
+
   window._getMultiplayerGameState = getMultiplayerGameState;
   window._applyMultiplayerGameState = applyMultiplayerGameState;
   window._applyMultiplayerAction = applyMultiplayerAction;
+  window._checkpointActiveRound = checkpointActiveRound;
+  window._restoreSavedRoundSnapshot = restoreSavedRoundSnapshot;
   window._showMultiplayerNotice = text => showMessage(text, 'info');
   window._showMultiplayerServerClosed = () => {
     gameState.gameOver = true;
@@ -9111,7 +9809,8 @@ function activateGTack(t) {
           });
           if (targets.length || (t.isSummoner && gameState.enemies.length > 0)) {
             // Trigger attack animation on the tower element
-            if (t.el) {
+            const performsAttack = !t.isSummoner || !t.summonCooldown || t.summonCooldown <= 0;
+            if (t.el && performsAttack) {
               const wasJump = t.el.classList.contains('idle-jump');
               const wasWobble = t.el.classList.contains('idle-wobble');
               t.el.classList.remove('idle-jump', 'idle-wobble');
@@ -9542,6 +10241,15 @@ function activateGTack(t) {
 
       if (gameState.waveActive && !gameState.spawningActive && !gameState.enemies.length) {
         gameState.waveActive = false;
+        gameState.savedRoundSnapshot = null;
+        gameState.waveSpawnQueue = [];
+        gameState.waveSpawnIndex = 0;
+        gameState.waveSpawnIsBoss = false;
+        gameState.waveBossTypes = [];
+        if (roundCheckpointInterval !== null) {
+          clearInterval(roundCheckpointInterval);
+          roundCheckpointInterval = null;
+        }
         gameState.globetines += 50 + gameState.wave * 10;
         const earnedPy = Math.round(10 * getPycoinMultiplier());
         gameState.pycoins += earnedPy;
@@ -10271,6 +10979,13 @@ function activateGTack(t) {
     if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
     const resumeButton = document.getElementById('resume-game');
     if (resumeButton) resumeButton.innerHTML = `▶️ ${currentLanguage === 'en' ? 'Resume' : 'Reanudar'}`;
+    const pauseSaveLabels = currentLanguage === 'en'
+      ? ['💾 Save game', '💾 Save and log out', '🚪 Save and exit']
+      : ['💾 Guardar partida', '💾 Guardar y cerrar sesión', '🚪 Guardar y salir'];
+    ['save-paused-game', 'save-and-login', 'save-and-close'].forEach((id, index) => {
+      const button = document.getElementById(id);
+      if (button) button.textContent = pauseSaveLabels[index];
+    });
 
     const shopTitle = document.getElementById('shop-title');
     if (shopTitle) shopTitle.innerHTML = `🛒 ${translate('shop_title').replace('🛒 ', '')}`;
@@ -10295,6 +11010,7 @@ function activateGTack(t) {
 
     const loadingTipBtn = document.getElementById('loading-tip-btn');
     if (loadingTipBtn) loadingTipBtn.textContent = currentLanguage === 'es' ? 'Ver todos los tips' : 'View all tips';
+    updateLoadSavedRoundButton();
 
     const encBtn = document.getElementById('open-encyclopedia-btn');
     if (encBtn) encBtn.innerHTML = translate('btn_encyclopedia');
@@ -10428,6 +11144,13 @@ function activateGTack(t) {
     } else {
       el.classList.remove('enemy-skin-flipped');
     }
+    if ((gameState.hypermutatedUnlocked || gameState.debugState === 'unlocked') &&
+        gameState.settings.hypermutatedEffect) {
+      el.classList.add('hypermutated');
+    }
+    const glitchEnabled = (gameState.glitchUnlocked || gameState.debugState === 'unlocked') &&
+      gameState.settings.glitchEffect;
+    setTowerGlitchEffect(el, glitchEnabled);
   }
 
   function drawRangePreview(x, y, range) {
@@ -10461,7 +11184,19 @@ function activateGTack(t) {
     });
   }
 
-  function retryGame() {
+  function retryGame(preserveSavedRound = false) {
+    const savedRoundSnapshot = preserveSavedRound ? gameState.savedRoundSnapshot : null;
+    stopWaveSpawnInterval();
+    if (roundCheckpointInterval !== null) {
+      clearInterval(roundCheckpointInterval);
+      roundCheckpointInterval = null;
+    }
+    gameState.savedRoundSnapshot = savedRoundSnapshot;
+    gameState.waveSpawnQueue = [];
+    gameState.waveSpawnIndex = 0;
+    gameState.waveSpawnIsBoss = false;
+    gameState.waveBossTypes = [];
+    gameState.waveSpawnIntervalMs = 0;
     gameState.paused = false;
     if (gameState.mode === 'interstellar') {
       gameState.health = 200;
@@ -10511,7 +11246,26 @@ function activateGTack(t) {
     document.querySelector('#game-over .mode-select-btn')?.style.removeProperty('display');
     document.querySelector('#game-over .map-select-btn')?.style.removeProperty('display');
     document.querySelector('#game-over .retry-btn:not(#resume-game)')?.style.removeProperty('display');
+    setPauseSaveActionsVisible(false);
     document.getElementById('game-over').style.display = 'none';
+  }
+
+  function setPauseSaveActionsVisible(visible) {
+    const canSave = visible && !multiplayerSpectator && (!currentSeed || isSeedHost);
+    document.querySelectorAll('#game-over .pause-save-action').forEach(button => {
+      button.style.display = canSave ? 'inline-flex' : 'none';
+    });
+    const retryButton = document.querySelector('#game-over .retry-btn:not(#resume-game):not(.pause-save-action)');
+    const exitButton = document.querySelector('#game-over .exit-btn');
+    if (retryButton) retryButton.style.display = visible ? 'none' : '';
+    if (exitButton) exitButton.style.display = visible ? 'none' : '';
+    if (visible) {
+      document.querySelector('#game-over .mode-select-btn')?.style.setProperty('display', 'none');
+      document.querySelector('#game-over .map-select-btn')?.style.setProperty('display', 'none');
+    } else {
+      document.querySelector('#game-over .mode-select-btn')?.style.removeProperty('display');
+      document.querySelector('#game-over .map-select-btn')?.style.removeProperty('display');
+    }
   }
 
   function pauseGame() {
@@ -10532,6 +11286,7 @@ function activateGTack(t) {
     resumeButton.style.display = 'inline-flex';
     modal.querySelector('.mode-select-btn').style.display = 'none';
     modal.querySelector('.map-select-btn').style.display = 'none';
+    setPauseSaveActionsVisible(true);
     modal.style.display = 'flex';
   }
 
@@ -10543,6 +11298,48 @@ function activateGTack(t) {
     document.getElementById('game-over').style.display = 'none';
     const content = document.querySelector('#game-over .modal-content');
     if (content) content.classList.remove('paused');
+    setPauseSaveActionsVisible(false);
+  }
+
+  async function savePausedRound() {
+    if (!gameState.paused) return false;
+    if (!checkpointActiveRound()) {
+      const message = currentLanguage === 'en'
+        ? 'This round cannot be saved from this session.'
+        : 'No se puede guardar esta partida desde esta sesión.';
+      document.getElementById('game-over-msg').textContent = message;
+      return false;
+    }
+
+    try {
+      await flushCloudProgressSave();
+      const message = currentLanguage === 'en'
+        ? (activeCloudUserId ? 'Round saved on this device and in the cloud.' : 'Round saved on this device.')
+        : (activeCloudUserId ? 'Partida guardada en este dispositivo y en la nube.' : 'Partida guardada en este dispositivo.');
+      document.getElementById('game-over-msg').textContent = message;
+      return true;
+    } catch (error) {
+      console.error('No se pudo completar el guardado de la partida:', error);
+      document.getElementById('game-over-msg').textContent = currentLanguage === 'en'
+        ? `Saved on this device, but cloud saving failed: ${error.message}`
+        : `Guardada en este dispositivo, pero falló el guardado en la nube: ${error.message}`;
+      return false;
+    }
+  }
+
+  async function savePausedRoundAndLogout() {
+    if (await savePausedRound()) exitToLogin(true);
+  }
+
+  async function savePausedRoundAndClose() {
+    if (!await savePausedRound()) return;
+    window.close();
+    window.setTimeout(() => {
+      if (window.closed) return;
+      document.getElementById('game-over-msg').textContent = currentLanguage === 'en'
+        ? 'The game was saved, but this browser blocked closing the window. You can close this tab manually.'
+        : 'La partida se ha guardado, pero el navegador bloqueó el cierre. Puedes cerrar esta pestaña manualmente.';
+    }, 100);
   }
 
   function chooseModeAfterGame() {
@@ -10562,10 +11359,10 @@ function activateGTack(t) {
     document.getElementById('map-selection').style.display = 'flex';
   }
 
-  function exitToLogin() {
+  function exitToLogin(preserveSavedRound = false) {
     stopSessionClock();
     gameState.paused = false;
-    retryGame();
+    retryGame(preserveSavedRound);
     currentSeed = null;
     isSeedHost = false;
     multiplayerEnabled = false;
@@ -10586,15 +11383,23 @@ function activateGTack(t) {
     document.getElementById('mode-selection').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('meta-controls').style.display = 'none';
+    spawnDecorations('login-decorations');
     document.body.classList.remove('role-owner', 'role-admin', 'role-debug');
     document.getElementById('admin-indicator').style.display = 'none';
   }
 
   function endGame(victory = false) {
     if (multiplayerSpectator) return;
+    setPauseSaveActionsVisible(false);
     gameState.gameOver = true;
     gameState.paused = false;
     gameState.spawningActive = false;
+    gameState.savedRoundSnapshot = null;
+    stopWaveSpawnInterval();
+    if (roundCheckpointInterval !== null) {
+      clearInterval(roundCheckpointInterval);
+      roundCheckpointInterval = null;
+    }
     const modal = document.getElementById('game-over');
     if (!modal) return;
     modal.style.display = 'flex';
@@ -10814,6 +11619,7 @@ function activateGTack(t) {
         unlockBadge('skinllector');
       }
 
+      checkGlitchEffectUnlock();
       saveProgress();
     } else {
       if (content) content.classList.remove('victory');
@@ -10829,6 +11635,7 @@ function activateGTack(t) {
     }
 
     updateLanguage();
+    publishMultiplayerProfile();
   }
 
   function getTowerName(t) {
@@ -11054,6 +11861,19 @@ function activateGTack(t) {
     } else if (currentStoryTab === 'logs') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
+        <h3 style="color:#ff9f43;">📋 Historial de Actualizaciones (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
+        <p style="color:#ff9f43;">¡Empieza una nueva aventura! Esta primera parte prepara el juego con nuevas formas de jugar, guardar tu progreso y descubrir secretos.</p>
+        <h4>Novedades de la PT1:</h4>
+        <ul>
+          <li>💾 <strong style="color:#ff9f43;">Guardar y reanudar partidas</strong>: Guarda una ronda desde el menú de pausa y cárgala desde las islas. La partida guardada muestra el mapa, el modo y la oleada; también puedes guardar y cerrar sesión o guardar y salir.</li>
+          <li>🌐 <strong>Semillas más fáciles de compartir</strong>: Copia la seed o la invitación desde sus opciones, o descarga la seed como archivo de texto.</li>
+          <li>👤 <strong>Perfiles en partidas online</strong>: Consulta el progreso, los logros, las familias maximizadas y las victorias de otros jugadores de la partida.</li>
+          <li>🎃 <strong>Un login más vivo</strong>: Los Globs y enemigos aparecen sin duplicados; los enemigos de Halloween pueden sorprenderte al hacer clic en ellos.</li>
+          <li>✨ <strong>Efectos secretos</strong>: Descubre Hipermutado y Glitch en Ajustes → Especial. Puedes equiparlos juntos, y también afectan a Work-Bombot.</li>
+          <li>🕒 <strong>Reloj y recordatorios</strong>: Consulta la hora y el tiempo de juego; cada cierto tiempo aparecerá un mensaje que te recordará descansar o comprobar si sigues ahí.</li>
+          <li>🖼️ <strong>Mejoras visuales y correcciones</strong>: El login usa el logo Rewamp, y Omnipresent Glob sirve de respaldo cuando no se puede cargar una imagen.</li>
+        </ul>
+
         <h3 style="color:#75df9a;">📋 Historial de Actualizaciones (GlD v4.3.0 - ONLINE &amp; AVATARES)</h3>
         <p style="color:#75df9a;">¡Tus partidas, tu identidad y tu estilo Glob se conectan como nunca!</p>
         <h4>Novedades del Parche:</h4>
@@ -11188,6 +12008,19 @@ function activateGTack(t) {
       `;
       } else {
         container.innerHTML = `
+        <h3 style="color:#ff9f43;">📋 Update Logs (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
+        <p style="color:#ff9f43;">A new adventure begins! This first part prepares the game with new ways to play, save your progress, and uncover secrets.</p>
+        <h4>What's New in PT1:</h4>
+        <ul>
+          <li>💾 <strong style="color:#ff9f43;">Save and resume games</strong>: Save a round from the pause menu and load it from the island screen. Saved games show the map, mode, and wave; you can also save and log out or save and exit.</li>
+          <li>🌐 <strong>Easier seed sharing</strong>: Copy the seed or invitation from its options, or download the seed as a text file.</li>
+          <li>👤 <strong>Profiles in online matches</strong>: View other players' progress, badges, maxed families, and victories in the match.</li>
+          <li>🎃 <strong>A livelier login screen</strong>: Globs and enemies appear without duplicates; Halloween enemies can surprise you when clicked.</li>
+          <li>✨ <strong>Secret effects</strong>: Discover Hipermutado and Glitch in Settings → Special. Equip them together, and they also affect Work-Bombot.</li>
+          <li>🕒 <strong>Clock and reminders</strong>: Keep an eye on the time and your play session; a message will periodically remind you to rest or check if you're still there.</li>
+          <li>🖼️ <strong>Visual improvements and fixes</strong>: The login screen uses the Rewamp logo, and Omnipresent Glob is used as a fallback when an image cannot load.</li>
+        </ul>
+
         <h3 style="color:#75df9a;">📋 Update Logs (GlD v4.3.0 - ONLINE &amp; AVATARS)</h3>
         <p style="color:#75df9a;">Your matches, identity and Glob style are more connected than ever!</p>
         <h4>What's New in this Patch:</h4>

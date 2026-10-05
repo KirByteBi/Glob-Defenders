@@ -99,6 +99,23 @@ remain unchanged; RGreenB, RedGB, and RGBlue are honorific names mentioned in
 their descriptions. Fun fact: Green, Red, and Blue are the original Glob
 families and the first families to receive Rewamp skins.
 
+During a match, the host's game can be saved from the pause menu and resumed
+from **Load saved game** on the island screen; the button shows the saved map,
+wave, and mode. If there is no saved round, the game responds with a randomly
+chosen line from ???, Work-Bombot, or Glob. The pause menu also offers
+**Save and log out** and **Save and exit**.
+In online co-op, only the host saves; after resuming, players can rejoin with
+the same seed. Browsers may block scripts from closing a tab they did not open,
+so **Save and exit** will prompt you to close the tab manually if needed. The
+browser may also show its standard leave-page confirmation when refreshing
+during a round.
+
+Two hidden effects await curious players in **Settings → Special**. One rewards
+an unusual amount of attention to the characters around the login screen; the
+other is reserved for those who can truly claim to have seen everything,
+including what lies beyond ordinary maps and modes. Once both effects are
+available, try enabling them together.
+
 ---
 
 ## 💰 Currencies
