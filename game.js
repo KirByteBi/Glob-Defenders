@@ -1542,10 +1542,12 @@ function init() {
     const logoRoll = Math.random();
     if (logoRoll < 0.15) {
       document.querySelectorAll('.game-logo').forEach(img => {
+        img.classList.add('is-square-logo');
         img.src = 'img/GlobDefendersImage.png';
       });
     } else if (logoRoll < 0.30) {
       document.querySelectorAll('.game-logo').forEach(img => {
+        img.classList.add('is-square-logo');
         img.src = 'img/Urban Road_Reborn Logo.png';
       });
     }
@@ -11922,11 +11924,11 @@ function activateGTack(t) {
           <li>🌐 <strong>Semillas más fáciles de compartir</strong>: Copia la seed o la invitación desde sus opciones, o descarga la seed como archivo de texto.</li>
           <li>👤 <strong>Perfiles en partidas online</strong>: Consulta el progreso, los logros, las familias maximizadas y las victorias de otros jugadores de la partida.</li>
           <li>🎨 <strong>Perfil persistente</strong>: Tu imagen y tu marco elegidos se conservan al volver a iniciar sesión.</li>
-          <li>🎃 <strong>Un login más vivo</strong>: Los Globs y enemigos aparecen sin duplicados; los enemigos de Halloween pueden sorprenderte al hacer clic en ellos.</li>
+          <li>🎃 <strong>Halloween te sigue a la partida</strong>: Los enemigos de Halloween, incluido Curse Boneker, pueden lanzarte un jumpscare al hacer clic en ellos o al derrotarlos.</li>
           <li>💀 <strong>Nuevo jefe Anti-Normal</strong>: En la última oleada de Spooktacular Ruins, Curse Boneker lanza de 2 a 5 huesos malditos contra tus torres para aturdirlas.</li>
           <li>✨ <strong>Efectos secretos</strong>: Descubre Hipermutado y Glitch en Ajustes → Especial. Puedes equiparlos juntos, y también afectan a Work-Bombot.</li>
           <li>🕒 <strong>Reloj y recordatorios</strong>: Consulta la hora y el tiempo de juego; cada cierto tiempo aparecerá un mensaje que te recordará descansar o comprobar si sigues ahí.</li>
-          <li>🖼️ <strong>Mejoras visuales y correcciones</strong>: El login usa el logo Rewamp, y Omnipresent Glob sirve de respaldo cuando no se puede cargar una imagen.</li>
+          <li>🖼️ <strong>Mejoras visuales y correcciones</strong>: Los logos ahora dan una respuesta visual clara al hacer clic; el login usa el logo Rewamp y Omnipresent Glob sirve de respaldo cuando no se puede cargar una imagen.</li>
         </ul>
 
         <h3 style="color:#75df9a;">📋 Historial de Actualizaciones (GlD v4.3.0 - ONLINE &amp; AVATARES)</h3>
@@ -12071,11 +12073,11 @@ function activateGTack(t) {
           <li>🌐 <strong>Easier seed sharing</strong>: Copy the seed or invitation from its options, or download the seed as a text file.</li>
           <li>👤 <strong>Profiles in online matches</strong>: View other players' progress, badges, maxed families, and victories in the match.</li>
           <li>🎨 <strong>Persistent profile</strong>: Your chosen portrait and frame are kept when you sign in again.</li>
-          <li>🎃 <strong>A livelier login screen</strong>: Globs and enemies appear without duplicates; Halloween enemies can surprise you when clicked.</li>
+          <li>🎃 <strong>Halloween follows you into the match</strong>: Halloween enemies, including Curse Boneker, can jumpscare you when clicked or defeated.</li>
           <li>💀 <strong>New Anti-Normal boss</strong>: In the final wave of Spooktacular Ruins, Curse Boneker hurls 2 to 5 cursed bones at your towers to stun them.</li>
           <li>✨ <strong>Secret effects</strong>: Discover Hipermutado and Glitch in Settings → Special. Equip them together, and they also affect Work-Bombot.</li>
           <li>🕒 <strong>Clock and reminders</strong>: Keep an eye on the time and your play session; a message will periodically remind you to rest or check if you're still there.</li>
-          <li>🖼️ <strong>Visual improvements and fixes</strong>: The login screen uses the Rewamp logo, and Omnipresent Glob is used as a fallback when an image cannot load.</li>
+          <li>🖼️ <strong>Visual improvements and fixes</strong>: The logos now give clear visual feedback when clicked; the login uses the Rewamp logo, and Omnipresent Glob is used as a fallback when an image cannot load.</li>
         </ul>
 
         <h3 style="color:#75df9a;">📋 Update Logs (GlD v4.3.0 - ONLINE &amp; AVATARS)</h3>
