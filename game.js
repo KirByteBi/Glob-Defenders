@@ -5,6 +5,8 @@ let backgroundMusic = null;
 let musicEnabled = true;
 let showHitbox = false;
 let offlineModeActive = false;
+let lightModeToggleCount = 0;
+let lightModeGlitchTriggered = false;
 
 // --- MULTIPLAYER ---
 let socket = null;
@@ -1551,6 +1553,7 @@ function init() {
         img.src = 'img/Urban Road_Reborn Logo.png';
       });
     }
+    initializeLightMode();
     updateLanguage();
     bindEvents();
     scheduleSkipLoginButton();
@@ -1981,11 +1984,37 @@ function spawnDecorations(containerId) {
         selectedImages.push(imagePath);
       }
     }
-    const remainingGlobImages = globImagesToShow.filter(path => !selectedGlobImages.includes(path));
+    let replacementIndex = 0;
+
+    const getNextDecorationImage = excludedImagePath => {
+      for (let checked = 0; checked < shuffledPool.length; checked++) {
+        const imagePath = shuffledPool[replacementIndex];
+        replacementIndex = (replacementIndex + 1) % shuffledPool.length;
+        if (imagePath === excludedImagePath) continue;
+        if (availableGlobPaths.includes(imagePath) && clickedGlobPaths.has(imagePath)) continue;
+        const alreadyVisible = [...container.querySelectorAll('.floating-char')]
+          .some(character => character.dataset.imagePath === imagePath);
+        if (!alreadyVisible) return imagePath;
+      }
+
+      return shuffledPool.find(imagePath =>
+        imagePath !== excludedImagePath &&
+        (!availableGlobPaths.includes(imagePath) || !clickedGlobPaths.has(imagePath))
+      ) || shuffledPool.find(imagePath =>
+        !availableGlobPaths.includes(imagePath) || !clickedGlobPaths.has(imagePath)
+      ) || null;
+    };
+
+    const refillDecorations = excludedImagePath => {
+      if (!container.isConnected) return;
+      const nextImage = getNextDecorationImage(excludedImagePath);
+      if (nextImage) container.appendChild(createFloatingCharacter(nextImage));
+    };
 
     const createFloatingCharacter = imgPath => {
       const img = document.createElement('div');
       img.className = 'floating-char';
+      img.dataset.imagePath = imgPath;
       img.style.backgroundImage = `url('${imgPath}')`;
 
       const startX = Math.random() * window.innerWidth;
@@ -2003,18 +2032,14 @@ function spawnDecorations(containerId) {
         if (img.dataset.launched) return;
         img.dataset.launched = 'true';
         recordHypermutatedDecorationClick(imgPath, availableGlobPaths);
+        if (availableGlobPaths.includes(imgPath)) clickedGlobPaths.add(imgPath);
         const isGlob = imgPath.toLowerCase().includes('glob');
         playSound(isGlob ? 'sounds/Slurp.mp3' : 'sounds/Bipbip.mp3');
         if (isHalloweenLoginEnemy(imgPath)) {
           const enemyType = Object.keys(IMAGE_PATHS).find(type => IMAGE_PATHS[type] === imgPath);
           triggerHalloweenJumpscare(enemyType);
           img.remove();
-          setTimeout(() => {
-            const nextGlobImage = remainingGlobImages.shift();
-            if (nextGlobImage && container.isConnected) {
-              container.appendChild(createFloatingCharacter(nextGlobImage));
-            }
-          }, 850);
+          setTimeout(() => refillDecorations(imgPath), 850);
           return;
         }
         const rect = img.getBoundingClientRect();
@@ -2041,8 +2066,7 @@ function spawnDecorations(containerId) {
         const removeAndRefill = () => {
           if (!img.isConnected) return;
           img.remove();
-          const nextGlobImage = remainingGlobImages.shift();
-          if (nextGlobImage) container.appendChild(createFloatingCharacter(nextGlobImage));
+          refillDecorations(imgPath);
         };
         img.addEventListener('transitionend', removeAndRefill, { once: true });
         setTimeout(removeAndRefill, 800);
@@ -2053,6 +2077,65 @@ function spawnDecorations(containerId) {
 
     selectedImages.forEach(imgPath => container.appendChild(createFloatingCharacter(imgPath)));
   } catch (e) { console.warn("Error en decoraciones:", e); }
+}
+
+function updateLightModeButton() {
+  const button = document.getElementById('light-mode-toggle');
+  if (!button) return;
+  const isLightMode = document.body.classList.contains('light-mode');
+  const label = currentLanguage === 'en'
+    ? (isLightMode ? 'Switch to dark mode' : 'Switch to light mode')
+    : (isLightMode ? 'Activar modo oscuro' : 'Activar modo claro');
+  button.textContent = isLightMode ? '🌙' : '💡';
+  button.setAttribute('aria-label', label);
+  button.title = label;
+}
+
+function setLightMode(enabled, persist = true) {
+  document.body.classList.toggle('light-mode', enabled);
+  updateLightModeButton();
+  if (!persist) return;
+  try {
+    localStorage.setItem('glob_light_mode', String(enabled));
+  } catch (error) {
+    console.warn('No se pudo guardar el modo de color:', error);
+  }
+}
+
+function initializeLightMode() {
+  let enabled = false;
+  try {
+    enabled = localStorage.getItem('glob_light_mode') === 'true';
+  } catch (error) {
+    console.warn('No se pudo leer el modo de color guardado:', error);
+  }
+  setLightMode(enabled, false);
+}
+
+function toggleLightMode() {
+  setLightMode(!document.body.classList.contains('light-mode'));
+  const loginScreen = document.getElementById('login-screen');
+  if (!loginScreen || loginScreen.style.display === 'none' || lightModeGlitchTriggered) return;
+  lightModeToggleCount++;
+  if (lightModeToggleCount < 20) return;
+
+  lightModeGlitchTriggered = true;
+  document.body.classList.add('light-mode-glitch');
+  document.querySelectorAll('#login-screen .login-box').forEach(box => {
+    box.classList.add('login-glitch-critical');
+  });
+}
+
+function clearLoginVisualEffects() {
+  document.querySelectorAll('.login-box').forEach(box => {
+    box.classList.remove('login-glitch-critical');
+  });
+  document.querySelectorAll('.login-logo').forEach(logo => {
+    logo.classList.remove('glitch-effect', 'logo-click-feedback');
+    logo.style.removeProperty('transform');
+    logo.style.removeProperty('filter');
+    logo.style.removeProperty('transition');
+  });
 }
 
 function toggleMute() {
@@ -2165,6 +2248,7 @@ async function startGameSession(username, offline, accountId = null) {
   drawBadges();
   updateMetaUI();
   drawTowerShop();
+  clearLoginVisualEffects();
   document.getElementById('login-screen').style.display = 'none';
 
   const showGame = () => {
@@ -4341,6 +4425,7 @@ function grantBadgeReward(badge) {
 function toggleLanguage() {
   currentLanguage = currentLanguage === 'es' ? 'en' : 'es';
   updateLanguage();
+  updateLightModeButton();
   renderMapSelection();
   drawTowerShop();
   drawBadges();
@@ -8627,6 +8712,7 @@ function activateGTack(t) {
     createMap();
     retryGame();
 
+    clearLoginVisualEffects();
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('map-selection').style.display = 'none';
     document.getElementById('mode-selection').style.display = 'none';
@@ -8831,6 +8917,7 @@ function activateGTack(t) {
       roundCheckpointInterval = setInterval(checkpointActiveRound, 5000);
     }
     lastGameFrameTime = performance.now();
+    clearLoginVisualEffects();
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('map-selection').style.display = 'none';
     document.getElementById('mode-selection').style.display = 'none';

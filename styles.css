@@ -13,6 +13,11 @@ body {
     overflow-y: auto;
 }
 
+body.light-mode {
+    background: #fff;
+    color: #1a1a2e;
+}
+
 /* ===================== PORTRAIT OVERLAY ===================== */
 #portrait-overlay {
     display: none;
@@ -104,6 +109,43 @@ body {
     backdrop-filter: blur(10px);
     overflow-y: auto;
     padding: 20px 0;
+}
+
+body.light-mode #login-screen,
+body.light-mode #map-selection,
+body.light-mode #mode-selection,
+body.light-mode #loading-screen {
+    background: #fff;
+    color: #1a1a2e;
+}
+
+body.light-mode #login-screen .login-box,
+body.light-mode #map-selection .login-box,
+body.light-mode #mode-selection .login-box {
+    background: rgba(255, 255, 255, 0.92);
+    color: #1a1a2e;
+    border-color: rgba(26, 26, 46, 0.18);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+body.light-mode .login-box input {
+    background: rgba(255, 255, 255, 0.9);
+    color: #1a1a2e;
+    border-color: #aab2bd;
+}
+
+body.light-mode .loading-text {
+    color: #24734e;
+}
+
+body.light-mode .loading-tip {
+    color: #263445;
+}
+
+body.light-mode .loading-tip-btn {
+    background: rgba(26, 26, 46, 0.06);
+    color: #1a1a2e;
+    border-color: rgba(26, 26, 46, 0.2);
 }
 
 @media (max-height: 500px) {
@@ -1238,6 +1280,21 @@ button.active {
     top: 75px;
     left: 20px;
     right: auto;
+    z-index: 10000;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#light-mode-toggle {
+    position: fixed;
+    top: 75px;
+    left: 75px;
     z-index: 10000;
     width: 45px;
     height: 45px;
@@ -3170,6 +3227,39 @@ body.role-debug .owner-debug-section strong {
     animation: critical-glitch 1s forwards, glitch-anim 0.1s infinite;
 }
 
+body.light-mode-glitch::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 200000;
+    pointer-events: none;
+    opacity: 0.35;
+    mix-blend-mode: screen;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 7px,
+        rgba(0, 255, 255, 0.48) 8px,
+        rgba(255, 0, 110, 0.42) 10px,
+        transparent 12px
+    );
+    animation: permanent-screen-glitch 160ms steps(2, end) infinite;
+}
+
+body.light-mode-glitch #login-screen,
+body.light-mode-glitch #map-selection,
+body.light-mode-glitch #mode-selection,
+body.light-mode-glitch #game-container {
+    animation: glitch-anim 120ms steps(2, end) infinite;
+}
+
+@keyframes permanent-screen-glitch {
+    0% { opacity: 0.12; transform: translateX(-4px); background-position: 0 0; }
+    35% { opacity: 0.4; transform: translateX(3px); background-position: 9px 5px; }
+    70% { opacity: 0.2; transform: translateX(-2px); background-position: -6px 11px; }
+    100% { opacity: 0.36; transform: translateX(4px); background-position: 4px -3px; }
+}
+
 @keyframes shake-red {
     0%, 100% { transform: translateX(0); filter: none; }
     25% { transform: translateX(-5px); filter: brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5); }
@@ -4229,6 +4319,15 @@ body.touch-landscape #options-toggle {
     font-size: 1rem;
 }
 
+body.touch-landscape #light-mode-toggle {
+    top: 50px !important;
+    right: 50px !important;
+    left: auto !important;
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+}
+
 /* Tablets keep the compact composition but use roomier controls and a larger tower column. */
 body.tablet-landscape #tower-shop {
     width: 92px;
@@ -4257,6 +4356,12 @@ body.tablet-landscape #meta-controls .meta-btn {
 }
 
 body.tablet-landscape #options-toggle {
+    width: 46px;
+    height: 46px;
+    font-size: 1.15rem;
+}
+
+body.tablet-landscape #light-mode-toggle {
     width: 46px;
     height: 46px;
     font-size: 1.15rem;
