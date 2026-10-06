@@ -4,6 +4,9 @@ codigos.txt
 # Ignorar el archivo de usuarios y roles
 usuarios_roles.txt
 
+# Ignorar instrucciones internas de moderación y despliegue
+supabase/README.md
+
 # Ignorar archivos temporales de sistema
 Thumbs.db
 .DS_Store

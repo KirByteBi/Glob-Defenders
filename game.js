@@ -7,6 +7,9 @@ let showHitbox = false;
 let offlineModeActive = false;
 let lightModeToggleCount = 0;
 let lightModeGlitchTriggered = false;
+let offensiveUsernameAttempts = 0;
+let offensiveUsernameJumpscareTimeout = null;
+let moderationAccountDeletionHandled = false;
 
 // --- MULTIPLAYER ---
 let socket = null;
@@ -31,6 +34,9 @@ let multiplayerSpectatorSavedGlobetines = null;
 let multiplayerViewedProfile = null;
 let applyingMultiplayerAction = false;
 let multiplayerActionOwner = null;
+let multiplayerChatMode = 'safe';
+let multiplayerChatEntries = [];
+let multiplayerChatLastSentAt = 0;
 let sessionClockInterval = null;
 let sessionStartedAt = null;
 let roundCheckpointInterval = null;
@@ -39,6 +45,31 @@ let lastBreakReminderIndex = -1;
 const RARE_ENEMY_WAVE_SPAWN_CHANCE = 0.3;
 const BUSHI_BRELLA_MAX_SPAWNS = 3;
 const BUSHI_BRELLA_SKIN_DROP_CHANCE = 0.01;
+const MULTIPLAYER_CHAT_MAX_LENGTH = 240;
+const MULTIPLAYER_CHAT_MAX_ENTRIES = 40;
+const OFFENSIVE_ACCOUNT_DELETION_THRESHOLD = 25;
+const SAFE_MULTIPLAYER_CHAT_MESSAGES = {
+  es: [
+    '¡Buen trabajo, equipo!',
+    '¡Vamos, podemos con esta oleada!',
+    'Gracias por jugar conmigo.',
+    '¡Defensa impecable!',
+    '¿Alguien necesita ayuda?',
+    '¡Buena estrategia!',
+    '¡Ánimo, equipo!',
+    '¡GG, ha sido una gran partida!'
+  ],
+  en: [
+    'Great work, team!',
+    'We can beat this wave!',
+    'Thanks for playing with me.',
+    'Flawless defense!',
+    'Does anyone need help?',
+    'Great strategy!',
+    'You got this, team!',
+    'GG, that was a great match!'
+  ]
+};
 const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set'];
 const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr'];
 const PROFILE_ENEMY_VARIANT_GROUPS = [
@@ -270,6 +301,208 @@ function renderMultiplayerPlayerList(players) {
   );
 }
 
+function renderMultiplayerChat() {
+  const wrapper = document.getElementById('multiplayer-chat');
+  const log = document.getElementById('multiplayer-chat-log');
+  const safeTab = document.getElementById('multiplayer-chat-safe-tab');
+  const freeTab = document.getElementById('multiplayer-chat-free-tab');
+  const safeForm = document.getElementById('multiplayer-chat-safe-form');
+  const freeForm = document.getElementById('multiplayer-chat-free-form');
+  const safeSelect = document.getElementById('multiplayer-chat-safe-message');
+  if (!wrapper || !log || !safeTab || !freeTab || !safeForm || !freeForm || !safeSelect) return;
+  const shouldScroll = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+
+  const isEnglish = currentLanguage === 'en';
+  const safeMessages = SAFE_MULTIPLAYER_CHAT_MESSAGES[isEnglish ? 'en' : 'es'];
+  const selectedSafeMessage = safeSelect.value;
+  safeSelect.replaceChildren();
+  safeMessages.forEach(message => {
+    const option = document.createElement('option');
+    option.value = message;
+    option.textContent = message;
+    safeSelect.appendChild(option);
+  });
+  if (safeMessages.includes(selectedSafeMessage)) safeSelect.value = selectedSafeMessage;
+
+  safeTab.textContent = isEnglish ? 'Safe' : 'Seguro';
+  freeTab.textContent = isEnglish ? 'Free' : 'Libre';
+  safeTab.setAttribute('aria-selected', String(multiplayerChatMode === 'safe'));
+  freeTab.setAttribute('aria-selected', String(multiplayerChatMode === 'free'));
+  safeForm.hidden = multiplayerChatMode !== 'safe';
+  freeForm.hidden = multiplayerChatMode !== 'free';
+  document.getElementById('multiplayer-chat-title').textContent = isEnglish ? 'Match chat' : 'Chat de la partida';
+  document.getElementById('multiplayer-chat-safe-label').textContent = isEnglish ? 'Choose a friendly message' : 'Elige un mensaje amable';
+  document.getElementById('multiplayer-chat-free-label').textContent = isEnglish
+    ? `Write a message (max. ${MULTIPLAYER_CHAT_MAX_LENGTH} characters)`
+    : `Escribe un mensaje (máx. ${MULTIPLAYER_CHAT_MAX_LENGTH} caracteres)`;
+  document.getElementById('multiplayer-chat-safe-send').textContent = isEnglish ? 'Send' : 'Enviar';
+  document.getElementById('multiplayer-chat-free-send').textContent = isEnglish ? 'Send' : 'Enviar';
+  document.getElementById('multiplayer-chat-close').setAttribute('aria-label', isEnglish ? 'Close chat' : 'Cerrar chat');
+  document.getElementById('multiplayer-chat-toggle').textContent = isEnglish ? '💬 Chat' : '💬 Chat';
+  document.getElementById('multiplayer-chat-toggle').setAttribute('aria-expanded', String(!document.getElementById('multiplayer-chat-panel').hidden));
+  document.getElementById('multiplayer-chat-notice').textContent = isEnglish
+    ? 'Insulting messages are filtered and will not appear in chat.'
+    : 'Los mensajes insultantes se filtran y no aparecerán en el chat.';
+
+  log.replaceChildren();
+  multiplayerChatEntries.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = `multiplayer-chat-entry${entry.blockedImage ? ' blocked-image' : ''}${entry.own ? ' own' : ''}`;
+    const name = document.createElement('strong');
+    name.textContent = `${entry.username || (isEnglish ? 'Player' : 'Jugador')}:`;
+    row.appendChild(name);
+    if (entry.blockedImage) {
+      const image = document.createElement('img');
+      image.className = 'multiplayer-chat-blocked-image';
+      image.src = encodeURI(IMAGE_PATHS.Omnipresent_Glob);
+      image.alt = isEnglish ? 'Omnipresent Glob replaced the blocked message' : 'Omnipresent Glob sustituyó el mensaje bloqueado';
+      image.title = 'Omnipresent Glob';
+      row.appendChild(image);
+    } else {
+      const text = document.createElement('span');
+      text.textContent = entry.text;
+      row.appendChild(text);
+    }
+    log.appendChild(row);
+  });
+  if (shouldScroll) log.scrollTop = log.scrollHeight;
+}
+
+function updateMultiplayerChatVisibility() {
+  const wrapper = document.getElementById('multiplayer-chat');
+  const panel = document.getElementById('multiplayer-chat-panel');
+  const toggle = document.getElementById('multiplayer-chat-toggle');
+  if (!wrapper || !panel || !toggle) return;
+  const visible = Boolean(currentSeed && socket?.connected && !isOfflineSession());
+  wrapper.hidden = !visible;
+  if (!visible) {
+    panel.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  renderMultiplayerChat();
+}
+
+function addMultiplayerChatEntry(entry) {
+  multiplayerChatEntries.push(entry);
+  if (multiplayerChatEntries.length > MULTIPLAYER_CHAT_MAX_ENTRIES) {
+    multiplayerChatEntries = multiplayerChatEntries.slice(-MULTIPLAYER_CHAT_MAX_ENTRIES);
+  }
+  renderMultiplayerChat();
+}
+
+function receiveMultiplayerChatMessage(message) {
+  if (!message || typeof message.text !== 'string') return;
+  const text = message.text.trim();
+  if (!text || text.length > MULTIPLAYER_CHAT_MAX_LENGTH || isOffensiveUsername(text)) return;
+  addMultiplayerChatEntry({
+    username: typeof message.username === 'string' ? message.username.slice(0, 32) : '',
+    text
+  });
+}
+
+async function sendMultiplayerChatMessage(text) {
+  const message = String(text || '').trim();
+  const connection = socket;
+  const seed = currentSeed;
+  if (!connection?.connected || !seed || !message) return 'rejected';
+  if (message.length > MULTIPLAYER_CHAT_MAX_LENGTH) {
+    document.getElementById('multiplayer-chat-notice').textContent = currentLanguage === 'en'
+      ? `Messages must be ${MULTIPLAYER_CHAT_MAX_LENGTH} characters or fewer.`
+      : `Los mensajes no pueden superar los ${MULTIPLAYER_CHAT_MAX_LENGTH} caracteres.`;
+    return 'rejected';
+  }
+  if (isOffensiveUsername(message)) {
+    blockOffensiveUsername(message, 'chat');
+    addMultiplayerChatEntry({
+      own: true,
+      username: localStorage.getItem('glob_username') || (currentLanguage === 'en' ? 'Player' : 'Jugador'),
+      blockedImage: true
+    });
+    try {
+      const moderationResult = await recordOffensiveChatAttempt();
+      if (moderationResult.deleted) await handleModeratedAccountDeletion();
+    } catch (error) {
+      console.error('No se pudo registrar la infracción del chat en el servidor:', error);
+      document.getElementById('multiplayer-chat-notice').textContent = currentLanguage === 'en'
+        ? 'Your message was blocked, but the account warning could not be recorded. Please reconnect and try again.'
+        : 'Tu mensaje se bloqueó, pero no se pudo registrar el aviso de cuenta. Reconéctate e inténtalo de nuevo.';
+    }
+    return 'blocked';
+  }
+  const now = Date.now();
+  if (now - multiplayerChatLastSentAt < 800) {
+    document.getElementById('multiplayer-chat-notice').textContent = currentLanguage === 'en'
+      ? 'Please wait a moment before sending another message.'
+      : 'Espera un momento antes de enviar otro mensaje.';
+    return 'rejected';
+  }
+  multiplayerChatLastSentAt = now;
+
+  try {
+    await connection.send('chat-message', { text: message });
+    if (socket !== connection || currentSeed !== seed) return 'rejected';
+    addMultiplayerChatEntry({
+      username: localStorage.getItem('glob_username') || (currentLanguage === 'en' ? 'Player' : 'Jugador'),
+      text: message,
+      own: true
+    });
+    return 'sent';
+  } catch (error) {
+    multiplayerChatLastSentAt = 0;
+    console.error('No se pudo enviar el mensaje del chat multijugador:', error);
+    document.getElementById('multiplayer-chat-notice').textContent = currentLanguage === 'en'
+      ? 'Message could not be sent. Check your room connection and try again.'
+      : 'No se pudo enviar el mensaje. Comprueba la conexión a la sala e inténtalo otra vez.';
+    return 'failed';
+  }
+}
+
+function setupMultiplayerChat() {
+  const wrapper = document.getElementById('multiplayer-chat');
+  const panel = document.getElementById('multiplayer-chat-panel');
+  const toggle = document.getElementById('multiplayer-chat-toggle');
+  const safeTab = document.getElementById('multiplayer-chat-safe-tab');
+  const freeTab = document.getElementById('multiplayer-chat-free-tab');
+  const safeForm = document.getElementById('multiplayer-chat-safe-form');
+  const freeForm = document.getElementById('multiplayer-chat-free-form');
+  if (!wrapper || !panel || !toggle || !safeTab || !freeTab || !safeForm || !freeForm) return;
+
+  toggle.addEventListener('click', () => {
+    panel.hidden = !panel.hidden;
+    toggle.setAttribute('aria-expanded', String(!panel.hidden));
+    if (!panel.hidden && multiplayerChatMode === 'free') {
+      document.getElementById('multiplayer-chat-free-message').focus();
+    }
+  });
+  document.getElementById('multiplayer-chat-close').addEventListener('click', () => {
+    panel.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+  });
+  safeTab.addEventListener('click', () => {
+    multiplayerChatMode = 'safe';
+    renderMultiplayerChat();
+  });
+  freeTab.addEventListener('click', () => {
+    multiplayerChatMode = 'free';
+    renderMultiplayerChat();
+    document.getElementById('multiplayer-chat-free-message').focus();
+  });
+  safeForm.addEventListener('submit', event => {
+    event.preventDefault();
+    sendMultiplayerChatMessage(document.getElementById('multiplayer-chat-safe-message').value);
+  });
+  freeForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const input = document.getElementById('multiplayer-chat-free-message');
+    const text = input.value;
+    if (!text.trim()) return;
+    sendMultiplayerChatMessage(text).then(result => {
+      if (result === 'sent' || result === 'blocked') input.value = '';
+    });
+  });
+  renderMultiplayerChat();
+}
+
 function showPlayerJoinedNotice(player) {
   const existing = document.getElementById('multiplayer-join-notice');
   existing?.remove();
@@ -491,7 +724,13 @@ class SupabaseGameConnection {
     }
     if (this.previousPlayers.size > 0) {
       this.previousPlayers.forEach((player, playerId) => {
-        if (!nextPlayers.has(playerId)) this.dispatch('player-left', { playerCount: roster.length });
+        if (!nextPlayers.has(playerId)) {
+          this.dispatch('player-left', {
+            id: playerId,
+            username: player.username,
+            playerCount: roster.length
+          });
+        }
       });
     }
     this.previousPlayers = nextPlayers;
@@ -525,11 +764,28 @@ class SupabaseGameConnection {
       const sender = this.getPlayers().find(player => player.playerId === message.senderId);
       if (!sender?.interstellarAccess) return;
     }
+    if (message.event === 'chat-message') {
+      if (typeof message.data.text !== 'string') return;
+      const sender = this.getPlayers().find(player => player.playerId === message.senderId);
+      this.dispatch('chat-message', {
+        text: message.data.text,
+        username: sender?.username || (currentLanguage === 'en' ? 'Player' : 'Jugador')
+      });
+      return;
+    }
     this.dispatch(message.event, message.data);
   }
 
   async send(eventName, data, targetId = null) {
     if (!this.connected) throw new Error('La conexión con Supabase Realtime no está activa.');
+    if (eventName === 'chat-message' &&
+        (!data || typeof data.text !== 'string' ||
+         data.text.trim().length > MULTIPLAYER_CHAT_MAX_LENGTH ||
+         isOffensiveUsername(data.text))) {
+      throw new Error(currentLanguage === 'en'
+        ? 'The chat message was blocked by the content filter.'
+        : 'El filtro de contenido ha bloqueado el mensaje del chat.');
+    }
     const response = await this.channel.send({
       type: 'broadcast',
       event: 'game-event',
@@ -570,6 +826,7 @@ class SupabaseGameConnection {
   disconnect() {
     this.intentionalDisconnect = true;
     this.connected = false;
+    updateMultiplayerChatVisibility();
     setMultiplayerSpectator(false);
     multiplayerPlayers = [];
     multiplayerPlayerCount = 1;
@@ -646,6 +903,8 @@ function blockOfflineSeedAccess() {
 async function joinMultiplayerSeed(seed, creating) {
   if (blockOfflineSeedAccess()) return;
 
+  multiplayerChatEntries = [];
+  multiplayerChatMode = 'safe';
   setMultiplayerSpectator(false);
   let connection;
   try {
@@ -697,6 +956,11 @@ async function joinMultiplayerSeed(seed, creating) {
   connection.on('player-joined', data => {
     showPlayerJoinedNotice(data);
   });
+  connection.on('player-left', data => {
+    window._showMultiplayerNotice?.(currentLanguage === 'en'
+      ? `${data.username || 'A player'} left the match.`
+      : `${data.username || 'Un jugador'} ha salido de la partida.`);
+  });
   connection.on('game-action', action => {
     if (!multiplayerSpectator && window._applyMultiplayerAction) window._applyMultiplayerAction(action);
   });
@@ -706,7 +970,9 @@ async function joinMultiplayerSeed(seed, creating) {
   connection.on('show-dialog', data => {
     if (window._showNarratorMsg) window._showNarratorMsg(data.id, data.img, data.name, data.text);
   });
+  connection.on('chat-message', receiveMultiplayerChatMessage);
   updateSeedDisplay();
+  updateMultiplayerChatVisibility();
 
   if (isSeedHost) {
     if (creating) alert((currentLanguage === 'en' ? 'Seed created: ' : 'Seed creada: ') + seed);
@@ -1004,17 +1270,15 @@ function generateSpots() {
 
   if (mapKey === 'sunlight_seaside') {
     mapData.islandZones.forEach(island => {
-      for (let x = island.x + 50; x <= island.x + island.w - 50; x += 80) {
-        for (let y = island.y + 50; y <= island.y + island.h - 50; y += 80) {
-          const outsideMap = x - 40 < 0 || x + 40 > 1000 || y - 40 < 0 || y + 40 > 600;
-          const overlapsPath = mapData.pathSegments.some(path =>
-            x + 40 > path.x && x - 40 < path.x + path.w &&
-            y + 40 > path.y && y - 40 < path.y + path.h
-          );
-          if (!outsideMap && !overlapsPath) {
-            TOWER_SPOTS.push({ x: x - 40, y: y - 40, w: 80, h: 80 });
-          }
-        }
+      const x = island.x + island.w / 2;
+      const y = island.y + island.h / 2;
+      const outsideMap = x - 40 < 0 || x + 40 > 1000 || y - 40 < 0 || y + 40 > 600;
+      const overlapsPath = mapData.pathSegments.some(path =>
+        x + 40 > path.x && x - 40 < path.x + path.w &&
+        y + 40 > path.y && y - 40 < path.y + path.h
+      );
+      if (!outsideMap && !overlapsPath) {
+        TOWER_SPOTS.push({ x: x - 40, y: y - 40, w: 80, h: 80 });
       }
     });
     console.log(`✅ Generados ${TOWER_SPOTS.length} spots para torres en ${mapKey}`);
@@ -1342,6 +1606,22 @@ function loadProgressFromDatabase(user) {
     request.onsuccess = () => resolve(request.result || null);
     request.onerror = () => reject(request.error || new Error('No se pudo leer IndexedDB.'));
     transaction.oncomplete = () => db.close();
+  }));
+}
+
+function deleteProgressFromDatabase(user) {
+  return openProgressDatabase().then(db => new Promise((resolve, reject) => {
+    const transaction = db.transaction(PROGRESS_STORE_NAME, 'readwrite');
+    transaction.objectStore(PROGRESS_STORE_NAME).delete(user);
+    transaction.oncomplete = () => {
+      db.close();
+      resolve();
+    };
+    transaction.onerror = () => {
+      const error = transaction.error || new Error('No se pudo borrar el progreso local.');
+      db.close();
+      reject(error);
+    };
   }));
 }
 
@@ -2198,6 +2478,13 @@ function getSupabaseAuthEmail(username) {
 
 async function startGameSession(username, offline, accountId = null) {
   cloudProgressReady = false;
+  offensiveUsernameAttempts = 0;
+  moderationAccountDeletionHandled = false;
+  if (offensiveUsernameJumpscareTimeout !== null) {
+    clearTimeout(offensiveUsernameJumpscareTimeout);
+    offensiveUsernameJumpscareTimeout = null;
+  }
+  document.querySelector('.username-warning-jumpscare')?.remove();
   activeCloudUserId = offline ? null : accountId;
   resetAccountProgress();
   if (activeCloudUserId) {
@@ -2374,6 +2661,304 @@ function updateRoleIndicator() {
   else document.body.classList.add('role-debug');
 }
 
+const OFFENSIVE_USERNAME_TERMS = [
+  'dick', 'dig', 'fuck', 'shit', 'bitch', 'asshole', 'cunt', 'bastard',
+  'slut', 'whore', 'motherfucker', 'idiot', 'crap', 'damn', 'piss',
+  'prick', 'wanker', 'twat', 'dumbass', 'jackass', 'douche', 'douchebag',
+  'fuckface', 'fuckwit', 'shithead', 'dipshit', 'bullshit', 'horseshit',
+  'arsehole', 'arse', 'tosser', 'bollocks', 'scumbag', 'fucker', 'jerkoff',
+  'loser', 'moron', 'stupid', 'cretin', 'imbecile',
+  'puta', 'puto', 'mierda', 'cabron', 'joder', 'gilipollas', 'pendejo',
+  'maricon', 'imbecil', 'estupido', 'zorra', 'cono', 'jilipollas',
+  'cagada', 'cagar', 'cagon', 'culero', 'mamon', 'mamona', 'pinche',
+  'chingado', 'chingada', 'chingar', 'carajo', 'mierdero', 'mierdoso',
+  'jodido', 'jodete', 'cabrona', 'cabronazo', 'pendeja', 'pendejazo',
+  'putisima', 'putazo', 'putero', 'perra', 'marica', 'maricona',
+  'capullo', 'retrasado', 'subnormal', 'baboso', 'babosa', 'estupida',
+  String.fromCharCode(110, 105, 103, 103, 101, 114)
+];
+
+function normalizeUsernameForModeration(username) {
+  return String(username || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[013457@$]/g, character => ({
+      '0': 'o', '1': 'i', '3': 'e', '4': 'a',
+      '5': 's', '7': 't', '@': 'a', '$': 's'
+    })[character] || character);
+}
+
+function isOffensiveUsername(username) {
+  const normalizedUsername = normalizeUsernameForModeration(username);
+  const tokens = normalizedUsername.split(/[^a-z0-9]+/).filter(Boolean);
+  const compactUsername = normalizedUsername.replace(/[^a-z0-9]/g, '');
+  return tokens.some(token => OFFENSIVE_USERNAME_TERMS.some(term =>
+    term === 'dig' ? token === term : token.includes(term)
+  )) || OFFENSIVE_USERNAME_TERMS.some(term =>
+    term !== 'dig' && compactUsername.includes(term)
+  );
+}
+
+function pickRandom(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function formatNoeyeText(text) {
+  return text.replace(/[a-z]/gi, character => ({
+    a: '4',
+    e: '3',
+    i: '1',
+    o: '0',
+    s: '5',
+    t: '7'
+  }[character.toLowerCase()] || character));
+}
+
+const DARKSPIRIT_COMBAT_LINES = {
+  es: [
+    'No deberias haber venido. La oscuridad ya cerro el camino detras de ti.',
+    'Sigue defendiendo. Quiero que entiendas que nada de lo que hagas cambiara el final.',
+    'Puedo oir como se apaga tu esperanza. Pronto no quedara nadie para pedir ayuda.',
+    'Tus defensas caeran una a una. Y cuando llegue el silencio, seguire aqui.'
+  ],
+  en: [
+    'You should not have come. The darkness has already closed the path behind you.',
+    'Keep defending. I want you to understand that nothing you do will change the ending.',
+    'I can hear your hope fading. Soon there will be no one left to call for help.',
+    'Your defenses will fall one by one. And when silence comes, I will still be here.'
+  ]
+};
+
+function showOffensiveUsernameWarning() {
+  const warningLines = {
+    bombot: {
+      es: [
+        'Bombot detecta un insulto en ese nombre. Elige uno respetuoso, por favor.',
+        'Ese nombre no es apropiado. Cámbialo por uno respetuoso.',
+        'Aviso: no uses insultos como nombre de usuario.'
+      ],
+      en: [
+        'Bombot detected an insult in that name. Please choose a respectful one.',
+        'That name is not appropriate. Please use a respectful one.',
+        'Warning: do not use insults as a username.'
+      ]
+    },
+    noeye: {
+      es: [
+        'No conviertas un nombre en un arma. Cámbialo.',
+        'Ya te lo advertí. No uses ese nombre.',
+        'La oscuridad no tolera esa falta de respeto. Cambia el nombre.'
+      ],
+      en: [
+        'Do not turn a name into a weapon. Change it.',
+        'I warned you. Do not use that name.',
+        'Even the darkness has no place for that disrespect. Change the name.'
+      ]
+    },
+    omnipresent: {
+      es: [
+        'Ese nombre puede hacer daño. Prueba con uno respetuoso.',
+        'No hace falta insultar para elegir un nombre. Inténtalo de nuevo.',
+        'Por favor, elige un nombre que no ataque a nadie.'
+      ],
+      en: [
+        'That name can hurt people. Please choose a respectful one.',
+        'You do not need an insult to choose a name. Try again.',
+        'Please choose a name that does not target anyone.'
+      ]
+    },
+    glob: {
+      es: [
+        'Ese nombre me hace sentir mal. ¿Puedes elegir otro?',
+        'Por favor, seamos amables. Prueba con otro nombre.',
+        'No me gusta ese insulto. Cambiemos el nombre.'
+      ],
+      en: [
+        'That name makes me feel bad. Could you choose another?',
+        'Please, let us be kind. Try a different name.',
+        'I do not like that insult. Let us choose another name.'
+      ]
+    }
+  };
+  const speakerId = pickRandom(['bombot', 'noeye', 'omnipresent', 'glob']);
+  const speaker = NARRATOR_DATA[speakerId];
+  const language = currentLanguage === 'en' ? 'en' : 'es';
+  const messages = warningLines[speakerId][language];
+  const message = pickRandom(messages);
+  window._showNarratorMsg?.(
+    speakerId,
+    speaker.img,
+    speaker[language].name,
+    speakerId === 'noeye' ? formatNoeyeText(message) : message
+  );
+}
+
+function showOffensiveUsernameFinalDialog(speakerId) {
+  const finalLines = {
+    noeye: {
+      es: [
+        'PARA YA DE INSULTAR. No vuelvas a usar insultos como nombre.',
+        'NO VOY A REPETIRLO: PARA YA DE INSULTAR. Cambia ese nombre.'
+      ],
+      en: [
+        'STOP INSULTING PEOPLE. Do not use insults as a username again.',
+        'I WILL NOT REPEAT MYSELF: STOP INSULTING PEOPLE. Change that name.'
+      ]
+    },
+    darkspirit: {
+      es: [
+        'La oscuridad ya sabe tu nombre. PARA YA DE INSULTAR. Si vuelves a hacerlo, no habra nadie mas para avisarte.',
+        'Escucha bien: cambia ese nombre. La proxima vez que me veas, no sera para darte otro aviso.'
+      ],
+      en: [
+        'The darkness knows your name now. STOP INSULTING PEOPLE. If you do it again, no one else will warn you.',
+        'Listen carefully: change that name. The next time you see me, it will not be to give you another warning.'
+      ]
+    }
+  };
+  const speaker = speakerId === 'darkspirit'
+    ? { name: 'DarkSpirit', image: IMAGE_PATHS.DarkSpirit }
+    : { name: 'NOeye', image: IMAGE_PATHS.NOeye_Pyce };
+  const language = currentLanguage === 'en' ? 'en' : 'es';
+  const lines = (finalLines[speakerId] || finalLines.noeye)[language];
+  const message = pickRandom(lines);
+  window._showNarratorMsg?.(
+    speakerId,
+    speaker.image,
+    speaker.name,
+    speakerId === 'noeye' ? formatNoeyeText(message) : message
+  );
+}
+
+function triggerOffensiveUsernameJumpscare() {
+  const previousOverlay = document.querySelector('.username-warning-jumpscare');
+  previousOverlay?.remove();
+  if (offensiveUsernameJumpscareTimeout !== null) {
+    clearTimeout(offensiveUsernameJumpscareTimeout);
+    offensiveUsernameJumpscareTimeout = null;
+  }
+
+  const speakerId = pickRandom(['noeye', 'darkspirit']);
+  const imagePath = speakerId === 'darkspirit' ? IMAGE_PATHS.DarkSpirit : IMAGE_PATHS.NOeye_Pyce;
+  const overlay = document.createElement('div');
+  overlay.className = 'username-warning-jumpscare';
+  overlay.setAttribute('role', 'alert');
+  overlay.setAttribute('aria-label', currentLanguage === 'en' ? 'Warning' : 'Aviso');
+  const image = document.createElement('div');
+  image.className = 'username-warning-jumpscare-image';
+  image.style.backgroundImage = `url("${imagePath}")`;
+  overlay.appendChild(image);
+  document.body.appendChild(overlay);
+
+  offensiveUsernameJumpscareTimeout = setTimeout(() => {
+    overlay.remove();
+    offensiveUsernameJumpscareTimeout = null;
+    showOffensiveUsernameFinalDialog(speakerId);
+  }, 1500);
+}
+
+function blockOffensiveUsername(username, source = 'login') {
+  if (!isOffensiveUsername(username)) return false;
+  offensiveUsernameAttempts++;
+  if (source === 'login' && offensiveUsernameAttempts >= OFFENSIVE_ACCOUNT_DELETION_THRESHOLD) {
+    if (offensiveUsernameJumpscareTimeout !== null) {
+      clearTimeout(offensiveUsernameJumpscareTimeout);
+      offensiveUsernameJumpscareTimeout = null;
+    }
+    document.querySelector('.username-warning-jumpscare')?.remove();
+    const isEnglish = currentLanguage === 'en';
+    const data = NARRATOR_DATA.omnipresent;
+    window._showNarratorMsg?.(
+      'omnipresent',
+      data.img,
+      '???',
+      isEnglish
+        ? '??? says: Stop trying. You will not get past the login screen with an insulting username.'
+        : '???: Para ya de insistir. No vas a pasar del login con un nombre insultante.'
+    );
+    return true;
+  }
+  if (offensiveUsernameAttempts % 3 === 0) {
+    triggerOffensiveUsernameJumpscare();
+  } else {
+    showOffensiveUsernameWarning();
+  }
+  return true;
+}
+
+async function recordOffensiveChatAttempt() {
+  const { data, error } = await getSupabaseClient().functions.invoke('record-offensive-chat-attempt', {
+    body: {}
+  });
+  if (error) throw error;
+  if (!data || typeof data.attempts !== 'number' || typeof data.deleted !== 'boolean') {
+    throw new Error('Supabase devolvió una respuesta inválida al registrar la infracción del chat.');
+  }
+  return data;
+}
+
+async function handleModeratedAccountDeletion() {
+  if (moderationAccountDeletionHandled) return;
+  moderationAccountDeletionHandled = true;
+  if (offensiveUsernameJumpscareTimeout !== null) {
+    clearTimeout(offensiveUsernameJumpscareTimeout);
+    offensiveUsernameJumpscareTimeout = null;
+  }
+  document.querySelector('.username-warning-jumpscare')?.remove();
+
+  const username = localStorage.getItem('glob_username');
+  const english = currentLanguage === 'en';
+  const data = NARRATOR_DATA.omnipresent;
+  window._showNarratorMsg?.(
+    'omnipresent',
+    data.img,
+    '???',
+    english
+      ? '??? says: Your account has been deleted. You are now leaving this match.'
+      : '???: Tu cuenta ha sido borrada. Ahora saldrás de esta partida.'
+  );
+
+  if (cloudProgressSaveTimer !== null) {
+    clearTimeout(cloudProgressSaveTimer);
+    cloudProgressSaveTimer = null;
+  }
+  pendingCloudProgressSave = null;
+  cloudProgressReady = false;
+  activeCloudUserId = null;
+
+  const progressSaveQueue = cloudProgressSaveQueue;
+  try {
+    await progressSaveQueue;
+  } catch (error) {
+    console.error('No se pudo completar un guardado pendiente antes de borrar la cuenta:', error);
+  }
+
+  if (username) {
+    localStorage.removeItem(`glob_progress_${username}`);
+    try {
+      await deleteProgressFromDatabase(username);
+    } catch (error) {
+      console.error('No se pudo borrar la copia local del progreso de la cuenta eliminada:', error);
+      window._showMultiplayerNotice?.(english
+        ? 'The account was deleted, but its local save could not be removed from this browser.'
+        : 'La cuenta se borró, pero no se pudo eliminar su guardado local de este navegador.');
+    }
+  }
+  localStorage.removeItem('glob_username');
+  localStorage.removeItem('glob_login_username');
+  localStorage.removeItem('glob_offline_mode');
+
+  try {
+    const { error } = await getSupabaseClient().auth.signOut({ scope: 'local' });
+    if (error) throw error;
+  } catch (error) {
+    console.error('No se pudo cerrar la sesión local después de borrar la cuenta:', error);
+  }
+
+  window._exitToLoginAfterModeration?.();
+}
+
 async function handleLogin() {
   const usernameInput = document.getElementById('username-input');
   const passInput = document.getElementById('password-input');
@@ -2387,6 +2972,7 @@ async function handleLogin() {
       : 'Introduce tu nombre de usuario y contraseña.';
     return;
   }
+  if (blockOffensiveUsername(username)) return;
 
   try {
     await flushCloudProgressSave();
@@ -2424,6 +3010,7 @@ async function handleCreateAccount() {
       : 'Enter a username and password to create the account.';
     return;
   }
+  if (blockOffensiveUsername(username)) return;
 
   try {
     await flushCloudProgressSave();
@@ -2460,6 +3047,7 @@ async function handleCreateAccount() {
 
 async function handleSkipLogin() {
   const username = document.getElementById('username-input')?.value.trim() || 'Invitado';
+  if (blockOffensiveUsername(username)) return;
   try {
     await startGameSession(username, true);
   } catch (error) {
@@ -2978,7 +3566,7 @@ function selectMode(mode) {
         const storyText = currentLanguage === 'es'
           ? "¡S1S73M4 D3F1N171V0 D373C74D0! NOeye y MoonStar Pyce han unido sus fuerzas para crear la versión definitiva de este entorno. Los Globs serán borrados del sistema. ¡La purga comienza ya!"
           : "DEFINITIVE SYSTEM DETECTED! NOeye and MoonStar Pyce have joined forces to create the ultimate version of this environment. The Globs will be deleted from the system. The purge begins now!";
-        showNarratorMsg('noeye', 'img/NOeye_Pyce.png', 'NOeye & MoonStar', storyText);
+        showNarratorMsg('noeye', 'img/NOeye_Pyce.png', 'NOeye & MoonStar', storyText, 'enemy-voice');
       }
     } else if (isUrban) {
       // Modos normales en Urbanistic Road → Arky da la bienvenida
@@ -3699,12 +4287,30 @@ function ownerUnlockEverything() {
   gameState.unlockedInfinite = true;
   gameState.unlockedInterstellar = true;
   gameState.duckPassLevel = Math.max(gameState.duckPassLevel, 100);
+  const profileFamilies = getProfileGlobFamilies().map(({ family }) => family);
+  gameState.maxedFamilies = [...new Set([...(gameState.maxedFamilies || []), ...profileFamilies])];
+  gameState.profileMaxAvatars = [...new Set([...(gameState.profileMaxAvatars || []), ...profileFamilies])];
+  gameState.profileMaxRewampAvatars = [...new Set([...(gameState.profileMaxRewampAvatars || []), ...profileFamilies])];
+  gameState.profilePurchasedBorders = [...new Set([
+    ...(gameState.profilePurchasedBorders || []),
+    'placeholder',
+    'coded',
+    ...PROFILE_SHOP_BORDERS.map(border => border.id)
+  ])];
+  gameState.profileMapModeWins = Object.fromEntries(
+    PROFILE_MAP_BORDERS.map(({ map }) => [
+      map,
+      [...new Set([...(gameState.profileMapModeWins?.[map] || []), ...PROFILE_MAP_MODES])]
+    ])
+  );
   Object.keys(ENEMY_TYPES).forEach(type => {
     const target = typeof getPyceKillTarget === 'function' ? getPyceKillTarget(type) : 9999;
     gameState.pycesKilled[type] = Math.max(gameState.pycesKilled[type] || 0, target);
   });
   drawBadges();
   drawTowerShop();
+  drawShop();
+  if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
   updateMetaUI();
 }
 
@@ -4445,6 +5051,7 @@ function toggleLanguage() {
   currentLanguage = currentLanguage === 'es' ? 'en' : 'es';
   updateLanguage();
   updateLightModeButton();
+  renderMultiplayerChat();
   renderMapSelection();
   drawTowerShop();
   drawBadges();
@@ -5066,6 +5673,7 @@ function selectAlmanacItem(id, category) {
 }
 
 function bindEvents() {
+  setupMultiplayerChat();
   document.getElementById('pause-game')?.addEventListener('click', pauseGame);
   document.querySelector('#game-over .retry-btn:not(#resume-game)')?.addEventListener('click', () => {
     sendMultiplayerAction({ type: 'retry' });
@@ -6033,6 +6641,12 @@ function isProfileImageUnlockConditionMet(skin) {
   return skin.unlockCondition === 'all_profile_images' && hasUnlockedAllProfileImages();
 }
 
+function canUseStaffProfileAvatar() {
+  const username = localStorage.getItem('glob_username') || '';
+  const role = typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
+  return gameState.debugState === 'unlocked' || ['OWNER', 'ADMIN', 'DEVBUILD'].includes(role);
+}
+
 function hasUnlockedAllProfileImages() {
   if (gameState.debugState === 'unlocked') return true;
   const families = getProfileGlobFamilies();
@@ -6066,6 +6680,7 @@ function hasUnlockedAllProfileBorders() {
   ];
   return requiredBorderIds.every(borderId => {
     if (borderId === 'default') return true;
+    if (PROFILE_FREE_BORDERS.some(border => border.id === borderId)) return true;
     if (borderId === 'interstellar') {
       return Boolean(BADGES.unmenaced?.unlocked || BADGES.paracristal_dimension?.unlocked);
     }
@@ -6247,6 +6862,13 @@ function getProfileAvatarChoices() {
       id: 'special:kirbytebi',
       label: currentLanguage === 'en' ? 'Kirb' : 'Kirb',
       image: IMAGE_PATHS.Kirb_Glob
+    });
+  }
+  if (canUseStaffProfileAvatar()) {
+    avatars.push({
+      id: 'special:omnipresent-glob',
+      label: currentLanguage === 'en' ? 'Omnipresent Glob' : 'Glob Omnipresente',
+      image: IMAGE_PATHS.Omnipresent_Glob
     });
   }
   if (gameState.debugState === 'unlocked' ||
@@ -8069,7 +8691,7 @@ function activateGTack(t) {
           } else if (gameState.mode === 'antiNormal') {
             const data = NARRATOR_DATA.noeye;
             const txt = currentLanguage === 'es' ? "N0 S0BR3V1V1R4S 4 L4 0SCUR1D4D..." : "Y0U W0N'7 SURV1V3 7H3 D4RKN3SS...";
-            showNarratorMsg('noeye', data.img, data[currentLanguage].name, txt);
+            showNarratorMsg('noeye', data.img, data[currentLanguage].name, txt, 'enemy-voice');
           }
         }, 14000);
       }
@@ -8080,7 +8702,7 @@ function activateGTack(t) {
         showNarratorMsg('moonstar', data.img, data[currentLanguage].name, data[currentLanguage].intercept);
       } else if (gameState.mode === 'antiNormal') {
         const data = NARRATOR_DATA.noeye;
-        showNarratorMsg('noeye', data.img, data[currentLanguage].name, data[currentLanguage].intercept);
+        showNarratorMsg('noeye', data.img, data[currentLanguage].name, data[currentLanguage].intercept, 'enemy-voice');
       } else {
         checkWaveDialogues();
       }
@@ -8953,6 +9575,7 @@ function activateGTack(t) {
   window._checkpointActiveRound = checkpointActiveRound;
   window._restoreSavedRoundSnapshot = restoreSavedRoundSnapshot;
   window._showMultiplayerNotice = text => showMessage(text, 'info');
+  window._exitToLoginAfterModeration = () => exitToLogin(false);
   window._showMultiplayerServerClosed = () => {
     gameState.gameOver = true;
     gameState.paused = false;
@@ -9108,8 +9731,17 @@ function activateGTack(t) {
         showNarratorMsg('arky', data.img, data[currentLanguage].name, msg);
       } else {
         const data = NARRATOR_DATA.noeye;
-        showNarratorMsg('noeye', data.img, data[currentLanguage].name, data[currentLanguage].msgs[0]);
+        showNarratorMsg('noeye', data.img, data[currentLanguage].name, data[currentLanguage].msgs[0], 'enemy-voice');
       }
+    } else if (type === 'DarkSpirit') {
+      seenEnemyDialogues[type] = true;
+      showNarratorMsg(
+        'darkspirit',
+        IMAGE_PATHS.DarkSpirit,
+        'DarkSpirit',
+        pickRandom(DARKSPIRIT_COMBAT_LINES[currentLanguage] || DARKSPIRIT_COMBAT_LINES.es),
+        'enemy-voice'
+      );
     } else if (type === 'MoonStar_Pyce') {
       seenEnemyDialogues[type] = true;
       if ((gameState.map || 'gelatin_lake') === 'urbanistic_road') {
@@ -9164,6 +9796,8 @@ function activateGTack(t) {
         speakers = ['bombot', 'glob', 'stupid', 'pyce2'];
       }
 
+      if (gameState.enemies.some(e => e.type === 'DarkSpirit')) speakers.push('darkspirit');
+
       if (!isUrbanMap) {
         if (gameState.enemies.some(e => e.type === '1x1x1x1_Pyce')) speakers.push('one_x');
         if (gameState.enemies.some(e => e.type === 'NOeye_Pyce') && mode !== 'antiNormal') speakers.push('noeye');
@@ -9187,12 +9821,20 @@ function activateGTack(t) {
         const msgsArray = data[currentLanguage].antiNormalMsgs;
         const text = msgsArray[Math.floor(Math.random() * msgsArray.length)];
         showNarratorMsg('bombot', data.img, data[currentLanguage].name, text);
+      } else if (sId === 'darkspirit') {
+        showNarratorMsg(
+          'darkspirit',
+          IMAGE_PATHS.DarkSpirit,
+          'DarkSpirit',
+          pickRandom(DARKSPIRIT_COMBAT_LINES[currentLanguage] || DARKSPIRIT_COMBAT_LINES.es),
+          'enemy-voice'
+        );
       } else {
         const data = NARRATOR_DATA[sId];
         if (data) {
           const msgs = data[currentLanguage].msgs;
           const text = msgs[Math.floor(Math.random() * msgs.length)];
-          showNarratorMsg(sId, data.img, data[currentLanguage].name, text);
+          showNarratorMsg(sId, data.img, data[currentLanguage].name, text, sId === 'noeye' ? 'enemy-voice' : '');
         }
       }
     }
@@ -9204,6 +9846,13 @@ function activateGTack(t) {
     if (old) old.remove();
     if (narratorTimeout) clearTimeout(narratorTimeout);
 
+    const language = currentLanguage === 'en' ? 'en' : 'es';
+    const isEnemyVoice = variant === 'enemy-voice';
+    const renderedText = isEnemyVoice && speakerId === 'noeye'
+      ? formatNoeyeText(text)
+      : isEnemyVoice && speakerId === 'darkspirit'
+        ? `${language === 'en' ? 'The darkness has found you...' : 'La oscuridad te ha encontrado...'} ${text}`
+        : text;
     const isBlackedOut = imgSrc.endsWith('|blacked-out');
     const renderedImgSrc = isBlackedOut ? imgSrc.replace(/\|blacked-out$/, '') : imgSrc;
     const bubble = document.createElement('div');
@@ -9222,9 +9871,9 @@ function activateGTack(t) {
     let characterIndex = 0;
     const typeCharacter = () => {
       if (!textElement || !bubble.isConnected) return;
-      textElement.textContent = text.slice(0, characterIndex);
+      textElement.textContent = renderedText.slice(0, characterIndex);
       characterIndex += 1;
-      if (characterIndex <= text.length) {
+      if (characterIndex <= renderedText.length) {
         setTimeout(typeCharacter, textElement.textContent.endsWith(' ') ? 18 : 28);
       }
     };
@@ -12022,6 +12671,22 @@ function activateGTack(t) {
     } else if (currentStoryTab === 'logs') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
+        <h3 style="color:#b58cff;">📋 Historial de Actualizaciones (Parche reciente — Personalización, online y moderación)</h3>
+        <p style="color:#b58cff;">Más formas de personalizar tu experiencia, compartir partidas y mantener el chat agradable.</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>☀️ <strong style="color:#b58cff;">Modo claro</strong>: Activa el fondo claro desde el icono de bombilla junto a Ajustes; funciona tanto en el login como durante la partida.</li>
+          <li>🏝️ <strong>Islas rediseñadas</strong>: Sunlight Seaside ahora tiene islas redondas, cada una con un único espacio para colocar una torre.</li>
+          <li>🔗 <strong>Comparte el juego</strong>: Los enlaces incluyen el logo y una breve descripción en español e inglés en las vistas previas compatibles, como Discord.</li>
+          <li>☁️ <strong>Guardado de cuenta más claro</strong>: El progreso se sincroniza automáticamente con Supabase al guardar mientras tienes sesión y conexión. Las rondas individuales pueden reanudarse desde un punto de guardado; el historial de acciones y las partidas cooperativas no se guardan como partidas recuperables.</li>
+          <li>👤 <strong>Perfiles y recompensas</strong>: El personal con permisos de administración puede equipar Omnipresent Glob. La opción de depuración para desbloquear todo también aplica las recompensas cosméticas correspondientes.</li>
+          <li>💬 <strong>Chat online con dos modos</strong>: Usa frases predefinidas en el chat seguro o escribe en el chat libre. Los mensajes ofensivos se bloquean y se reemplazan localmente por la imagen de Omnipresent Glob; el intento solo afecta a quien lo envió.</li>
+          <li>🛡️ <strong>Moderación progresiva</strong>: Los intentos ofensivos en el login y el chat activan un jumpscare cada tres intentos. En el chat, las infracciones de cuentas autenticadas pueden registrarse en Supabase; la eliminación automática al alcanzar 25 requiere desplegar la Edge Function de moderación.</li>
+          <li>👁️ <strong>Voces de NOeye y DarkSpirit</strong>: NOeye usa leetspeak en sus diálogos generales y DarkSpirit tiene un tono más terrorífico y un borde rojo. NOeye mantiene su voz normal como héroe de Interstellar.</li>
+          <li>🪲 <strong>Identidad de ???</strong>: Los avisos de moderación de ??? muestran a Omnipresent Glob, no a MysteryBug.</li>
+          <li>🧩 <strong>Login más pulido</strong>: Las imágenes decorativas se reponen al quitarlas, y alternar muchas veces entre los temas activa el easter egg de glitch hasta reiniciar la página.</li>
+        </ul>
+
         <h3 style="color:#ff9f43;">📋 Historial de Actualizaciones (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
         <p style="color:#ff9f43;">¡Empieza una nueva aventura! Esta primera parte prepara el juego con nuevas formas de jugar, guardar tu progreso y descubrir secretos.</p>
         <h4>Novedades de la PT1:</h4>
@@ -12171,6 +12836,22 @@ function activateGTack(t) {
       `;
       } else {
         container.innerHTML = `
+        <h3 style="color:#b58cff;">📋 Update Logs (Recent Patch — Customization, Online &amp; Moderation)</h3>
+        <p style="color:#b58cff;">More ways to customize your experience, share matches, and keep chat friendly.</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>☀️ <strong style="color:#b58cff;">Light mode</strong>: Switch to a light background with the bulb icon next to Settings, both on the login screen and during a match.</li>
+          <li>🏝️ <strong>Redesigned islands</strong>: Sunlight Seaside now has round islands, each with a single tower placement spot.</li>
+          <li>🔗 <strong>Share the game</strong>: Links include the game logo and a short description in English and Spanish on supported previews, such as Discord.</li>
+          <li>☁️ <strong>Clearer account saving</strong>: Progress syncs automatically with Supabase when saved while you are signed in and connected. Single-player rounds can be resumed from a checkpoint; action history and co-op matches are not stored as resumable games.</li>
+          <li>👤 <strong>Profiles and rewards</strong>: Staff with admin permissions can equip Omnipresent Glob. The debug unlock-all option also grants the corresponding cosmetic rewards.</li>
+          <li>💬 <strong>Two online chat modes</strong>: Use predefined phrases in Safe Chat or type in Free Chat. Offensive messages are blocked and replaced locally with Omnipresent Glob's image; only the sender is affected.</li>
+          <li>🛡️ <strong>Progressive moderation</strong>: Offensive attempts in login and chat trigger a jumpscare every three attempts. Authenticated chat violations can be recorded in Supabase; automatic deletion at 25 requires deploying the moderation Edge Function.</li>
+          <li>👁️ <strong>NOeye and DarkSpirit voices</strong>: NOeye uses leetspeak in general dialogue, while DarkSpirit has a more terrifying tone and a red border. NOeye keeps the normal voice when appearing as an Interstellar hero.</li>
+          <li>🪲 <strong>??? identity</strong>: Moderation notices from ??? show Omnipresent Glob, not MysteryBug.</li>
+          <li>🧩 <strong>Polished login</strong>: Decorative images refill as they are removed, and switching themes repeatedly triggers the glitch easter egg until the page is restarted.</li>
+        </ul>
+
         <h3 style="color:#ff9f43;">📋 Update Logs (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
         <p style="color:#ff9f43;">A new adventure begins! This first part prepares the game with new ways to play, save your progress, and uncover secrets.</p>
         <h4>What's New in PT1:</h4>

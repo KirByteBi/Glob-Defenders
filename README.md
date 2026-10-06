@@ -53,6 +53,15 @@ and HTTPS URL in `supabase-config.js`, then follow the setup notes in
 [`server/README.md`](./server/README.md). The host must stay connected; matches
 are temporary and cannot be recovered after the host leaves.
 
+Online rooms include a safe chat with preset friendly messages and a free-text
+chat. Free messages are checked by the sender before broadcast and filtered
+again by each recipient before display. An offensive message is replaced locally
+for its sender with an Omnipresent Glob image and is never sent to the room.
+Every third offensive attempt triggers the warning jumpscare. Repeated
+offensive attempts in the login are answered by ???, but do not delete an
+account. In online chat, repeated violations by an authenticated player result
+in account removal and an exit from the current match.
+
 Interstellar co-op requires each guest to have entered the mission access code
 and unlocked Interstellar. Guests who do not meet both requirements can still
 join as spectators and see the player roster and live match, but cannot send

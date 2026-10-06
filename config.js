@@ -2012,25 +2012,22 @@ const MAPS = {
     ],
     // Sandy islands where towers can be placed (excluded from collision with paths)
     islandZones: [
-      // Upper shoreline
-      { x: 10, y: 0, w: 200, h: 110 },
-      { x: 270, y: 0, w: 210, h: 110 },
-      // Western shoals
-      { x: 10, y: 225, w: 195, h: 190 },
-      // Broad central island between the two road loops
-      { x: 270, y: 185, w: 210, h: 235 },
-      // Mid-channel stepping stones
-      { x: 565, y: 175, w: 195, h: 100 },
-      { x: 565, y: 325, w: 195, h: 100 },
-      // Eastern shoreline
-      { x: 820, y: 0, w: 180, h: 110 },
-      { x: 820, y: 170, w: 180, h: 100 },
-      { x: 820, y: 335, w: 180, h: 115 },
-      { x: 820, y: 485, w: 180, h: 115 },
-      // Southern islands
-      { x: 10, y: 480, w: 195, h: 120 },
-      { x: 270, y: 480, w: 210, h: 120 },
-      { x: 565, y: 480, w: 195, h: 120 }
+      // Each round island is sized to hold exactly one tower spot.
+      { x: 40, y: 10, w: 120, h: 120 },
+      { x: 320, y: 10, w: 120, h: 120 },
+      { x: 840, y: 10, w: 120, h: 120 },
+      { x: 40, y: 300, w: 120, h: 120 },
+      { x: 40, y: 175, w: 120, h: 120 },
+      { x: 320, y: 175, w: 120, h: 120 },
+      { x: 320, y: 300, w: 120, h: 120 },
+      { x: 590, y: 180, w: 120, h: 120 },
+      { x: 590, y: 300, w: 120, h: 120 },
+      { x: 840, y: 150, w: 120, h: 120 },
+      { x: 840, y: 320, w: 120, h: 120 },
+      { x: 40, y: 470, w: 120, h: 120 },
+      { x: 320, y: 470, w: 120, h: 120 },
+      { x: 590, y: 470, w: 120, h: 120 },
+      { x: 840, y: 470, w: 120, h: 120 }
     ],
     pathSegments: [
       // Horizontal top road

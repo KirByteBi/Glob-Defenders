@@ -1,0 +1,4 @@
+project_id = "glob-defenders"
+
+[functions.record-offensive-chat-attempt]
+verify_jwt = true

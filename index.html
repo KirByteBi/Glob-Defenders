@@ -28,6 +28,8 @@
 </head>
 
 <body>
+    <!-- Aviso legal: Las modificaciones o la piratería de Glob Defenders requieren el consentimiento de KirByte_Bi. El uso ilegal o no autorizado de sus productos puede ser sancionado. -->
+    <!-- Legal notice: Modifications or piracy of Glob Defenders require consent from KirByte_Bi. Illegal or unauthorized use of its products may be subject to sanctions. -->
     <!-- Portrait mode overlay -->
     <div id="portrait-overlay">
         <div class="portrait-content">
@@ -45,6 +47,31 @@
         <button id="copy-seed-btn" type="button" onclick="openSeedOptions()" aria-label="Opciones de seed" title="Opciones de seed">📋</button>
     </div>
     <section id="multiplayer-player-list" class="multiplayer-player-list" aria-label="Jugadores de la seed" hidden></section>
+    <div id="multiplayer-chat" class="multiplayer-chat" hidden>
+        <button id="multiplayer-chat-toggle" class="multiplayer-chat-toggle" type="button" aria-expanded="false" aria-controls="multiplayer-chat-panel">💬 Chat</button>
+        <section id="multiplayer-chat-panel" class="multiplayer-chat-panel" aria-label="Chat de la partida" hidden>
+            <header class="multiplayer-chat-header">
+                <h2 id="multiplayer-chat-title">Chat de la partida</h2>
+                <button id="multiplayer-chat-close" type="button" aria-label="Cerrar chat">✕</button>
+            </header>
+            <div class="multiplayer-chat-modes" role="tablist" aria-label="Tipo de chat">
+                <button id="multiplayer-chat-safe-tab" type="button" role="tab" aria-selected="true">Seguro</button>
+                <button id="multiplayer-chat-free-tab" type="button" role="tab" aria-selected="false">Libre</button>
+            </div>
+            <div id="multiplayer-chat-log" class="multiplayer-chat-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+            <form id="multiplayer-chat-safe-form" class="multiplayer-chat-form">
+                <label id="multiplayer-chat-safe-label" for="multiplayer-chat-safe-message">Mensaje</label>
+                <select id="multiplayer-chat-safe-message"></select>
+                <button id="multiplayer-chat-safe-send" type="submit">Enviar</button>
+            </form>
+            <form id="multiplayer-chat-free-form" class="multiplayer-chat-form" hidden>
+                <label id="multiplayer-chat-free-label" for="multiplayer-chat-free-message">Escribe un mensaje (máx. 240 caracteres)</label>
+                <input id="multiplayer-chat-free-message" type="text" maxlength="240" autocomplete="off">
+                <button id="multiplayer-chat-free-send" type="submit">Enviar</button>
+            </form>
+            <p id="multiplayer-chat-notice" class="multiplayer-chat-notice"></p>
+        </section>
+    </div>
     <time id="session-clock" class="session-clock" aria-label="Hora local" style="display: none;">
         <span id="session-date-time"></span>
         <span id="session-play-time"></span>
