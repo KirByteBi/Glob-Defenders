@@ -7445,7 +7445,7 @@ function drawShop() {
     if (!window.activeSkinFilter) window.activeSkinFilter = 'all';
 
     const missionSkinIds = ['corrupt_swords_set', 'fracstal_set', 'old_tycoon_set', 'cuby_bombot'];
-    const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set', 'froggy_set'];
+    const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set', 'froggy_set', 'pumpking_set'];
     const storeUnlockableIds = [...missionSkinIds, ...otherNewSkinIds];
 
     const filterDiv = document.createElement('div');
@@ -7603,6 +7603,7 @@ function drawShop() {
           : '🖼️ Collect every available profile image';
         if (skinId === 'cuby_bombot') return currentLanguage === 'es' ? '👑 Derrota a Astrorb True Form' : '👑 Defeat Astrorb True Form';
         if (skinId === 'froggy_set') return currentLanguage === 'es' ? '🏖️ Puedes obtenerla gratis superando Sunlight Summer en Anti-Normal' : '🏖️ You can get it for free by beating Sunlight Summer in Anti-Normal';
+        if (skinId === 'pumpking_set') return currentLanguage === 'es' ? '🎃 Gana cualquier modo en Spooktacular Ruins' : '🎃 Win any mode on Spooktacular Ruins';
         if (condition === 'mission_block_tales') return currentLanguage === 'es' ? '🗡️ Completa la misión de Block Tales' : '🗡️ Complete the Block Tales mission';
         if (condition === 'block_quest_shop') return currentLanguage === 'es' ? '🧱 Completa la misión Block Quest' : '🧱 Complete the Block Quest mission';
         
@@ -12275,6 +12276,17 @@ function activateGTack(t) {
     if (resumeButton) resumeButton.style.display = 'none';
 
     if (victory) {
+      if (gameState.map === 'spooktacular_ruins' &&
+          !gameState.unlockedSkins.includes('pumpking_set')) {
+        gameState.unlockedSkins.push('pumpking_set');
+        showMessage(
+          currentLanguage === 'es'
+            ? '🎃 ¡Pumpking Set desbloqueado! Has ganado en Spooktacular Ruins.'
+            : '🎃 Pumpking Set unlocked! You won on Spooktacular Ruins.',
+          'success'
+        );
+      }
+
       if (PROFILE_MAP_MODES.includes(gameState.mode) && gameState.profileMapModeWins[gameState.map]) {
         if (!gameState.profileMapModeWins[gameState.map].includes(gameState.mode)) {
           gameState.profileMapModeWins[gameState.map].push(gameState.mode);
@@ -12738,6 +12750,7 @@ function activateGTack(t) {
           <li>👁️ <strong>Voces de NOeye y DarkSpirit</strong>: NOeye usa leetspeak en sus diálogos generales y DarkSpirit tiene un tono más terrorífico y un borde rojo. NOeye mantiene su voz normal como héroe de Interstellar.</li>
           <li>🪲 <strong>Identidad de ???</strong>: Los avisos de moderación de ??? muestran a Omnipresent Glob, no a MysteryBug.</li>
           <li>🧩 <strong>Login más pulido</strong>: Las imágenes decorativas se reponen al quitarlas, y alternar muchas veces entre los temas activa el easter egg de glitch hasta reiniciar la página.</li>
+          <li>🎃 <strong>Pumpking Set</strong>: Gana cualquier modo en Spooktacular Ruins para desbloquear gratis esta skin de la familia Marrón. Las imágenes de Blue Rewamp también se cargan ahora desde la carpeta <code>Skins</code>.</li>
         </ul>
 
         <h3 style="color:#ff9f43;">📋 Historial de Actualizaciones (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
@@ -12903,6 +12916,7 @@ function activateGTack(t) {
           <li>👁️ <strong>NOeye and DarkSpirit voices</strong>: NOeye uses leetspeak in general dialogue, while DarkSpirit has a more terrifying tone and a red border. NOeye keeps the normal voice when appearing as an Interstellar hero.</li>
           <li>🪲 <strong>??? identity</strong>: Moderation notices from ??? show Omnipresent Glob, not MysteryBug.</li>
           <li>🧩 <strong>Polished login</strong>: Decorative images refill as they are removed, and switching themes repeatedly triggers the glitch easter egg until the page is restarted.</li>
+          <li>🎃 <strong>Pumpking Set</strong>: Win any mode on Spooktacular Ruins to unlock this Brown family skin for free. Blue Rewamp images now load from the <code>Skins</code> folder.</li>
         </ul>
 
         <h3 style="color:#ff9f43;">📋 Update Logs (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>

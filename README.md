@@ -32,8 +32,8 @@ settings are saved in the account's private `player_progress` row and loaded
 after sign-in, so they follow the account to another PC. The table is protected
 by row-level security; the browser can access only the signed-in user's progress.
 
-Run [`supabase-progress-schema.sql`](./supabase-progress-schema.sql) once in the
-SQL Editor in the Supabase project dashboard before using online accounts.
+Run [`supabase-progress-schema.sql`](./SQL-editor_Supabase/supabase-progress-schema.sql)
+once in the SQL Editor in the Supabase project dashboard before using online accounts.
 Supabase's Email provider must be enabled, with email confirmation disabled.
 
 The game also keeps a local backup in IndexedDB and `localStorage`. Offline play

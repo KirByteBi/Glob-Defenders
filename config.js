@@ -2214,17 +2214,17 @@ const SKINS_DATA = {
     {
       id: 'rewamped_blue_set', name: 'skin_rewamped_blue_name', desc: 'skin_rewamped_blue_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
-        'Soap_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
-        'Cotton_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
-        'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
+        'Soap_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
+        'Cotton_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
+        'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
       }
     },
     {
       id: 'blue_rgb_sr', name: 'skin_blue_rgb_sr_name', desc: 'skin_blue_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
       skins: {
-        'Soap_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
-        'Cotton_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
-        'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
+        'Soap_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
+        'Cotton_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
+        'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
       },
       rgbTypes: ['Soap_Glob', 'Cotton_Glob', 'ElectroClean_Glob'],
       names: {
@@ -2401,6 +2401,19 @@ const SKINS_DATA = {
         'Garden_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO2).png',
         'Flower_Glob': 'Misiones (2026)/Skins/Marron/Jonk the big piranha (SK-EVO3).png'
       }
+    },
+    {
+      id: 'pumpking_set', name: 'skin_pumpking_name', desc: 'skin_pumpking_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_ruins',
+      skins: {
+        'Sprout_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob_SK-EVO1.png',
+        'Garden_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Overgrown_PumpGlob_SK-EVO2.png',
+        'Flower_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Mutant_PumpGlob_SK-EVO3.png'
+      },
+      names: {
+        'Sprout_Glob': 'PumpGlob',
+        'Garden_Glob': 'Overgrown PumpGlob',
+        'Flower_Glob': 'Mutant PumpGlob'
+      }
     }
   ],
 
@@ -2504,6 +2517,8 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_heights_desc": "Quién iba a decir que Bombot intentaría volar con un triste globo... ¿¡PERO QUIÉN ES EL ÚLTIMO!?",
   "skin_jonk_name": "Jonk the big piranha",
   "skin_jonk_desc": "Una gran carnívora sustituye nuestro Glob jardinero. No se preocupen, esta piraña es nuestra amiga tal y como lo fue en sus tiempos.",
+  "skin_pumpking_name": "Pumpking Set",
+  "skin_pumpking_desc": "Una calabaza monstruosa toma el lugar de la familia Marrón. Desbloquéala al ganar cualquier modo en Spooktacular Ruins.",
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Set Azul Remasterizado",
@@ -2547,6 +2562,8 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_heights_desc": "Who would have thought Bombot would try to fly with a sad balloon... WHO IS LAST!?",
   "skin_jonk_name": "Jonk the big piranha",
   "skin_jonk_desc": "A great carnivore replaces our Garden Glob. Don't worry, this piranha is our friend, just as it was in its time.",
+  "skin_pumpking_name": "Pumpking Set",
+  "skin_pumpking_desc": "A monstrous pumpkin takes over the Brown family. Unlock it by winning any mode on Spooktacular Ruins.",
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Frogs that fish and grow... But their lily pads do deal damage!<br><span style='font-size:0.8em; color: teal;'>Skin designed and drawn by \"Victorillo\", current artwork by KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Remastered Blue Set",

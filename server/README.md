@@ -57,7 +57,7 @@ enable the Email provider and disable **Confirm email** under
 confirmation emails to the non-deliverable username identities and may reject
 signups with an email rate-limit error. Configure the project's allowed redirect
 URLs and Site URL for the website, and run the root
-`supabase-progress-schema.sql` script in the SQL Editor. The script creates a `player_progress` table with row-level
+`../SQL-editor_Supabase/supabase-progress-schema.sql` script in the SQL Editor. The script creates a `player_progress` table with row-level
 security, so authenticated users can read and write only their own save.
 
 If signups still hit an email rate limit with confirmation disabled, wait for
