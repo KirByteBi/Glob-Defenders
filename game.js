@@ -1002,6 +1002,25 @@ function generateSpots() {
     ? mapData.enemyPaths.flatMap(path => path.slice(1).map((end, index) => ({ start: path[index], end })))
     : [];
 
+  if (mapKey === 'sunlight_seaside') {
+    mapData.islandZones.forEach(island => {
+      for (let x = island.x + 50; x <= island.x + island.w - 50; x += 80) {
+        for (let y = island.y + 50; y <= island.y + island.h - 50; y += 80) {
+          const outsideMap = x - 40 < 0 || x + 40 > 1000 || y - 40 < 0 || y + 40 > 600;
+          const overlapsPath = mapData.pathSegments.some(path =>
+            x + 40 > path.x && x - 40 < path.x + path.w &&
+            y + 40 > path.y && y - 40 < path.y + path.h
+          );
+          if (!outsideMap && !overlapsPath) {
+            TOWER_SPOTS.push({ x: x - 40, y: y - 40, w: 80, h: 80 });
+          }
+        }
+      }
+    });
+    console.log(`✅ Generados ${TOWER_SPOTS.length} spots para torres en ${mapKey}`);
+    return;
+  }
+
   for (let x = 35; x < 950; x += 75) {
     for (let y = 35; y < 550; y += 75) {
       let collides = false;

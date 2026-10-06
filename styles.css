@@ -1456,7 +1456,7 @@ button.active {
     position: absolute;
     background: radial-gradient(ellipse at 40% 35%, #f5deb3 0%, #e8c88a 50%, #d4a96a 100%);
     border: 2px solid #c4956a;
-    border-radius: 40% 60% 55% 45% / 50% 45% 55% 50%;
+    border-radius: 18px;
     z-index: 1;
     box-shadow: 0 3px 8px rgba(0,0,0,0.2);
     pointer-events: none;
