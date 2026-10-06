@@ -1026,14 +1026,14 @@ async function joinMultiplayerSeed(seed, creating) {
     multiplayerSyncInterval = setInterval(() => {
       if (!socket?.connected || !currentSeed || !window._getMultiplayerGameState) return;
       const state = window._getMultiplayerGameState();
-      if (state) socket.emit('update-game-state', { seed: currentSeed, state });
+      if (state) socket.emit('update-game-state', state);
     }, 750);
   }
 }
 
 function sendMultiplayerAction(action) {
   if (!multiplayerSpectator && socket?.connected && currentSeed && !applyingMultiplayerAction) {
-    socket.emit('game-action', { seed: currentSeed, action });
+    socket.emit('game-action', action);
   }
 }
 
@@ -1529,24 +1529,8 @@ function getTowerPlacementLimits(type) {
   const availablePlayers = multiplayerPlayers.length ? eligiblePlayers : players;
   const playerIndex = availablePlayers.findIndex(player => player.playerId === localPlayerId);
 
-  if (configuredLimit === 1) {
-    return {
-      perPlayerLimit: playerIndex >= 0 ? 1 : 0,
-      sharedLimit: availablePlayers.length
-    };
-  }
-
-  const playerCount = Math.max(1, availablePlayers.length);
-  const baseQuota = Math.floor(matchLimit / playerCount);
-  const remainingSlots = matchLimit % playerCount;
-  const familySeed = `${currentSeed || ''}:${family}`;
-  const rotationStart = Array.from(familySeed).reduce((sum, char) => sum + char.charCodeAt(0), 0) % playerCount;
-  const extraSlotIndex = (rotationStart + playerIndex + playerCount) % playerCount;
-  const receivesExtraSlot = playerIndex >= 0 && extraSlotIndex < remainingSlots;
-  const perPlayerLimit = playerIndex >= 0 ? baseQuota + (receivesExtraSlot ? 1 : 0) : 0;
-
   return {
-    perPlayerLimit,
+    perPlayerLimit: playerIndex >= 0 ? configuredLimit : 0,
     sharedLimit: matchLimit
   };
 }
@@ -4610,7 +4594,7 @@ function setupOwnerDebugTools() {
     if (!isOwnerDebugUser() || !selectedEnemy) return;
     spawnEnemy(selectedEnemy.id);
     if (socket && currentSeed) {
-      socket.emit('spawn-enemy', { seed: currentSeed, enemyType: selectedEnemy.id, boss: false, forcedPath: null });
+      socket.emit('spawn-enemy', { enemyType: selectedEnemy.id, boss: false, forcedPath: null });
     }
     showMessage(`DEBUG: ${selectedEnemy.label} spawneado.`, 'info');
   });
@@ -4645,7 +4629,7 @@ function setupOwnerDebugTools() {
     }
 
     if (socket && currentSeed) {
-      socket.emit('show-dialog', { seed: currentSeed, id: emitId, img: emitImg, name: emitName, text: text });
+      socket.emit('show-dialog', { id: emitId, img: emitImg, name: emitName, text: text });
     }
   });
 }
@@ -4808,6 +4792,7 @@ function drawTowerShop() {
         (tower.family || tower.type) === family && tower.ownerId === ownerId
       ).length
       : getFamilyCount(type);
+    const displayCount = multiplayerEnabled ? getFamilyCount(type) : currentCount;
     const limit = capacity.perPlayerLimit;
     const isFull = currentCount >= limit ||
       (multiplayerEnabled && getFamilyCount(type) >= capacity.sharedLimit);
@@ -4845,7 +4830,7 @@ function drawTowerShop() {
                 <img src="${displayImg}" alt="${name}">
                 <div style="display:flex; flex-direction:column; align-items:center;">
                   <span style="font-size:0.65rem;">💰${t.cost}</span>
-                  <span style="font-size:0.55rem; color:#fff; background:rgba(0,0,0,0.5); padding:1px 4px; border-radius:4px; margin-top:2px;">${currentCount}/${limit}</span>
+                  <span style="font-size:0.55rem; color:#fff; background:rgba(0,0,0,0.5); padding:1px 4px; border-radius:4px; margin-top:2px;">${displayCount}/${multiplayerEnabled ? capacity.sharedLimit : limit}</span>
                 </div>
             `;
 
@@ -5825,10 +5810,78 @@ function bindEvents() {
     }
   };
 
-  document.getElementById('apply-code').onclick = () => {
+  document.getElementById('apply-code').onclick = async () => {
     const input = document.getElementById('game-code');
     const code = input.value.trim().toUpperCase();
     if (!code) return;
+
+    const oneTimeSkinCodes = {
+      'FROGGY_VICTEST': { skinId: 'froggy_set', name: 'Froggy Set' },
+      'NITRO-BOOMER': { skinId: 'sharkbot_bombot', name: 'RoboTibu' }
+    };
+    const oneTimeSkinReward = oneTimeSkinCodes[code];
+    if (oneTimeSkinReward) {
+      if (!activeCloudUserId || isOfflineSession()) {
+        showMessage(
+          currentLanguage === 'en'
+            ? 'Sign in to an online account to redeem this one-time code.'
+            : 'Inicia sesión con una cuenta online para canjear este código de un solo uso.',
+          'warning'
+        );
+        input.value = '';
+        return;
+      }
+
+      try {
+        const { data, error } = await getSupabaseClient().functions.invoke(
+          'redeem-one-time-skin-code',
+          { body: { code } }
+        );
+        if (error) throw error;
+        if (!data || typeof data.result !== 'string') {
+          throw new Error('Supabase devolvió una respuesta inválida al canjear el código.');
+        }
+
+        if (data.result === 'redeemed' && data.skinId === oneTimeSkinReward.skinId) {
+          gameState.unlockedSkins = [...new Set([...(gameState.unlockedSkins || []), oneTimeSkinReward.skinId])];
+          gameState.usedCodes[code] = true;
+          updateMetaUI();
+          saveProgress();
+          showMessage(
+            currentLanguage === 'en'
+              ? `One-time code redeemed! ${oneTimeSkinReward.name} unlocked for your account.`
+              : `¡Código de un solo uso canjeado! ${oneTimeSkinReward.name} se ha desbloqueado en tu cuenta.`,
+            'success'
+          );
+        } else if (data.result === 'already_claimed') {
+          showMessage(
+            currentLanguage === 'en'
+              ? 'This one-time code has already been claimed by another player.'
+              : 'Otro jugador ya ha canjeado este código de un solo uso.',
+            'warning'
+          );
+        } else if (data.result === 'already_owned') {
+          showMessage(
+            currentLanguage === 'en'
+              ? `Your account already owns ${oneTimeSkinReward.name}; the code remains available for another player.`
+              : `Tu cuenta ya tiene ${oneTimeSkinReward.name}; el código sigue disponible para otra persona.`,
+            'info'
+          );
+        } else {
+          throw new Error('Supabase devolvió un resultado inesperado al canjear el código.');
+        }
+      } catch (error) {
+        console.error('No se pudo canjear el código global de un solo uso:', error);
+        showMessage(
+          currentLanguage === 'en'
+            ? 'The code could not be redeemed. Check your connection and try again.'
+            : 'No se pudo canjear el código. Comprueba la conexión e inténtalo de nuevo.',
+          'error'
+        );
+      }
+      input.value = '';
+      return;
+    }
 
     // DEV_BUILD / GLOB_BUILD: special code only for dev users
     if (code === 'DEV_BUILD' || code === 'GLOB_BUILD') {

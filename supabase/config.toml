@@ -2,3 +2,6 @@ project_id = "glob-defenders"
 
 [functions.record-offensive-chat-attempt]
 verify_jwt = true
+
+[functions.redeem-one-time-skin-code]
+verify_jwt = true
