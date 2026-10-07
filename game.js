@@ -70,8 +70,8 @@ const SAFE_MULTIPLAYER_CHAT_MESSAGES = {
     'GG, that was a great match!'
   ]
 };
-const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set'];
-const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr'];
+const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'ducky_rewamp_set'];
+const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr', 'ducky_rgb_sr'];
 const PROFILE_ENEMY_VARIANT_GROUPS = [
   { canonical: 'BitY1', types: ['BitY1', 'BitB4', 'BitG2', 'BitP3'] },
   { canonical: 'ByteGB1', types: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'] },
@@ -1454,6 +1454,28 @@ function getTowerFamily(type) {
   return tower?.family || type;
 }
 
+function getTowerEvolutionLevel(type) {
+  const family = getTowerFamily(type);
+  const familyTypes = Object.keys(TOWER_TYPES).filter(candidate => getTowerFamily(candidate) === family);
+  const evolvedTypes = new Set(familyTypes.map(candidate => TOWER_TYPES[candidate].evolution).filter(Boolean));
+  let currentType = familyTypes.find(candidate => !evolvedTypes.has(candidate));
+  let level = 1;
+  const visited = new Set();
+
+  while (currentType && !visited.has(currentType)) {
+    if (currentType === type) return level;
+    visited.add(currentType);
+    currentType = TOWER_TYPES[currentType].evolution;
+    level++;
+  }
+
+  return 0;
+}
+
+function canTowerHitEnemy(tower, enemy) {
+  return !enemy.ghostMinEvolution || getTowerEvolutionLevel(tower.type) >= enemy.ghostMinEvolution;
+}
+
 function updateHypermutatedTowers() {
   const enabled = (gameState.hypermutatedUnlocked || gameState.debugState === 'unlocked') &&
     gameState.settings.hypermutatedEffect;
@@ -1842,6 +1864,7 @@ function init() {
     scheduleSkipLoginButton();
     spawnDecorations('login-decorations');
     spawnDecorations('mode-decorations');
+    setInterval(updateLoginDecorationSpeeds, 100);
     updateMuteButton();
     checkLogin();
     if (!gameState.map) gameState.map = 'gelatin_lake';
@@ -2108,8 +2131,18 @@ function loadProgress(username, allowLocalProgress = true) {
 const HYPERMUTATED_CLICK_KEY = 'glob_hypermutated_decoration_clicks';
 const HYPERMUTATED_GLOBS_KEY = 'glob_hypermutated_clicked_globs';
 const HYPERMUTATED_PENDING_KEY = 'glob_hypermutated_pending';
-const HALLOWEEN_LOGIN_ENEMIES = new Set(['Broksp', 'Pumpitch', 'RIPslide', 'SkeleBone_Pyce']);
+const HALLOWEEN_LOGIN_ENEMIES = new Set([
+  'Broksp', 'Blood_Taker', 'Pumpitch', 'RIPslide', 'Sneekmy',
+  'SkeleBone_Pyce', 'Ghost_Pyce', 'ZomPyce'
+]);
 const HALLOWEEN_ENEMY_TYPES = new Set([...HALLOWEEN_LOGIN_ENEMIES, 'Curse_Boneker']);
+const HALLOWEEN_LOGIN_SKIN_IMAGES = new Set([
+  'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Calcium Glob (SK-EVO1).png',
+  'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Toxic Waste Glob (SK-EVO2).png',
+  'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Witch Glob (SK-EVO1).png',
+  'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/CrowWitcher (SK-EVO2).png',
+  'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob_SK-EVO1.png'
+]);
 
 function getGlobDecorationType(imagePath) {
   const type = Object.keys(IMAGE_PATHS).find(key => IMAGE_PATHS[key] === imagePath && TOWER_TYPES[key]);
@@ -2141,15 +2174,39 @@ function getLoginGlobDecorationTypes() {
 }
 
 function isHalloweenLoginEnemy(imagePath) {
-  return Object.keys(IMAGE_PATHS).some(type =>
+  return HALLOWEEN_LOGIN_SKIN_IMAGES.has(imagePath) || Object.keys(IMAGE_PATHS).some(type =>
     HALLOWEEN_LOGIN_ENEMIES.has(type) && IMAGE_PATHS[type] === imagePath
   );
 }
 
-function triggerHalloweenJumpscare(type, enemyElement) {
-  if (!HALLOWEEN_ENEMY_TYPES.has(type) || enemyElement?.dataset.jumpscareTriggered) return;
+function updateLoginDecorationSpeeds() {
+  const loginScreen = document.getElementById('login-screen');
+  const loginBox = loginScreen?.querySelector('.login-box');
+  const decorations = document.querySelectorAll('#login-decorations .floating-char:not([data-launched])');
+  const loginVisible = loginScreen && getComputedStyle(loginScreen).display !== 'none';
+  const boxRect = loginVisible ? loginBox?.getBoundingClientRect() : null;
+  const boxVisible = boxRect && boxRect.width > 0 && boxRect.height > 0;
+
+  decorations.forEach(decoration => {
+    const rect = decoration.getBoundingClientRect();
+    const overlapsLoginBox = boxVisible &&
+      rect.left < boxRect.right &&
+      rect.right > boxRect.left &&
+      rect.top < boxRect.bottom &&
+      rect.bottom > boxRect.top;
+    decoration.classList.toggle('floating-char-behind-login', Boolean(overlapsLoginBox));
+  });
+}
+
+function triggerHalloweenJumpscare(type, enemyElement, imagePathOverride = null) {
+  if (
+    (imagePathOverride
+      ? !isHalloweenLoginEnemy(imagePathOverride)
+      : !HALLOWEEN_ENEMY_TYPES.has(type)) ||
+    enemyElement?.dataset.jumpscareTriggered
+  ) return;
   if (enemyElement) enemyElement.dataset.jumpscareTriggered = 'true';
-  const imagePath = ENEMY_TYPES[type]?.image;
+  const imagePath = imagePathOverride || ENEMY_TYPES[type]?.image;
   if (!imagePath) return;
 
   const jumpscare = document.createElement('div');
@@ -2207,7 +2264,7 @@ function spawnDecorations(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.replaceChildren();
-    const allImages = [...new Set(Object.values(IMAGE_PATHS))];
+    const allImages = [...new Set([...Object.values(IMAGE_PATHS), ...HALLOWEEN_LOGIN_SKIN_IMAGES])];
 
     // For login/mode screens, exclude collab assets and check unlocks
     const isLoginScreen = (containerId === 'login-decorations' || containerId === 'mode-decorations' || containerId === 'map-decorations');
@@ -2320,7 +2377,7 @@ function spawnDecorations(containerId) {
         playSound(isGlob ? 'sounds/Slurp.mp3' : 'sounds/Bipbip.mp3');
         if (isHalloweenLoginEnemy(imgPath)) {
           const enemyType = Object.keys(IMAGE_PATHS).find(type => IMAGE_PATHS[type] === imgPath);
-          triggerHalloweenJumpscare(enemyType);
+          triggerHalloweenJumpscare(enemyType, null, imgPath);
           img.remove();
           setTimeout(() => refillDecorations(imgPath), 850);
           return;
@@ -7445,7 +7502,7 @@ function drawShop() {
     if (!window.activeSkinFilter) window.activeSkinFilter = 'all';
 
     const missionSkinIds = ['corrupt_swords_set', 'fracstal_set', 'old_tycoon_set', 'cuby_bombot'];
-    const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set', 'froggy_set', 'pumpking_set'];
+    const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set', 'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set'];
     const storeUnlockableIds = [...missionSkinIds, ...otherNewSkinIds];
 
     const filterDiv = document.createElement('div');
@@ -7560,7 +7617,7 @@ function drawShop() {
         const isUnlocked = gameState.unlockedSkins.includes(skin.id) ||
           isProfileImageUnlockConditionMet(skin);
         const isAlwaysVisible = [
-          'rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set',
+          'rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'ducky_rewamp_set', 'ducky_rgb_sr',
           ...RGB_REWAMP_SKIN_IDS, 'judicial_set', ...storeUnlockableIds
         ].includes(skin.id);
 
@@ -7571,10 +7628,10 @@ function drawShop() {
 
         // Categorizar
         let category = 'otros';
-        if (['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'judicial_set', 'spanish_bombot', 'froggy_set'].includes(skin.id)) category = 'mapa';
+        if (['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'judicial_set', 'spanish_bombot', 'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set'].includes(skin.id)) category = 'mapa';
         else if (missionSkinIds.includes(skin.id)) category = 'misiones';
         else if (['mimic_set', ...otherNewSkinIds].includes(skin.id)) category = 'otros';
-        else if (skin.unlockCondition && skin.unlockCondition.includes('urban')) category = 'mapa';
+        else if (skin.unlockCondition && (skin.unlockCondition.includes('urban') || skin.unlockCondition.includes('spooktacular'))) category = 'mapa';
 
         unlockableSkins[category].push({ family, skin, isUnlocked });
       });
@@ -7603,11 +7660,14 @@ function drawShop() {
           : '🖼️ Collect every available profile image';
         if (skinId === 'cuby_bombot') return currentLanguage === 'es' ? '👑 Derrota a Astrorb True Form' : '👑 Defeat Astrorb True Form';
         if (skinId === 'froggy_set') return currentLanguage === 'es' ? '🏖️ Puedes obtenerla gratis superando Sunlight Summer en Anti-Normal' : '🏖️ You can get it for free by beating Sunlight Summer in Anti-Normal';
-        if (skinId === 'pumpking_set') return currentLanguage === 'es' ? '🎃 Gana cualquier modo en Spooktacular Ruins' : '🎃 Win any mode on Spooktacular Ruins';
+        if (skinId === 'pumpking_set') return currentLanguage === 'es' ? '🎃 Gana Fácil, Normal, Difícil o Extremo en Aridez Escalofriante' : '🎃 Win Easy, Normal, Hard, or Extreme on Spooktacular Ruins';
+        if (skinId === 'skelebones_set') return currentLanguage === 'es' ? '💀 Vence Aridez Escalofriante en Anti-Normal' : '💀 Beat Spooktacular Ruins in Anti-Normal';
+        if (skinId === 'wicked_set') return currentLanguage === 'es' ? '🧙 Vence Aridez Escalofriante en Corrupto' : '🧙 Beat Spooktacular Ruins in Corrupt';
         if (condition === 'mission_block_tales') return currentLanguage === 'es' ? '🗡️ Completa la misión de Block Tales' : '🗡️ Complete the Block Tales mission';
         if (condition === 'block_quest_shop') return currentLanguage === 'es' ? '🧱 Completa la misión Block Quest' : '🧱 Complete the Block Quest mission';
         
         if (condition === 'win_facil_urban') return currentLanguage === 'es' ? '🗺️ Gana en modo Fácil en Urbanistic Road' : '🗺️ Win in Easy mode on Urbanistic Road';
+        if (condition === 'win_spooktacular_ruins') return currentLanguage === 'es' ? '🎃 Gana en cualquier modo en Spooktacular Ruins' : '🎃 Win in any mode on Spooktacular Ruins';
         if (condition === 'win_normal') return currentLanguage === 'es' ? '⚔️ Gana en modo Normal o superior' : '⚔️ Win in Normal mode or higher';
         if (condition === 'win_extremo') return currentLanguage === 'es' ? '💀 Gana en modo Extremo o superior' : '💀 Win in Extreme mode or higher';
         if (condition === 'astrorb_frame') return currentLanguage === 'es' ? '📖 Enmarca todos los Astrorb en la Enciclopedia' : '📖 Frame all Astrorb variants in the Encyclopedia';
@@ -8210,7 +8270,7 @@ function placeTower(spotId, type) {
   applyTowerEffects(el, type);
   document.getElementById('map').appendChild(el);
 
-  const tower = { ...tCfg, type, x: spot.x, y: spot.y, el, cooldown: 0, spotId, ownerId, stunned: 0, moneyTimer: 0 };
+  const tower = { ...tCfg, type, x: spot.x, y: spot.y, el, cooldown: 0, spotId, ownerId, stunned: 0, moneyTimer: 0, teammateBonusTimer: 0 };
   tower.damage *= gameState.towerBuffs.damage;
   tower.range += gameState.towerBuffs.range;
   tower.speed *= gameState.towerBuffs.speed;
@@ -8581,8 +8641,8 @@ function activateGTack(t) {
         bosses: ['PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'NOeye_Pyce', 'MoonStar_Pyce']
       },
       spooktacular_ruins: {
-        enemies: ['Broksp', 'Pumpitch', 'RIPslide', 'SkeleBone_Pyce'],
-        bosses: []
+        enemies: ['Broksp', 'Blood_Taker', 'Pumpitch', 'RIPslide', 'Sneekmy', 'SkeleBone_Pyce', 'Ghost_Pyce', 'ZomPyce'],
+        bosses: ['Curse_Boneker']
       }
     };
     const plan = mapPools[mapKey] || mapPools.gelatin_lake;
@@ -8969,10 +9029,10 @@ function activateGTack(t) {
           special: ['Thunren', 'Renibig', 'Shrum', 'Old_Fungus', 'Umbrella_Pyce', 'Followishers']
         },
         spooktacular_ruins: {
-          regular: ['Broksp', 'RIPslide'],
-          medium: ['Pumpitch', 'SkeleBone_Pyce'],
-          hard: ['Pumpitch', 'SkeleBone_Pyce'],
-          special: ['SkeleBone_Pyce']
+          regular: ['Broksp', 'RIPslide', 'ZomPyce'],
+          medium: ['Blood_Taker', 'Pumpitch', 'Sneekmy', 'Ghost_Pyce', 'SkeleBone_Pyce'],
+          hard: ['Pumpitch', 'Blood_Taker', 'Ghost_Pyce', 'SkeleBone_Pyce'],
+          special: ['SkeleBone_Pyce', 'Ghost_Pyce']
         }
       };
 
@@ -9194,6 +9254,7 @@ function activateGTack(t) {
 
     const icons = [];
     if (e.stealth) icons.push('🫥');
+    if (e.ghost) icons.push('👻');
     if (e.fireImmune) icons.push('🔥🚫');
     if (e.shield > 0) icons.push('🛡️');
     if (e.enemySlowTimer > 0) icons.push('❄️');
@@ -10158,7 +10219,9 @@ function activateGTack(t) {
             let trap = gameState.traps[j];
             // DJ_Trap is NOT contact-based — it has its own active loop below
             if (trap.parentType === 'DJ_Glob') continue;
-            if (trap.active && Math.hypot(e.x - trap.x, e.y - trap.y) <= (trap.radius || 40)) {
+            if (trap.active &&
+                canTowerHitEnemy({ type: trap.parentType }, e) &&
+                Math.hypot(e.x - trap.x, e.y - trap.y) <= (trap.radius || 40)) {
               let dmg = trap.damage;
               e.health -= dmg;
               // Deberia ser como las demas vallas, pero que vaya atacando mientras tengs un enemigo cerca, como una torreta (COD-637)
@@ -10167,7 +10230,9 @@ function activateGTack(t) {
                 e.enemySlowFactor = 0.5;
               } else if (trap.parentType === 'Planked_Glob') {
                 gameState.enemies.forEach(otherE => {
-                  if (otherE !== e && Math.hypot(otherE.x - trap.x, otherE.y - trap.y) <= 80) {
+                  if (otherE !== e &&
+                      canTowerHitEnemy({ type: trap.parentType }, otherE) &&
+                      Math.hypot(otherE.x - trap.x, otherE.y - trap.y) <= 80) {
                     otherE.health -= trap.damage * 0.5;
                   }
                 });
@@ -10317,17 +10382,19 @@ function activateGTack(t) {
             }
           }
         }
-        if (e.type === 'Guest_Pyce') {
+        if (e.type === 'Guest_Pyce' || e.type === 'Blood_Taker') {
           e.attackTimer1 = (e.attackTimer1 || 0) + dt;
-          if (e.attackTimer1 > 3) {
+          const attackInterval = e.type === 'Blood_Taker' ? 5 : 3;
+          const attackRange = e.type === 'Blood_Taker' ? 100 : 80;
+          if (e.attackTimer1 > attackInterval) {
             let targetTower = null;
-            gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < 80) targetTower = t; });
+            gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < attackRange) targetTower = t; });
             if (targetTower) {
               e.attackTimer1 = 0;
               if (isTowerProtected(targetTower)) {
                 showEffect(targetTower.x, targetTower.y - 20, "IMMUNE! 🛡️", "#00ffcc");
               } else {
-                targetTower.stunTimer = (targetTower.stunTimer || 0) + 1.5;
+                targetTower.stunTimer = (targetTower.stunTimer || 0) + (e.type === 'Blood_Taker' ? 2 : 1.5);
                 showEffect(targetTower.x, targetTower.y - 20, "STUNNED!", "#ff0000");
               }
             }
@@ -10434,9 +10501,11 @@ function activateGTack(t) {
         if (t.stunned > 0) { t.stunned -= dt; t.el.classList.add('stunned'); return; }
         t.el.classList.remove('stunned');
         if (t.family === 'Ducky_Glob' || t.type === 'Ducky_Glob' || t.type === 'Golden_Ducky_Glob') {
-          let interval = t.type === 'Golden_Ducky_Glob' ? 5 : 8;
+          let interval = ['Golden_Ducky_Glob', 'Rick_Duck_Glob'].includes(t.type) ? 5 : 8;
           if (gameState.duckgrades.dg_Ducky_Glob) {
-            const enemiesInRange = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= (t.range || 100));
+            const enemiesInRange = gameState.enemies.filter(e =>
+              canTowerHitEnemy(t, e) && Math.hypot(e.x - t.x, e.y - t.y) <= (t.range || 100)
+            );
             if (enemiesInRange.length > 0) {
               interval *= 0.5;
               enemiesInRange.forEach(e => {
@@ -10446,10 +10515,24 @@ function activateGTack(t) {
             }
           }
 
+          const baseAmount = 10 + Math.floor(gameState.wave * 1.5);
+          const amount = t.type === 'Rick_Duck_Glob' ? Math.ceil(baseAmount * 1.25) : baseAmount;
+          if (t.type === 'Rick_Duck_Glob' && multiplayerEnabled) {
+            t.teammateBonusTimer += dt;
+            if (t.teammateBonusTimer >= 15) {
+              t.teammateBonusTimer %= 15;
+              const teammateBonus = Math.round(amount * 0.25) * Math.max(0, multiplayerPlayerCount - 1);
+              if (teammateBonus > 0) {
+                gameState.globetines += teammateBonus;
+                showEffect(t.x, t.y - 20, `+${teammateBonus} 🤝`);
+                updateUI();
+              }
+            }
+          }
+
           t.moneyTimer += dt;
           if (t.moneyTimer >= interval) {
             t.moneyTimer = 0;
-            const amount = 10 + Math.floor(gameState.wave * 1.5);
             gameState.globetines += amount;
             showEffect(t.x, t.y, `+${amount} 💰`);
 
@@ -10509,7 +10592,9 @@ function activateGTack(t) {
         }
 
         if (t.family === 'IEx') {
-          const targets = gameState.enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) <= t.range);
+          const targets = gameState.enemies.filter(e =>
+            canTowerHitEnemy(t, e) && Math.hypot(e.x - t.x, e.y - t.y) <= t.range
+          );
           if (targets.length > 0 || t.forceExplode) {
             showEffect(t.x, t.y, "BOOM!", "#ff0000");
             
@@ -10666,6 +10751,7 @@ function activateGTack(t) {
           const isEvo1Or2 = t.type === 'Bomb_Glob' || t.type === 'TNT_Glob' || t.type === 'Worker_Glob' || t.type === 'Police_Glob' || t.type === 'SpyGlob' || isEvo1 || isEvo2;
 
           const targets = gameState.enemies.filter(e => {
+            if (!canTowerHitEnemy(t, e)) return false;
             if (e.holo && isEvo1) return false;
             if (e.mechanic_key === 'mechanic_spyware' && isEvo1Or2) return false;
             return Math.hypot(e.x - t.x, e.y - t.y) <= t.range;
@@ -10758,6 +10844,7 @@ function activateGTack(t) {
           }
           return;
         }
+        if (p.shooter && !canTowerHitEnemy(p.shooter, target)) return;
 
         let dmg = p.damage;
         if (p.meta) {
@@ -10905,7 +10992,9 @@ function activateGTack(t) {
           if (b.summonType === 'Boat_S3' || b.summonType === 'Boat_S4') {
             b.cooldownTimer -= dt;
             if (b.cooldownTimer <= 0) {
-              const targets = gameState.enemies.filter(e => Math.hypot(e.x - b.x, e.y - b.y) <= 150);
+              const targets = gameState.enemies.filter(e =>
+                canTowerHitEnemy(b.shooter, e) && Math.hypot(e.x - b.x, e.y - b.y) <= 150
+              );
               if (targets.length) {
                 b.cooldownTimer = 2.0;
                 let isSpecial = false;
@@ -10996,7 +11085,10 @@ function activateGTack(t) {
           const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;
           if (!p.target || !targetArray.includes(p.target)) {
             if (p.projectile === 'void_tracker') {
-              const nextTarget = targetArray.find(e => Math.hypot(e.x - p.x, e.y - p.y) < 300);
+              const nextTarget = targetArray.find(e =>
+                (p.isEnemy || !p.shooter || canTowerHitEnemy(p.shooter, e)) &&
+                Math.hypot(e.x - p.x, e.y - p.y) < 300
+              );
               if (nextTarget) { p.target = nextTarget; }
               else { p.el.remove(); gameState.projectiles.splice(i, 1); continue; }
             } else {
@@ -11046,6 +11138,7 @@ function activateGTack(t) {
 
           // Enemigos en radio dañan la valla (la destruyen al atacarla)
           const inRange = gameState.enemies.filter(e =>
+            canTowerHitEnemy({ type: trap.parentType }, e) &&
             Math.hypot(e.x - trap.x, e.y - trap.y) <= trap.radius
           );
           if (inRange.length > 0) {
@@ -11074,7 +11167,8 @@ function activateGTack(t) {
           // Destrucción: HP agotada → pulso final paralizador
           if (trap.health <= 0) {
             gameState.enemies.forEach(e => {
-              if (Math.hypot(e.x - trap.x, e.y - trap.y) <= trap.radius * 1.5) {
+              if (canTowerHitEnemy({ type: trap.parentType }, e) &&
+                  Math.hypot(e.x - trap.x, e.y - trap.y) <= trap.radius * 1.5) {
                 e.health -= trap.damage * 0.8;
                 // wall_garden: check if enemy was being slowed by a Brown family tower
                 let brownSlowing = false;
@@ -11420,7 +11514,8 @@ function activateGTack(t) {
       // Nuevos enemigos de Sunlight Seaside (Leafy Beach Party)
       'Axolotl_Pyce': 250, 'Shark_Pyce': 250, 'Umbrella_Pyce': 250,
       // Spooks in the Desert (UPD4)
-      'Broksp': 450, 'Pumpitch': 350, 'RIPslide': 350, 'SkeleBone_Pyce': 220,
+      'Broksp': 450, 'Pumpitch': 250, 'RIPslide': 300, 'SkeleBone_Pyce': 275,
+      'Curse_Boneker': 5, 'Blood_Taker': 325, 'Sneekmy': 350, 'Ghost_Pyce': 375, 'ZomPyce': 475,
       'Piz': 500, 'Followishers': 250, 'Creamplet': 150
     };
     return targets[type] || 9999;
@@ -12276,15 +12371,44 @@ function activateGTack(t) {
     if (resumeButton) resumeButton.style.display = 'none';
 
     if (victory) {
-      if (gameState.map === 'spooktacular_ruins' &&
-          !gameState.unlockedSkins.includes('pumpking_set')) {
-        gameState.unlockedSkins.push('pumpking_set');
-        showMessage(
-          currentLanguage === 'es'
-            ? '🎃 ¡Pumpking Set desbloqueado! Has ganado en Spooktacular Ruins.'
-            : '🎃 Pumpking Set unlocked! You won on Spooktacular Ruins.',
-          'success'
-        );
+      if (gameState.map === 'spooktacular_ruins') {
+        const baseModes = ['facil', 'normal', 'dificil', 'extremo'];
+        if (baseModes.includes(gameState.mode) && !gameState.unlockedSkins.includes('pumpking_set')) {
+          gameState.unlockedSkins.push('pumpking_set');
+          showMessage(
+            currentLanguage === 'es'
+              ? '🎃 ¡Pumpking Set desbloqueado! Has ganado un modo base en Aridez Escalofriante.'
+              : '🎃 Pumpking Set unlocked! You won a base mode on Spooktacular Ruins.',
+            'success'
+          );
+        }
+        if (gameState.antiNormalActive && !gameState.unlockedSkins.includes('skelebones_set')) {
+          gameState.unlockedSkins.push('skelebones_set');
+          showMessage(
+            currentLanguage === 'es'
+              ? '💀 ¡SkeleBones Set desbloqueado! Has vencido Aridez Escalofriante en Anti-Normal.'
+              : '💀 SkeleBones Set unlocked! You beat Spooktacular Ruins in Anti-Normal.',
+            'success'
+          );
+        }
+        if (gameState.mode === 'corrupto' && !gameState.unlockedSkins.includes('wicked_set')) {
+          gameState.unlockedSkins.push('wicked_set');
+          showMessage(
+            currentLanguage === 'es'
+              ? '🧙 ¡Wicked Set desbloqueado! Has vencido Aridez Escalofriante en Corrupto.'
+              : '🧙 Wicked Set unlocked! You beat Spooktacular Ruins in Corrupt.',
+            'success'
+          );
+        }
+        if (!gameState.unlockedSkins.includes('ducky_rewamp_set')) {
+          gameState.unlockedSkins.push('ducky_rewamp_set');
+          showMessage(
+            currentLanguage === 'es'
+              ? '🦆 ¡Ducky Rewamp desbloqueado! Has ganado en Spooktacular Ruins.'
+              : '🦆 Ducky Rewamp unlocked! You won on Spooktacular Ruins.',
+            'success'
+          );
+        }
       }
 
       if (PROFILE_MAP_MODES.includes(gameState.mode) && gameState.profileMapModeWins[gameState.map]) {
@@ -12750,7 +12874,7 @@ function activateGTack(t) {
           <li>👁️ <strong>Voces de NOeye y DarkSpirit</strong>: NOeye usa leetspeak en sus diálogos generales y DarkSpirit tiene un tono más terrorífico y un borde rojo. NOeye mantiene su voz normal como héroe de Interstellar.</li>
           <li>🪲 <strong>Identidad de ???</strong>: Los avisos de moderación de ??? muestran a Omnipresent Glob, no a MysteryBug.</li>
           <li>🧩 <strong>Login más pulido</strong>: Las imágenes decorativas se reponen al quitarlas, y alternar muchas veces entre los temas activa el easter egg de glitch hasta reiniciar la página.</li>
-          <li>🎃 <strong>Pumpking Set</strong>: Gana cualquier modo en Spooktacular Ruins para desbloquear gratis esta skin de la familia Marrón. Las imágenes de Blue Rewamp también se cargan ahora desde la carpeta <code>Skins</code>.</li>
+          <li>🎃 <strong>Sets de Halloween</strong>: Gana Aridez Escalofriante en Anti-Normal para desbloquear SkeleBones Set, en Corrupto para Wicked Set, o en Fácil, Normal, Difícil o Extremo para Pumpking Set. Son recompensas independientes. SkeleBones, Wicked (solo EVO 1 y 2) y PumpGlob pueden aparecer en el login y dar un jumpscare al pulsarlos.</li>
         </ul>
 
         <h3 style="color:#ff9f43;">📋 Historial de Actualizaciones (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
@@ -12772,6 +12896,8 @@ function activateGTack(t) {
         <p style="color:#75df9a;">¡Tus partidas, tu identidad y tu estilo Glob se conectan como nunca!</p>
         <h4>Novedades del Parche:</h4>
         <ul>
+          <li>🎃 <strong>Enemigos de Halloween</strong>: Añadidos Brokspider, Pumpitch, RIPslide, Curse Boneker, SkeleBone Pyce, Blood-Taker, Sneekmy, Ghost Pyce y ZomPyce a Spooktacular Ruins, con sus requisitos de bajas para enmarcarlos.</li>
+          <li>🦆 <strong>Nueva evolución de Ducky Glob</strong>: Highlight Glob genera un 25% más que Golden Ducky. En multijugador, cada compañero añade a la bolsa compartida un 25% de esa recompensa; Ducky Rewamp se desbloquea al ganar en Spooktacular Ruins y su versión RGB requiere completar los retratos.</li>
           <li>🌐 <strong style="color:#75df9a;">Multijugador online con Supabase</strong>: Crea una seed e invita a otras personas desde sus propios ordenadores. La partida se sincroniza en tiempo real mientras el anfitrión siga conectado.</li>
           <li>🔐 <strong>Cuentas y progreso en la nube</strong>: Inicia sesión con usuario y contraseña; el progreso de cuenta, compras, emblemas y personalización se guarda asociado a tu cuenta. El modo offline mantiene su progreso local y no permite crear ni cargar seeds.</li>
           <li>👤 <strong>Perfiles personalizables</strong>: Equipa retratos de Globs y enemigos enmarcados, y elige entre bordes de colores, bordes de mapas y estilos especiales. En las seeds verás los nombres, fotos y bordes del resto de jugadores, incluso en el aviso de entrada.</li>
@@ -12906,6 +13032,8 @@ function activateGTack(t) {
         <p style="color:#b58cff;">More ways to customize your experience, share matches, and keep chat friendly.</p>
         <h4>What's New in this Patch:</h4>
         <ul>
+          <li>🎃 <strong>Halloween enemies</strong>: Added Brokspider, Pumpitch, RIPslide, Curse Boneker, SkeleBone Pyce, Blood-Taker, Sneekmy, Ghost Pyce, and ZomPyce to Spooktacular Ruins, each with its framing kill target.</li>
+          <li>🦆 <strong>New Ducky Glob evolution</strong>: Highlight Glob earns 25% more than Golden Ducky. In multiplayer, each teammate adds 25% of that payout to the shared wallet; Ducky Rewamp unlocks by winning Spooktacular Ruins, and its RGB version requires completing the profile portraits.</li>
           <li>☀️ <strong style="color:#b58cff;">Light mode</strong>: Switch to a light background with the bulb icon next to Settings, both on the login screen and during a match.</li>
           <li>🏝️ <strong>Redesigned islands</strong>: Sunlight Seaside now has round islands, each with a single tower placement spot.</li>
           <li>🔗 <strong>Share the game</strong>: Links include the game logo and a short description in English and Spanish on supported previews, such as Discord.</li>
@@ -12916,7 +13044,7 @@ function activateGTack(t) {
           <li>👁️ <strong>NOeye and DarkSpirit voices</strong>: NOeye uses leetspeak in general dialogue, while DarkSpirit has a more terrifying tone and a red border. NOeye keeps the normal voice when appearing as an Interstellar hero.</li>
           <li>🪲 <strong>??? identity</strong>: Moderation notices from ??? show Omnipresent Glob, not MysteryBug.</li>
           <li>🧩 <strong>Polished login</strong>: Decorative images refill as they are removed, and switching themes repeatedly triggers the glitch easter egg until the page is restarted.</li>
-          <li>🎃 <strong>Pumpking Set</strong>: Win any mode on Spooktacular Ruins to unlock this Brown family skin for free. Blue Rewamp images now load from the <code>Skins</code> folder.</li>
+          <li>🎃 <strong>Halloween sets</strong>: Beat Spooktacular Ruins in Anti-Normal for SkeleBones Set, in Corrupt for Wicked Set, or in Easy, Normal, Hard, or Extreme for Pumpking Set. These rewards are independent. SkeleBones, Wicked (EVO 1 and 2 only), and PumpGlob can appear on the login screen and jumpscare when clicked.</li>
         </ul>
 
         <h3 style="color:#ff9f43;">📋 Update Logs (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>

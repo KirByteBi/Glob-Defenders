@@ -94,6 +94,7 @@ const TRANSLATIONS = {
     tower_ElectroClean_Glob_desc: "Un Glob totalmente limpio, se limpia constantemente y aparte ha sido electrificado para actuar como el autentico paron a los enemigos que osen tocar Gelatin Lake o a cualquiera de sus habitantes y amigos.",
     tower_Ducky_Glob_name: "Pato Glob",
     tower_Golden_Ducky_Glob_name: "Pato de Oro",
+    tower_Rick_Duck_Glob_name: "Rick Duck Glob",
     tower_Comet_Glob_name: "Glob Cometa",
     tower_Dark_Glob_name: "Glob Oscuro",
     tower_Demglob_name: "Demglob",
@@ -249,16 +250,24 @@ const TRANSLATIONS = {
     enemy_Old_Fungus_desc: "El anciano más respetado entre los Shrums. Posee poderes psíquicos capaces de intimidar incluso a los enemigos más valientes, además de utilizar una enorme seta tanto como bate como varita.<br><br>A su lado crece un pequeño Shrum que todavía está desarrollándose y que tampoco parece tener problemas en atacar a los Globs. Pueden ser ciegos, y quizá incluso sordos, pero su presencia y su característico bigote amarillento hacen que nadie se atreva a subestimarlos.",
     enemy_Pysh_desc: "Un pez Pyce cuyo nombre nace de la combinación de pez y Pyce. Originalmente habitaban en Bitlands, hasta que fueron transportados a Techspawn, su antiguo hogar. Recientemente han comenzado a aparecer también por los puertos de Sunlight Seaside, donde parecen disfrutar especialmente de la abundante luz solar.",
     enemy_Clown_Pysh_desc: "Pyces con forma de pez payaso que comparten origen con los Pysh. Siguen habitando en Bitlands, aunque ahora parecen estar disfrutando de unas pequeñas vacaciones junto a sus congéneres en Sunlight Seaside.<br><br>Eso sí, son bastante más resistentes que los Pysh normales, que parecen no durar ni un segundo cuando empieza el combate.",
-    enemy_Broksp_name: "Broksp",
+    enemy_Broksp_name: "Brokspider",
     enemy_Broksp_desc: "Una araña que ha ido creciendo alimentándose de pesadillas tan breves y pequeñas que no le han dado para crecer más... Aunque eso sí, está en proceso de ello.",
+    enemy_Blood_Taker_name: "Blood-Taker",
+    enemy_Blood_Taker_desc: "Una mirada penetrante y una gran mano grisácea con una guadaña aguardan tu muerte. Sea cuando sea, esa mano se toma muy en serio su labor de recolectar las muertes de aquellos que fallecen en el desierto... Si es que no terminas primero con él.",
     enemy_Pumpitch_name: "Pumpitch",
     enemy_Pumpitch_desc: "Conocido en España como Calabacín, esta calabaza utiliza un sombrero de bruja pero, aun así, es masculino; cosa que se nota en su mirada ardiente y llena de ambición por ser algo más que una calabaza adorable.",
     enemy_RIPslide_name: "RIPslide",
     enemy_RIPslide_desc: "Una tumba zombi que se desliza cual pingüino en el hielo... Realmente adora asustar con ese falso \"RIP\" que en realidad son sus ojos y nariz... Pero no consigue hacer mucho en batalla, aunque rápido es, eso lo asegura Kirb.",
+    enemy_Sneekmy_name: "Sneekmy",
+    enemy_Sneekmy_desc: "Un fantasma oscuro con vendas que lo hacen parecer una momia. Está constantemente huyendo de algo, como si no supiera dónde está su casa... Puede ser que su hogar se haya perdido en el pasado.",
     enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
     enemy_SkeleBone_Pyce_desc: "Una mejora de la mejora Pyce de Noob Pyce, siguiendo la línea de las versiones mejoradas de Noob y Guest Pyce vistas en Urbanistic Road. Está hecho de huesos encontrados en el desierto y parece simpático con esa mirada y esos zapatos, pero no te confíes: puede lanzarte uno de sus huesos en un visto y no visto. Como los demás Pyces, es feliz de existir y leal, aunque no sea un ordenador convencional... ¿Verdad?",
     enemy_Curse_Boneker_name: "Curse Boneker",
     enemy_Curse_Boneker_desc: "Entre el cielo y el infierno hay almas que no pertenecen a ninguno de los dos. Curse Boneker las encuentra, las elige y las encierra en la pirámide a la que sirve, convencido de que así les ahorra el tormento de vagar sin destino. Lo sabe porque él también fue una de ellas: murió desorientado en el desierto, caminando en círculos hasta olvidar qué era el horizonte. Ahora la pirámide es su brújula y su prisión. Cuando lanza sus huesos malditos, no apunta a destruir tus torres, sino a silenciarlas el tiempo suficiente para que ninguna pueda guiar a esas almas de vuelta a casa.",
+    enemy_Ghost_Pyce_name: "Ghost Pyce",
+    enemy_Ghost_Pyce_desc: "Un Pyce fantasma que es intangible para las evoluciones inferiores. Pero espera... ¿Los Pyces pueden morir? Quizás solo sea un disfraz, o su pantalla se ha roto y su cara se sostiene mágicamente donde debería estar. Sea cual sea su caso, es un fiel sirviente, y ya lo era antes de convertirse en fantasma.",
+    enemy_ZomPyce_name: "ZomPyce",
+    enemy_ZomPyce_desc: "Un Pyce muerto... No, no está muerto: sus circuitos no funcionan, lo que lo ha dejado podrido hasta parecer un zombi. No sabe mantenerse en pie, pero recolectó diferentes ropajes de los humanos y los guarda en el desierto.",
     
     // Leafy Beach Party Bosses & Enemies
     enemy_PhantKeeper_name: "PhantKeeper",
@@ -415,6 +424,10 @@ const TRANSLATIONS = {
     skin_abyssal_desc: "Set acuatico, de una pecera a un tiburon, y esa pecera ya estaba preparada junto los millones de Globs que estaban planeados.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
     skin_business_name: "Set Empresarial",
     skin_business_desc: "De un puesto de gelatina a una gran fábrica.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
+    skin_ducky_rewamp_name: "Ducky Rewamp",
+    skin_ducky_rewamp_desc: "Una nueva imagen para la familia Ducky, desde su primera forma hasta Highlight Glob.",
+    skin_ducky_rgb_name: "Ducky RGB Secreto",
+    skin_ducky_rgb_desc: "El Rewamp de Ducky con efecto RGB animado. Se desbloquea al conseguir todas las imágenes de perfil.",
     skin_universolar_name: "Set Universolar",
     skin_universolar_desc: "Un tema galactico simple, no tiene mucha logica detras, asi que mejor no se la busques.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
     skin_robotibu_name: "RoboTibu",
@@ -549,6 +562,7 @@ const TRANSLATIONS = {
     tower_Cotton_Glob_desc: "Suave, tierno y engañosamente resistente. Su campo estático de algodón frena casi por completo cualquier asalto enemigo.",
     tower_Ducky_Glob_desc: "El banquero de los Globs. No ataca, pero su habilidad para encontrar monedas brillantes asegura la economía de tus defensas.",
     tower_Golden_Ducky_Glob_desc: "Realeza financiera. Su plumaje dorado bendice tu tesoro, generando inmensas fortunas en un abrir y cerrar de ojos.",
+    tower_Rick_Duck_Glob_desc: "El magnate definitivo. Genera más Globetines y, en multijugador, cada 15 segundos añade a la bolsa compartida un 25% extra de sus ganancias por cada compañero.",
     tower_Comet_Glob_desc: "Extraído de las estrellas. Lanza astros celestiales como boomerangs para diezmar a las hordas enemigas desde lejos.",
     tower_Dark_Glob_desc: "Corrompido por el vacío del universo. Desata diamantes oscuros que perforan la propia tela de la realidad y a sus enemigos.",
     tower_Demglob_desc: "La encarnación de la destrucción. Surgió de las sombras más profundas de Gelatin Lake para aniquilar Pyces con caos puro.",
@@ -705,6 +719,7 @@ const TRANSLATIONS = {
     tower_Nuclear_Glob_name: "Nuclear Glob",
     tower_Ducky_Glob_name: "Ducky Glob",
     tower_Golden_Ducky_Glob_name: "Golden Ducky",
+    tower_Rick_Duck_Glob_name: "Rick Duck Glob",
     tower_Comet_Glob_name: "Comet Glob",
     tower_Dark_Glob_name: "Dark Glob",
     tower_Demglob_name: "Demglob",
@@ -786,6 +801,24 @@ const TRANSLATIONS = {
     enemy_Spyware2_name: "Spyware 2",
     enemy_Spyware3_name: "Spyware 3",
     enemy_Spyware_desc: "Despite being related to Bits, the function of these spies is simple: enter the casino and steal as much information as they can... They belong to a somewhat dubious organization that creates different digital beings from reality.",
+    enemy_Broksp_name: "Brokspider",
+    enemy_Broksp_desc: "A spider that has been growing by feeding on nightmares so brief and small that they have not let it grow much... Though it is still growing.",
+    enemy_Blood_Taker_name: "Blood-Taker",
+    enemy_Blood_Taker_desc: "A penetrating gaze and a large grayish hand holding a scythe await your death. Whenever it comes, that hand takes its job of collecting the deaths of those who perish in the desert very seriously... Unless you finish him first.",
+    enemy_Pumpitch_name: "Pumpitch",
+    enemy_Pumpitch_desc: "Known in Spain as Calabacín, this pumpkin wears a witch's hat but is still male. You can tell from his fiery gaze and ambition to be more than an adorable pumpkin.",
+    enemy_RIPslide_name: "RIPslide",
+    enemy_RIPslide_desc: "A zombie tomb that slides like a penguin on ice... It loves scaring people with that fake \"RIP,\" which is actually its eyes and nose. It cannot do much in battle, though it is fast, Kirb assures us.",
+    enemy_Sneekmy_name: "Sneekmy",
+    enemy_Sneekmy_desc: "A dark ghost wrapped in bandages that make it look like a mummy. It is constantly running away from something, as if it does not know where home is... Perhaps its home was lost in the past.",
+    enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
+    enemy_SkeleBone_Pyce_desc: "Made from bones found in the desert, it looks friendly with that gaze and those shoes. But do not trust it: it can throw one of its bones in the blink of an eye. Like the other Pyces, it is happy to exist and loyal, even if it is not a conventional computer... Right?",
+    enemy_Curse_Boneker_name: "Curse Boneker",
+    enemy_Curse_Boneker_desc: "Between heaven and hell are souls that belong to neither. Curse Boneker finds them, chooses them, and imprisons them in the pyramid it serves, convinced that this spares them the torment of wandering without a destination. It knows because it was one of them: it died disoriented in the desert, walking in circles until it forgot what the horizon was. Now the pyramid is its compass and its prison. When it hurls its cursed bones, it does not aim to destroy your towers, but to silence them long enough that none can guide those souls home.",
+    enemy_Ghost_Pyce_name: "Ghost Pyce",
+    enemy_Ghost_Pyce_desc: "A ghost Pyce that is intangible to lower evolutions. But wait... Can Pyces die? Perhaps it is only wearing a costume, or its screen broke and its face is magically floating where the screen should be. Whatever the case, it is a loyal servant, as it was even before becoming a ghost.",
+    enemy_ZomPyce_name: "ZomPyce",
+    enemy_ZomPyce_desc: "A dead Pyce... No, it is not dead: its circuits do not work, leaving it rotten enough to look like a zombie. It cannot stand upright, but it collected different human clothes and keeps them in the desert.",
     enemy_Bit_name: "Bit",
     enemy_BitY1_name: "Yellow Bit",
     enemy_BitB4_name: "Blue Bit",
@@ -1021,6 +1054,10 @@ const TRANSLATIONS = {
     skin_abyssal_desc: "Aquatic set, from a fishbowl to a shark, and that fishbowl was already prepared along with the millions of Globs that were planned.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
     skin_business_name: "Business Set",
     skin_business_desc: "From a jelly stand to a giant factory.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
+    skin_ducky_rewamp_name: "Ducky Rewamp",
+    skin_ducky_rewamp_desc: "A new look for the Ducky family, from its first form through Highlight Glob.",
+    skin_ducky_rgb_name: "Secret Ducky RGB",
+    skin_ducky_rgb_desc: "The Ducky Rewamp with an animated RGB effect. Unlock it by collecting every profile image.",
     skin_universolar_name: "Universolar Set",
     skin_universolar_desc: "A simple galactic theme, it doesn't have much logic behind it, so you'd better not look for it.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
     skin_robotibu_name: "RoboTibu",
@@ -1152,6 +1189,7 @@ const TRANSLATIONS = {
     tower_Cotton_Glob_desc: "Soft inhabitant of the Gelatin Lake, its static cotton field almost completely stops enemy attacks.",
     tower_Ducky_Glob_desc: "The banker of the Gelatin Lake. It doesn't attack, but finds shiny coins to sustain the economy.",
     tower_Golden_Ducky_Glob_desc: "Financial royalty of the Gelatin Lake. Its golden plumage blesses the treasury, generating fortunes.",
+    tower_Rick_Duck_Glob_desc: "The ultimate tycoon. It generates more Globetines and, in multiplayer, adds an extra 25% of its payout to the shared pool for each teammate every 15 seconds.",
     tower_Comet_Glob_desc: "Extracted from the skies above the Gelatin Lake, this Glob is both gelatinous and galactic; it uses its own stars as a throwing weapon that goes back and forth to decimate hordes.",
     tower_Dark_Glob_desc: "A ruinous Glob, its symbols and power could break reality; good thing it's on your side.",
     tower_Demglob_desc: "Ultimate dark evolution. Deadly beams.",
@@ -1244,13 +1282,18 @@ const IMAGE_PATHS = {
   'Omnipresent_Glob': 'Spooks in the Desert (UPD4)/PLACEHOLDERS/Omnipresent Glob (PLACEHOLDER).png',
   'Kirb_Glob': 'Spooks in the Desert (UPD4)/KirByte (GOD)/Kirb (GOD).png',
   'Broksp': 'Spooks in the Desert (UPD4)/Enemigos/Broksp.png',
+  'Blood_Taker': 'Spooks in the Desert (UPD4)/Enemigos/Blood-Taker.png',
   'Pumpitch': 'Spooks in the Desert (UPD4)/Enemigos/Pumpitch.png',
   'RIPslide': 'Spooks in the Desert (UPD4)/Enemigos/RIPslide.png',
+  'Sneekmy': 'Spooks in the Desert (UPD4)/Enemigos/Sneekmy.png',
   'SkeleBone_Pyce': 'Spooks in the Desert (UPD4)/Pyces/SkeleBone Pyce (RW).png',
   'SkeleBone_Bone': 'Spooks in the Desert (UPD4)/Pyces/Proyectil Hueso.png',
   'Curse_Boneker': 'Spooks in the Desert (UPD4)/Jefes/Curse Boneker.png',
+  'Ghost_Pyce': 'Spooks in the Desert (UPD4)/Pyces/Ghost Pyce.png',
+  'ZomPyce': 'Spooks in the Desert (UPD4)/Pyces/ZomPyce.png',
   'Ducky_Glob': 'img/Ducky_Glob.png',
   'Golden_Ducky_Glob': 'img/Golden_Ducky_Glob.png',
+  'Rick_Duck_Glob': 'img/Rich Duck Glob (EVO3).png',
   'Comet_Glob': 'img/Comet_Glob.png',
   'Dark_Glob': 'img/Dark_Glob.png',
   'Demglob': 'img/Demglob.png',
@@ -1722,7 +1765,8 @@ const TOWER_TYPES = {
   'ElectroClean_Glob': { name: 'tower_ElectroClean_Glob_name', damage: 12, range: 160, speed: 4.2, cost: 300, image: IMAGE_PATHS.ElectroClean_Glob, projectile: 'blue', stun: 1, knockback: 0.25, desc: "tower_ElectroClean_Glob_desc", family: 'Soap_Glob' },
 
   'Ducky_Glob': { name: 'tower_Ducky_Glob_name', damage: 0, range: 140, speed: 0, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'none', desc: "tower_Ducky_Glob_desc", family: 'Ducky_Glob', unlocked: false },
-  'Golden_Ducky_Glob': { name: 'tower_Golden_Ducky_Glob_name', damage: 0, range: 160, speed: 0, cost: 180, image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'none', desc: "tower_Golden_Ducky_Glob_desc", family: 'Ducky_Glob' },
+  'Golden_Ducky_Glob': { name: 'tower_Golden_Ducky_Glob_name', damage: 0, range: 160, speed: 0, cost: 180, evolution: 'Rick_Duck_Glob', image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'none', desc: "tower_Golden_Ducky_Glob_desc", family: 'Ducky_Glob' },
+  'Rick_Duck_Glob': { name: 'tower_Rick_Duck_Glob_name', damage: 0, range: 180, speed: 0, cost: 400, image: IMAGE_PATHS.Rick_Duck_Glob, projectile: 'none', desc: "tower_Rick_Duck_Glob_desc", family: 'Ducky_Glob' },
 
   'Comet_Glob': { name: 'tower_Comet_Glob_name', damage: 50, range: 250, speed: 0.25, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'star_boomerang', piercing: true, boomerang: true, desc: "tower_Comet_Glob_desc", family: 'Comet_Glob' },
   'Dark_Glob': { name: 'tower_Dark_Glob_name', damage: 80, range: 280, speed: 0.5, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'diamond_boomerang', piercing: true, boomerang: true, desc: "tower_Dark_Glob_desc", family: 'Comet_Glob' },
@@ -1856,10 +1900,14 @@ const ENEMY_TYPES = {
   'Bushi_Brella': { name: 'enemy_Bushi_Brella_name', desc: 'enemy_Bushi_Brella_desc', health: 400, speed: 1.8, reward: 500, image: IMAGE_PATHS.Bushi_Brella, mimic: true, mapSource: 'sunlight_seaside' },
 
   'Broksp': { name: 'enemy_Broksp_name', desc: 'enemy_Broksp_desc', health: 90, speed: 1.2, reward: 20, image: IMAGE_PATHS.Broksp, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+  'Blood_Taker': { name: 'enemy_Blood_Taker_name', desc: 'enemy_Blood_Taker_desc', health: 220, speed: 1.0, reward: 45, image: IMAGE_PATHS.Blood_Taker, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
   'Pumpitch': { name: 'enemy_Pumpitch_name', desc: 'enemy_Pumpitch_desc', health: 150, speed: 1.0, reward: 35, image: IMAGE_PATHS.Pumpitch, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
   'RIPslide': { name: 'enemy_RIPslide_name', desc: 'enemy_RIPslide_desc', health: 70, speed: 3.0, reward: 25, image: IMAGE_PATHS.RIPslide, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+  'Sneekmy': { name: 'enemy_Sneekmy_name', desc: 'enemy_Sneekmy_desc', health: 120, speed: 2.5, reward: 35, image: IMAGE_PATHS.Sneekmy, mapSource: 'spooktacular_ruins', enemyClass: 'melee', ghost: true, ghostMinEvolution: 3 },
   'SkeleBone_Pyce': { name: 'enemy_SkeleBone_Pyce_name', desc: 'enemy_SkeleBone_Pyce_desc', health: 110, speed: 1.4, reward: 30, image: IMAGE_PATHS.SkeleBone_Pyce, projectile: 'bone', shooter: true, mapSource: 'spooktacular_ruins', enemyClass: 'shooter' },
-  'Curse_Boneker': { name: 'enemy_Curse_Boneker_name', desc: 'enemy_Curse_Boneker_desc', health: 7000, speed: 0.3, reward: 5000, image: IMAGE_PATHS.Curse_Boneker, boss: true, mapSource: 'spooktacular_ruins', enemyClass: 'boss' }
+  'Curse_Boneker': { name: 'enemy_Curse_Boneker_name', desc: 'enemy_Curse_Boneker_desc', health: 7000, speed: 0.3, reward: 5000, image: IMAGE_PATHS.Curse_Boneker, boss: true, mapSource: 'spooktacular_ruins', enemyClass: 'boss' },
+  'Ghost_Pyce': { name: 'enemy_Ghost_Pyce_name', desc: 'enemy_Ghost_Pyce_desc', health: 260, speed: 2.6, reward: 60, image: IMAGE_PATHS.Ghost_Pyce, mapSource: 'spooktacular_ruins', enemyClass: 'melee', ghost: true, ghostMinEvolution: 3 },
+  'ZomPyce': { name: 'enemy_ZomPyce_name', desc: 'enemy_ZomPyce_desc', health: 55, speed: 1.1, reward: 18, image: IMAGE_PATHS.ZomPyce, mapSource: 'spooktacular_ruins', enemyClass: 'melee' }
 };
 
 // Tier de balance: controla cuándo aparece un enemigo y cuánto daño causa al llegar a la base.
@@ -1880,9 +1928,9 @@ const ENEMY_BALANCE = {
     tank: ['Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers']
   },
   spooktacular_ruins: {
-    basic: ['Broksp', 'RIPslide'],
-    medium: ['Pumpitch', 'SkeleBone_Pyce'],
-    tank: ['Pumpitch', 'SkeleBone_Pyce']
+    basic: ['Broksp', 'RIPslide', 'ZomPyce'],
+    medium: ['Pumpitch', 'Blood_Taker', 'Sneekmy', 'Ghost_Pyce', 'SkeleBone_Pyce'],
+    tank: ['Pumpitch', 'Blood_Taker', 'Ghost_Pyce', 'SkeleBone_Pyce']
   }
 };
 
@@ -2070,15 +2118,20 @@ const MAPS = {
     riverZones: [],
     islandZones: [],
     pathSegments: [],
-    roadIntersections: [{ x: 420, y: 180 }, { x: 567, y: 80 }],
+    roadIntersections: [
+      { x: 230, y: 95 }, { x: 420, y: 400 }, { x: 610, y: 95 },
+      { x: 230, y: 365 }, { x: 420, y: 160 }, { x: 610, y: 365 },
+      { x: 330, y: 255 }, { x: 520, y: 255 },
+      { x: 820, y: 95 }, { x: 820, y: 365 }
+    ],
     enemyPaths: [
       [
-        { x: 50, y: 95 }, { x: 170, y: 285 }, { x: 420, y: 180 },
-        { x: 567, y: 80 }, { x: 795, y: 380 }, { x: 947, y: 465 }
+        { x: 50, y: 95 }, { x: 230, y: 95 }, { x: 420, y: 400 },
+        { x: 610, y: 95 }, { x: 820, y: 95 }, { x: 947, y: 50 }
       ],
       [
-        { x: 50, y: 365 }, { x: 275, y: 20 }, { x: 420, y: 180 },
-        { x: 535, y: 350 }, { x: 567, y: 80 }, { x: 805, y: 50 }, { x: 947, y: 50 }
+        { x: 50, y: 365 }, { x: 230, y: 365 }, { x: 420, y: 160 },
+        { x: 610, y: 365 }, { x: 820, y: 365 }, { x: 947, y: 465 }
       ]
     ],
     bossPlaceholders: { miniboss: null, boss: null }
@@ -2110,6 +2163,34 @@ const MAP_ISLANDS = [
 
 const SKINS_DATA = {
   'Glob': [
+    {
+      id: 'skelebones_set', name: 'skin_skelebones_name', desc: 'skin_skelebones_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_anti_normal',
+      skins: {
+        'Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Calcium Glob (SK-EVO1).png',
+        'Poop_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Toxic Waste Glob (SK-EVO2).png',
+        'Golden_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/SkeleBone Glob (SK-EVO3).png'
+      },
+      names: {
+        'Glob': 'Calcium Glob',
+        'Poop_Glob': 'Toxic Waste Glob',
+        'Golden_Glob': 'SkeleBone Glob'
+      }
+    },
+    {
+      id: 'wicked_set', name: 'skin_wicked_name', desc: 'skin_wicked_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_corrupto',
+      skins: {
+        'Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Witch Glob (SK-EVO1).png',
+        'Poop_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/CrowWitcher (SK-EVO2).png',
+        'Golden_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Glitchy Wizard (SK-EVO3).png',
+        'Rainbow_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Losed-In Wizard (SK-EVO4).png'
+      },
+      names: {
+        'Glob': 'Witch Glob',
+        'Poop_Glob': 'CrowWitcher',
+        'Golden_Glob': 'Glitchy Wizard',
+        'Rainbow_Glob': 'Losed-In Wizard'
+      }
+    },
     {
       id: 'rewamped_green_set', name: 'skin_rewamped_green_name', desc: 'skin_rewamped_green_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
@@ -2238,7 +2319,29 @@ const SKINS_DATA = {
       id: 'business_duck_set', name: 'skin_business_name', desc: 'skin_business_desc', cost: 150, type: 'pycoin',
       skins: {
         'Ducky_Glob': 'img/Skins/Amarillo Farmer/Jelly Post (SK-EVO1).png',
-        'Golden_Ducky_Glob': 'img/Skins/Amarillo Farmer/Factory Glob (SK-EVO2).png'
+        'Golden_Ducky_Glob': 'img/Skins/Amarillo Farmer/Factory Glob (SK-EVO2).png',
+        'Rick_Duck_Glob': 'img/Skins/Amarillo Farmer/Highlight Glob (SK-EVO3).png'
+      }
+    },
+    {
+      id: 'ducky_rewamp_set', name: 'skin_ducky_rewamp_name', desc: 'skin_ducky_rewamp_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_ruins',
+      skins: {
+        'Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp1.png',
+        'Golden_Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp2.png',
+        'Rick_Duck_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp3.png'
+      }
+    },
+    {
+      id: 'ducky_rgb_sr', name: 'skin_ducky_rgb_name', desc: 'skin_ducky_rgb_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp1.png',
+        'Golden_Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp2.png',
+        'Rick_Duck_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp3.png'
+      },
+      rgbTypes: ['Ducky_Glob', 'Golden_Ducky_Glob', 'Rick_Duck_Glob'],
+      names: {
+        'Ducky_Glob': 'Ducky RGB 1',
+        'Rick_Duck_Glob': 'Ducky RGB 3'
       }
     }
   ],
@@ -2403,7 +2506,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'pumpking_set', name: 'skin_pumpking_name', desc: 'skin_pumpking_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_ruins',
+      id: 'pumpking_set', name: 'skin_pumpking_name', desc: 'skin_pumpking_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_base',
       skins: {
         'Sprout_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob_SK-EVO1.png',
         'Garden_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Overgrown_PumpGlob_SK-EVO2.png',
@@ -2518,7 +2621,11 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_jonk_name": "Jonk the big piranha",
   "skin_jonk_desc": "Una gran carnívora sustituye nuestro Glob jardinero. No se preocupen, esta piraña es nuestra amiga tal y como lo fue en sus tiempos.",
   "skin_pumpking_name": "Pumpking Set",
-  "skin_pumpking_desc": "Una calabaza monstruosa toma el lugar de la familia Marrón. Desbloquéala al ganar cualquier modo en Spooktacular Ruins.",
+  "skin_pumpking_desc": "Una calabaza monstruosa toma el lugar de la familia Marrón. Desbloquéala al ganar en Fácil, Normal, Difícil o Extremo en Aridez Escalofriante.",
+  "skin_skelebones_name": "SkeleBones Set",
+  "skin_skelebones_desc": "Desbloquea las tres apariencias al vencer Aridez Escalofriante en Anti-Normal.",
+  "skin_wicked_name": "Wicked Set",
+  "skin_wicked_desc": "Desbloquea este set al vencer Aridez Escalofriante en modo Corrupto.",
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Set Azul Remasterizado",
@@ -2563,7 +2670,11 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_jonk_name": "Jonk the big piranha",
   "skin_jonk_desc": "A great carnivore replaces our Garden Glob. Don't worry, this piranha is our friend, just as it was in its time.",
   "skin_pumpking_name": "Pumpking Set",
-  "skin_pumpking_desc": "A monstrous pumpkin takes over the Brown family. Unlock it by winning any mode on Spooktacular Ruins.",
+  "skin_pumpking_desc": "A monstrous pumpkin takes over the Brown family. Unlock it by winning Easy, Normal, Hard, or Extreme on Spooktacular Ruins.",
+  "skin_skelebones_name": "SkeleBones Set",
+  "skin_skelebones_desc": "Unlock all three appearances by beating Spooktacular Ruins in Anti-Normal.",
+  "skin_wicked_name": "Wicked Set",
+  "skin_wicked_desc": "Unlock this set by beating Spooktacular Ruins in Corrupt mode.",
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Frogs that fish and grow... But their lily pads do deal damage!<br><span style='font-size:0.8em; color: teal;'>Skin designed and drawn by \"Victorillo\", current artwork by KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Remastered Blue Set",

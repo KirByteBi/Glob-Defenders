@@ -275,6 +275,10 @@ body.light-mode .loading-tip-btn {
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.floating-char-behind-login {
+    animation-duration: 7.5s;
+}
+
 .floating-char:active {
     transform: scale(1.5);
     opacity: 0.8;
@@ -4873,8 +4877,8 @@ body.tablet-landscape #light-mode-toggle {
 
 .spook-road-diamond {
     position: absolute;
-    width: 58px;
-    height: 58px;
+    width: 70px;
+    height: 70px;
     transform: translate(-50%, -50%);
     clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
     background: linear-gradient(145deg, #e4bd7c, #ac7944);
