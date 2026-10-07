@@ -7676,6 +7676,7 @@ function drawShop() {
         if (skinId === 'cuby_bombot') return currentLanguage === 'es' ? '👑 Derrota a Astrorb True Form' : '👑 Defeat Astrorb True Form';
         if (skinId === 'froggy_set') return currentLanguage === 'es' ? '🏖️ Puedes obtenerla gratis superando Sunlight Summer en Anti-Normal' : '🏖️ You can get it for free by beating Sunlight Summer in Anti-Normal';
         if (skinId === 'pumpking_set') return currentLanguage === 'es' ? '🎃 Gana Fácil, Normal, Difícil o Extremo en Aridez Escalofriante' : '🎃 Win Easy, Normal, Hard, or Extreme on Spooktacular Ruins';
+        if (condition === 'win_gelatin_lake_base') return currentLanguage === 'es' ? '🦆 Supera Gelatin Lake en cualquier modo base' : '🦆 Beat Gelatin Lake in any base mode';
         if (skinId === 'skelebones_set') return currentLanguage === 'es' ? '💀 Vence Aridez Escalofriante en Anti-Normal' : '💀 Beat Spooktacular Ruins in Anti-Normal';
         if (skinId === 'wicked_set') return currentLanguage === 'es' ? '🧙 Vence Aridez Escalofriante en Corrupto' : '🧙 Beat Spooktacular Ruins in Corrupt';
         if (condition === 'mission_block_tales') return currentLanguage === 'es' ? '🗡️ Completa la misión de Block Tales' : '🗡️ Complete the Block Tales mission';
@@ -12386,8 +12387,9 @@ function activateGTack(t) {
     if (resumeButton) resumeButton.style.display = 'none';
 
     if (victory) {
+      const baseModes = ['facil', 'normal', 'dificil', 'extremo'];
+
       if (gameState.map === 'spooktacular_ruins') {
-        const baseModes = ['facil', 'normal', 'dificil', 'extremo'];
         if (baseModes.includes(gameState.mode) && !gameState.unlockedSkins.includes('pumpking_set')) {
           gameState.unlockedSkins.push('pumpking_set');
           showMessage(
@@ -12415,15 +12417,15 @@ function activateGTack(t) {
             'success'
           );
         }
-        if (!gameState.unlockedSkins.includes('ducky_rewamp_set')) {
-          gameState.unlockedSkins.push('ducky_rewamp_set');
-          showMessage(
-            currentLanguage === 'es'
-              ? '🦆 ¡Ducky Rewamp desbloqueado! Has ganado en Spooktacular Ruins.'
-              : '🦆 Ducky Rewamp unlocked! You won on Spooktacular Ruins.',
-            'success'
-          );
-        }
+      }
+      if (gameState.map === 'gelatin_lake' && baseModes.includes(gameState.mode) && !gameState.unlockedSkins.includes('ducky_rewamp_set')) {
+        gameState.unlockedSkins.push('ducky_rewamp_set');
+        showMessage(
+          currentLanguage === 'es'
+            ? '🦆 ¡Ducky Rewamp desbloqueado! Has superado Gelatin Lake en un modo base.'
+            : '🦆 Ducky Rewamp unlocked! You beat Gelatin Lake in a base mode.',
+          'success'
+        );
       }
 
       if (PROFILE_MAP_MODES.includes(gameState.mode) && gameState.profileMapModeWins[gameState.map]) {

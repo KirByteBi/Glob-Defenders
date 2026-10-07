@@ -2324,7 +2324,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'ducky_rewamp_set', name: 'skin_ducky_rewamp_name', desc: 'skin_ducky_rewamp_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_ruins',
+      id: 'ducky_rewamp_set', name: 'skin_ducky_rewamp_name', desc: 'skin_ducky_rewamp_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_gelatin_lake_base',
       skins: {
         'Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp1.png',
         'Golden_Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp2.png',
