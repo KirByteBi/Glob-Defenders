@@ -20,6 +20,7 @@ as $$
 declare
   normalized_code text := upper(trim(target_code));
   skin_id text;
+  target_email text;
   claimed_by uuid;
   inserted_code text;
   existing_progress jsonb;
@@ -37,6 +38,17 @@ begin
 
   if skin_id is null then
     return jsonb_build_object('result', 'invalid');
+  end if;
+
+  if normalized_code = 'FROGGY_VICTEST' then
+    select lower(email)
+      into target_email
+      from auth.users
+      where id = target_user_id;
+
+    if target_email is distinct from 'victorillo_24@accounts.glob-defenders.invalid' then
+      return jsonb_build_object('result', 'not_eligible');
+    end if;
   end if;
 
   select progress

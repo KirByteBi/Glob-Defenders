@@ -5917,6 +5917,13 @@ function bindEvents() {
               : 'Otro jugador ya ha canjeado este código de un solo uso.',
             'warning'
           );
+        } else if (data.result === 'not_eligible') {
+          showMessage(
+            currentLanguage === 'en'
+              ? 'This one-time code is reserved for the Victorillo_24 account.'
+              : 'Este código de un solo uso está reservado para la cuenta Victorillo_24.',
+            'warning'
+          );
         } else if (data.result === 'already_owned') {
           showMessage(
             currentLanguage === 'en'
