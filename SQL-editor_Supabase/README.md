@@ -5,7 +5,7 @@ Esta carpeta contiene los esquemas que se ejecutan en **Supabase → SQL Editor*
 - [`supabase-schemas-all.sql`](./supabase-schemas-all.sql): los tres esquemas unidos en un único script: progreso, moderación y códigos de skin de un solo uso. Es la opción más sencilla para una instalación nueva.
 - [`supabase-progress-schema.sql`](./supabase-progress-schema.sql): guardado de progreso por cuenta.
 - [`supabase-moderation-schema.sql`](./supabase-moderation-schema.sql): registro de infracciones del chat.
-- [`supabase-one-time-skin-codes-schema.sql`](./supabase-one-time-skin-codes-schema.sql): registro de `FROGGY_VICTEST` (reservado a la cuenta `Victorillo_24`) y canjes globales de `NITRO-BOOMER`.
+- [`supabase-one-time-skin-codes-schema.sql`](./supabase-one-time-skin-codes-schema.sql): registro de `FROGGY_VICTEST` (reservado a `Victorillo_24`) y canjes globales de `NITRO-BOOMER`, `ASTRAL-CREDIBLE` y `THE-USER-BOMB`.
 
 En una instalación nueva, pega y ejecuta `supabase-schemas-all.sql` una sola
 vez. No ejecutes además los tres archivos individuales: ya están incluidos en

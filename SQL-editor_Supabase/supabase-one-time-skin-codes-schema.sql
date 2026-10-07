@@ -20,6 +20,9 @@ as $$
 declare
   normalized_code text := upper(trim(target_code));
   skin_id text;
+  skin_ids text[];
+  tower_unlocks text[];
+  tower_progress jsonb;
   target_email text;
   claimed_by uuid;
   inserted_code text;
@@ -33,10 +36,28 @@ begin
   skin_id := case normalized_code
     when 'FROGGY_VICTEST' then 'froggy_set'
     when 'NITRO-BOOMER' then 'sharkbot_bombot'
+    when 'ASTRAL-CREDIBLE' then 'fracstal_set'
     else null
   end;
+  skin_ids := case normalized_code
+    when 'FROGGY_VICTEST' then array['froggy_set']::text[]
+    when 'NITRO-BOOMER' then array['sharkbot_bombot']::text[]
+    when 'ASTRAL-CREDIBLE' then array['fracstal_set']::text[]
+    when 'THE-USER-BOMB' then array[]::text[]
+    else null
+  end;
+  tower_unlocks := case normalized_code
+    when 'ASTRAL-CREDIBLE' then array['Worker_Glob']::text[]
+    when 'THE-USER-BOMB' then array['Bomb_Glob']::text[]
+    else array[]::text[]
+  end;
+  tower_progress := case normalized_code
+    when 'ASTRAL-CREDIBLE' then jsonb_build_object('unlockedWorkerGlob', true)
+    when 'THE-USER-BOMB' then jsonb_build_object('unlockedBombGlob', true)
+    else '{}'::jsonb
+  end;
 
-  if skin_id is null then
+  if skin_ids is null then
     return jsonb_build_object('result', 'invalid');
   end if;
 
@@ -72,7 +93,8 @@ begin
     else '[]'::jsonb
   end;
 
-  if claimed_by is null and unlocked_skins @> jsonb_build_array(skin_id) then
+  if claimed_by is null and unlocked_skins @> to_jsonb(skin_ids) and
+     coalesce(existing_progress, '{}'::jsonb) @> tower_progress then
     return jsonb_build_object('result', 'already_owned', 'skinId', skin_id);
   end if;
 
@@ -80,7 +102,7 @@ begin
     into unlocked_skins
     from (
       select distinct value as skin
-        from jsonb_array_elements_text(unlocked_skins || jsonb_build_array(skin_id)) as existing_skins(value)
+        from jsonb_array_elements_text(unlocked_skins || to_jsonb(skin_ids)) as existing_skins(value)
     ) as skins;
 
   if claimed_by is null then
@@ -107,7 +129,7 @@ begin
       jsonb_build_object(
         'unlockedSkins', unlocked_skins,
         'usedCodes', jsonb_build_object(normalized_code, true)
-      ),
+      ) || tower_progress,
       now()
     )
     on conflict (user_id) do update
@@ -124,17 +146,22 @@ begin
                           then public.player_progress.progress -> 'unlockedSkins'
                         else '[]'::jsonb
                       end
-                    ) || jsonb_build_array(skin_id)
+                    ) || to_jsonb(skin_ids)
                   ) as existing_skins(value)
               ) as skins
           ),
           'usedCodes',
             coalesce(public.player_progress.progress -> 'usedCodes', '{}'::jsonb) ||
             jsonb_build_object(normalized_code, true)
-        ),
+        ) || tower_progress,
         updated_at = now();
 
-  return jsonb_build_object('result', 'redeemed', 'skinId', skin_id);
+  return jsonb_build_object(
+    'result', 'redeemed',
+    'skinId', skin_id,
+    'skinIds', to_jsonb(skin_ids),
+    'towerUnlocks', to_jsonb(tower_unlocks)
+  );
 end;
 $$;
 

@@ -5873,8 +5873,18 @@ function bindEvents() {
     if (!code) return;
 
     const oneTimeSkinCodes = {
-      'FROGGY_VICTEST': { skinId: 'froggy_set', name: 'Froggy Set' },
-      'NITRO-BOOMER': { skinId: 'sharkbot_bombot', name: 'RoboTibu' }
+      'FROGGY_VICTEST': { skinIds: ['froggy_set'], towerUnlocks: [], name: 'Froggy Set' },
+      'NITRO-BOOMER': { skinIds: ['sharkbot_bombot'], towerUnlocks: [], name: 'RoboTibu' },
+      'ASTRAL-CREDIBLE': {
+        skinIds: ['fracstal_set'],
+        towerUnlocks: ['Worker_Glob'],
+        name: currentLanguage === 'en' ? 'Worker Glob and Fracstral Set' : 'Worker Glob y Fracstral Set'
+      },
+      'THE-USER-BOMB': {
+        skinIds: [],
+        towerUnlocks: ['Bomb_Glob'],
+        name: currentLanguage === 'en' ? 'Bomb Glob' : 'Bomb Glob'
+      }
     };
     const oneTimeSkinReward = oneTimeSkinCodes[code];
     if (oneTimeSkinReward) {
@@ -5899,10 +5909,22 @@ function bindEvents() {
           throw new Error('Supabase devolvió una respuesta inválida al canjear el código.');
         }
 
-        if (data.result === 'redeemed' && data.skinId === oneTimeSkinReward.skinId) {
-          gameState.unlockedSkins = [...new Set([...(gameState.unlockedSkins || []), oneTimeSkinReward.skinId])];
+        const grantedSkinIds = Array.isArray(data.skinIds) ? data.skinIds : (data.skinId ? [data.skinId] : []);
+        const grantedTowers = Array.isArray(data.towerUnlocks) ? data.towerUnlocks : [];
+        const rewardsMatch = grantedSkinIds.length === oneTimeSkinReward.skinIds.length &&
+          grantedTowers.length === oneTimeSkinReward.towerUnlocks.length &&
+          oneTimeSkinReward.skinIds.every(id => grantedSkinIds.includes(id)) &&
+          oneTimeSkinReward.towerUnlocks.every(type => grantedTowers.includes(type));
+
+        if (data.result === 'redeemed' && rewardsMatch) {
+          gameState.unlockedSkins = [...new Set([...(gameState.unlockedSkins || []), ...oneTimeSkinReward.skinIds])];
+          oneTimeSkinReward.towerUnlocks.forEach(type => {
+            if (TOWER_TYPES[type]) TOWER_TYPES[type].unlocked = true;
+          });
           gameState.usedCodes[code] = true;
           updateMetaUI();
+          drawTowerShop();
+          drawShop();
           saveProgress();
           showMessage(
             currentLanguage === 'en'
