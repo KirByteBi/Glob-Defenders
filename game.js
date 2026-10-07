@@ -5954,10 +5954,11 @@ function bindEvents() {
             'warning'
           );
         } else if (data.result === 'not_eligible') {
+          const reservedUsername = code === 'ASTRAL-CREDIBLE' ? 'credible' : 'Victorillo_24';
           showMessage(
             currentLanguage === 'en'
-              ? 'This one-time code is reserved for the Victorillo_24 account.'
-              : 'Este código de un solo uso está reservado para la cuenta Victorillo_24.',
+              ? `This one-time code is reserved for the ${reservedUsername} account.`
+              : `Este código de un solo uso está reservado para la cuenta ${reservedUsername}.`,
             'warning'
           );
         } else if (data.result === 'already_owned') {

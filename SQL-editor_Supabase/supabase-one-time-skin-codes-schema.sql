@@ -61,13 +61,18 @@ begin
     return jsonb_build_object('result', 'invalid');
   end if;
 
-  if normalized_code = 'FROGGY_VICTEST' then
+  if normalized_code in ('FROGGY_VICTEST', 'ASTRAL-CREDIBLE') then
     select lower(email)
       into target_email
       from auth.users
       where id = target_user_id;
 
-    if target_email is distinct from 'victorillo_24@accounts.glob-defenders.invalid' then
+    if normalized_code = 'FROGGY_VICTEST' and
+       target_email is distinct from 'victorillo_24@accounts.glob-defenders.invalid' then
+      return jsonb_build_object('result', 'not_eligible');
+    end if;
+    if normalized_code = 'ASTRAL-CREDIBLE' and
+       target_email is distinct from 'credible@accounts.glob-defenders.invalid' then
       return jsonb_build_object('result', 'not_eligible');
     end if;
   end if;
