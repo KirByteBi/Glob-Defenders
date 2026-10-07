@@ -2141,7 +2141,7 @@ const HALLOWEEN_LOGIN_SKIN_IMAGES = new Set([
   'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Toxic Waste Glob (SK-EVO2).png',
   'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Witch Glob (SK-EVO1).png',
   'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/CrowWitcher (SK-EVO2).png',
-  'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob_SK-EVO1.png'
+  'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob (SK-EVO1).png'
 ]);
 
 function getGlobDecorationType(imagePath) {

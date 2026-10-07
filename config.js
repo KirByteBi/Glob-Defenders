@@ -2508,9 +2508,9 @@ const SKINS_DATA = {
     {
       id: 'pumpking_set', name: 'skin_pumpking_name', desc: 'skin_pumpking_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_base',
       skins: {
-        'Sprout_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob_SK-EVO1.png',
-        'Garden_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Overgrown_PumpGlob_SK-EVO2.png',
-        'Flower_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Mutant_PumpGlob_SK-EVO3.png'
+        'Sprout_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob (SK-EVO1).png',
+        'Garden_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Overgrown PumpGlob (SK-EVO2).png',
+        'Flower_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Mutant PumpGlob (SK-EVO3).png'
       },
       names: {
         'Sprout_Glob': 'PumpGlob',
