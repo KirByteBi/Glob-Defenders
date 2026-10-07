@@ -5724,6 +5724,23 @@ function bindEvents() {
   document.getElementById('offline-play-btn').onclick = handleSkipLogin;
   const createAccountButton = document.getElementById('create-account-btn');
   if (createAccountButton) createAccountButton.onclick = handleCreateAccount;
+  ['username-input', 'password-input'].forEach(id => {
+    const input = document.getElementById(id);
+    input?.addEventListener('keydown', event => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+
+      const username = document.getElementById('username-input')?.value.trim();
+      const password = document.getElementById('password-input')?.value;
+      if (username && password) {
+        handleLogin();
+      } else if (id === 'username-input' && username) {
+        document.getElementById('password-input')?.focus();
+      } else {
+        document.getElementById('username-input')?.focus();
+      }
+    });
+  });
   
   const loadingFamilyTips = {
     es: {
@@ -5796,34 +5813,31 @@ function bindEvents() {
     if (multiplayerSpectator) return;
 
     const key = e.key.toLowerCase();
-    const upgradeMenu = document.getElementById('tower-upgrade-menu');
+    if (e.repeat && (key === 'u' || key === 'd')) return;
+    const upgradeMenu = document.getElementById('evolve-panel');
     const isUpgradeOpen = upgradeMenu && upgradeMenu.style.display === 'flex';
 
     if (key === 'u') {
-      if (isUpgradeOpen) {
-        const evolveBtn = document.getElementById('evolve-btn');
-        if (evolveBtn && !evolveBtn.disabled && evolveBtn.style.display !== 'none') {
-          evolveBtn.click();
-        }
-      } else if (gameState.selectedTowerType) {
-        const spot = gameState.towerSpots.find(s => !s.occupied && s.selected);
-        if (spot) {
-          placeTower(spot.id, gameState.selectedTowerType);
-        }
+      if (gameState.modeConfirmed && !gameState.gameOver && !gameState.paused) {
+        e.preventDefault();
+        upgradeAllAffordableTowers();
       }
     } else if (key === 'c') {
       if (isUpgradeOpen) {
-        closeUpgradeMenu();
+        deselectTower();
       } else if (gameState.selectedTowerType) {
         cancelTowerSelection();
       }
     } else if (key === 'v') {
       if (isUpgradeOpen) {
-        const sellBtn = document.getElementById('sell-btn');
+        const sellBtn = document.getElementById('sell-tower-btn');
         if (sellBtn && sellBtn.style.display !== 'none') {
           sellBtn.click();
         }
       }
+    } else if (key === 'd' && gameState.modeConfirmed && !gameState.gameOver && !gameState.paused) {
+      e.preventDefault();
+      sellSelectedTowerFamily();
     }
   });
 
@@ -8585,6 +8599,64 @@ function activateGTack(t) {
     updateAllTowerRanges();
     selectTower(tower); updateUI(); drawTowerShop();
     sendMultiplayerAction({ type: 'evolve-tower', spotId: tower.spotId, towerType: nextType, cost });
+  }
+
+  function upgradeAllAffordableTowers() {
+    let upgradedCount = 0;
+
+    while (true) {
+      const candidates = gameState.towers
+        .filter(tower => tower.evolution && TOWER_TYPES[tower.evolution])
+        .sort((a, b) => getTowerEvolutionLevel(b.type) - getTowerEvolutionLevel(a.type));
+      const tower = candidates.find(candidate => {
+        const next = TOWER_TYPES[candidate.evolution];
+        const cost = Math.floor(next.cost * (1 - (candidate.pinkDiscount || 0)));
+        return Number.isFinite(cost) && cost >= 0 && gameState.globetines >= cost;
+      });
+      if (!tower) break;
+
+      const nextType = tower.evolution;
+      const cost = Math.floor(TOWER_TYPES[nextType].cost * (1 - (tower.pinkDiscount || 0)));
+      const previousBalance = gameState.globetines;
+      evolveTower(tower, nextType, cost);
+      if (tower.type !== nextType || gameState.globetines >= previousBalance) break;
+      upgradedCount++;
+    }
+
+    showMessage(
+      upgradedCount
+        ? (currentLanguage === 'es'
+          ? `⬆️ ${upgradedCount} ${upgradedCount === 1 ? 'torre evolucionada' : 'torres evolucionadas'} con tus Globetines.`
+          : `⬆️ ${upgradedCount} ${upgradedCount === 1 ? 'tower evolved' : 'towers evolved'} with your Globetines.`)
+        : (currentLanguage === 'es'
+          ? 'No hay evoluciones disponibles con tus Globetines.'
+          : 'No evolutions are available with your current Globetines.'),
+      upgradedCount ? 'success' : 'info'
+    );
+  }
+
+  function sellSelectedTowerFamily() {
+    const selectedTower = gameState.selectedTower;
+    if (!selectedTower || !gameState.towers.includes(selectedTower)) {
+      showMessage(
+        currentLanguage === 'es'
+          ? 'Selecciona una torre de la familia que quieras vender.'
+          : 'Select a tower from the family you want to sell.',
+        'info'
+      );
+      return;
+    }
+
+    const family = selectedTower.family;
+    const familyTowers = gameState.towers.filter(tower => tower.family === family);
+    const refund = familyTowers.reduce((total, tower) => total + Math.floor(tower.cost * 0.7), 0);
+    familyTowers.forEach(sellTower);
+    showMessage(
+      currentLanguage === 'es'
+        ? `🪙 Vendiste ${familyTowers.length} ${familyTowers.length === 1 ? 'torre' : 'torres'} de la familia por ${refund} Globetines.`
+        : `🪙 Sold ${familyTowers.length} ${familyTowers.length === 1 ? 'tower' : 'towers'} from the family for ${refund} Globetines.`,
+      'success'
+    );
   }
 
   function sellTower(tower) {
@@ -12841,8 +12913,9 @@ function activateGTack(t) {
 
         <h4>⌨️ Controles rápidos</h4>
         <ul>
-          <li><strong>U</strong>: colocar o mejorar una torre seleccionada.</li>
-          <li><strong>V</strong>: vender la torre seleccionada.</li>
+          <li><strong>U</strong>: evolucionar todas las torres posibles, priorizando las más evolucionadas.</li>
+          <li><strong>D</strong>: vender todas las torres de la familia seleccionada.</li>
+          <li><strong>V</strong>: vender solo la torre seleccionada.</li>
           <li><strong>C</strong>: cancelar selección o cerrar menús.</li>
         </ul>
 
@@ -12887,8 +12960,9 @@ function activateGTack(t) {
 
         <h4>⌨️ Quick controls</h4>
         <ul>
-          <li><strong>U</strong>: place or upgrade a selected tower.</li>
-          <li><strong>V</strong>: sell the selected tower.</li>
+          <li><strong>U</strong>: evolve every affordable tower, prioritizing the most evolved.</li>
+          <li><strong>D</strong>: sell every tower from the selected family.</li>
+          <li><strong>V</strong>: sell only the selected tower.</li>
           <li><strong>C</strong>: cancel selection or close menus.</li>
         </ul>
 
