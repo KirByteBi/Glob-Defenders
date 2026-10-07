@@ -2875,6 +2875,12 @@ input:checked + .slider:before {
     flex-grow: 1;
 }
 
+.skin-creator-tag {
+    color: #ff69b4 !important;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(255, 105, 180, 0.5);
+}
+
 /* Previsualización de Skins */
 .skin-preview {
     width: 60px !important;

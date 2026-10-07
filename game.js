@@ -7336,6 +7336,21 @@ function getProfileAvatarImageMarkup(avatar, applyRgbEffect = false) {
     : image;
 }
 
+function getShopSkinDescription(skin) {
+  const description = translate(skin.desc);
+  const normalizedDescription = description.replace(/<span\b[^>]*>([\s\S]*?)<\/span>/gi, (span, content) => {
+    if (/(created by|creado por|credit:|crédito:|designed by|drawn by|diseñad[oa] por|dibujad[oa] por|idead[oa] y dibujad[oa])/i.test(content)) {
+      return `<span class="skin-creator-tag">${content}</span>`;
+    }
+    return span;
+  }).replace(/\b(Created by:|Creado por:)\s*KirByte\b(?!_Bi)/g, '$1 KirByte_Bi');
+  const hasCreatorCredit = /(created by|creado por|credit:|crédito:|designed by|drawn by|diseñad[oa] por|dibujad[oa] por|idead[oa] y dibujad[oa]|artwork by|colaboraci[oó]n|collab)/i.test(description);
+  if (hasCreatorCredit) return normalizedDescription;
+
+  const creatorLabel = currentLanguage === 'es' ? 'Creado por: KirByte_Bi' : 'Created by: KirByte_Bi';
+  return `${normalizedDescription}<br><span class="skin-creator-tag">${creatorLabel}</span>`;
+}
+
 function drawShop() {
   const container = document.getElementById('shop-items');
   if (!container) return;
@@ -7502,7 +7517,7 @@ function drawShop() {
     if (!window.activeSkinFilter) window.activeSkinFilter = 'all';
 
     const missionSkinIds = ['corrupt_swords_set', 'fracstal_set', 'old_tycoon_set', 'cuby_bombot'];
-    const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set', 'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set'];
+    const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set', 'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set', 'ducky_rewamp_set', 'ducky_rgb_sr'];
     const storeUnlockableIds = [...missionSkinIds, ...otherNewSkinIds];
 
     const filterDiv = document.createElement('div');
@@ -7593,7 +7608,7 @@ function drawShop() {
         el.innerHTML = `
           ${specialBadge}
           <div class="skin-preview ${skin.class || ''}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
-          <h3>${translate(skin.name)}</h3><p>${translate(skin.desc)}</p>
+          <h3>${translate(skin.name)}</h3><p>${getShopSkinDescription(skin)}</p>
           ${!isUnlocked ? costDisplay : ''}
           <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${(!buyable && !isUnlocked) ? 'disabled' : ''} ${skinAction ? `onclick="${skinAction}"` : ''}>${btnText}</button>`;
         container.appendChild(el);
@@ -7628,7 +7643,7 @@ function drawShop() {
 
         // Categorizar
         let category = 'otros';
-        if (['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'judicial_set', 'spanish_bombot', 'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set'].includes(skin.id)) category = 'mapa';
+        if (['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'judicial_set', 'spanish_bombot', 'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set', 'ducky_rewamp_set'].includes(skin.id)) category = 'mapa';
         else if (missionSkinIds.includes(skin.id)) category = 'misiones';
         else if (['mimic_set', ...otherNewSkinIds].includes(skin.id)) category = 'otros';
         else if (skin.unlockCondition && (skin.unlockCondition.includes('urban') || skin.unlockCondition.includes('spooktacular'))) category = 'mapa';
@@ -7730,7 +7745,7 @@ function drawShop() {
               <div class="special-badge" style="background:${skinColor}; color:#000;">🌟 ${currentLanguage === 'es' ? 'NUEVA' : 'NEW'}</div>
               <div class="skin-preview"><img src="${previewImg}" style="width:100%; height:100%;"></div>
               <h3>${translate(skin.name)}</h3>
-              <p>${translate(skin.desc)}</p>
+              <p>${getShopSkinDescription(skin)}</p>
               <div class="cost">${price}</div>
               <button class="skin-buy-btn" ${canBuy ? `onclick="buySkin('${family}', '${skin.id}', ${skin.cost})"` : 'disabled'}>${translate('buy')}</button>`;
           } else if (!isUnlocked) {
@@ -7742,7 +7757,7 @@ function drawShop() {
               <div class="skin-preview ${rgbPreviewClass}" style="filter:grayscale(0.4) brightness(0.8);${rgbPreviewStyle}"><img src="${previewImg}" style="width:100%; height:100%;"></div>
               <h3>${translate(skin.name)}</h3>
               ${skin.pyce_morph ? `<div style="font-size:0.7rem; color:#e67e22; font-weight:bold; margin:-6px 0 6px; text-transform:uppercase; letter-spacing:1px;">⚡ ${currentLanguage === 'en' ? 'General' : 'General'}</div>` : ''}
-              <p>${translate(skin.desc)}</p>
+              <p>${getShopSkinDescription(skin)}</p>
               ${costDisplay}
               <div style="font-size:0.75rem; color:#ccc; margin-bottom:8px; padding:4px 6px; background:rgba(0,0,0,0.2); border-radius:6px; border:1px dashed ${colorHex}55;">${conditionText}</div>
               <button class="skin-buy-btn" disabled style="background:${colorHex}22; border:1px solid ${colorHex}55; color:${colorHex}; cursor:not-allowed;">${btnText}</button>`;
@@ -7757,7 +7772,7 @@ function drawShop() {
               <div class="skin-preview ${skin.class || ''} ${rgbPreviewClass}" style="${rgbPreviewStyle}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
               <h3>${translate(skin.name)}</h3>
               ${skin.pyce_morph ? `<div style="font-size:0.7rem; color:#e67e22; font-weight:bold; margin:-6px 0 6px; text-transform:uppercase; letter-spacing:1px;">⚡ ${currentLanguage === 'en' ? 'General' : 'General'}</div>` : ''}
-              <p>${translate(skin.desc)}</p>
+              <p>${getShopSkinDescription(skin)}</p>
               ${costDisplay}
               <button class="skin-buy-btn equip" onclick="${onclickAction}">${btnText}</button>`;
           }
@@ -12377,8 +12392,8 @@ function activateGTack(t) {
           gameState.unlockedSkins.push('pumpking_set');
           showMessage(
             currentLanguage === 'es'
-              ? '🎃 ¡Pumpking Set desbloqueado! Has ganado un modo base en Aridez Escalofriante.'
-              : '🎃 Pumpking Set unlocked! You won a base mode on Spooktacular Ruins.',
+              ? '🎃 ¡Pumpkin Set desbloqueado! Has ganado un modo base en Aridez Escalofriante.'
+              : '🎃 Pumpkin Set unlocked! You won a base mode on Spooktacular Ruins.',
             'success'
           );
         }
@@ -12874,7 +12889,7 @@ function activateGTack(t) {
           <li>👁️ <strong>Voces de NOeye y DarkSpirit</strong>: NOeye usa leetspeak en sus diálogos generales y DarkSpirit tiene un tono más terrorífico y un borde rojo. NOeye mantiene su voz normal como héroe de Interstellar.</li>
           <li>🪲 <strong>Identidad de ???</strong>: Los avisos de moderación de ??? muestran a Omnipresent Glob, no a MysteryBug.</li>
           <li>🧩 <strong>Login más pulido</strong>: Las imágenes decorativas se reponen al quitarlas, y alternar muchas veces entre los temas activa el easter egg de glitch hasta reiniciar la página.</li>
-          <li>🎃 <strong>Sets de Halloween</strong>: Gana Aridez Escalofriante en Anti-Normal para desbloquear SkeleBones Set, en Corrupto para Wicked Set, o en Fácil, Normal, Difícil o Extremo para Pumpking Set. Son recompensas independientes. SkeleBones, Wicked (solo EVO 1 y 2) y PumpGlob pueden aparecer en el login y dar un jumpscare al pulsarlos.</li>
+          <li>🎃 <strong>Sets de Halloween</strong>: Gana Aridez Escalofriante en Anti-Normal para desbloquear SkeleBones Set, en Corrupto para Wicked Set, o en Fácil, Normal, Difícil o Extremo para Pumpkin Set. Son recompensas independientes. SkeleBones, Wicked (solo EVO 1 y 2) y PumpGlob pueden aparecer en el login y dar un jumpscare al pulsarlos.</li>
         </ul>
 
         <h3 style="color:#ff9f43;">📋 Historial de Actualizaciones (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
@@ -13044,7 +13059,7 @@ function activateGTack(t) {
           <li>👁️ <strong>NOeye and DarkSpirit voices</strong>: NOeye uses leetspeak in general dialogue, while DarkSpirit has a more terrifying tone and a red border. NOeye keeps the normal voice when appearing as an Interstellar hero.</li>
           <li>🪲 <strong>??? identity</strong>: Moderation notices from ??? show Omnipresent Glob, not MysteryBug.</li>
           <li>🧩 <strong>Polished login</strong>: Decorative images refill as they are removed, and switching themes repeatedly triggers the glitch easter egg until the page is restarted.</li>
-          <li>🎃 <strong>Halloween sets</strong>: Beat Spooktacular Ruins in Anti-Normal for SkeleBones Set, in Corrupt for Wicked Set, or in Easy, Normal, Hard, or Extreme for Pumpking Set. These rewards are independent. SkeleBones, Wicked (EVO 1 and 2 only), and PumpGlob can appear on the login screen and jumpscare when clicked.</li>
+          <li>🎃 <strong>Halloween sets</strong>: Beat Spooktacular Ruins in Anti-Normal for SkeleBones Set, in Corrupt for Wicked Set, or in Easy, Normal, Hard, or Extreme for Pumpkin Set. These rewards are independent. SkeleBones, Wicked (EVO 1 and 2 only), and PumpGlob can appear on the login screen and jumpscare when clicked.</li>
         </ul>
 
         <h3 style="color:#ff9f43;">📋 Update Logs (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
