@@ -1,0 +1,343 @@
+ACROSS THE TIME: GLD (EVENT)
+Documento interno de diseño — especificación vigente de la actualización
+
+Nombre visible: Across the Time: GlD (EVENT)
+Recompensa final: Virtuallity Set
+Recompensa adicional: modo azul TIME ATTACK
+Estado: flujo principal integrado; pendiente de balance y prueba completa en juego
+Alcance: cuatro espacios narrativos, conectados como una serie de mundos
+paralelos dentro de Across the Time.
+
+NOTA SOBRE EL NOMBRE DEL ARCHIVO
+Windows no permite usar ":" en un nombre de archivo. Por eso el archivo se
+llama "ATT-BIGUPD.txt", aunque el título visible de la misión conserva los dos
+puntos.
+
+============================================================
+1. REQUISITOS, ACTIVACIÓN Y RESTRICCIONES
+============================================================
+
+- El jugador debe tener el emblema Interstellar.
+- El jugador debe tener el emblema llave de Wildsand Leaf.
+- Si falta cualquiera de los dos, la misión no se activa y no ocurre nada.
+- Se puede jugar con una cuenta online o en modo offline.
+- La seed debe estar vacía de otros jugadores para activar el evento.
+- No se permite el modo multijugador ni cooperativo en ninguna parte del
+  evento.
+- La primera activación requiere Gelatin Lake, dificultad Extremo y la
+  loadout exacta Verde, Naranja, Azul, Blanco, Rojo, en ese orden.
+- La validación debe realizarse antes de mostrar a GODs Shadow o cambiar las
+  reglas de la partida.
+- Completar el encuentro final concede Virtuallity Set.
+- Completar el evento desbloquea TIME ATTACK para volver a jugar espacios:
+  Gelatin Lake inicia I, Urbanistic Road inicia II y Aridez Escalofriante
+  inicia III–IV como una secuencia. Sunlight Seaside es parte del recorrido de
+  III, no un punto de inicio independiente.
+- TIME ATTACK se puede jugar online con una cuenta o en modo offline, siempre
+  que no haya otros jugadores en la seed.
+- Completar el evento concede dos bordes de perfil TIME ATTACK:
+  A. Borde azul (#2600FF) con fondo cian (#00FFFF).
+  B. Borde ornamental con apariencia de reloj antiguo.
+- El borde Arcoíris se desbloquea al comprar y conseguir todos los demás
+  bordes de perfil, incluidas las dos variantes de TIME ATTACK.
+
+La aventura se divide en cuatro espacios (mundos paralelos):
+  I. Gelatin Lake y el desafío de GODs Shadow.
+  II. Urbanistic Road invertido y el enfrentamiento con MoonStar Pyce y Roborb.
+  III. Viaje al pasado: Gelatin Lake, Urbanistic Road y Sunlight Seaside.
+  IV. Aridez Escalofriante y el combate final contra GODs Shadow.
+
+============================================================
+2. ESPACIO I — GELATIN LAKE: EL DESAFÍO
+============================================================
+
+Condiciones de entrada:
+- Mapa: Gelatin Lake.
+- Dificultad: Extremo.
+- Loadout (orden obligatorio): Verde, Naranja, Azul, Blanco, Rojo.
+- Emblema Interstellar y emblema llave de Wildsand Leaf presentes.
+- Puede jugarse online o offline, sin jugadores adicionales en la seed.
+
+Al cumplirse todas las condiciones, aparece GODs Shadow: una silueta oscura
+(versión "blacked out") de Kirb. El mapa cambia a un azul vibrante. Todos los
+enemigos del juego deben poder aparecer: familias de GL, UR, SS y AE, usando
+el balance y la distribución actuales por oleada (comunes, medios, tanques,
+etc.; no todos los tipos a la vez en todas las oleadas).
+
+En cada oleada se deben limpiar cristales:
+- Entre 3 y 5 cristales por oleada.
+- La cantidad y la resistencia escalan con la oleada.
+- La composición enemiga continúa respetando el balance actual.
+
+Diálogo inicial de GODs Shadow:
+ES: "Veo que te gustan los retos. ¿Verdad? Pues vamos a jugar, voy a ponerte
+distintos tipos de enemigos a tu disposicion... Solo trata de sobrevivir hasta
+el final."
+EN: "I see you like challenges. Right? Well, let's play. I'm going to throw
+different kinds of enemies at you... Just try to survive until the end."
+
+Jefe del espacio: GODs Shadow.
+- Al iniciar el combate dice que se ha hartado de esperar.
+- Antes de completar el espacio I, GODs Shadow no aparece en la enciclopedia.
+- Al completar el espacio I, se desbloquea su entrada y la pista que aparece
+  como "####" se revela como "L + X + T + _".
+- Al completar toda la misión, la pista se sustituye por la descripción
+  completa de GODs Shadow.
+- La imagen es el retrato de Kirb (GOD) convertido en una silueta negra.
+
+============================================================
+3. ESPACIO II — URBANISTIC ROAD: LA PARTIDA INVERSA
+============================================================
+
+Pista / puzle:
+- Mapa: Urbanistic Road.
+- Dificultad: Extremo.
+- Reproducir en el mapa las letras L, X y T y el espacio "_" indicados por la
+  enciclopedia, colocando Globs en el patrón aproximado de la imagen de
+  referencia. Cualquier familia/tipo de Glob sirve para formar las letras.
+- La imagen es una aproximación visual; no exigir un tipo concreto de Glob.
+- Si el patrón no es correcto, no activar la secuencia.
+
+Al resolverlo, GODs Shadow dice:
+ES: "No caere... ¡NI TU ACABARAS CON EL TIEMPO QUE CONSUMIRE!"
+EN: "I won't fall... AND YOU WON'T FINISH OFF THE TIME I'M GOING TO CONSUME!"
+
+Después se inicia una partida alterna de Urbanistic Road:
+- En lugar de defender el casino, el jugador defiende el túnel.
+- Los enemigos salen del casino: es la versión inversa de la partida original.
+- Juega con la estructura inicial de oleadas, pero incluye todos los enemigos
+  actuales del juego, respetando el balance/distribución por oleada.
+- Arky aparece como minijefe.
+- Jefe del encuentro: dos Arkys y tres Pyces 1x1x1x1.
+
+Oleada extra posterior:
+- GODs Shadow anuncia:
+  ES: "Habeis llegado lejos. ¡PERO NO TAN LEJOS! MOONSTAR... ¡ACABA CON ELLOS!"
+  EN: "You've made it far. BUT NOT FAR ENOUGH! MOONSTAR... FINISH THEM!"
+- MoonStar Pyce aparece en el encuentro. Roborb the Time Stealer es el nuevo
+  jefe de esta oleada y reemplaza la aparición conjunta de todos los jefes de
+  los modos base.
+- La oleada incluye además muchos Bits, Bytes y Spywares.
+
+Roborb the Time Stealer:
+- Es una creación robótica ensamblada por una empresa de dudosa confianza a
+  partir del poder cristalizado restante del astro que huyó al espacio al ser
+  derrotado. No revelar ni nombrar a la empresa.
+- Es una recreación de ese dios a menor escala: más portátil y estable que la
+  versión original. No es el propio Astrorb ni está completamente ligado a él.
+- Roborb vuelve a aparecer como miniboss en el espacio IV, una oleada antes
+  del jefe final.
+
+Al superar la oleada, GODs Shadow dice:
+ES: "Arg. ¿Pensabas que me habias vencido? Pues todavia te esperan desgracias.
+¡Y esas tienen que ver con tu pasado!"
+EN: "Arg. Did you think you'd beaten me? More misfortunes still await you.
+And they have to do with your past!"
+
+Completar este espacio otorga una llave/progreso de misión que habilita el código
+temporal. Sin ese progreso, el código no inicia el viaje.
+
+============================================================
+4. ESPACIO III — 14/05/26-TIMETRAVEL
+============================================================
+
+El jugador escribe el código exacto:
+  14/05/26-TIMETRAVEL
+
+- Si no ha completado el espacio II, el código falla y no inicia nada.
+- Si está habilitado, el juego pide confirmación antes de viajar al pasado.
+- No hay restricciones de loadout para el viaje. Recomendar al jugador que se
+  prepare antes de confirmar.
+- Tras confirmar, se inicia una secuencia en solitario de 45 oleadas en tres mapas,
+  15 oleadas por mapa.
+- La base aliada comienza con exactamente 300 puntos de vida, aunque el
+  jugador haya comprado mejoras de vida para la base.
+- Los límites de todos los Globs se fijan en el máximo comprable actual; no se
+  pueden aumentar durante este espacio por encima de ese límite.
+- El aspecto comienza completamente negro: mapa, torres y enemigos. Al
+  principio solo aparecen Pyces negros, junto con amenazas periódicas de
+  GODs Shadow.
+
+Tramo A — Gelatin Lake, oleadas 1–15:
+- Estética completamente negra.
+- Solo Pyces como enemigos.
+- Minijefe del tramo: 1x1x1x1 Pyce, con el doble de la vida que tenía en su
+  versión normal.
+
+Tramo B — Urbanistic Road, oleadas 16–30:
+- 15 oleadas.
+- El mapa recupera color progresivamente según avanza el tramo.
+- Minijefe del tramo: ArkyVoid con su imagen normal (no oscurecida).
+
+Tramo C — Sunlight Seaside, oleadas 31–45:
+- 15 oleadas.
+- Queda menos oscuridad, pero GODs Shadow continúa amenazando al jugador.
+- Aparecen Pyces y enemigos etiquetados como I.D.; no añadir otros grupos
+  ajenos a esas categorías en este tramo.
+- Minijefe del tramo: Darkspirit.
+
+============================================================
+5. ESPACIO IV — ARIDEZ ESCALOFRIANTE
+============================================================
+
+Tras la oleada 45, la partida pasa directamente a Aridez Escalofriante:
+- La base aliada comienza con exactamente 300 puntos de vida, aunque el
+  jugador haya comprado mejoras de vida para la base.
+- Los límites de todos los Globs se fijan en el máximo comprable actual; no se
+  pueden aumentar durante este espacio por encima de ese límite.
+- Mantener tonos oscuros.
+- GODs Shadow anuncia:
+  ES: "No permitire que mi reinado de oscuridad temporal se detenga. ERES
+  LISTO PARA VIAJAR AL PASADO... ¡¡PERO NO LO SUFICIENTEMENTE HABIL PARA
+  DERROTARME!!"
+  EN: "I will not let my reign of temporal darkness end. YOU ARE CLEVER ENOUGH
+  TO TRAVEL TO THE PAST... BUT NOT SKILLED ENOUGH TO DEFEAT ME!!"
+- Oleadas 46–50: cinco oleadas de cierre con enemigos fantasma. Incluir Pyces,
+  enemigos I.D. y el resto de enemigos del juego; añadir enemigos tanque y
+  escalar presión/dificultad.
+- Oleada 48: aparecen todos los jefes, incluidos los de Corrupto y
+  Anti-Normal. Se fija la oleada 48 como punto de convergencia por defecto;
+  puede moverse a la 47 si el ajuste de dificultad lo exige, sin alterar que
+  la oleada 50 sea la final.
+- Oleada 49: Roborb the Time Stealer aparece como miniboss, una oleada antes
+  del combate final.
+- Oleada 50: combate final contra GODs Shadow en solitario.
+
+Reglas del jefe final:
+- Su vida inicial debe ser al menos el doble de la vida de referencia de un
+  jefe de Corrupto. La vida puede aumentar durante el combate según el balance
+  final; fijar la fórmula al implementar.
+- Cada 20 segundos ataca a los Globs cercanos.
+- Al alcanzar la base aliada, no la destruye en el primer contacto: vuelve a
+  su base enemiga. Esto sucede tres veces como máximo; el jugador tiene tres
+  oportunidades para derrotarlo.
+- En el tercer retorno/contacto, GODs Shadow destruye la base
+  instantáneamente.
+- Si la base cae o se agotan las tres oportunidades, termina el intento del
+  espacio IV y puede reiniciarse desde su checkpoint, la oleada 46. Se
+  conservan los espacios I–III completados; no se reinicia toda la misión.
+- Derrotarlo completa Across the Time: GlD (EVENT) y concede Virtuallity Set.
+- Completar la misión también desbloquea su emblema verde, que alterna entre
+  verde (#00FF00) y azul (#0000FF).
+- La enciclopedia de GODs Shadow muestra esta descripción tras completar el
+  evento:
+  "La sombra de quien alguna vez fue alguien importante, el original esta
+  libre pero su sombra ha sido convertida en una herramienta de destruccion,
+  por lo que al haberla derrotado, tambien has derrotado una parte de la mafia
+  y del tejido espacio-tiempo... Pero no te detengas, sigue defendiendo el
+  pasado de I.D. con tus propias manos, su mundo queda en tus manos."
+- Completarlo también desbloquea TIME ATTACK: Gelatin Lake inicia I,
+  Urbanistic Road inicia II y Aridez Escalofriante inicia III–IV seguidos.
+  Sunlight Seaside forma parte del viaje del espacio III.
+
+Checkpoint y reintentos:
+- Perder en I reinicia I; perder en II reinicia II y conserva I completado.
+- Perder en III reinicia III; perder en IV reinicia IV desde la oleada 46.
+- El acceso al viaje temporal y los espacios anteriores completados se
+  conservan. Perder en III o IV no obliga a repetir I y II.
+- El código temporal sigue habilitando III una vez completado II; TIME ATTACK
+  permite volver a iniciar los espacios ya desbloqueados.
+
+Enmarcamientos iniciales para enemigos de TIME ATTACK:
+- Clockwork Titan (tanque): 225 bajas.
+- DIY-Bot y Hatspy (medios): 250 bajas cada uno.
+- Local Engines y Untimed Atoms (comunes): 450 bajas cada uno.
+- Roborb (jefe): 3 bajas.
+- GODs Shadow (jefe): 1 baja.
+
+============================================================
+6. ENEMIGOS DE TIME ATTACK (ASSETS DE UPD4)
+============================================================
+
+Los recursos gráficos están en "Spooks in the Desert (UPD4)/TIME ATTACK".
+Estos enemigos aparecen con poca frecuencia en los espacios I y II y en gran
+cantidad en el espacio IV. Sus nombres y descripciones deben estar disponibles
+en español e inglés.
+- Los enemigos exclusivos de TIME ATTACK solo se listan en la enciclopedia tras
+  completar el espacio I. Hasta derrotar a cada uno, su descripción permanece
+  censurada; derrotarlo revela sus datos. Los jefes conservan la ocultación de
+  nombre habitual mientras no se descubran.
+- El panel OWNER DEBUG puede buscar y generar estos enemigos, además de
+  desbloquear el contenido completo del evento.
+- El dialoguista GODs Shadow aparece en OWNER DEBUG con las búsquedas GODs
+  Shadow, Kirb, Kirb Clone o KirByte; Kirb Clone es solo un alias.
+
+Clockwork Titan — tanque, inmune a aturdimientos:
+ES: "Un reloj que ha cobrado vida gracias al alma de quien una vez fue un gran
+relojero. Ahora vaga por el multiverso arreglando aquello que no se puede
+arreglar."
+EN: "A clock brought to life by the soul of someone who was once a great
+clockmaker. Now it wanders the multiverse, fixing what cannot be fixed."
+Valores iniciales provisionales: 900 de vida, velocidad 0,45, recompensa 180.
+
+DIY-Bot — medio, inmune al veneno y débil al fuego:
+ES: "Un robot que puedes construir rápidamente. La empresa que los creó quiso
+que fueran para Navidad, pero ahora son un útil recurso interdimensional... Y
+siempre serán tan festivos como en su día especial."
+EN: "A robot you can build quickly. The company that created them wanted them
+ready for Christmas, but now they are a useful interdimensional resource... And
+they will always be as festive as they are on their special day."
+Valores iniciales provisionales: 180 de vida, velocidad 1,1, recompensa 40;
+recibe 1,5 veces el daño de fuego.
+
+Hatspy — medio, rápido y fantasma:
+ES: "Espías robóticos con forma de sombrero de copa que sirven al Astrorb
+mecánico, conocido como Roborb. Una empresa mafiosa los creó como prototipos
+de espionaje."
+EN: "Robot spies shaped like top hats who serve the mechanical Astrorb, known
+as Roborb. A shady company created them as espionage prototypes."
+Valores iniciales provisionales: 180 de vida, velocidad 2,4, recompensa 45.
+
+Local Engines — común/medio:
+ES: "Unos engranajes verdes que cooperan en conjunto como parte vital de la
+existencia de otras dimensiones. Verlos como enemigos significa que se ha roto
+la pared equivocada."
+EN: "Green gears that work together as a vital part of other dimensions'
+existence. Seeing them as enemies means the wrong wall has been broken."
+Valores iniciales provisionales: 100 de vida, velocidad 1,2, recompensa 25.
+
+Roborb the Time Stealer — jefe del espacio II y miniboss del espacio IV:
+ES: "Una empresa de dudosa confianza ensambló este robot utilizando el poder
+cristalizado restante de aquel astro que huyó al espacio al ser derrotado. Así
+logró recrear a ese dios en una forma robótica de menor escala, más portátil y
+estable que la original. Roborb no es Astrorb: es una imitación mecánica
+alimentada por el poder que dejó atrás."
+EN: "A company of questionable trust assembled this robot using the remaining
+crystallized power of the celestial being that fled into space after its
+defeat. This allowed them to recreate that god in a smaller robotic form,
+more portable and stable than the original. Roborb is not Astrorb: it is a
+mechanical imitation fueled by the power left behind."
+Valores iniciales provisionales: 2000 de vida, velocidad 0,3, recompensa 2500.
+
+Untimed Atoms — común:
+ES: "Átomos que no terminan de colocarse correctamente. Son la consecuencia
+de haber roto el tejido dimensional y un problema si se multiplican, porque
+eso significa que más átomos están en problemas."
+EN: "Atoms that never quite settle into the right places. They are a
+consequence of tearing the fabric of dimensions, and become a problem when
+they multiply, because that means more atoms are in trouble."
+Valores iniciales provisionales: 45 de vida, velocidad 1,6, recompensa 15.
+
+============================================================
+7. ESTADO DE IMPLEMENTACIÓN Y VALIDACIÓN PENDIENTE
+============================================================
+
+- Integrado: acceso para un jugador (online u offline), validación de
+  emblemas/loadout/mapa, cuatro espacios, código temporal con confirmación,
+  oleadas de evento, cristales, puzle, transición de mapas, límite de base/
+  torres y recompensa.
+- Integrado: guardado del progreso y checkpoint de ronda; la restauración de
+  Across the Time solo se acepta cuando no hay otros jugadores en la seed.
+  Perder conserva el progreso entre espacios y reinicia desde el checkpoint del
+  espacio actual.
+- Integrado: GODs Shadow ataca torres cada 20 segundos y puede regresar a su
+  base dos veces antes de destruir la base en el tercer contacto.
+- Provisional: distribución y escalado de enemigos, valores de balance y
+  ubicación aproximada de los marcadores L + X + T + _. Ajustar tras una
+  prueba de juego y comparar con la imagen de referencia.
+- Pendiente de validar visualmente: la inversión de rutas de Urbanistic Road
+  invierte el recorrido de los enemigos; comprobar que las bases y el túnel
+  coincidan visualmente con el diseño previsto.
+- Antes de publicar, completar una partida de principio a fin y probar el
+  orden de loadout, dificultad Extremo, mapas, emblemas, bloqueo con otros
+  jugadores en la seed, código, derrota/reinicio, TIME ATTACK y recompensas.

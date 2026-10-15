@@ -1,6 +1,7 @@
 // ===================== ESTADO DEL JUEGO =====================
 
 let currentLanguage = 'es';
+let godsShadowClueOverride = false;
 let backgroundMusic = null;
 let musicEnabled = true;
 let showHitbox = false;
@@ -37,6 +38,7 @@ let multiplayerActionOwner = null;
 let multiplayerChatMode = 'safe';
 let multiplayerChatEntries = [];
 let multiplayerChatLastSentAt = 0;
+let profileClockInterval = null;
 let sessionClockInterval = null;
 let sessionStartedAt = null;
 let roundCheckpointInterval = null;
@@ -70,8 +72,8 @@ const SAFE_MULTIPLAYER_CHAT_MESSAGES = {
     'GG, that was a great match!'
   ]
 };
-const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'ducky_rewamp_set'];
-const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr', 'ducky_rgb_sr'];
+const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set'];
+const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr', 'black_rgb_sr', 'ducky_rgb_sr'];
 const PROFILE_ENEMY_VARIANT_GROUPS = [
   { canonical: 'BitY1', types: ['BitY1', 'BitB4', 'BitG2', 'BitP3'] },
   { canonical: 'ByteGB1', types: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'] },
@@ -115,12 +117,15 @@ function getMultiplayerProfile() {
     towerLimits: { ...gameState.towerLimits },
     avatar: gameState.profileAvatar || 'glob:Glob',
     avatarImage: avatar?.image || IMAGE_PATHS.Glob,
+    avatarLayers: Array.isArray(avatar?.layers) ? avatar.layers : [],
     avatarLabel: avatar?.label || 'Glob',
-    rgbAvatar: Boolean(avatar?.rgb || border?.rainbow),
+    rgbAvatar: Boolean(avatar?.rgb || border?.rgb),
     border: gameState.profileBorder || 'default',
+    borderStyle: border?.style || null,
     borderLabel: border?.label || (currentLanguage === 'en' ? 'Classic' : 'Clásico'),
     borderColors: border?.colors || ['#8796a5', '#202833'],
-    rainbowBorder: Boolean(border?.rainbow),
+    rainbowBorder: Boolean(border?.multicolor),
+    rgbBorder: Boolean(border?.rgb),
     duckPassLevel: Math.max(1, Number(gameState.duckPassLevel) || 1),
     duckPassXP: Math.max(0, Number(gameState.duckPassXP) || 0),
     unlockedBadges: Object.values(BADGES)
@@ -135,6 +140,16 @@ function getMultiplayerProfile() {
       ])
     )
   };
+}
+
+function showAcrossTimeNarration(key) {
+  showNarratorMsg(
+    'GODs_Shadow',
+    IMAGE_PATHS.GODs_Shadow,
+    'GODs Shadow',
+    translate(key),
+    'enemy-voice'
+  );
 }
 
 function publishMultiplayerProfile() {
@@ -178,6 +193,31 @@ function getSafeProfileColors(profile) {
 
 function createProfileAvatarImage(avatar, size, alt = '') {
   const imageUrl = getSafeProfileImageUrl(avatar?.image);
+  if (Array.isArray(avatar?.layers) && avatar.layers.length > 0) {
+    const layers = document.createElement('span');
+    layers.className = `profile-avatar-layers${avatar.rgb ? ' rgb-avatar-image' : ''}`;
+    layers.style.width = `${size}px`;
+    layers.style.height = `${size}px`;
+    const baseImage = document.createElement('img');
+    baseImage.src = imageUrl;
+    baseImage.alt = alt;
+    baseImage.width = size;
+    baseImage.height = size;
+    layers.appendChild(baseImage);
+    avatar.layers.forEach(layerPath => {
+      const layer = document.createElement('img');
+      const layerUrl = getSafeProfileImageUrl(layerPath);
+      layer.src = layerUrl;
+      layer.alt = '';
+      layer.width = size;
+      layer.height = size;
+      layers.appendChild(layer);
+    });
+    if (avatar.rgb) {
+      layers.style.setProperty('--rgb-avatar-mask-image', `url("${imageUrl}")`);
+    }
+    return layers;
+  }
   const image = document.createElement('img');
   image.src = imageUrl;
   image.alt = alt;
@@ -204,7 +244,10 @@ function createProfileAvatarImage(avatar, size, alt = '') {
 
 function createMultiplayerProfileBadge(profile, size = 38) {
   const frame = document.createElement('span');
-  frame.className = `multiplayer-profile-badge${profile?.rainbowBorder ? ' rainbow' : ''}${profile?.rgbAvatar ? ' rgb-avatar' : ''}`;
+  const borderStyle = ['time-attack-a', 'time-attack-b'].includes(profile?.borderStyle)
+    ? ` ${profile.borderStyle}`
+    : '';
+  frame.className = `multiplayer-profile-badge${profile?.rainbowBorder ? ' rainbow' : ''}${profile?.rgbBorder ? ' glb-fever' : ''}${borderStyle}${profile?.rgbAvatar ? ' rgb-avatar' : ''}`;
   frame.style.width = `${size}px`;
   frame.style.height = `${size}px`;
   const colors = getSafeProfileColors(profile);
@@ -213,10 +256,45 @@ function createMultiplayerProfileBadge(profile, size = 38) {
 
   const image = createProfileAvatarImage({
     image: profile?.avatarImage,
+    layers: Array.isArray(profile?.avatarLayers) ? profile.avatarLayers.slice(0, 4) : [],
     rgb: Boolean(profile?.rgbAvatar)
   }, size - 10, typeof profile?.avatarLabel === 'string' ? profile.avatarLabel : 'Glob');
   frame.appendChild(image);
+  if (profile?.borderStyle === 'time-attack-b') {
+    frame.insertAdjacentHTML('beforeend', getProfileClockHandsMarkup());
+    ensureProfileClockTimer();
+  }
   return frame;
+}
+
+function getProfileClockHandsMarkup() {
+  return `<span class="profile-clock-hands" aria-hidden="true">
+    <i class="profile-clock-hand profile-clock-hour"></i>
+    <i class="profile-clock-hand profile-clock-minute"></i>
+    <i class="profile-clock-hand profile-clock-second"></i>
+    <i class="profile-clock-center"></i>
+  </span>`;
+}
+
+function updateProfileClockHands() {
+  const now = new Date();
+  const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
+  const minutes = now.getMinutes() + seconds / 60;
+  const hours = (now.getHours() % 12) + minutes / 60;
+  const localTime = now.toLocaleTimeString();
+  document.querySelectorAll('.profile-clock-hands').forEach(clock => {
+    clock.style.setProperty('--clock-hour-angle', `${hours * 30}deg`);
+    clock.style.setProperty('--clock-minute-angle', `${minutes * 6}deg`);
+    clock.style.setProperty('--clock-second-angle', `${seconds * 6}deg`);
+    clock.parentElement?.setAttribute('title', localTime);
+  });
+}
+
+function ensureProfileClockTimer() {
+  updateProfileClockHands();
+  if (profileClockInterval === null) {
+    profileClockInterval = window.setInterval(updateProfileClockHands, 1000);
+  }
 }
 
 function renderMultiplayerPlayerList(players) {
@@ -867,6 +945,10 @@ function isOfflineSession() {
   return offlineModeActive || localStorage.getItem('glob_offline_mode') === 'true';
 }
 
+function canPlayAcrossTimeSolo() {
+  return !multiplayerEnabled && multiplayerPlayerCount <= 1;
+}
+
 function hasInterstellarEntryAccess() {
   return gameState.debugState === 'unlocked' ||
     gameState.cheatedModeActive ||
@@ -965,7 +1047,7 @@ async function joinMultiplayerSeed(seed, creating) {
     if (!multiplayerSpectator && window._applyMultiplayerAction) window._applyMultiplayerAction(action);
   });
   connection.on('spawn-enemy', data => {
-    if (!multiplayerSpectator && window._spawnEnemy) window._spawnEnemy(data.enemyType, data.boss, data.forcedPath);
+    if (!multiplayerSpectator && window._spawnEnemy) window._spawnEnemy(data.enemyType, data.boss, data.forcedPath, true);
   });
   connection.on('show-dialog', data => {
     if (window._showNarratorMsg) window._showNarratorMsg(data.id, data.img, data.name, data.text);
@@ -1344,6 +1426,11 @@ let gameState = {
   mode: 'normal',
   map: 'gelatin_lake',
   selectedIsland: null,
+  tutorialIntroSeen: true,
+  tutorialCompleted: false,
+  tutorialRewardGranted: false,
+  tutorialStage: null,
+  tutorialFocusSpotId: null,
   globlandHardWins: { gelatin_lake: false, urbanistic_road: false, sunlight_seaside: false },
   modeConfirmed: false,
   corrupt: false,
@@ -1370,6 +1457,8 @@ let gameState = {
   metaRangeLevel: 0,
   metaDamageLevel: 0,
   unlockedSkins: ['default'],
+  unlockedBombotAccessories: [],
+  equippedBombotAccessories: { head: null, front: [], suit: null, reskin: null },
   equippedSkins: { 'Glob': 'default', 'Red_Glob': 'default', 'Soap_Glob': 'default', 'Ducky_Glob': 'default', 'Comet_Glob': 'default', 'Grey': 'default', 'Special': 'default', 'Global': 'default' },
   equippedTowers: ['Glob', 'Red_Glob'],
   cheatedModeActive: false,
@@ -1394,6 +1483,20 @@ let gameState = {
   blockQuestCompleted: false,
   blockQuestVictories: 0,
   blockQuestHadBlockTales: false,
+  acrossTheTimeProgress: {
+    started: false,
+    spaceOneComplete: false,
+    spaceTwoComplete: false,
+    spaceThreeComplete: false,
+    completed: false,
+    timeAttackUnlocked: false
+  },
+  acrossTheTimeSpace: 0,
+  acrossTimeCrystals: 0,
+  acrossTimePuzzleSpots: [],
+  acrossTimeBossReturns: 0,
+  acrossTimeTowerAttackTimer: 0,
+  acrossTimeTowerCaps: null,
   blockQuestStarted: false,
   paracristalActive: false,
   paracristalEnergy: 100,
@@ -1423,6 +1526,260 @@ let gameState = {
   wallGardenSoapMessageShown: false,
   uniquesBossSpawned: {}  // Tracks NOeye_Pyce, MoonStar_Pyce (only 1 per game)
 };
+
+let tutorialEquippedSkinsBackup = null;
+let tutorialProgressionBackup = null;
+const TUTORIAL_BOSSES_BY_MAP = {
+  gelatin_lake: ['4motions_Pyce'],
+  urbanistic_road: ['Cannon_Pycer', 'Knight_Pyce'],
+  sunlight_seaside: ['Old_Fungus'],
+  spooktacular_ruins: ['Blood_Taker', 'SkeleBone_Pyce']
+};
+const PERSONALIZABLE_BOMBOT_SKIN_ID = 'personalizable_bombot';
+const BOMBOT_ACCESSORIES = [
+  // --- ASPECTOS BASE (RESKINS) ---
+  { id: 'cuby_reskin', name: { es: 'Aspecto Cuby', en: 'Cuby Reskin' }, slot: 'reskin', image: 'Cuby (RESKIN).png', unlock: 'duckpass_cuby' },
+  { id: 'pinkbot_reskin', name: { es: 'Aspecto Pinkbot', en: 'Pinkbot Reskin' }, slot: 'reskin', image: 'Kirbybot (RESKIN).png', cost: 150, unlock: 'pink_family', copyright: 'Concept inspired by Kirby (\u00a9 HAL Laboratory / Nintendo)' },
+  { id: 'popguin_reskin', name: { es: 'Aspecto POPguin', en: 'POPguin Reskin' }, slot: 'reskin', image: 'POPguin (RESKIN).png', cost: 175, unlock: 'monster_framed' },
+  { id: 'volcabot_reskin', name: { es: 'Aspecto Volcabot', en: 'Volcabot Reskin' }, slot: 'reskin', image: 'Volcabot (RESKIN).png', cost: 250, unlock: 'fireflies_framed' },
+
+  // --- CABEZA (gorros y pelos) ---
+  { id: 'worker_cap', name: { es: 'Gorra de Obrero', en: 'Worker Cap' }, slot: 'head', image: 'Worker Cap.png', cost: 50 },
+  { id: 'umbrella_hat', name: { es: 'Sombrero Paraguas', en: 'Umbrella Hat' }, slot: 'head', image: 'Umbrella Hat.png', unlock: 'sunlight_hard' },
+  { id: 'santa_hat', name: { es: 'Gorro de Santa', en: 'Santa Hat' }, slot: 'head', image: 'Santa Hat.png', cost: 80 },
+  { id: 'witch_hat', name: { es: 'Sombrero de Bruja', en: 'Witch Hat' }, slot: 'head', image: 'Witch Hat.png', cost: 80 },
+  { id: 'princess_hat', name: { es: 'Sombrero de Princesa', en: 'Princess Hat' }, slot: 'head', image: 'Princess Hat.png', cost: 50 },
+  { id: 'bombot_hair', name: { es: 'Pelo de Bombot', en: 'Bombot Hair' }, slot: 'head', image: 'Bombot Hair.png', unlock: 'duckpass_bombot_hair' },
+  { id: 'girly_hair', name: { es: 'Pelo Femenino', en: 'Girly Hair' }, slot: 'head', image: 'Girly Hair.png', unlock: 'duckpass_girly_hair' },
+  { id: 'headsets', name: { es: 'Auriculares', en: 'Headsets' }, slot: 'head', image: 'Headsets.png', cost: 50 },
+  { id: 'crystalized_hat', name: { es: 'Sombrero Cristalizado', en: 'Crystalized Hat' }, slot: 'head', image: 'Crystlaized Hat.png', unlock: 'interstellar' },
+  { id: 'rewamped_glob', name: { es: 'Gorro Glob Remasterizado', en: 'Rewamped Glob Hat' }, slot: 'head', image: 'RewampedGlob.png', unlock: 'rewamped_skin' },
+  { id: 'cutely_haired', name: { es: 'Pelo Adorable', en: 'Cutely Haired' }, slot: 'head', image: 'Cutely Haired.png', cost: 100, copyright: 'Inspired by Hatsune Miku (\u00a9 Crypton Future Media, Inc.)' },
+  { id: 'lovely_haired', name: { es: 'Pelo Encantador', en: 'Lovely Haired' }, slot: 'head', image: 'Lovely Haired.png', cost: 100, copyright: 'Inspired by Kasane Teto (\u00a9 AHS Co., Ltd.)' },
+
+  // --- FRONTAL ---
+  { id: 'glasses1', name: { es: 'Gafas 1', en: 'Glasses 1' }, slot: 'front', frontType: 'glasses', image: 'Glasses1.png', cost: 50 },
+  { id: 'glasses2', name: { es: 'Gafas 2', en: 'Glasses 2' }, slot: 'front', frontType: 'glasses', image: 'Glasses2.png', cost: 50 },
+  { id: 'sunglasses', name: { es: 'Gafas de Sol', en: 'Sunglasses' }, slot: 'front', frontType: 'glasses', image: 'Sunglasses.png', unlock: 'sunlight_seaside' },
+  { id: 'pyce2_headset', name: { es: 'Gafas RV Pyce2', en: 'Pyce2 VR Headset' }, slot: 'front', frontType: 'glasses', image: 'Pyce2 Headset.png', unlock: 'duckpass_pyce2_headset' },
+  { id: 'girly_eyelashes', name: { es: 'Pestañas', en: 'Girly Eyelashes' }, slot: 'front', frontType: 'eyelashes', image: 'Girly eyes.png', cost: 50 },
+  { id: 'glob_mask', name: { es: 'Máscara Glob', en: 'Glob Mask' }, slot: 'front', frontType: 'mask', image: 'Glob Mask.png', unlock: 'gelatin_lake' },
+  { id: 'noeye_mask', name: { es: 'Máscara NOeye', en: 'NOeye Mask' }, slot: 'front', frontType: 'mask', image: 'NOeye Mask.png', unlock: 'anti_normal' },
+  { id: 'cyborg', name: { es: 'Cíborg', en: 'Cyborg' }, slot: 'front', frontType: 'cyborg', image: 'Cyborg.png', cost: 50 },
+  { id: 'magic_wand', name: { es: 'Varita Mágica', en: 'Magic Wand' }, slot: 'front', frontType: 'hand', image: 'Magic Wand.png', cost: 50 },
+  { id: 'microphone', name: { es: 'Micrófono', en: 'Microphone' }, slot: 'front', frontType: 'hand', image: 'Microphone.png', cost: 50 },
+  { id: 'girly_eyelashes_dark', name: { es: 'Pestañas Negras', en: 'Dark Eyelashes' }, slot: 'front', frontType: 'eyelashes', image: 'Girly eyes (Cuby).png', cost: 50 },
+  { id: 'the_watcher', name: { es: 'El Vigilante', en: 'The Watcher' }, slot: 'front', frontType: 'hand', image: 'TheWatcher.png', cost: 100, copyright: 'Inspired by Yo-kai Watch (\u00a9 LEVEL-5 Inc.)' },
+  { id: 'wb_shield', name: { es: 'Escudo W-B', en: 'W-B Shield' }, slot: 'front', frontType: 'hand', image: 'W-B Shield.png', cost: 50 },
+  { id: 'wb_sword', name: { es: 'Espada W-B', en: 'W-B Sword' }, slot: 'front', frontType: 'hand', image: 'W-B Sword.png', cost: 50 },
+
+  // --- TRAJES ---
+  { id: 'companied_suit', name: { es: 'Traje Formal', en: 'Companied Suit' }, slot: 'suit', image: 'Companied Suit.png', unlock: 'urbanistic_road' },
+  { id: 'pumpkin', name: { es: 'Traje de Calabaza', en: 'Pumpkin' }, slot: 'suit', image: 'Pumpkin.png', unlock: 'spooktacular_ruins' },
+  { id: 'portlalic_suit', name: { es: 'Traje Portálico', en: 'Portalic Suit' }, slot: 'suit', image: 'Portlalic Suit.png', unlock: 'urban_corrupt' },
+  { id: 'darkness_emissary', name: { es: 'Emisario Oscuro', en: 'Darkness Emissary' }, slot: 'suit', image: 'Darkness Emisary.png', unlock: 'spooktacular_anti_normal' },
+  { id: 'insanely_cristalized', name: { es: 'Increíblemente Cristalizado', en: 'Insanely Cristalized' }, slot: 'suit', image: 'Inanely Cristalized.png', unlock: 'interstellar' }
+];
+const BOMBOT_ACCESSORY_ASSET_ROOT = 'Spooks in the Desert (UPD4)/Skins/Personalizable Bombot (SKIN + ACCESORIES)/';
+
+const BOMBOT_ACCESSORY_PREVIEWS = {
+  girly_eyelashes: { scale: 3.5, x: 6.3, y: 13.9 },
+  girly_eyelashes_dark: { scale: 3.5, x: 6.3, y: 13.9 },
+  magic_wand: { scale: 1.9, x: 37.8, y: 17.4 },
+  microphone: { scale: 1.8, x: 35.6, y: 20.8 },
+  cyborg: { scale: 2.2, x: 14.8, y: 4.4 },
+  glasses1: { scale: 2.2, x: 8.3, y: 9.7 },
+  glasses2: { scale: 2.2, x: 8.3, y: 9.7 },
+  sunglasses: { scale: 2.2, x: 6.3, y: 10.2 },
+  pyce2_headset: { scale: 1.8, x: 3.5, y: 6.5 },
+  rewamped_glob: { scale: 1.8, x: -13.9, y: 18.8 }
+};
+
+function getBombotAccessoryName(accessory) {
+  if (!accessory) return '';
+  if (typeof accessory.name === 'object') {
+    return accessory.name[currentLanguage] || accessory.name.es || accessory.name.en || '';
+  }
+  return accessory.name || '';
+}
+
+function getEquippedBombotFronts() {
+  const fronts = gameState.equippedBombotAccessories?.front;
+  if (Array.isArray(fronts)) return fronts;
+  return fronts ? [fronts] : [];
+}
+
+function normalizeEquippedBombotAccessories(accessories = {}) {
+  const rawFrontItems = Array.isArray(accessories.front)
+    ? accessories.front
+    : accessories.front ? [accessories.front] : [];
+  let equippedGlasses = null;
+  let equippedAccessory = null;
+
+  rawFrontItems.forEach(id => {
+    const accessory = BOMBOT_ACCESSORIES.find(item => item.id === id);
+    if (!accessory || accessory.slot !== 'front') return;
+    if (accessory.frontType === 'glasses') {
+      if (!equippedGlasses && accessories.suit !== 'pumpkin') {
+        equippedGlasses = id;
+      }
+    } else {
+      if (!equippedAccessory) {
+        equippedAccessory = id;
+      }
+    }
+  });
+
+  const frontItems = [equippedGlasses, equippedAccessory].filter(Boolean);
+  return {
+    reskin: accessories.reskin || null,
+    head: accessories.head || null,
+    front: frontItems,
+    suit: accessories.suit || null
+  };
+}
+
+function getBombotAccessoryLayerIds(accessories = gameState.equippedBombotAccessories) {
+  const normalized = normalizeEquippedBombotAccessories(accessories);
+  const fronts = normalized.front;
+  const glasses = fronts.filter(id =>
+    BOMBOT_ACCESSORIES.find(accessory => accessory.id === id)?.frontType === 'glasses'
+  );
+  const otherFronts = fronts.filter(id => !glasses.includes(id));
+  return [
+    ...glasses,
+    ...otherFronts,
+    normalized.head,
+    normalized.suit,
+    normalized.reskin
+  ].filter(Boolean);
+}
+
+function ensurePersonalizableBombotUnlocked() {
+  if (!TOWER_TYPES.Work_Bombot?.unlocked) return false;
+  if (!gameState.unlockedSkins.includes(PERSONALIZABLE_BOMBOT_SKIN_ID)) {
+    gameState.unlockedSkins.push(PERSONALIZABLE_BOMBOT_SKIN_ID);
+    return true;
+  }
+  return false;
+}
+
+function unlockBombotAccessoriesForVictory() {
+  if (gameState.mode === 'tutorial') return;
+  const unlocks = [];
+  const isMapMode = !['interstellar', 'acrossTheTime', 'timeAttack'].includes(gameState.mode);
+  if (isMapMode && gameState.map === 'gelatin_lake') unlocks.push('glob_mask');
+  if (isMapMode && gameState.map === 'urbanistic_road') unlocks.push('companied_suit');
+  if (isMapMode && gameState.map === 'sunlight_seaside') {
+    unlocks.push('sunglasses');
+    if (!['facil', 'normal'].includes(gameState.mode)) unlocks.push('umbrella_hat');
+  }
+  if (isMapMode && gameState.map === 'spooktacular_ruins') unlocks.push('pumpkin');
+
+  // Requisitos específicos de modo
+  if (isMapMode && gameState.mode === 'antiNormal') unlocks.push('noeye_mask');
+  if (isMapMode && gameState.map === 'urbanistic_road' && gameState.mode === 'corrupto') unlocks.push('portlalic_suit');
+  if (isMapMode && gameState.map === 'spooktacular_ruins' && gameState.mode === 'antiNormal') unlocks.push('darkness_emissary');
+
+  // Interstellar Menace
+  if (gameState.mode === 'interstellar' && gameState.wave >= 40) {
+    unlocks.push('crystalized_hat', 'insanely_cristalized');
+  }
+
+  // Rewamp skin presente
+  const rewampSkinIds = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set'];
+  if ((gameState.unlockedSkins || []).some(s => rewampSkinIds.includes(s))) {
+    unlocks.push('rewamped_glob');
+  }
+
+  // Duck Pass levels
+  const dpLevel = Number(gameState.duckPassLevel) || 1;
+  if (dpLevel >= 15) unlocks.push('bombot_hair');
+  if (dpLevel >= 30) unlocks.push('girly_hair');
+  if (dpLevel >= 35) unlocks.push('cuby_reskin');
+  if (dpLevel >= 45) unlocks.push('pyce2_headset');
+
+  let changed = ensurePersonalizableBombotUnlocked();
+  unlocks.forEach(id => {
+    if (!gameState.unlockedBombotAccessories.includes(id)) {
+      gameState.unlockedBombotAccessories.push(id);
+      const accessory = BOMBOT_ACCESSORIES.find(item => item.id === id);
+      const accName = getBombotAccessoryName(accessory) || id;
+      showMessage(
+        currentLanguage === 'en'
+          ? `🎁 Bombot accessory unlocked: ${accName}!`
+          : `🎁 ¡Accesorio de Bombot desbloqueado: ${accName}!`,
+        'success'
+      );
+      changed = true;
+    }
+  });
+  if (changed && currentShopTab === 'skins') drawShop();
+}
+
+function getBombotAccessoryImage(id) {
+  const accessory = BOMBOT_ACCESSORIES.find(item => item.id === id);
+  return accessory ? `${BOMBOT_ACCESSORY_ASSET_ROOT}${accessory.image}` : null;
+}
+
+function getBombotCustomizationPreviewBackground() {
+  const accessories = gameState.equippedBombotAccessories;
+  const layers = getBombotAccessoryLayerIds(accessories)
+    .map(id => getBombotAccessoryImage(id))
+    .filter(Boolean)
+    .map(image => `url("${encodeURI(image)}")`);
+  const baseImage = SKINS_DATA.Special.find(skin =>
+    skin.id === PERSONALIZABLE_BOMBOT_SKIN_ID
+  )?.skins.Work_Bombot;
+  if (baseImage) layers.push(`url("${encodeURI(baseImage)}")`);
+  return layers.join(', ');
+}
+
+function syncBombotAccessoryUnlocksFromProgress() {
+  const hasWonMap = map => (gameState.profileMapModeWins?.[map] || []).length > 0;
+  const hasWonMapMode = (map, mode) => (gameState.profileMapModeWins?.[map] || []).includes(mode);
+  const hasWonAnyMapMode = mode => Object.values(gameState.profileMapModeWins || {}).some(modes => (modes || []).includes(mode));
+  const unlocked = [];
+
+  if (hasWonMap('gelatin_lake')) unlocked.push('glob_mask');
+  if (hasWonMap('urbanistic_road')) unlocked.push('companied_suit');
+  if (hasWonMap('sunlight_seaside')) unlocked.push('sunglasses');
+  if ((gameState.profileMapModeWins?.sunlight_seaside || [])
+    .some(mode => !['facil', 'normal'].includes(mode))) unlocked.push('umbrella_hat');
+  if (hasWonMap('spooktacular_ruins')) unlocked.push('pumpkin');
+
+  if (hasWonAnyMapMode('antiNormal')) unlocked.push('noeye_mask');
+  if (hasWonMapMode('urbanistic_road', 'corrupto')) unlocked.push('portlalic_suit');
+  if (hasWonMapMode('spooktacular_ruins', 'antiNormal')) unlocked.push('darkness_emissary');
+
+  if (gameState.unlockedInterstellar || BADGES.unmenaced?.unlocked ||
+      gameState.acrossTheTimeProgress?.completed) {
+    unlocked.push('crystalized_hat', 'insanely_cristalized');
+  }
+
+  const rewampSkinIds = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set'];
+  if ((gameState.unlockedSkins || []).some(s => rewampSkinIds.includes(s))) {
+    unlocked.push('rewamped_glob');
+  }
+
+  const dpLevel = Number(gameState.duckPassLevel) || 1;
+  if (dpLevel >= 15) unlocked.push('bombot_hair');
+  if (dpLevel >= 30) unlocked.push('girly_hair');
+  if (dpLevel >= 35) unlocked.push('cuby_reskin');
+  if (dpLevel >= 45) unlocked.push('pyce2_headset');
+
+  gameState.unlockedBombotAccessories = [...new Set([
+    ...(gameState.unlockedBombotAccessories || []),
+    ...unlocked
+  ])];
+  ensurePersonalizableBombotUnlocked();
+}
+
+function getTutorialBossHealthCap() {
+  const bosses = TUTORIAL_BOSSES_BY_MAP[gameState.map] || TUTORIAL_BOSSES_BY_MAP.gelatin_lake;
+  const finalWaveHealthScale = 1 + (5 * 0.15);
+  return bosses.reduce((total, type) => total + (ENEMY_TYPES[type]?.health || 0) * finalWaveHealthScale, 0);
+}
 
 const DEFAULT_ACCOUNT_GAME_STATE = JSON.parse(JSON.stringify(gameState));
 const DEFAULT_ACCOUNT_BADGES = Object.fromEntries(Object.entries(BADGES).map(([key, badge]) => [key, badge.unlocked]));
@@ -1476,6 +1833,20 @@ function canTowerHitEnemy(tower, enemy) {
   return !enemy.ghostMinEvolution || getTowerEvolutionLevel(tower.type) >= enemy.ghostMinEvolution;
 }
 
+function applyEnemyStun(enemy, duration, stacking = 'add') {
+  if (!enemy || enemy.stunImmune) return false;
+  const stunDuration = Number(duration);
+  if (!Number.isFinite(stunDuration) || stunDuration <= 0) return false;
+
+  const currentStun = Number(enemy.stunned) || 0;
+  enemy.stunned = stacking === 'replace'
+    ? stunDuration
+    : stacking === 'max'
+      ? Math.max(currentStun, stunDuration)
+      : currentStun + stunDuration;
+  return true;
+}
+
 function updateHypermutatedTowers() {
   const enabled = (gameState.hypermutatedUnlocked || gameState.debugState === 'unlocked') &&
     gameState.settings.hypermutatedEffect;
@@ -1527,6 +1898,12 @@ function getTowerPlacementLimits(type) {
       gameState.towerLimits[type] || gameState.towerLimits[family] || 3);
   }
   const configuredLimit = matchLimit;
+
+  if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace >= 3 &&
+      gameState.acrossTimeTowerCaps) {
+    const eventCap = Number(gameState.acrossTimeTowerCaps[type] ?? gameState.acrossTimeTowerCaps[family]);
+    if (Number.isFinite(eventCap) && eventCap >= 0) matchLimit = Math.min(matchLimit, eventCap);
+  }
 
   if (gameState.mode === 'interstellar' && !multiplayerEnabled) {
     const defaultLimits = {
@@ -1864,7 +2241,6 @@ function init() {
     scheduleSkipLoginButton();
     spawnDecorations('login-decorations');
     spawnDecorations('mode-decorations');
-    setInterval(updateLoginDecorationSpeeds, 100);
     updateMuteButton();
     checkLogin();
     if (!gameState.map) gameState.map = 'gelatin_lake';
@@ -1910,12 +2286,14 @@ function saveProgress() {
     duckPassXP: gameState.duckPassXP,
     duckPassLevel: gameState.duckPassLevel,
     duckPassCurrency: gameState.duckPassCurrency,
-    towerLimits: gameState.towerLimits,
-    baseHealthLevel: gameState.baseHealthLevel,
+    towerLimits: tutorialProgressionBackup?.towerLimits || gameState.towerLimits,
+    baseHealthLevel: tutorialProgressionBackup?.baseHealthLevel ?? gameState.baseHealthLevel,
     usedCodes: gameState.usedCodes,
     unlockedSkins: gameState.unlockedSkins,
+    unlockedBombotAccessories: gameState.unlockedBombotAccessories,
+    equippedBombotAccessories: gameState.equippedBombotAccessories,
     globlandHardWins: gameState.globlandHardWins,
-    equippedSkins: gameState.equippedSkins,
+    equippedSkins: tutorialEquippedSkinsBackup || gameState.equippedSkins,
     equippedTowers: gameState.equippedTowers,
     unlockedAntiNormal: gameState.unlockedAntiNormal,
     claimedRewards: gameState.claimedRewards,
@@ -1928,16 +2306,17 @@ function saveProgress() {
     cheatedModeActive: gameState.cheatedModeActive,
     cheatedBackup: gameState.cheatedBackup,
     // Campos de meta-progresión que faltaban
-    metaRangeLevel: gameState.metaRangeLevel,
-    metaRange: gameState.metaRange,
-    metaDamageLevel: gameState.metaDamageLevel,
-    metaDamage: gameState.metaDamage,
+    metaRangeLevel: tutorialProgressionBackup?.metaRangeLevel ?? gameState.metaRangeLevel,
+    metaRange: tutorialProgressionBackup?.metaRange ?? gameState.metaRange,
+    metaDamageLevel: tutorialProgressionBackup?.metaDamageLevel ?? gameState.metaDamageLevel,
+    metaDamage: tutorialProgressionBackup?.metaDamage ?? gameState.metaDamage,
     duckgrades: gameState.duckgrades,
     blockQuestActive: gameState.blockQuestActive,
     blockQuestStage: gameState.blockQuestStage,
     blockQuestCompleted: gameState.blockQuestCompleted,
     blockQuestVictories: gameState.blockQuestVictories,
     blockQuestHadBlockTales: gameState.blockQuestHadBlockTales,
+    acrossTheTimeProgress: gameState.acrossTheTimeProgress,
     paracristalEnergy: gameState.paracristalEnergy,
     paracristalFinal: gameState.paracristalFinal,
     upgradesResetV3: true,
@@ -1953,6 +2332,9 @@ function saveProgress() {
     profileBorder: gameState.profileBorder || 'default',
     profilePurchasedBorders: gameState.profilePurchasedBorders || [],
     profileMapModeWins: gameState.profileMapModeWins || {},
+    tutorialIntroSeen: gameState.tutorialIntroSeen !== false,
+    tutorialCompleted: Boolean(gameState.tutorialCompleted),
+    tutorialRewardGranted: Boolean(gameState.tutorialRewardGranted),
     savedRoundSnapshot: gameState.savedRoundSnapshot || null,
     hypermutatedUnlocked: gameState.hypermutatedUnlocked,
     glitchUnlocked: gameState.glitchUnlocked,
@@ -2027,6 +2409,9 @@ function loadProgress(username, allowLocalProgress = true) {
           if (BADGES[k]) BADGES[k].unlocked = progress.badges[k];
         });
       }
+      gameState.tutorialIntroSeen = progress.tutorialIntroSeen !== false;
+      gameState.tutorialCompleted = Boolean(progress.tutorialCompleted);
+      gameState.tutorialRewardGranted = Boolean(progress.tutorialRewardGranted);
       gameState.unlockedInfinite = progress.unlockedInfinite || false;
       gameState.unlockedInterstellar = progress.unlockedInterstellar || false;
       gameState.corruptWins = progress.corruptWins || 0;
@@ -2061,6 +2446,10 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.blockQuestCompleted = !!progress.blockQuestCompleted;
       gameState.blockQuestVictories = progress.blockQuestVictories || 0;
       gameState.blockQuestHadBlockTales = !!progress.blockQuestHadBlockTales;
+      gameState.acrossTheTimeProgress = {
+        ...gameState.acrossTheTimeProgress,
+        ...(progress.acrossTheTimeProgress || {})
+      };
       gameState.paracristalEnergy = progress.paracristalEnergy == null ? 100 : progress.paracristalEnergy;
       gameState.paracristalFinal = !!progress.paracristalFinal;
       if (progress.towerLimits) {
@@ -2069,6 +2458,19 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.baseHealthLevel = progress.baseHealthLevel || 0;
       gameState.usedCodes = progress.usedCodes || {};
       gameState.unlockedSkins = progress.unlockedSkins || ['default'];
+      gameState.unlockedBombotAccessories = [...new Set(progress.unlockedBombotAccessories || [])];
+      gameState.equippedBombotAccessories = {
+        head: null,
+        front: [],
+        suit: null,
+        reskin: null,
+        ...(progress.equippedBombotAccessories || {})
+      };
+      gameState.equippedBombotAccessories =
+        normalizeEquippedBombotAccessories(gameState.equippedBombotAccessories);
+      if (ensurePersonalizableBombotUnlocked()) {
+        gameState.unlockedSkins = [...new Set(gameState.unlockedSkins)];
+      }
       gameState.equippedSkins = Object.assign({ 'Glob': 'default', 'Red_Glob': 'default', 'Soap_Glob': 'default', 'Ducky_Glob': 'default', 'Comet_Glob': 'default', 'Grey': 'default', 'Special': 'default', 'Global': 'default' }, progress.equippedSkins || {});
       gameState.cheatedModeActive = progress.cheatedModeActive || false;
       gameState.cheatedBackup = progress.cheatedBackup || null;
@@ -2102,6 +2504,7 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.profileBorder = progress.profileBorder || 'default';
       gameState.profilePurchasedBorders = progress.profilePurchasedBorders || [];
       gameState.profileMapModeWins = progress.profileMapModeWins || {};
+      syncBombotAccessoryUnlocksFromProgress();
       gameState.savedRoundSnapshot = progress.savedRoundSnapshot || null;
       gameState.collectionMasterDialogueShown = !!progress.collectionMasterDialogueShown;
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
@@ -2177,25 +2580,6 @@ function isHalloweenLoginEnemy(imagePath) {
   return HALLOWEEN_LOGIN_SKIN_IMAGES.has(imagePath) || Object.keys(IMAGE_PATHS).some(type =>
     HALLOWEEN_LOGIN_ENEMIES.has(type) && IMAGE_PATHS[type] === imagePath
   );
-}
-
-function updateLoginDecorationSpeeds() {
-  const loginScreen = document.getElementById('login-screen');
-  const loginBox = loginScreen?.querySelector('.login-box');
-  const decorations = document.querySelectorAll('#login-decorations .floating-char:not([data-launched])');
-  const loginVisible = loginScreen && getComputedStyle(loginScreen).display !== 'none';
-  const boxRect = loginVisible ? loginBox?.getBoundingClientRect() : null;
-  const boxVisible = boxRect && boxRect.width > 0 && boxRect.height > 0;
-
-  decorations.forEach(decoration => {
-    const rect = decoration.getBoundingClientRect();
-    const overlapsLoginBox = boxVisible &&
-      rect.left < boxRect.right &&
-      rect.right > boxRect.left &&
-      rect.top < boxRect.bottom &&
-      rect.bottom > boxRect.top;
-    decoration.classList.toggle('floating-char-behind-login', Boolean(overlapsLoginBox));
-  });
 }
 
 function triggerHalloweenJumpscare(type, enemyElement, imagePathOverride = null) {
@@ -2484,6 +2868,44 @@ function toggleMute() {
   saveProgress();
 }
 
+function restartAcrossTimeEvent() {
+  const failedSpace = gameState.acrossTheTimeSpace || 1;
+  const progress = gameState.acrossTheTimeProgress || {};
+  progress.started = true;
+  progress.completed = false;
+  if (failedSpace <= 1) {
+    progress.spaceOneComplete = false;
+    progress.spaceTwoComplete = false;
+    progress.spaceThreeComplete = false;
+    progress.spaceThreeStarted = false;
+    gameState.acrossTheTimeSpace = 1;
+    gameState.map = 'gelatin_lake';
+  } else if (failedSpace === 2) {
+    progress.spaceTwoComplete = false;
+    progress.spaceThreeComplete = false;
+    progress.spaceThreeStarted = false;
+    gameState.acrossTheTimeSpace = 2;
+    gameState.map = 'urbanistic_road';
+  } else if (failedSpace === 3) {
+    progress.spaceThreeComplete = false;
+    progress.spaceThreeStarted = true;
+    gameState.acrossTheTimeSpace = 3;
+    gameState.map = 'gelatin_lake';
+  } else {
+    gameState.acrossTheTimeSpace = 4;
+    gameState.map = 'spooktacular_ruins';
+  }
+  gameState.acrossTheTimeProgress = progress;
+  gameState.acrossTimeBossReturns = 0;
+  gameState.acrossTimeCrystals = 0;
+  if (gameState.acrossTheTimeSpace < 3) gameState.acrossTimeTowerCaps = null;
+  gameState.mode = 'acrossTheTime';
+  gameState.modeConfirmed = true;
+  transitionAcrossTimeMap(gameState.acrossTheTimeSpace, gameState.map, failedSpace === 4 ? 45 : 0);
+  showMessage(translate('across_time_restart'), 'warning');
+  saveProgress();
+}
+
 function updateMuteButton() {
   const btn = document.getElementById('mute-toggle');
   if (btn) btn.textContent = gameState.muted ? '🔇' : '🔊';
@@ -2517,8 +2939,9 @@ function getSupabaseAuthEmail(username) {
   return `${normalizedUsername}@accounts.glob-defenders.invalid`;
 }
 
-async function startGameSession(username, offline, accountId = null) {
+async function startGameSession(username, offline, accountId = null, isNewAccount = false) {
   cloudProgressReady = false;
+  let shouldOfferFirstTutorial = false;
   offensiveUsernameAttempts = 0;
   moderationAccountDeletionHandled = false;
   if (offensiveUsernameJumpscareTimeout !== null) {
@@ -2541,6 +2964,7 @@ async function startGameSession(username, offline, accountId = null) {
           await saveCloudProgress(activeCloudUserId, cloudProgress);
         }
       }
+      shouldOfferFirstTutorial = isNewAccount && !cloudProgress;
     } catch (error) {
       activeCloudUserId = null;
       console.error('No se pudo cargar el progreso de la cuenta desde Supabase:', error);
@@ -2565,6 +2989,9 @@ async function startGameSession(username, offline, accountId = null) {
     localStorage.setItem('glob_offline_mode', 'true');
   } else {
     localStorage.removeItem('glob_offline_mode');
+  }
+  if (gameState.tutorialCompleted && !gameState.tutorialRewardGranted) {
+    awardTutorialCompletion();
   }
   if (localStorage.getItem(HYPERMUTATED_PENDING_KEY) === 'true') {
     unlockHypermutatedEffect();
@@ -2612,7 +3039,19 @@ async function startGameSession(username, offline, accountId = null) {
     document.getElementById('map-selection').style.display = 'flex';
     const inviteParams = new URLSearchParams(window.location.search);
     const invitedSeed = inviteParams.get('seed');
-    if (!autoJoinAttempted && !offline && invitedSeed && /^[A-Z][A-Z0-9]{6}$/.test(invitedSeed.toUpperCase())) {
+    if (isNewAccount) {
+      localStorage.removeItem(`glob_tutorial_pending_${username.toLowerCase()}`);
+    }
+    if (shouldOfferFirstTutorial) {
+      gameState.tutorialIntroSeen = true;
+      saveProgress();
+      if (invitedSeed) autoJoinAttempted = true;
+      window.setTimeout(() => launchTutorial('gelatin_lake'), 0);
+    } else if (!gameState.tutorialIntroSeen) {
+      gameState.tutorialIntroSeen = true;
+      saveProgress();
+    }
+    if (!shouldOfferFirstTutorial && !autoJoinAttempted && !offline && invitedSeed && /^[A-Z][A-Z0-9]{6}$/.test(invitedSeed.toUpperCase())) {
       autoJoinAttempted = true;
       document.getElementById('seed-input').value = invitedSeed.toUpperCase();
       setTimeout(() => window.loadSeed(), 0);
@@ -3029,8 +3468,10 @@ async function handleLogin() {
       return;
     }
 
+    const pendingTutorialKey = `glob_tutorial_pending_${username.toLowerCase()}`;
+    const isNewAccount = localStorage.getItem(pendingTutorialKey) === 'true';
     const playerName = data.user.user_metadata?.player_name || username.trim();
-    await startGameSession(playerName, false, data.user.id);
+    await startGameSession(playerName, false, data.user.id, isNewAccount);
   } catch (error) {
     console.error('Error al iniciar sesión con Supabase:', error);
     showLoginError(error.message || translate('loginError'));
@@ -3061,6 +3502,9 @@ async function handleCreateAccount() {
       options: { data: { player_name: playerName } }
     });
     if (error) throw error;
+    if (data.user) {
+      localStorage.setItem(`glob_tutorial_pending_${username.toLowerCase()}`, 'true');
+    }
     if (!data.session || !data.user) {
       const confirmationMessage = currentLanguage === 'en'
         ? 'Account created, but this Supabase project requires email confirmation. Disable Confirm email in Authentication settings to use username-only accounts.'
@@ -3073,7 +3517,7 @@ async function handleCreateAccount() {
       return;
     }
     document.getElementById('username-input').value = username.toLowerCase();
-    await startGameSession(playerName, false, data.user.id);
+    await startGameSession(playerName, false, data.user.id, true);
   } catch (error) {
     console.error('Error al crear la cuenta en Supabase:', error);
     if (/email rate limit exceeded/i.test(error.message || '')) {
@@ -3315,6 +3759,11 @@ function showModeSelection() {
   gameState.modeConfirmed = false;
   renderMultiplayerPlayerList([]);
   document.getElementById('mode-selection').style.display = 'flex';
+  const tutorialButton = document.querySelector('.mode-btn[data-mode="tutorial"]');
+  if (tutorialButton) {
+    tutorialButton.textContent = translate('tutorial_mode_name');
+    tutorialButton.title = translate('tutorial_mode_desc');
+  }
   if (gameState.antiNormalActive) {
     document.getElementById('mode-selection').classList.add('glitch-state');
     const disableButton = document.getElementById('disable-antinormal-btn');
@@ -3358,6 +3807,28 @@ function showModeSelection() {
       btn.onclick = () => selectMode('interstellar');
       grid.appendChild(btn);
     }
+
+    if (hasAcrossTimeAccessBadges() && canPlayAcrossTimeSolo() && gameState.map === 'gelatin_lake') {
+      const btn = document.createElement('button');
+      btn.className = 'mode-btn dynamic-mode mode-btn-across-time';
+      btn.dataset.mode = 'acrossTheTime';
+      btn.textContent = translate('across_time_mode_name');
+      btn.title = translate('across_time_mode_desc');
+      btn.onclick = () => selectMode('acrossTheTime');
+      grid.appendChild(btn);
+    }
+
+    if (gameState.acrossTheTimeProgress?.timeAttackUnlocked &&
+        canPlayAcrossTimeSolo() &&
+        ['gelatin_lake', 'urbanistic_road', 'spooktacular_ruins'].includes(gameState.map)) {
+      const btn = document.createElement('button');
+      btn.className = 'mode-btn dynamic-mode mode-btn-time-attack';
+      btn.dataset.mode = 'timeAttack';
+      btn.textContent = translate('time_attack_mode_name');
+      btn.title = translate('time_attack_mode_desc');
+      btn.onclick = () => selectMode('timeAttack');
+      grid.appendChild(btn);
+    }
   }
 
   modes.forEach(m => {
@@ -3376,6 +3847,183 @@ function showModeSelection() {
     }
   });
 }
+
+function ensureTutorialGuide() {
+  let guide = document.getElementById('tutorial-guide');
+  if (guide) return guide;
+  guide = document.createElement('aside');
+  guide.id = 'tutorial-guide';
+  guide.className = 'tutorial-guide';
+  guide.setAttribute('role', 'status');
+  guide.setAttribute('aria-live', 'polite');
+  const image = document.createElement('img');
+  image.src = encodeURI(IMAGE_PATHS.Work_Bombot);
+  image.alt = 'Work-Bombot';
+  const copy = document.createElement('div');
+  copy.className = 'tutorial-guide-copy';
+  const title = document.createElement('strong');
+  const text = document.createElement('p');
+  const continueButton = document.createElement('button');
+  continueButton.type = 'button';
+  continueButton.addEventListener('click', () => {
+    if (gameState.mode === 'tutorial' && gameState.tutorialStage === 'families') {
+      setTutorialStage('build');
+    }
+  });
+  copy.append(title, text, continueButton);
+  guide.append(image, copy);
+  document.body.appendChild(guide);
+  return guide;
+}
+
+function awardTutorialCompletion() {
+  if (gameState.tutorialRewardGranted) return;
+  gameState.tutorialCompleted = true;
+  gameState.tutorialRewardGranted = true;
+  gameState.claimedRewards = (gameState.claimedRewards || []).filter(key => key !== 'tutorial');
+  if (!BADGES.tutorial.unlocked) {
+    unlockBadge('tutorial');
+  } else {
+    drawBadges();
+    saveProgress();
+  }
+}
+
+function setTutorialStage(stage) {
+  gameState.tutorialStage = stage;
+  const guide = stage === null
+    ? document.getElementById('tutorial-guide')
+    : ensureTutorialGuide();
+  if (!guide) return;
+  if (gameState.mode !== 'tutorial' || stage === null || stage === 'complete') {
+    guide.hidden = true;
+    return;
+  }
+  guide.hidden = false;
+  guide.querySelector('strong').textContent = translate('tutorial_guide_title');
+  guide.querySelector('p').textContent = translate(`tutorial_guide_${stage}`);
+  const continueButton = guide.querySelector('button');
+  continueButton.textContent = translate('tutorial_continue');
+  continueButton.hidden = stage !== 'families';
+}
+
+function setTutorialSkinsEnabled(enabled) {
+  if (enabled) {
+    if (!tutorialEquippedSkinsBackup) {
+      tutorialEquippedSkinsBackup = { ...gameState.equippedSkins };
+    }
+    new Set([...Object.keys(gameState.equippedSkins), ...Object.keys(SKINS_DATA)]).forEach(family => {
+      gameState.equippedSkins[family] = 'default';
+    });
+    return;
+  }
+
+  if (!tutorialEquippedSkinsBackup) return;
+  gameState.equippedSkins = tutorialEquippedSkinsBackup;
+  tutorialEquippedSkinsBackup = null;
+  gameState.towers.forEach(tower => {
+    tower.el.style.backgroundImage = `url('${encodeURI(getTowerImage(tower.type))}')`;
+    applyTowerEffects(tower.el, tower.type);
+  });
+  saveProgress();
+}
+
+function setTutorialProgressionEnabled(enabled) {
+  if (enabled) {
+    if (!tutorialProgressionBackup) {
+      tutorialProgressionBackup = {
+        towerLimits: { ...gameState.towerLimits },
+        baseHealthLevel: gameState.baseHealthLevel,
+        metaRangeLevel: gameState.metaRangeLevel,
+        metaRange: gameState.metaRange,
+        metaDamageLevel: gameState.metaDamageLevel,
+        metaDamage: gameState.metaDamage
+      };
+    }
+    gameState.towerLimits = { ...DEFAULT_ACCOUNT_GAME_STATE.towerLimits };
+    gameState.baseHealthLevel = DEFAULT_ACCOUNT_GAME_STATE.baseHealthLevel;
+    gameState.metaRangeLevel = DEFAULT_ACCOUNT_GAME_STATE.metaRangeLevel;
+    gameState.metaRange = DEFAULT_ACCOUNT_GAME_STATE.metaRange;
+    gameState.metaDamageLevel = DEFAULT_ACCOUNT_GAME_STATE.metaDamageLevel;
+    gameState.metaDamage = DEFAULT_ACCOUNT_GAME_STATE.metaDamage;
+    return;
+  }
+
+  if (!tutorialProgressionBackup) return;
+  gameState.towerLimits = tutorialProgressionBackup.towerLimits;
+  gameState.baseHealthLevel = tutorialProgressionBackup.baseHealthLevel;
+  gameState.metaRangeLevel = tutorialProgressionBackup.metaRangeLevel;
+  gameState.metaRange = tutorialProgressionBackup.metaRange;
+  gameState.metaDamageLevel = tutorialProgressionBackup.metaDamageLevel;
+  gameState.metaDamage = tutorialProgressionBackup.metaDamage;
+  tutorialProgressionBackup = null;
+  saveProgress();
+}
+
+function initializeTutorialRun() {
+  gameState.tutorialFocusSpotId = null;
+  gameState.autoWave = false;
+  gameState.globetines = 650;
+  setTutorialStage('place_green');
+}
+
+function updateTutorialArmyProgress() {
+  const greenCount = gameState.towers.filter(tower => tower.family === 'Glob').length;
+  const redCount = gameState.towers.filter(tower => tower.family === 'Red_Glob').length;
+  if (greenCount >= 3 && redCount >= 4) setTutorialStage('waves');
+}
+
+function launchTutorial(mapKey = 'gelatin_lake') {
+  if (multiplayerEnabled || currentSeed) {
+    showMessage(translate('tutorial_solo_required'), 'warning');
+    return;
+  }
+  const targetMap = MAPS[mapKey] ? mapKey : 'gelatin_lake';
+  gameState.map = targetMap;
+  generateSpots();
+  createMap();
+  document.getElementById('map-selection').style.display = 'none';
+  document.getElementById('mode-selection').style.display = 'none';
+  selectMode('tutorial');
+}
+
+window.repeatTutorial = function() {
+  if (multiplayerEnabled || currentSeed) {
+    showMessage(translate('tutorial_solo_required'), 'warning');
+    return;
+  }
+  closeModal('encyclopedia-modal');
+  launchTutorial(MAPS[gameState.map] ? gameState.map : 'gelatin_lake');
+};
+
+let tutorialSkipTrigger = null;
+
+function closeTutorialSkipDialog() {
+  const modal = document.getElementById('tutorial-skip-modal');
+  if (!modal || modal.hidden) return;
+  modal.hidden = true;
+  modal.style.display = 'none';
+  const trigger = tutorialSkipTrigger;
+  tutorialSkipTrigger = null;
+  if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus();
+}
+
+function openTutorialSkipDialog(trigger) {
+  const modal = document.getElementById('tutorial-skip-modal');
+  if (!modal) {
+    console.error('No se pudo abrir la confirmación para saltar el tutorial: falta #tutorial-skip-modal.');
+    return;
+  }
+  tutorialSkipTrigger = trigger instanceof HTMLElement ? trigger : document.activeElement;
+  modal.hidden = false;
+  modal.style.display = 'flex';
+  document.getElementById('tutorial-skip-cancel')?.focus();
+}
+
+window.skipTutorial = function(event) {
+  if (gameState.mode !== 'tutorial') return;
+  openTutorialSkipDialog(event?.currentTarget);
+};
 
 function disableAntiNormal() {
   gameState.antiNormalActive = false;
@@ -3532,7 +4180,425 @@ function showCollectionMasterDialogue() {
   );
 }
 
+function hasAcrossTimeAccessBadges() {
+  return Boolean(BADGES.unmenaced?.unlocked && BADGES.future_voyage?.unlocked);
+}
+
+function isAcrossTimeLoadoutValid() {
+  const requiredFamilies = ['Glob', 'Worker_Glob', 'Soap_Glob', 'White', 'Red_Glob'];
+  return Array.isArray(gameState.equippedTowers) &&
+    gameState.equippedTowers.length === requiredFamilies.length &&
+    gameState.equippedTowers.map(getTowerFamily).every((family, index) => family === requiredFamilies[index]);
+}
+
+function refreshAcrossTimeAppearance() {
+  const map = document.getElementById('map');
+  if (!map) return;
+  let overlay = document.getElementById('across-time-overlay');
+  if (gameState.mode !== 'acrossTheTime' || ![1, 3, 4].includes(gameState.acrossTheTimeSpace)) {
+    overlay?.remove();
+    return;
+  }
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'across-time-overlay';
+    overlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:100;transition:background-color 1s ease;';
+    map.appendChild(overlay);
+  }
+  const wave = gameState.wave || 0;
+  let color = 'rgba(0, 55, 255, 0.22)';
+  if (gameState.acrossTheTimeSpace === 3) {
+    const alpha = wave <= 15 ? 1 : wave <= 30 ? 0.58 : 0.28;
+    color = `rgba(0, 0, 0, ${alpha})`;
+  } else if (gameState.acrossTheTimeSpace === 4) {
+    color = 'rgba(0, 0, 0, 0.5)';
+  }
+  overlay.style.backgroundColor = color;
+}
+
+function clearAcrossTimePuzzleMarkers() {
+  document.querySelectorAll('.across-time-puzzle-marker').forEach(marker => marker.remove());
+  gameState.acrossTimePuzzleSpots = [];
+}
+
+function createAcrossTimePuzzleMarkers() {
+  clearAcrossTimePuzzleMarkers();
+  const map = document.getElementById('map');
+  if (!map || TOWER_SPOTS.length < 17) {
+    console.error('Across the Time puzzle cannot be shown: Urbanistic Road needs at least 17 tower spots.');
+    showMessage(currentLanguage === 'en'
+      ? 'The puzzle could not be prepared because this map has too few valid tower spots.'
+      : 'No se pudo preparar el puzle porque el mapa no tiene suficientes posiciones válidas para torres.',
+    'error');
+    return false;
+  }
+
+  const symbols = [
+    { letter: 'L', color: '#65dcff', points: [[0, 0], [0, 1], [0, 2], [1, 2]], origin: [90, 105] },
+    { letter: 'X', color: '#ffdc62', points: [[0, 0], [1, 1], [2, 2], [0, 2], [2, 0]], origin: [300, 105] },
+    { letter: 'T', color: '#ff7185', points: [[0, 0], [1, 0], [2, 0], [1, 1], [1, 2]], origin: [535, 105] },
+    { letter: '_', color: '#c391ff', points: [[0, 0], [1, 0], [2, 0]], origin: [780, 365] }
+  ];
+  const usedSpots = new Set();
+  symbols.forEach(symbol => {
+    symbol.points.forEach(([column, row]) => {
+      const targetX = symbol.origin[0] + column * 68;
+      const targetY = symbol.origin[1] + row * 68;
+      const spotId = TOWER_SPOTS
+        .map((spot, index) => ({
+          index,
+          distance: Math.hypot(spot.x + 40 - targetX, spot.y + 40 - targetY)
+        }))
+        .filter(candidate => !usedSpots.has(candidate.index))
+        .sort((a, b) => a.distance - b.distance)[0]?.index;
+      if (spotId === undefined) return;
+      usedSpots.add(spotId);
+      gameState.acrossTimePuzzleSpots.push(spotId);
+      const spot = TOWER_SPOTS[spotId];
+      const marker = document.createElement('div');
+      marker.className = 'across-time-puzzle-marker';
+      marker.textContent = symbol.letter;
+      marker.title = symbol.letter;
+      marker.style.cssText = `position:absolute;left:${spot.x + 40}px;top:${spot.y + 40}px;transform:translate(-50%,-50%);width:28px;height:28px;border:2px solid ${symbol.color};border-radius:50%;background:rgba(8,12,24,.82);color:${symbol.color};font:bold 17px sans-serif;display:grid;place-items:center;z-index:90;pointer-events:none;text-shadow:0 0 6px ${symbol.color};box-shadow:0 0 8px ${symbol.color};`;
+      map.appendChild(marker);
+    });
+  });
+  refreshAcrossTimeAppearance();
+  showMessage(translate('across_time_puzzle'), 'info');
+  return gameState.acrossTimePuzzleSpots.length === 17;
+}
+
+function isAcrossTimePuzzleSolved() {
+  return gameState.acrossTimePuzzleSpots.length === 17 &&
+    gameState.acrossTimePuzzleSpots.every(spotId =>
+      gameState.towers.some(tower => Number(tower.spotId) === spotId)
+    );
+}
+
+function renderAcrossTimeCrystals(count, wave) {
+  document.querySelectorAll('.across-time-crystal').forEach(crystal => crystal.remove());
+  gameState.acrossTimeCrystals = count;
+  for (let index = 0; index < count; index++) {
+    let crystalHealth = 1 + Math.floor(wave / 5);
+    const crystal = document.createElement('button');
+    crystal.type = 'button';
+    crystal.className = 'across-time-crystal';
+    crystal.title = currentLanguage === 'en'
+      ? `Temporal crystal (${crystalHealth} hits)`
+      : `Cristal temporal (${crystalHealth} golpes)`;
+    crystal.style.cssText = `position:absolute;left:${60 + Math.random() * 850}px;top:${55 + Math.random() * 460}px;width:32px;height:32px;border:0;background:transparent url('${encodeURI(IMAGE_PATHS.MiniCrystal)}') center/contain no-repeat;filter:drop-shadow(0 0 8px #69f0ff);z-index:95;cursor:pointer;`;
+    crystal.onclick = event => {
+      event.stopPropagation();
+      crystalHealth--;
+      if (crystalHealth > 0) {
+        crystal.title = currentLanguage === 'en'
+          ? `Temporal crystal (${crystalHealth} hits)`
+          : `Cristal temporal (${crystalHealth} golpes)`;
+        showEffect(parseFloat(crystal.style.left), parseFloat(crystal.style.top), '✦', '#69f0ff');
+        return;
+      }
+      crystal.remove();
+      gameState.acrossTimeCrystals = Math.max(0, gameState.acrossTimeCrystals - 1);
+      showMessage(translate('across_time_crystals', { count: gameState.acrossTimeCrystals }), 'info');
+      checkpointActiveRound();
+    };
+    document.getElementById('map').appendChild(crystal);
+  }
+}
+
+function beginAcrossTimeEvent() {
+  if (!canPlayAcrossTimeSolo()) {
+    showMessage(translate('across_time_solo_required'), 'error');
+    return;
+  }
+  if (!hasAcrossTimeAccessBadges()) {
+    showMessage(translate('across_time_badges_required'), 'error');
+    return;
+  }
+  if (gameState.map !== 'gelatin_lake') {
+    showMessage(translate('across_time_map_required'), 'error');
+    return;
+  }
+  if (!isAcrossTimeLoadoutValid()) {
+    showMessage(translate('across_time_loadout_required'), 'error');
+    return;
+  }
+
+  gameState.map = 'gelatin_lake';
+  gameState.mode = 'acrossTheTime';
+  gameState.modeConfirmed = true;
+  gameState.maxWaves = 15;
+  gameState.acrossTheTimeSpace = 1;
+  gameState.acrossTimeBossReturns = 0;
+  gameState.acrossTheTimeProgress = {
+    ...gameState.acrossTheTimeProgress,
+    started: true,
+    spaceOneComplete: false,
+    spaceTwoComplete: false,
+    spaceThreeComplete: false,
+    completed: false
+  };
+  document.getElementById('mode-selection').style.display = 'none';
+  document.getElementById('map-selection').style.display = 'none';
+  retryGame();
+  gameState.acrossTheTimeSpace = 1;
+  gameState.maxWaves = 15;
+  document.getElementById('game-container').style.display = 'flex';
+  document.getElementById('meta-controls').style.display = 'flex';
+  refreshAcrossTimeAppearance();
+  saveProgress();
+  showAcrossTimeNarration('across_time_intro');
+  showMessage(currentLanguage === 'en'
+    ? 'Space I begins. Clear the temporal crystals in every wave.'
+    : 'Comienza el espacio I. Limpia los cristales temporales de cada oleada.',
+  'info');
+}
+
+function beginTimeAttackReplay() {
+  if (!canPlayAcrossTimeSolo()) {
+    showMessage(translate('across_time_solo_required'), 'error');
+    return;
+  }
+  if (!gameState.acrossTheTimeProgress?.timeAttackUnlocked) {
+    showMessage(translate('time_attack_progress_required'), 'error');
+    return;
+  }
+
+  const start = {
+    gelatin_lake: { space: 1, map: 'gelatin_lake' },
+    urbanistic_road: { space: 2, map: 'urbanistic_road' },
+    spooktacular_ruins: { space: 3, map: 'gelatin_lake' }
+  }[gameState.map];
+  if (!start) {
+    showMessage(translate('time_attack_map_required'), 'error');
+    return;
+  }
+
+  gameState.acrossTheTimeProgress.completed = false;
+  if (start.space === 1) {
+    gameState.acrossTheTimeProgress.spaceOneComplete = false;
+    gameState.acrossTheTimeProgress.spaceTwoComplete = false;
+    gameState.acrossTheTimeProgress.spaceThreeComplete = false;
+  } else if (start.space === 2) {
+    gameState.acrossTheTimeProgress.spaceTwoComplete = false;
+    gameState.acrossTheTimeProgress.spaceThreeComplete = false;
+  }
+  gameState.acrossTheTimeProgress.started = true;
+  gameState.acrossTheTimeSpace = start.space;
+  gameState.mode = 'acrossTheTime';
+  gameState.modeConfirmed = true;
+  transitionAcrossTimeMap(start.space, start.map);
+  document.getElementById('mode-selection').style.display = 'none';
+  document.getElementById('map-selection').style.display = 'none';
+  document.getElementById('game-container').style.display = 'flex';
+  document.getElementById('meta-controls').style.display = 'flex';
+  showMessage(translate('across_time_transition'), 'success');
+  saveProgress();
+}
+
+function transitionAcrossTimeMap(space, mapId, keepWave = 0) {
+  const previousHealth = gameState.health;
+  gameState.mode = 'acrossTheTime';
+  gameState.acrossTheTimeSpace = space;
+  gameState.map = mapId;
+  gameState.maxWaves = space === 3 ? 45 : space === 4 ? 50 : 15;
+  gameState.autoWave = false;
+  const autoWaveButton = document.getElementById('auto-wave');
+  if (autoWaveButton) autoWaveButton.classList.remove('active');
+  generateSpots();
+  createMap();
+  retryGame();
+  gameState.mode = 'acrossTheTime';
+  gameState.modeConfirmed = true;
+  gameState.acrossTheTimeSpace = space;
+  gameState.maxWaves = space === 3 ? 45 : space === 4 ? 50 : 15;
+  gameState.wave = keepWave;
+  gameState.acrossTimeBossReturns = 0;
+  gameState.acrossTimeCrystals = 0;
+  gameState.acrossTimeTowerAttackTimer = 0;
+  if (space === 2) gameState.globetines = 20000;
+  if (space >= 3) {
+    gameState.health = space === 3 && keepWave > 0 ? previousHealth : 300;
+    gameState.acrossTimeTowerCaps = { ...gameState.towerLimits };
+  }
+  if (space === 4) showAcrossTimeNarration('across_time_final_warning');
+  if (space === 2) createAcrossTimePuzzleMarkers();
+  else clearAcrossTimePuzzleMarkers();
+  refreshAcrossTimeAppearance();
+  updateUI();
+  showMessage(translate('across_time_transition'), 'warning');
+  saveProgress();
+}
+
+function completeAcrossTimeEvent() {
+  const progress = gameState.acrossTheTimeProgress || {};
+  if (progress.completed) return;
+  progress.completed = true;
+  progress.timeAttackUnlocked = true;
+  progress.spaceThreeComplete = true;
+  gameState.acrossTheTimeProgress = progress;
+  unlockBadge('across_time');
+  if (!gameState.unlockedSkins.includes('virtuallity_set')) {
+    gameState.unlockedSkins.push('virtuallity_set');
+    showMessage(translate('across_time_reward'), 'success');
+  }
+  saveProgress();
+  endGame(true);
+  const title = document.querySelector('#game-over h2');
+  const message = document.getElementById('game-over-msg');
+  if (title) {
+    title.removeAttribute('data-i18n');
+    title.textContent = translate('across_time_victory_title');
+  }
+  if (message) message.innerHTML = translate('across_time_victory_msg');
+  drawShop();
+  updateMetaUI();
+  saveProgress();
+}
+
+function handleAcrossTimeWaveCleared() {
+  const progress = gameState.acrossTheTimeProgress || {};
+  const wave = gameState.wave;
+  const space = gameState.acrossTheTimeSpace;
+  if (space === 1 && wave >= 15) {
+    progress.spaceOneComplete = true;
+    gameState.acrossTheTimeProgress = progress;
+    transitionAcrossTimeMap(2, 'urbanistic_road');
+  } else if (space === 2 && wave >= 15) {
+    progress.spaceTwoComplete = true;
+    gameState.acrossTheTimeProgress = progress;
+    gameState.autoWave = false;
+    showAcrossTimeNarration('across_time_after_space_two');
+    showMessage(translate('across_time_space_two_complete'), 'success');
+    saveProgress();
+  } else if (space === 3 && wave === 15) {
+    transitionAcrossTimeMap(3, 'urbanistic_road', wave);
+  } else if (space === 3 && wave === 30) {
+    transitionAcrossTimeMap(3, 'sunlight_seaside', wave);
+  } else if (space === 3 && wave >= 45) {
+    progress.spaceThreeComplete = true;
+    gameState.acrossTheTimeProgress = progress;
+    transitionAcrossTimeMap(4, 'spooktacular_ruins', wave);
+  } else if (space === 4 && wave >= 50) {
+    completeAcrossTimeEvent();
+  } else {
+    saveProgress();
+  }
+}
+
+function startAcrossTimeWave() {
+  if (gameState.waveActive || gameState.gameOver || gameState.paused) return;
+  if (gameState.acrossTheTimeSpace === 2 && gameState.wave === 0 && !isAcrossTimePuzzleSolved()) {
+    showMessage(translate('across_time_puzzle_failed'), 'error');
+    return;
+  }
+  if (gameState.acrossTheTimeSpace === 2 && gameState.wave === 0) {
+    showAcrossTimeNarration('across_time_puzzle_solved');
+  }
+  if (gameState.acrossTheTimeSpace === 3 && gameState.wave >= gameState.maxWaves) return;
+  if (gameState.acrossTheTimeSpace === 4 && gameState.wave >= gameState.maxWaves) return;
+
+  gameState.wave++;
+  gameState.waveActive = true;
+  gameState.spawningActive = true;
+  gameState.roundKills = [];
+  gameState.roundIExExplosions = 0;
+  gameState.acrossTimeCrystals = 0;
+  if (roundCheckpointInterval === null && (!currentSeed || isSeedHost)) {
+    roundCheckpointInterval = setInterval(checkpointActiveRound, 5000);
+  }
+  refreshAcrossTimeAppearance();
+  const space = gameState.acrossTheTimeSpace;
+  const wave = gameState.wave;
+  if (space === 3 && wave % 5 === 0 && wave % 15 !== 0) {
+    showMessage(translate('across_time_threat'), 'warning');
+  }
+  const regularPools = {
+    gelatin_lake: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Rebel_Pyce', 'BitY1', 'ByteGB1', 'Ren', 'Treeper', 'Broksp', 'Ghost_Pyce', 'Monster', 'Lenistal'],
+    urbanistic_road: ['BitY1', 'BitG2', 'BitP3', 'BitB4', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'HoloPyce', 'Rebel_Pyce', 'Strechy_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'Spyware1', 'Spyware2', 'Spyware3'],
+    sunlight_seaside: ['Piz', 'Ren', 'Baby_Shrum', 'Pysh', 'Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers', 'Creamplet', 'Umbrella_Pyce'],
+    spooktacular_ruins: ['Broksp', 'Blood_Taker', 'Pumpitch', 'RIPslide', 'Sneekmy', 'SkeleBone_Pyce', 'Ghost_Pyce', 'ZomPyce']
+  };
+  const commonPyces = ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Bomb_Pyce', 'Knight_Pyce'];
+  const acrossIds = ['Leni_the_big_Hammer', 'Monster', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'NO_CrystEye_CB', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'Arky', 'CrystArky', 'ArkyVoid', 'Fireflies', 'Treeper', 'Big_Treeper', 'Stacked_Treepers', 'Baby_Shrum', 'Shrum', 'Old_Fungus', 'Spyware1', 'Spyware2', 'Spyware3', 'BitY1', 'BitG2', 'BitP3', 'BitB4', 'ByteYP2', 'BytePG3', 'ByteYB4', 'ByteGB1'];
+  let pool = [];
+  let spawnCount = 5 + Math.floor(wave / 4);
+  const bossTypes = [];
+
+  if (space === 1) {
+    pool = wave < 4
+      ? ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce']
+      : Object.keys(ENEMY_TYPES).filter(type => !ENEMY_TYPES[type].boss && !ENEMY_TYPES[type].timeAttackOnly);
+    if (wave >= 4 && Math.random() < 0.25) pool.push('Clockwork_Titan', 'DIY_Bot', 'Hatspy', 'Local_Engines', 'Untimed_Atoms');
+    spawnCount = 4 + Math.floor(wave / 2);
+    if (wave === 15) bossTypes.push('GODs_Shadow');
+    else if (wave % 5 === 0) bossTypes.push('Arky');
+  } else if (space === 2) {
+    pool = regularPools.urbanistic_road;
+    if (Math.random() < 0.25) pool = pool.concat(['Clockwork_Titan', 'DIY_Bot', 'Hatspy', 'Local_Engines', 'Untimed_Atoms']);
+    spawnCount = 6 + Math.floor(wave / 3);
+    if (wave === 10) bossTypes.push('Arky');
+    if (wave === 15) bossTypes.push('MoonStar_Pyce', 'Roborb');
+  } else if (space === 3) {
+    const localWave = ((wave - 1) % 15) + 1;
+    const segment = Math.floor((wave - 1) / 15);
+    pool = segment === 0
+      ? commonPyces
+      : segment === 1
+        ? regularPools.urbanistic_road
+        : commonPyces.concat(acrossIds.filter(type => ENEMY_TYPES[type] && !ENEMY_TYPES[type].boss));
+    spawnCount = 5 + Math.floor(localWave / 2);
+    if (segment === 0 && localWave === 15) bossTypes.push('1x1x1x1_Pyce');
+    if (segment === 1 && localWave === 15) bossTypes.push('ArkyVoid');
+    if (segment === 2 && localWave === 15) bossTypes.push('DarkSpirit');
+  } else {
+    pool = regularPools.spooktacular_ruins.concat(commonPyces, acrossIds.filter(type => ENEMY_TYPES[type] && !ENEMY_TYPES[type].boss));
+    pool.push('Clockwork_Titan', 'DIY_Bot', 'Hatspy', 'Local_Engines', 'Untimed_Atoms');
+    spawnCount = 10 + Math.floor((wave - 45) * 2);
+    if (wave === 48) {
+      bossTypes.push(...Object.keys(ENEMY_TYPES).filter(type =>
+        ENEMY_TYPES[type].boss && type !== 'GODs_Shadow' && type !== 'Roborb'
+      ));
+    }
+    if (wave === 49) bossTypes.push('Roborb');
+    if (wave === 50) bossTypes.push('GODs_Shadow');
+    if (wave === 50) spawnCount = 0;
+  }
+
+  const spawnList = [];
+  for (let index = 0; index < spawnCount; index++) {
+    const validPool = pool.filter(type => ENEMY_TYPES[type] && (space === 4 || !ENEMY_TYPES[type].boss));
+    if (validPool.length) spawnList.push(validPool[Math.floor(Math.random() * validPool.length)]);
+  }
+  spawnList.unshift(...bossTypes);
+  gameState.waveSpawnQueue = spawnList;
+  gameState.waveSpawnIndex = 0;
+  gameState.waveSpawnIsBoss = bossTypes.length > 0;
+  gameState.waveBossTypes = bossTypes;
+  gameState.waveSpawnIntervalMs = Math.max(250, 850 - Math.min(500, wave * 15));
+  if (space === 1) {
+    const crystalCount = Math.min(5, 3 + Math.floor((wave - 1) / 4));
+    showMessage(translate('across_time_crystals', { count: crystalCount }), 'info');
+    renderAcrossTimeCrystals(crystalCount, wave);
+  }
+  startWaveSpawnInterval();
+  updateUI();
+}
+
 function selectMode(mode) {
+  if (mode === 'tutorial' && (multiplayerEnabled || currentSeed)) {
+    showMessage(translate('tutorial_solo_required'), 'warning');
+    return;
+  }
+  if (mode === 'timeAttack') {
+    beginTimeAttackReplay();
+    return;
+  }
+  if (mode === 'acrossTheTime') {
+    beginAcrossTimeEvent();
+    return;
+  }
+
   if (mode === 'interstellar') {
     startInterstellarMission(gameState.map === 'sunlight_seaside');
     return;
@@ -3551,9 +4617,20 @@ function selectMode(mode) {
     return;
   }
 
+  if (mode === 'tutorial') {
+    setTutorialSkinsEnabled(true);
+    setTutorialProgressionEnabled(true);
+  } else if (tutorialEquippedSkinsBackup) {
+    setTutorialSkinsEnabled(false);
+    setTutorialProgressionEnabled(false);
+  } else if (tutorialProgressionBackup) {
+    setTutorialProgressionEnabled(false);
+  }
+
   gameState.mode = mode;
+  updateBuffs();
   gameState.modeConfirmed = true;
-  const limits = { facil: 10, normal: 15, dificil: 25, extremo: 40, infinito: 999, corrupto: 40, antiNormal: 35, interstellar: 40 };
+  const limits = { tutorial: 5, facil: 10, normal: 15, dificil: 25, extremo: 40, infinito: 999, corrupto: 40, antiNormal: 35, interstellar: 40 };
   gameState.maxWaves = limits[mode] || 15;
 
   if (gameState.blockQuestActive && gameState.map === 'urbanistic_road' && ['dificil', 'extremo', 'corrupto', 'antiNormal'].includes(mode)) {
@@ -3579,11 +4656,13 @@ function selectMode(mode) {
   renderMultiplayerPlayerList(multiplayerPlayers);
   applyScale();
 
-  gameState.globetines = 500;
+  gameState.globetines = mode === 'tutorial' ? 650 : 500;
+  if (mode !== 'tutorial') setTutorialStage(null);
   updateUI();
   showMessage(translate('mode_selected', { mode: mode.toUpperCase() }), 'info');
 
   setTimeout(() => {
+    if (gameState.mode === 'tutorial') return;
     const isUrban = (gameState.map || 'gelatin_lake') === 'urbanistic_road';
     if (gameState.mode === 'corrupto') {
       if (isUrban) {
@@ -3890,13 +4969,13 @@ function createMap() {
 
   map.classList.remove('urban-map', 'sunlight-map', 'spook-map');
   if (allyBase) {
-    allyBase.classList.remove('casino-base', 'boat-base', 'spook-oasis-base');
+    allyBase.classList.remove('casino-base', 'tunnel-base', 'boat-base', 'spook-oasis-base');
     allyBase.style.left = '';
     allyBase.style.right = '';
     allyBase.style.top = '';
   }
   if (enemyBase) {
-    enemyBase.classList.remove('tunnel-base', 'raft-base', 'spook-pyramid-base');
+    enemyBase.classList.remove('casino-base', 'tunnel-base', 'raft-base', 'spook-pyramid-base');
     enemyBase.style.left = '';
     enemyBase.style.top = '';
     enemyBase.style.display = '';
@@ -3913,11 +4992,21 @@ function createMap() {
 
   if (mapKey === 'urbanistic_road') {
     map.classList.add('urban-map');
-    if (allyBase) {
+    const acrossTimeInverted = gameState.mode === 'acrossTheTime' &&
+      gameState.acrossTheTimeSpace === 2;
+    if (allyBase && acrossTimeInverted) {
+      allyBase.classList.add('tunnel-base');
+      allyBase.title = 'Base aliada: Túnel';
+      allyBase.textContent = '';
+    } else if (allyBase) {
       allyBase.classList.add('casino-base');
       allyBase.title = "Base aliada: Gambling Gaming Casino";
     }
-    if (enemyBase) {
+    if (enemyBase && acrossTimeInverted) {
+      enemyBase.classList.add('casino-base');
+      enemyBase.title = 'Base enemiga: Gambling Gaming Casino';
+      enemyBase.textContent = '';
+    } else if (enemyBase) {
       enemyBase.classList.add('tunnel-base');
       enemyBase.textContent = '';
     }
@@ -4325,6 +5414,15 @@ function ownerUnlockEverything() {
     BADGES[key].unlocked = true;
     if (!gameState.claimedRewards.includes(key)) gameState.claimedRewards.push(key);
   });
+  gameState.acrossTheTimeProgress = {
+    ...gameState.acrossTheTimeProgress,
+    started: true,
+    spaceOneComplete: true,
+    spaceTwoComplete: true,
+    spaceThreeComplete: true,
+    completed: true,
+    timeAttackUnlocked: true
+  };
   gameState.unlockedInfinite = true;
   gameState.unlockedInterstellar = true;
   gameState.duckPassLevel = Math.max(gameState.duckPassLevel, 100);
@@ -4447,7 +5545,8 @@ const DEBUG_SPEAKER_ALIASES = {
   crystarky: ['crystarky', 'cristal', 'arky', 'anti normal'],
   arkyvoid: ['arkyvoid', 'vacio', 'void', 'arky', 'boss'],
   one_x: ['1x1x1x1', 'one x', 'uno', 'corrupto', 'jefe', 'boss'],
-  astrorb: ['astrorb', 'orb', 'orbe', 'interstellar', 'interestelar']
+  astrorb: ['astrorb', 'orb', 'orbe', 'interstellar', 'interestelar'],
+  kirb_clone: ['kirbyte', 'kirbytebi', 'kirb', 'kirb clone', 'clone', 'gods shadow', 'kirb god']
 };
 
 function getSpeakerDebugAliases(id, data, languageData) {
@@ -4817,6 +5916,14 @@ function drawTowerShop() {
   const shopContainer = document.getElementById('tower-shop');
   if (!shopContainer) return;
   shopContainer.innerHTML = '';
+  if (gameState.mode === 'tutorial') {
+    const skipButton = document.createElement('button');
+    skipButton.type = 'button';
+    skipButton.className = 'tutorial-skip-button';
+    skipButton.textContent = translate('tutorial_skip');
+    skipButton.addEventListener('click', window.skipTutorial);
+    shopContainer.appendChild(skipButton);
+  }
 
   const allShopTowers = {
     'Glob':         { type: 'Glob', unlocked: true },
@@ -4834,7 +5941,10 @@ function drawTowerShop() {
     'Pirate_Glob':  { type: 'Pirate_Glob', unlocked: !!(TOWER_TYPES['Pirate_Glob'] && TOWER_TYPES['Pirate_Glob'].unlocked), req: 'shop' }
   };
 
-  const shopTowers = (gameState.equippedTowers || ['Glob', 'Red_Glob']).map(t => allShopTowers[t]).filter(Boolean);
+  const equippedTowerTypes = gameState.mode === 'tutorial' && gameState.tutorialStage !== 'waves'
+    ? ['Glob', 'Red_Glob']
+    : (gameState.equippedTowers || ['Glob', 'Red_Glob']);
+  const shopTowers = equippedTowerTypes.map(t => allShopTowers[t]).filter(Boolean);
 
   shopTowers.forEach(item => {
     const type = item.type;
@@ -4960,8 +6070,8 @@ function drawBadges() {
       const desc = translate(`badge_${b.key}_desc`);
   
       let rewardText = "";
-      if (b.reward.pycoins) rewardText = `<img src="img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins}`;
-      if (b.reward.duckpass) rewardText = `<img src="img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass}`;
+      if (b.reward.pycoins) rewardText += `<img src="img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins} `;
+      if (b.reward.duckpass) rewardText += `<img src="img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass} `;
       if (b.reward.xp) rewardText += ` ✨+${b.reward.xp}xp`;
   
       el.innerHTML = `
@@ -5355,6 +6465,8 @@ function switchEncyclopediaTab(tab) {
       Object.keys(ENEMY_TYPES).forEach(type => {
         const e = ENEMY_TYPES[type];
         if (HIDDEN_VARIANTS.includes(type)) return;
+        const acrossTimeRevealed = gameState.acrossTheTimeProgress?.spaceOneComplete === true;
+        if (e.timeAttackOnly && !acrossTimeRevealed && !isOwnerDebugUser()) return;
         
         let mapSource = e.mapSource || 'gelatin_lake';
         if (!e.mapSource) {
@@ -5418,7 +6530,7 @@ function switchEncyclopediaTab(tab) {
         btn.onclick = () => selectAlmanacItem(type, 'enemies');
         
         const isImportant = e.boss || e.isCrystallized || type === 'Mimic_Pyce' || type === 'Leni_the_big_Hammer' || type === 'Monster' || type === 'AstrorbOrbe';
-        btn.innerHTML = `<img src="${imageToShow}" title="${killed === 0 && isImportant ? '???' : translate(e.name || type)}">`;
+        btn.innerHTML = `<img src="${imageToShow}" title="${killed === 0 && isImportant ? '???' : translate(e.name || type)}" ${type === 'GODs_Shadow' ? 'style="filter:brightness(0)"' : ''}>`;
         enemyGrid.appendChild(btn);
       });
       
@@ -5439,9 +6551,7 @@ function switchEncyclopediaTab(tab) {
       btn.id = 'almanac-btn-' + b.key;
       btn.onclick = () => selectAlmanacItem(b.key, 'emblemas');
       if (!b.unlocked) btn.style.filter = 'grayscale(100%)';
-      // Fallback for missing icon image: use a text span if it's emoji, or img if it's an image.
-      // Badges use emojis right now in `icon`, so we render the emoji directly.
-      btn.innerHTML = `<span style="font-size:24px;">${b.icon}</span>`;
+      btn.innerHTML = `<span class="almanac-badge-icon">${b.icon}</span>`;
       grid.appendChild(btn);
     });
     // Default selection for emblemas as requested: duckpass or first item
@@ -5450,6 +6560,7 @@ function switchEncyclopediaTab(tab) {
 }
 
 function selectAlmanacItem(id, category) {
+  if (id !== 'GODs_Shadow') godsShadowClueOverride = false;
   // Update active button styling
   document.querySelectorAll('.almanac-btn').forEach(btn => btn.classList.remove('active'));
   const btn = document.getElementById('almanac-btn-' + id);
@@ -5538,10 +6649,20 @@ function selectAlmanacItem(id, category) {
     const progressBg = isMaxed ? 'rgba(255, 215, 0, 0.3)' : 'rgba(0,0,0,0.3)';
     const barWidth = Math.min(100, (killed / target) * 100);
 
-    const isUndiscovered = killed === 0;
+    const shadowSpaceOneComplete = gameState.acrossTheTimeProgress?.spaceOneComplete === true;
+    const isUndiscovered = id === 'GODs_Shadow'
+      ? !shadowSpaceOneComplete
+      : killed === 0;
     let displayImage = e.image;
     let displayName = translate(e.name || id);
     let displayDesc = e.desc ? translate(e.desc) : "";
+    if (id === 'GODs_Shadow' && gameState.acrossTheTimeProgress?.completed) {
+      displayDesc = godsShadowClueOverride
+        ? translate('enemy_GODs_Shadow_desc')
+        : gameState.acrossTheTimeProgress?.completed
+          ? translate('enemy_GODs_Shadow_completed_desc')
+          : translate('enemy_GODs_Shadow_desc');
+    }
     let displayHealth = e.health;
     let displaySpeed = e.speed;
     let displayReward = e.reward;
@@ -5559,6 +6680,9 @@ function selectAlmanacItem(id, category) {
       displayHealth = "???";
       displaySpeed = "???";
       displayReward = "???";
+    }
+    if (e.timeAttackOnly && id !== 'GODs_Shadow' && killed === 0) {
+      displayDesc = displayDesc.replace(/./g, '#');
     }
 
     let variantsHTML = '';
@@ -5666,7 +6790,7 @@ function selectAlmanacItem(id, category) {
     }
 
     details.innerHTML = `
-      <img src="${displayImage}" style="width:100px; height:100px; margin-bottom:10px; ${isBoss && !isUndiscovered ? 'transform:scale(1.2);' : ''}">
+      <img src="${displayImage}" style="width:100px; height:100px; margin-bottom:10px; ${id === 'GODs_Shadow' ? 'filter:brightness(0);' : ''} ${isBoss && !isUndiscovered ? 'transform:scale(1.2);' : ''}">
       <h3 style="font-size: 1.5rem; ${titleStyle}">${displayName}</h3>
       ${displayDesc ? `<p style="font-size:0.9rem; margin-top:5px; margin-bottom:10px; overflow-wrap: anywhere;">${displayDesc}</p>` : ''}
       ${e.category === 'gambling' || isUndiscovered ? '' : `<p style="font-size:0.95rem; color:#ffd700; font-weight:bold; margin-top:5px;">⭐ ${mechanicText}</p>`}
@@ -5690,6 +6814,19 @@ function selectAlmanacItem(id, category) {
           ${currentLanguage === 'en' ? '✏️ Idea by POP, Draw by KirByte_Bi' : '✏️ Idea de POP, Dibujo de KirByte_Bi'}
         </div>` : ''}
     `;
+    if (id === 'GODs_Shadow' && gameState.acrossTheTimeProgress?.completed) {
+      const clueButton = document.createElement('button');
+      clueButton.type = 'button';
+      clueButton.className = 'almanac-clue-toggle';
+      clueButton.textContent = translate(godsShadowClueOverride
+        ? 'enemy_GODs_Shadow_show_main_desc'
+        : 'enemy_GODs_Shadow_show_clue');
+      clueButton.addEventListener('click', () => {
+        godsShadowClueOverride = !godsShadowClueOverride;
+        selectAlmanacItem('GODs_Shadow', 'enemies');
+      });
+      details.appendChild(clueButton);
+    }
   } else if (category === 'emblemas') {
     const badgeArr = Object.values(BADGES);
     const b = badgeArr.find(x => x.key === id);
@@ -5703,19 +6840,41 @@ function selectAlmanacItem(id, category) {
     if (b.reward.xp) rewardText += `✨+${b.reward.xp}xp`;
 
     details.innerHTML = `
-      <div style="font-size:80px; margin-bottom:10px; filter:${b.unlocked ? 'none' : 'grayscale(100%)'};">${b.icon}</div>
+      <div class="badge-detail-icon" style="filter:${b.unlocked ? 'none' : 'grayscale(100%)'};">${b.icon}</div>
       <h3 style="font-size: 1.4rem;">${name}</h3>
       <p style="font-size:0.95rem;">${desc}</p>
-      <div style="margin-top:15px; padding:10px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:10px;">
+      ${rewardText ? `<div style="margin-top:15px; padding:10px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:10px;">
         <b style="color:#ffd700; font-size:0.9rem;">${translate('badge_reward_label')}${rewardText}</b>
-      </div>
+      </div>` : ''}
       ${b.unlocked ? `<div style="color:#2ecc71; margin-top:10px; font-weight:bold;">${translate('badge_unlocked')}</div>` : `<div style="color:#e74c3c; margin-top:10px; font-weight:bold;">${translate('badge_locked')}</div>`}
     `;
+    if (b.key === 'tutorial') {
+      const repeatButton = document.createElement('button');
+      repeatButton.className = 'almanac-clue-toggle';
+      repeatButton.textContent = translate('tutorial_emblem_repeat');
+      repeatButton.addEventListener('click', window.repeatTutorial);
+      details.appendChild(repeatButton);
+    }
   }
 }
 
 function bindEvents() {
   setupMultiplayerChat();
+  const tutorialSkipModal = document.getElementById('tutorial-skip-modal');
+  tutorialSkipModal?.addEventListener('click', event => {
+    if (event.target === tutorialSkipModal) closeTutorialSkipDialog();
+  });
+  tutorialSkipModal?.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    event.stopPropagation();
+    closeTutorialSkipDialog();
+  });
+  document.getElementById('tutorial-skip-cancel')?.addEventListener('click', closeTutorialSkipDialog);
+  document.getElementById('tutorial-skip-accept')?.addEventListener('click', () => {
+    closeTutorialSkipDialog();
+    if (gameState.mode === 'tutorial') chooseModeAfterGame();
+  });
   document.getElementById('pause-game')?.addEventListener('click', pauseGame);
   document.querySelector('#game-over .retry-btn:not(#resume-game)')?.addEventListener('click', () => {
     sendMultiplayerAction({ type: 'retry' });
@@ -5885,6 +7044,32 @@ function bindEvents() {
     const input = document.getElementById('game-code');
     const code = input.value.trim().toUpperCase();
     if (!code) return;
+
+    if (code === '14/05/26-TIMETRAVEL') {
+      if (!canPlayAcrossTimeSolo()) {
+        showMessage(translate('across_time_solo_required'), 'error');
+        input.value = '';
+        return;
+      }
+      if (!gameState.acrossTheTimeProgress?.spaceTwoComplete &&
+          !gameState.acrossTheTimeProgress?.timeAttackUnlocked) {
+        showMessage(translate('across_time_code_required'), 'error');
+        input.value = '';
+        return;
+      }
+      const confirmation = currentLanguage === 'en'
+        ? translate('across_time_confirm')
+        : translate('across_time_confirm');
+      if (!window.confirm(confirmation)) {
+        input.value = '';
+        return;
+      }
+      gameState.acrossTheTimeProgress.spaceThreeStarted = true;
+      transitionAcrossTimeMap(3, 'gelatin_lake');
+      showMessage(translate('across_time_transition'), 'success');
+      input.value = '';
+      return;
+    }
 
     const oneTimeSkinCodes = {
       'FROGGY_VICTEST': { skinIds: ['froggy_set'], towerUnlocks: [], name: 'Froggy Set' },
@@ -6307,18 +7492,6 @@ function bindEvents() {
     openEncyclopedia();
   };
 
-  document.querySelectorAll('.modal .modal-close, .modal .close-btn').forEach(btn => {
-    btn.onclick = (e) => {
-      const modal = btn.closest('.modal');
-      if (!modal) return;
-      modal.style.display = 'none';
-      if (!gameState.modeConfirmed) {
-        const ms = document.getElementById('mode-selection');
-        if (ms) ms.style.display = 'flex';
-      }
-    };
-  });
-
   const newMapText = document.getElementById('new-map-easter-egg');
   if (newMapText) {
     let clickCount = 0;
@@ -6435,15 +7608,6 @@ function closeModal(id) {
 
 function smartClose(modalId) {
   closeModal(modalId);
-  const modeScreen = document.getElementById('mode-selection');
-  const mapScreen = document.getElementById('map-selection');
-  if (!gameState.modeConfirmed && document.getElementById('login-screen').style.display === 'none') {
-    if (!gameState.map) {
-      mapScreen.style.display = 'flex';
-    } else {
-      modeScreen.style.display = 'flex';
-    }
-  }
 }
 
 function backToModes() {
@@ -6586,13 +7750,15 @@ function applyScale() {
 
 function updateBuffs() {
   gameState.towerBuffs = { damage: gameState.metaDamage || 1, range: gameState.metaRange || 0, speed: 1 };
-  SKINS_DATA['Global'].forEach(m => {
-    if (m.buff && gameState.duckPassLevel >= m.level) {
-      if (m.buff.damage) gameState.towerBuffs.damage *= m.buff.damage;
-      if (m.buff.range_flat) gameState.towerBuffs.range += m.buff.range_flat;
-      if (m.buff.speed) gameState.towerBuffs.speed *= m.buff.speed;
-    }
-  });
+  if (gameState.mode !== 'tutorial') {
+    SKINS_DATA['Global'].forEach(m => {
+      if (m.buff && gameState.duckPassLevel >= m.level) {
+        if (m.buff.damage) gameState.towerBuffs.damage *= m.buff.damage;
+        if (m.buff.range_flat) gameState.towerBuffs.range += m.buff.range_flat;
+        if (m.buff.speed) gameState.towerBuffs.speed *= m.buff.speed;
+      }
+    });
+  }
   gameState.towers.forEach(t => {
     const base = TOWER_TYPES[t.type];
     t.damage = base.damage * gameState.towerBuffs.damage;
@@ -6635,7 +7801,10 @@ function addXP(amount) {
   }
   updateMetaUI();
   checkFutureVoyageBadge();
-  if (gameState.duckPassLevel !== previousLevel) publishMultiplayerProfile();
+  if (gameState.duckPassLevel !== previousLevel) {
+    syncBombotAccessoryUnlocksFromProgress();
+    publishMultiplayerProfile();
+  }
 }
 
 function updateMetaUI() {
@@ -6699,6 +7868,10 @@ const PROFILE_SHOP_BORDERS = [
   { id: 'color:cyan', label: 'Cian', labelEn: 'Cyan', colors: ['#67e6e1', '#202833'], cost: 350 },
   { id: 'spooky', label: 'Fantasmal', labelEn: 'Spooky', colors: ['#175b30', 'rgba(56, 190, 92, 0.35)'], cost: 500 },
   { id: 'pumpkin', label: 'Calabaza', labelEn: 'Pumpkin', colors: ['#65c86e', '#d77b28'], cost: 500 }
+];
+const PROFILE_TIME_ATTACK_BORDERS = [
+  { id: 'time-attack-a', label: 'TIME ATTACK A', colors: ['#2600FF', '#00FFFF'], style: 'time-attack-a' },
+  { id: 'time-attack-b', label: 'TIME ATTACK B', colors: ['#b8873b', '#392614'], style: 'time-attack-b' }
 ];
 
 function getProfileGlobFamilies() {
@@ -6814,10 +7987,13 @@ function hasUnlockedAllProfileImages() {
         gameState.profileMaxRewampAvatars.includes(family)
       ));
   });
-  const enemyImagesComplete = getUniqueProfileEnemies().every(enemy =>
+  return globImagesComplete && hasUnlockedAllProfileFrames();
+}
+
+function hasUnlockedAllProfileFrames() {
+  return getUniqueProfileEnemies().every(enemy =>
     enemy.types.some(isProfileEnemyFramed)
   );
-  return globImagesComplete && enemyImagesComplete;
 }
 
 function hasUnlockedAllProfileBorders() {
@@ -6827,6 +8003,7 @@ function hasUnlockedAllProfileBorders() {
     ...PROFILE_FREE_BORDERS.map(border => border.id),
     ...PROFILE_PASS_BORDERS.map(border => border.id),
     ...PROFILE_SHOP_BORDERS.map(border => border.id),
+    ...PROFILE_TIME_ATTACK_BORDERS.map(border => border.id),
     'interstellar',
     'placeholder',
     'coded',
@@ -6846,6 +8023,9 @@ function hasUnlockedAllProfileBorders() {
     if (PROFILE_PASS_BORDERS.some(border => border.id === borderId)) {
       const passBorder = PROFILE_PASS_BORDERS.find(border => border.id === borderId);
       return gameState.duckPassLevel >= passBorder.level;
+    }
+    if (PROFILE_TIME_ATTACK_BORDERS.some(border => border.id === borderId)) {
+      return Boolean(gameState.acrossTheTimeProgress?.timeAttackUnlocked);
     }
     return gameState.profilePurchasedBorders.includes(borderId);
   });
@@ -6901,6 +8081,9 @@ function getAvailableProfileBorders() {
       });
     }
   });
+  if (gameState.acrossTheTimeProgress?.timeAttackUnlocked) {
+    borders.push(...PROFILE_TIME_ATTACK_BORDERS);
+  }
   if (BADGES.unmenaced?.unlocked || BADGES.paracristal_dimension?.unlocked) {
     borders.push({ id: 'interstellar', label: 'Interstellar', colors: ['#ff68d1', '#174caa'] });
   }
@@ -6924,12 +8107,20 @@ function getAvailableProfileBorders() {
       borders.push({ ...border, label: border.label });
     }
   });
-  if (hasUnlockedAllProfileImages() && hasUnlockedAllProfileBorders()) {
+  if (hasUnlockedAllProfileBorders()) {
     borders.push({
       id: 'rainbow',
-      label: currentLanguage === 'en' ? 'Rainbow Fever' : 'Fiebre Arcoiris',
+      label: currentLanguage === 'en' ? 'Rainbow' : 'Arcoíris',
       colors: ['#ff5050', '#202833'],
-      rainbow: true
+      multicolor: true
+    });
+  }
+  if (hasUnlockedAllProfileImages() && hasUnlockedAllProfileBorders()) {
+    borders.push({
+      id: 'glb-fever',
+      label: 'GLB Fever',
+      colors: ['#38e64b', '#202833'],
+      rgb: true
     });
   }
   return borders;
@@ -7002,6 +8193,18 @@ function getProfileAvatarChoices() {
       });
     }
   });
+  if (gameState.unlockedSkins.includes(PERSONALIZABLE_BOMBOT_SKIN_ID)) {
+    const bombotSkin = SKINS_DATA.Special.find(skin => skin.id === PERSONALIZABLE_BOMBOT_SKIN_ID);
+    const bombotImage = bombotSkin?.skins?.Work_Bombot;
+    if (bombotImage) {
+      avatars.push({
+        id: 'special:personalizable-bombot',
+        label: currentLanguage === 'en' ? 'Personalizable Bombot' : 'Bombot personalizable',
+        image: bombotImage,
+        layers: getBombotAccessoryLayerIds().map(getBombotAccessoryImage).filter(Boolean)
+      });
+    }
+  }
   getUniqueProfileEnemies().forEach(({ type, image, types }) => {
     if (!types.some(isProfileEnemyFramed)) return;
     avatars.push({
@@ -7010,6 +8213,33 @@ function getProfileAvatarChoices() {
       image
     });
   });
+  if (gameState.unlockedSkins.includes('virtuallity_set') || gameState.debugState === 'unlocked') {
+    const virtuallitySkins = SKINS_DATA.Grey.find(skin => skin.id === 'virtuallity_set');
+    if (virtuallitySkins) {
+      avatars.push(
+        {
+          id: 'special:virtuallity-discord',
+          label: 'Discord Glob',
+          image: virtuallitySkins.skins.Old_Glob
+        },
+        {
+          id: 'special:virtuallity-roblox',
+          label: 'Roblox Glob',
+          image: virtuallitySkins.skins.Pyce_Glob
+        },
+        {
+          id: 'special:virtuallity-champion',
+          label: 'Big-Champion Glob',
+          image: virtuallitySkins.skins.SpyGlob
+        },
+        {
+          id: 'special:across-time-trophy',
+          label: currentLanguage === 'en' ? 'Across the Time Trophy' : 'Copa de Across the Time',
+          image: IMAGE_PATHS.Across_Time_Trophy
+        }
+      );
+    }
+  }
   if (gameState.debugState === 'unlocked' ||
       (localStorage.getItem('glob_username') || '').toLowerCase() === 'kirbytebi') {
     avatars.push({
@@ -7018,15 +8248,17 @@ function getProfileAvatarChoices() {
       image: IMAGE_PATHS.Kirb_Glob
     });
   }
-  if (canUseStaffProfileAvatar()) {
+  const canUseOmnipresentAvatar = canUseStaffProfileAvatar();
+  if (canUseOmnipresentAvatar) {
     avatars.push({
       id: 'special:omnipresent-glob',
       label: currentLanguage === 'en' ? 'Omnipresent Glob' : 'Glob Omnipresente',
       image: IMAGE_PATHS.Omnipresent_Glob
     });
   }
-  if (gameState.debugState === 'unlocked' ||
-      gameState.profileSpecialAvatars.includes('placeholder-glob')) {
+  if (!canUseOmnipresentAvatar &&
+      (gameState.debugState === 'unlocked' ||
+       gameState.profileSpecialAvatars.includes('placeholder-glob'))) {
     avatars.push({
       id: 'special:placeholder-glob',
       label: 'Placeholder Glob',
@@ -7039,7 +8271,11 @@ function getProfileAvatarChoices() {
 function getProfileAvatarById(avatarId) {
   const avatars = getProfileAvatarChoices();
   const legacyRainbowRewamp = avatars.find(avatar => avatar.id === 'glob:Rainbow_Glob:rgb-rewamp');
+  const legacyPlaceholderAlias = avatarId === 'special:placeholder-glob' && canUseStaffProfileAvatar()
+    ? avatars.find(avatar => avatar.id === 'special:omnipresent-glob')
+    : null;
   return avatars.find(avatar => avatar.id === avatarId) ||
+    legacyPlaceholderAlias ||
     (avatarId === 'special:rainbow-rewamp' ? legacyRainbowRewamp : null) ||
     avatars[0];
 }
@@ -7289,7 +8525,7 @@ function drawViewedMultiplayerProfile() {
       const badge = BADGES[key];
       const item = document.createElement('li');
       const icon = document.createElement('span');
-      icon.textContent = typeof badge.icon === 'string' && !badge.icon.includes('<') ? badge.icon : '🏆';
+      icon.innerHTML = badge.icon;
       const text = document.createElement('span');
       const name = document.createElement('strong');
       name.textContent = translate(`badge_${badge.key}_name`);
@@ -7346,8 +8582,9 @@ function drawUserProfile() {
   const username = localStorage.getItem('glob_username') || (currentLanguage === 'en' ? 'Player' : 'Jugador');
   container.innerHTML = `
     <div class="profile-preview">
-      <div class="profile-avatar-frame ${border.rainbow ? 'rainbow' : ''}" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};">
-        ${getProfileAvatarImageMarkup(avatar, border.rainbow)}
+      <div class="profile-avatar-frame ${border.multicolor ? 'rainbow' : ''}${border.rgb ? ' glb-fever' : ''}${border.style ? ` ${border.style}` : ''}" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};">
+        ${getProfileAvatarImageMarkup(avatar, border.rgb)}
+        ${border.style === 'time-attack-b' ? getProfileClockHandsMarkup() : ''}
       </div>
       <h3>${username}</h3>
       <p>${currentLanguage === 'en' ? 'Avatar' : 'Imagen'}: ${avatar.label} · ${currentLanguage === 'en' ? 'Frame' : 'Borde'}: ${border.label}</p>
@@ -7366,15 +8603,30 @@ function drawUserProfile() {
         <button class="profile-border-choice ${choice.id === border.id ? 'selected' : ''}" type="button"
           style="--profile-border-start:${choice.colors[0]};--profile-border-end:${choice.colors[1]};"
           onclick="equipProfileBorder('${choice.id}')">
-          <span class="profile-border-swatch ${choice.rainbow ? 'rainbow' : ''}"></span><span>${choice.label}</span>
+          <span class="profile-border-swatch ${choice.multicolor ? 'rainbow' : ''}${choice.rgb ? ' glb-fever' : ''}${choice.style ? ` ${choice.style}` : ''}"></span><span>${choice.label}</span>
         </button>`).join('')}
     </div>`;
+  if (border.style === 'time-attack-b' ||
+      getAvailableProfileBorders().some(choice => choice.style === 'time-attack-b')) {
+    container.querySelectorAll('.profile-border-swatch.time-attack-b').forEach(swatch => {
+      swatch.insertAdjacentHTML('beforeend', getProfileClockHandsMarkup());
+    });
+    ensureProfileClockTimer();
+  }
 }
 
 function getProfileAvatarImageMarkup(avatar, applyRgbEffect = false) {
   const imageUrl = encodeURI(avatar.image);
-  const rgb = avatar.rgb || applyRgbEffect;
-  const image = `<img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">`;
+  const isGodsShadow = avatar.id === 'enemy:GODs_Shadow';
+  const rgb = (avatar.rgb || applyRgbEffect) && !isGodsShadow;
+  if (Array.isArray(avatar.layers) && avatar.layers.length > 0) {
+    const layers = avatar.layers
+      .map(layer => `<img src="${encodeURI(layer)}" alt="">`)
+      .join('');
+    return `<span class="profile-avatar-layers${rgb ? ' rgb-avatar-image' : ''}"${rgb ? ` style="--rgb-avatar-mask-image:url('${imageUrl}')"` : ''}><img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">${layers}</span>`;
+  }
+  const shadowClass = isGodsShadow ? ' class="gods-shadow-portrait"' : '';
+  const image = `<img${shadowClass} src="${imageUrl}" alt="${rgb ? '' : avatar.label}">`;
   return rgb
     ? `<span class="rgb-avatar-image" style="--rgb-avatar-mask-image:url('${imageUrl}')">${image}</span>`
     : image;
@@ -7393,6 +8645,274 @@ function getShopSkinDescription(skin) {
 
   const creatorLabel = currentLanguage === 'es' ? 'Creado por: KirByte_Bi' : 'Created by: KirByte_Bi';
   return `${normalizedDescription}<br><span class="skin-creator-tag">${creatorLabel}</span>`;
+}
+
+function checkBombotAccessoryPrerequisite(unlock) {
+  if (!unlock) return true;
+  switch (unlock) {
+    case 'pink_family': {
+      const pinkSkins = ['streamer_set', 'gamer_set', 'youtuber_set'];
+      return pinkSkins.some(id => gameState.unlockedSkins.includes(id));
+    }
+    case 'monster_framed':
+      return Boolean(gameState.framedEnemies?.includes?.('monster') || gameState.progress?.framedMonster);
+    case 'fireflies_framed':
+      return Boolean(gameState.framedEnemies?.includes?.('fireflies') || gameState.progress?.framedFireflies);
+    default:
+      return false;
+  }
+}
+
+function getBombotAccessoryUnlockText(accessory) {
+  const conditions = {
+    gelatin_lake: ['🟢 Gana en cualquier modo en Gelatin Lake', '🟢 Win any mode on Gelatin Lake'],
+    urbanistic_road: ['🏙️ Gana en cualquier modo en Urbanistic Road', '🏙️ Win any mode on Urbanistic Road'],
+    sunlight_seaside: ['☀️ Gana en cualquier modo en Sunlight Seaside', '☀️ Win any mode on Sunlight Seaside'],
+    sunlight_hard: ['☂️ Gana en Sunlight Seaside en un modo que no sea Fácil ni Normal', '☂️ Win Sunlight Seaside in a mode other than Easy or Normal'],
+    spooktacular_ruins: ['🎃 Gana en cualquier modo en Aridez Escalofriante', '🎃 Win any mode on Spooktacular Ruins'],
+    interstellar: ['💎 Completa Interstellar Menace', '💎 Complete Interstellar Menace'],
+    duckpass_bombot_hair: ['🦆 Alcanza el Nivel 15 en el Duck Pass', '🦆 Reach Level 15 in the Duck Pass'],
+    duckpass_girly_hair: ['🦆 Alcanza el Nivel 30 en el Duck Pass', '🦆 Reach Level 30 in the Duck Pass'],
+    duckpass_pyce2_headset: ['🦆 Alcanza el Nivel 45 en el Duck Pass', '🦆 Reach Level 45 in the Duck Pass'],
+    anti_normal: ['💀 Gana en cualquier mapa en modo Anti-Normal', '💀 Win any map on Anti-Normal mode'],
+    rewamped_skin: ['✨ Desbloquea cualquier skin Rewamp', '✨ Unlock any Rewamp skin'],
+    urban_corrupt: ['🏙️ Vence Urbanistic Road en modo Corrupto', '🏙️ Beat Urbanistic Road on Corrupt mode'],
+    spooktacular_anti_normal: ['🏜️ Vence Aridez Escalofriante en Anti-Normal', '🏜️ Beat Spooktacular Ruins on Anti-Normal'],
+    duckpass_cuby: ['🦆 Alcanza el Nivel 35 en el Duck Pass', '🦆 Reach Level 35 in the Duck Pass'],
+    pink_family: ['🩷 Compra la familia rosa (Streamer, Gamer, Youtuber)', '🩷 Buy the Pink family (Streamer, Gamer, Youtuber)'],
+    monster_framed: ['🖼️ Enmarca al Monster en la colección', '🖼️ Frame Monster in the collection'],
+    fireflies_framed: ['🦋 Enmarca a Fireflies en la colección', '🦋 Frame Fireflies in the collection']
+  };
+  return conditions[accessory.unlock]?.[currentLanguage === 'en' ? 1 : 0] || '';
+}
+
+function buyBombotAccessory(id) {
+  const accessory = BOMBOT_ACCESSORIES.find(item => item.id === id);
+  if (!accessory || !accessory.cost || gameState.unlockedBombotAccessories.includes(id)) return;
+  if (!gameState.unlockedSkins.includes(PERSONALIZABLE_BOMBOT_SKIN_ID)) {
+    showMessage(currentLanguage === 'en'
+      ? 'Unlock Personalizable Bombot first.'
+      : 'Desbloquea primero Personalizable Bombot.', 'warning');
+    return;
+  }
+  if (gameState.pycoins < accessory.cost) {
+    showMessage(translate('no_pycoins'), 'error');
+    return;
+  }
+  gameState.pycoins -= accessory.cost;
+  gameState.unlockedBombotAccessories.push(id);
+  gameState.unlockedBombotAccessories = [...new Set(gameState.unlockedBombotAccessories)];
+  saveProgress();
+  updateMetaUI();
+  drawShop();
+}
+
+function equipBombotAccessory(id) {
+  const accessory = BOMBOT_ACCESSORIES.find(item => item.id === id);
+  if (!accessory) return;
+  if (gameState.mode === 'tutorial') {
+    showMessage(currentLanguage === 'en'
+      ? 'Accessories are disabled during the tutorial.'
+      : 'Los accesorios están desactivados durante el tutorial.', 'warning');
+    return;
+  }
+  if (!gameState.unlockedBombotAccessories.includes(id) && gameState.debugState !== 'unlocked') return;
+
+  if (accessory.slot === 'front') {
+    const fronts = getEquippedBombotFronts();
+    if (fronts.includes(id)) {
+      gameState.equippedBombotAccessories.front = fronts.filter(item => item !== id);
+    } else {
+      const isGlasses = accessory.frontType === 'glasses';
+      if (isGlasses && gameState.equippedBombotAccessories.suit === 'pumpkin') {
+        showMessage(currentLanguage === 'en'
+          ? 'Pumpkin does not allow glasses.'
+          : 'Pumpkin no permite llevar gafas.', 'warning');
+        return;
+      }
+      if (isGlasses) {
+        const otherAccessory = fronts.find(item => BOMBOT_ACCESSORIES.find(front => front.id === item)?.frontType !== 'glasses');
+        gameState.equippedBombotAccessories.front = [id, otherAccessory].filter(Boolean);
+      } else {
+        const currentGlasses = fronts.find(item => BOMBOT_ACCESSORIES.find(front => front.id === item)?.frontType === 'glasses');
+        gameState.equippedBombotAccessories.front = [currentGlasses, id].filter(Boolean);
+      }
+    }
+  } else if (accessory.slot === 'suit') {
+    const wasEquipped = gameState.equippedBombotAccessories.suit === id;
+    gameState.equippedBombotAccessories.suit = wasEquipped ? null : id;
+    if (!wasEquipped && id === 'pumpkin') {
+      gameState.equippedBombotAccessories.front = getEquippedBombotFronts().filter(
+        frontId => BOMBOT_ACCESSORIES.find(front => front.id === frontId)?.frontType !== 'glasses'
+      );
+    }
+  } else {
+    gameState.equippedBombotAccessories[accessory.slot] =
+      gameState.equippedBombotAccessories[accessory.slot] === id ? null : id;
+  }
+  equipSkin('Special', PERSONALIZABLE_BOMBOT_SKIN_ID);
+  if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+  publishMultiplayerProfile();
+}
+
+window.buyBombotAccessory = buyBombotAccessory;
+window.equipBombotAccessory = equipBombotAccessory;
+
+function renderBombotAccessoryCustomizer(container) {
+  syncBombotAccessoryUnlocksFromProgress();
+  ensurePersonalizableBombotUnlocked();
+  if (!gameState.unlockedSkins.includes(PERSONALIZABLE_BOMBOT_SKIN_ID)) return;
+
+  const section = document.createElement('section');
+  section.className = 'bombot-accessory-customizer';
+  const title = document.createElement('h3');
+  title.textContent = '🤖 Personalizable Bombot';
+  const intro = document.createElement('p');
+  intro.textContent = currentLanguage === 'en'
+    ? 'Equip one base reskin, one hat/hair, one pair of glasses, one front accessory, and one suit.'
+    : 'Puedes equipar un aspecto base, una gorra/pelo, unas gafas, un accesorio frontal y un traje.';
+  const preview = document.createElement('div');
+  preview.className = 'bombot-accessory-preview';
+  preview.style.backgroundImage = getBombotCustomizationPreviewBackground();
+  preview.setAttribute('aria-label', currentLanguage === 'en' ? 'Current Bombot preview' : 'Vista previa actual de Bombot');
+  section.append(title, intro, preview);
+
+  const customizerCategories = [
+    {
+      id: 'reskin',
+      label: currentLanguage === 'en' ? 'Base Reskin' : 'Aspecto Base',
+      filter: accessory => accessory.slot === 'reskin',
+      isEquipped: accessory => gameState.equippedBombotAccessories.reskin === accessory.id,
+      hasAnyEquipped: () => Boolean(gameState.equippedBombotAccessories.reskin),
+      onClear: () => {
+        gameState.equippedBombotAccessories.reskin = null;
+        equipSkin('Special', gameState.equippedSkins.Special);
+      }
+    },
+    {
+      id: 'head',
+      label: currentLanguage === 'en' ? 'Hats & Hair' : 'Gorras y Pelo',
+      filter: accessory => accessory.slot === 'head',
+      isEquipped: accessory => gameState.equippedBombotAccessories.head === accessory.id,
+      hasAnyEquipped: () => Boolean(gameState.equippedBombotAccessories.head),
+      onClear: () => {
+        gameState.equippedBombotAccessories.head = null;
+        equipSkin('Special', gameState.equippedSkins.Special);
+      }
+    },
+    {
+      id: 'glasses',
+      label: currentLanguage === 'en' ? 'Glasses & Visors' : 'Gafas y Viseras',
+      filter: accessory => accessory.slot === 'front' && accessory.frontType === 'glasses',
+      isEquipped: accessory => getEquippedBombotFronts().includes(accessory.id),
+      hasAnyEquipped: () => getEquippedBombotFronts().some(item => BOMBOT_ACCESSORIES.find(f => f.id === item)?.frontType === 'glasses'),
+      onClear: () => {
+        gameState.equippedBombotAccessories.front = getEquippedBombotFronts().filter(item => BOMBOT_ACCESSORIES.find(f => f.id === item)?.frontType !== 'glasses');
+        equipSkin('Special', gameState.equippedSkins.Special);
+      }
+    },
+    {
+      id: 'accessory',
+      label: currentLanguage === 'en' ? 'Frontals' : 'Frontales',
+      filter: accessory => accessory.slot === 'front' && accessory.frontType !== 'glasses',
+      isEquipped: accessory => getEquippedBombotFronts().includes(accessory.id),
+      hasAnyEquipped: () => getEquippedBombotFronts().some(item => BOMBOT_ACCESSORIES.find(f => f.id === item)?.frontType !== 'glasses'),
+      onClear: () => {
+        gameState.equippedBombotAccessories.front = getEquippedBombotFronts().filter(item => BOMBOT_ACCESSORIES.find(f => f.id === item)?.frontType === 'glasses');
+        equipSkin('Special', gameState.equippedSkins.Special);
+      }
+    },
+    {
+      id: 'suit',
+      label: currentLanguage === 'en' ? 'Suits' : 'Trajes',
+      filter: accessory => accessory.slot === 'suit',
+      isEquipped: accessory => gameState.equippedBombotAccessories.suit === accessory.id,
+      hasAnyEquipped: () => Boolean(gameState.equippedBombotAccessories.suit),
+      onClear: () => {
+        gameState.equippedBombotAccessories.suit = null;
+        equipSkin('Special', gameState.equippedSkins.Special);
+      }
+    }
+  ];
+
+  customizerCategories.forEach(category => {
+    const group = document.createElement('div');
+    group.className = 'bombot-accessory-slot';
+    const heading = document.createElement('h4');
+    heading.textContent = category.label;
+    const items = document.createElement('div');
+    items.className = 'bombot-accessory-items';
+
+    const noneButton = document.createElement('button');
+    noneButton.type = 'button';
+    const isEquipped = category.hasAnyEquipped();
+    noneButton.className = `bombot-accessory-none${isEquipped ? '' : ' selected'}`;
+    noneButton.textContent = currentLanguage === 'en' ? 'None' : 'Ninguno';
+    noneButton.disabled = gameState.mode === 'tutorial';
+    noneButton.addEventListener('click', () => category.onClear());
+    items.appendChild(noneButton);
+
+    BOMBOT_ACCESSORIES.filter(category.filter).forEach(accessory => {
+      const isUnlocked = gameState.unlockedBombotAccessories.includes(accessory.id) ||
+        gameState.debugState === 'unlocked';
+      const equipped = category.isEquipped(accessory);
+      const card = document.createElement('article');
+      card.className = `bombot-accessory-card${equipped ? ' equipped' : ''}${isUnlocked ? '' : ' locked'}`;
+      const image = document.createElement('img');
+      image.src = `${BOMBOT_ACCESSORY_ASSET_ROOT}${accessory.image}`;
+      const accName = getBombotAccessoryName(accessory);
+      image.alt = accName;
+      const imgBox = document.createElement('div');
+      imgBox.className = 'bombot-accessory-img-box';
+      const preview = BOMBOT_ACCESSORY_PREVIEWS[accessory.id];
+      if (preview) {
+        image.style.transformOrigin = 'top left';
+        image.style.transform = `scale(${preview.scale}) translate(${preview.x}%, ${preview.y}%)`;
+      }
+      imgBox.appendChild(image);
+      const name = document.createElement('strong');
+      name.textContent = accName;
+      card.append(imgBox, name);
+      if (accessory.copyright) {
+        const copyrightNote = document.createElement('small');
+        copyrightNote.className = 'bombot-accessory-copyright';
+        copyrightNote.textContent = accessory.copyright;
+        card.appendChild(copyrightNote);
+      }
+
+      const action = document.createElement('button');
+      action.type = 'button';
+      if (isUnlocked) {
+        action.textContent = equipped
+          ? (currentLanguage === 'en' ? 'Unequip' : 'Quitar')
+          : (currentLanguage === 'en' ? 'Equip' : 'Equipar');
+        action.addEventListener('click', () => equipBombotAccessory(accessory.id));
+      } else if (accessory.cost && accessory.unlock) {
+        // Tiene precio Y condición de desbloqueo: verificar prerequisito
+        const prereqMet = checkBombotAccessoryPrerequisite(accessory.unlock);
+        if (prereqMet) {
+          action.textContent = `🪙 ${accessory.cost} PyCoins`;
+          action.disabled = gameState.pycoins < accessory.cost;
+          action.addEventListener('click', () => buyBombotAccessory(accessory.id));
+        } else {
+          action.textContent = getBombotAccessoryUnlockText(accessory);
+          action.disabled = true;
+        }
+      } else if (accessory.cost) {
+        action.textContent = `🪙 ${accessory.cost} PyCoins`;
+        action.disabled = gameState.pycoins < accessory.cost;
+        action.addEventListener('click', () => buyBombotAccessory(accessory.id));
+      } else {
+        action.textContent = getBombotAccessoryUnlockText(accessory);
+        action.disabled = true;
+      }
+      card.appendChild(action);
+      items.appendChild(card);
+    });
+    group.append(heading, items);
+    section.appendChild(group);
+  });
+  container.appendChild(section);
 }
 
 function drawShop() {
@@ -7561,8 +9081,17 @@ function drawShop() {
     if (!window.activeSkinFilter) window.activeSkinFilter = 'all';
 
     const missionSkinIds = ['corrupt_swords_set', 'fracstal_set', 'old_tycoon_set', 'cuby_bombot'];
-    const otherNewSkinIds = ['astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set', 'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set', 'ducky_rewamp_set', 'ducky_rgb_sr'];
-    const storeUnlockableIds = [...missionSkinIds, ...otherNewSkinIds];
+    const otherNewSkinIds = [
+      'astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set',
+      'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set', 'ducky_rewamp_set',
+      'ducky_rgb_sr', 'rewamped_black_set', 'black_rgb_sr', PERSONALIZABLE_BOMBOT_SKIN_ID
+    ];
+    const storeUnlockableIds = [...new Set([
+      ...missionSkinIds,
+      ...otherNewSkinIds,
+      ...REWAMPED_SKIN_IDS,
+      ...RGB_REWAMP_SKIN_IDS
+    ])];
 
     const filterDiv = document.createElement('div');
     filterDiv.className = 'shop-filters';
@@ -7659,6 +9188,10 @@ function drawShop() {
       });
     });
 
+    if (['all', 'new'].includes(window.activeSkinFilter)) {
+      renderBombotAccessoryCustomizer(container);
+    }
+
     // ── Sección DESBLOQUEABLES ──
     const unlockableSkins = {
       mapa: [],
@@ -7676,7 +9209,7 @@ function drawShop() {
         const isUnlocked = gameState.unlockedSkins.includes(skin.id) ||
           isProfileImageUnlockConditionMet(skin);
         const isAlwaysVisible = [
-          'rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'ducky_rewamp_set', 'ducky_rgb_sr',
+          'rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set', 'ducky_rgb_sr',
           ...RGB_REWAMP_SKIN_IDS, 'judicial_set', ...storeUnlockableIds
         ].includes(skin.id);
 
@@ -7687,7 +9220,7 @@ function drawShop() {
 
         // Categorizar
         let category = 'otros';
-        if (['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'judicial_set', 'spanish_bombot', 'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set', 'ducky_rewamp_set'].includes(skin.id)) category = 'mapa';
+        if (['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'judicial_set', 'spanish_bombot', 'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set', 'ducky_rewamp_set'].includes(skin.id)) category = 'mapa';
         else if (missionSkinIds.includes(skin.id)) category = 'misiones';
         else if (['mimic_set', ...otherNewSkinIds].includes(skin.id)) category = 'otros';
         else if (skin.unlockCondition && (skin.unlockCondition.includes('urban') || skin.unlockCondition.includes('spooktacular'))) category = 'mapa';
@@ -7720,6 +9253,7 @@ function drawShop() {
         if (skinId === 'cuby_bombot') return currentLanguage === 'es' ? '👑 Derrota a Astrorb True Form' : '👑 Defeat Astrorb True Form';
         if (skinId === 'froggy_set') return currentLanguage === 'es' ? '🏖️ Puedes obtenerla gratis superando Sunlight Summer en Anti-Normal' : '🏖️ You can get it for free by beating Sunlight Summer in Anti-Normal';
         if (skinId === 'pumpking_set') return currentLanguage === 'es' ? '🎃 Gana Fácil, Normal, Difícil o Extremo en Aridez Escalofriante' : '🎃 Win Easy, Normal, Hard, or Extreme on Spooktacular Ruins';
+        if (skinId === 'rewamped_black_set') return currentLanguage === 'es' ? '🌑 Vence Aridez Escalofriante en Difícil o Extremo' : '🌑 Beat Spooktacular Ruins in Hard or Extreme';
         if (condition === 'win_gelatin_lake_base') return currentLanguage === 'es' ? '🦆 Supera Gelatin Lake en cualquier modo base' : '🦆 Beat Gelatin Lake in any base mode';
         if (skinId === 'skelebones_set') return currentLanguage === 'es' ? '💀 Vence Aridez Escalofriante en Anti-Normal' : '💀 Beat Spooktacular Ruins in Anti-Normal';
         if (skinId === 'wicked_set') return currentLanguage === 'es' ? '🧙 Vence Aridez Escalofriante en Corrupto' : '🧙 Beat Spooktacular Ruins in Corrupt';
@@ -8104,6 +9638,12 @@ function buySkin(family, skinId, cost) {
 }
 
 function equipSkin(family, skinId) {
+  if (gameState.mode === 'tutorial') {
+    showMessage(currentLanguage === 'en'
+      ? 'Skins are disabled during the tutorial.'
+      : 'Las skins están desactivadas durante el tutorial.', 'warning');
+    return;
+  }
   const skin = SKINS_DATA[family]?.find(item => item.id === skinId);
   if (skin?.unlockCondition === 'all_profile_images' &&
       !gameState.unlockedSkins.includes(skin.id) &&
@@ -8128,6 +9668,14 @@ function equipSkin(family, skinId) {
 function canAfford(u) { return u.type === 'pycoin' ? gameState.pycoins >= u.cost : gameState.duckPassCurrency >= u.cost; }
 
 function buyUpgrade(id, cost, type) {
+  if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace >= 3 &&
+      (id === 'hp' || id.startsWith('limit_'))) {
+    showMessage(currentLanguage === 'en'
+      ? 'Base health and Glob limits are locked for this space.'
+      : 'La vida de la base y los límites de Globs están fijados durante este espacio.',
+    'warning');
+    return;
+  }
   if (id.startsWith('dg_') && gameState.duckPassLevel < 35) {
     showMessage(currentLanguage === 'es' ? "¡Necesitas Nivel 35 en el Duck Pass para comprar Duckgrades!" : "Requires Duck Pass Level 35 to buy Duckgrades!", 'error');
     return;
@@ -8278,6 +9826,17 @@ function drawPass() {
 }
 
 function placeTower(spotId, type) {
+  if (gameState.mode === 'tutorial' && gameState.tutorialStage !== 'waves') {
+    const allowedTypes = {
+      place_green: ['Glob'],
+      place_red: ['Red_Glob'],
+      build: ['Glob', 'Red_Glob']
+    }[gameState.tutorialStage] || [];
+    if (!allowedTypes.includes(type)) {
+      showMessage(translate('tutorial_restriction'), 'warning');
+      return;
+    }
+  }
   const tCfg = TOWER_TYPES[type];
   const family = tCfg.family || type;
   const currentCount = getFamilyCount(type);
@@ -8347,6 +9906,16 @@ function placeTower(spotId, type) {
   gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
   gameState.globsPlaced[type] = (gameState.globsPlaced[type] || 0) + 1;
   spot.occupied = true;
+  if (gameState.mode === 'tutorial') {
+    if (gameState.tutorialStage === 'place_green') {
+      gameState.tutorialFocusSpotId = spotId;
+      setTutorialStage('select_green');
+    } else if (gameState.tutorialStage === 'place_red') {
+      setTutorialStage('families');
+    } else if (gameState.tutorialStage === 'build') {
+      updateTutorialArmyProgress();
+    }
+  }
   if (!tCfg.evolution && !gameState.maxedFamilies.includes(family)) {
     gameState.maxedFamilies.push(family);
     publishMultiplayerProfile();
@@ -8360,6 +9929,11 @@ function placeTower(spotId, type) {
 }
 
 function selectTower(t) {
+  if (gameState.mode === 'tutorial' &&
+      gameState.tutorialStage === 'select_green' &&
+      t.spotId === gameState.tutorialFocusSpotId) {
+    setTutorialStage('evolve_green');
+  }
   gameState.selectedTower = t;
   const panel = document.getElementById('evolve-panel');
   panel.style.display = 'flex';
@@ -8576,6 +10150,14 @@ function activateGTack(t) {
 
   function evolveTower(tower, nextType, costOverride = null) {
     const next = TOWER_TYPES[nextType];
+    if (gameState.mode === 'tutorial' &&
+        gameState.tutorialStage !== 'waves' &&
+        (gameState.tutorialStage !== 'evolve_green' ||
+         tower.spotId !== gameState.tutorialFocusSpotId ||
+         nextType !== 'Poop_Glob')) {
+      showMessage(translate('tutorial_restriction'), 'warning');
+      return;
+    }
     const cost = costOverride !== null ? costOverride : next.cost;
     if (gameState.globetines < cost) return;
     gameState.globetines -= cost;
@@ -8592,6 +10174,9 @@ function activateGTack(t) {
         gameState.maxedFamilies.push(tower.family);
         publishMultiplayerProfile();
       }
+    }
+    if (gameState.mode === 'tutorial' && gameState.tutorialStage === 'evolve_green') {
+      setTutorialStage('sell_green');
     }
 
     checkTowerCombinationBadges();
@@ -8661,6 +10246,16 @@ function activateGTack(t) {
   }
 
   function sellTower(tower) {
+    if (gameState.mode === 'tutorial' &&
+        gameState.tutorialStage !== 'waves' &&
+        (gameState.tutorialStage !== 'sell_green' ||
+         tower.spotId !== gameState.tutorialFocusSpotId)) {
+      showMessage(translate('tutorial_restriction'), 'warning');
+      return;
+    }
+    const wasTutorialGreen = gameState.mode === 'tutorial' &&
+      gameState.tutorialStage === 'sell_green' &&
+      tower.spotId === gameState.tutorialFocusSpotId;
     gameState.globetines += Math.floor(tower.cost * 0.7);
     // Badge: mimicRevenge (Traición) - sell a max level tower
     const tCfg = TOWER_TYPES[tower.type];
@@ -8677,6 +10272,10 @@ function activateGTack(t) {
     }
     checkTowerCombinationBadges();
     recalculateAuras();
+    if (wasTutorialGreen) {
+      gameState.tutorialFocusSpotId = null;
+      setTutorialStage('place_red');
+    }
     deselectTower(); updateUI(); drawTowerShop();
     sendMultiplayerAction({ type: 'sell-tower', spotId: tower.spotId });
   }
@@ -8837,7 +10436,11 @@ function activateGTack(t) {
       const isThisBoss = gameState.waveSpawnIsBoss &&
         gameState.waveBossTypes.includes(type) &&
         spawned < gameState.waveBossTypes.length;
-      spawnEnemy(type, isThisBoss);
+      const acrossTimePath = gameState.mode === 'acrossTheTime' &&
+        gameState.acrossTheTimeSpace === 2
+        ? [...ENEMY_PATHS[Math.floor(Math.random() * ENEMY_PATHS.length)]].reverse()
+        : null;
+      spawnEnemy(type, isThisBoss, acrossTimePath);
       gameState.waveSpawnIndex++;
       if (gameState.waveSpawnIndex >= gameState.waveSpawnQueue.length) {
         stopWaveSpawnInterval();
@@ -8853,6 +10456,14 @@ function activateGTack(t) {
     console.log("mode:", gameState.mode);
     console.log("maxWaves:", gameState.maxWaves);
 
+    if (gameState.mode === 'acrossTheTime') {
+      startAcrossTimeWave();
+      return;
+    }
+    if (gameState.mode === 'tutorial' && gameState.tutorialStage !== 'waves') {
+      showMessage(translate('tutorial_restriction'), 'warning');
+      return;
+    }
     if (gameState.waveActive || gameState.gameOver || gameState.paused) return;
 
     let maxWaves = gameState.maxWaves || 20;
@@ -8941,11 +10552,17 @@ function activateGTack(t) {
     } else {
       checkWaveDialogues();
     }
-    if (typeof updateUI === 'function') updateUI();
-    if (typeof showMessage === 'function') showMessage((typeof translate === 'function') ? translate('waveStarted', { wave: gameState.wave }) : `¡Oleada ${gameState.wave}!`, 'info');
-
     const wave = gameState.wave;
     const mode = gameState.mode;
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof showMessage === 'function') {
+      showMessage(
+        mode === 'tutorial'
+          ? translate('tutorial_wave', { wave: gameState.wave })
+          : (typeof translate === 'function' ? translate('waveStarted', { wave: gameState.wave }) : `¡Oleada ${gameState.wave}!`),
+        'info'
+      );
+    }
 
     let mult = 1.0;
     if (mode === 'facil') mult = 0.7;
@@ -8963,7 +10580,31 @@ function activateGTack(t) {
     console.log(`📋 Generando oleada ${wave} en modo ${mode} con mult ${mult}`);
 
     // 2. Construir la lista de enemigos según el modo y oleada
-    if (mode === 'interstellar') {
+    if (mode === 'tutorial') {
+      const mapBalance = ENEMY_BALANCE[mapKey] || ENEMY_BALANCE.gelatin_lake;
+      const pools = wave === 1
+        ? mapBalance.basic
+        : wave === 2
+          ? [...mapBalance.basic, ...mapBalance.medium]
+          : wave <= 4
+            ? [...mapBalance.basic, ...mapBalance.medium, ...mapBalance.tank]
+            : [...mapBalance.basic, ...mapBalance.medium, ...mapBalance.tank];
+      const count = wave + 2;
+      for (let i = 0; i < count; i++) {
+        spawnList.push(pools[Math.floor(Math.random() * pools.length)]);
+      }
+      if (wave === 5) {
+        bossesToSpawn.push(...(TUTORIAL_BOSSES_BY_MAP[mapKey] || TUTORIAL_BOSSES_BY_MAP.gelatin_lake));
+        isBossWave = true;
+        showMessage(translate('tutorial_boss_warning'), 'warning');
+        showNarratorMsg(
+          'bombot',
+          NARRATOR_DATA.bombot.img,
+          NARRATOR_DATA.bombot[currentLanguage].name,
+          `${translate('tutorial_boss_name_' + mapKey)}!`
+        );
+      }
+    } else if (mode === 'interstellar') {
       let pool = [];
       let count = 0;
 
@@ -9350,6 +10991,16 @@ function activateGTack(t) {
       [spawnList[i], spawnList[j]] = [spawnList[j], spawnList[i]];
     }
 
+    // A tutorial boss must not also be selected as a regular enemy.
+    if (mode === 'tutorial' && bossesToSpawn.length > 0) {
+      bossesToSpawn.forEach(bossType => {
+        let duplicateIndex;
+        while ((duplicateIndex = spawnList.indexOf(bossType)) !== -1) {
+          spawnList.splice(duplicateIndex, 1);
+        }
+      });
+    }
+
     // 4. Anteponer los jefes a la lista de spawn para que entren primero en combate
     if (isBossWave && bossesToSpawn.length > 0) {
       spawnList.unshift(...bossesToSpawn);
@@ -9374,6 +11025,9 @@ function activateGTack(t) {
     if (e.stealth) icons.push('🫥');
     if (e.ghost) icons.push('👻');
     if (e.fireImmune) icons.push('🔥🚫');
+    if (e.fireWeakMultiplier > 1) icons.push('🔥⬆️');
+    if (e.poisonImmune) icons.push('☠️🚫');
+    if (e.stunImmune) icons.push('⚡🚫');
     if (e.shield > 0) icons.push('🛡️');
     if (e.enemySlowTimer > 0) icons.push('❄️');
     if (e.burnTimer > 0) icons.push('🔥');
@@ -9441,6 +11095,11 @@ function activateGTack(t) {
 
     const currentWave = gameState.wave || 1;
     const selectedType = ENEMY_TYPES[type];
+    if (selectedType?.timeAttackOnly && gameState.mode !== 'acrossTheTime' &&
+        !synchronized && !isOwnerDebugUser()) {
+      console.warn(`Enemigo exclusivo de Across the Time bloqueado fuera del evento: ${type}`);
+      return;
+    }
     if (!boss && currentWave < 10 && selectedType?.stealth) {
       const mapBalance = ENEMY_BALANCE[gameState.map || 'gelatin_lake'];
       const earlyPool = (mapBalance?.basic || ['Stupid_Pyce'])
@@ -9472,6 +11131,11 @@ function activateGTack(t) {
       imgStr = spywareImages[Math.floor(Math.random() * spywareImages.length)];
     }
     if (imgStr) el.style.backgroundImage = `url('${imgStr}')`;
+    if (type === 'GODs_Shadow') {
+      el.classList.add('enemy-gods-shadow');
+      el.style.setProperty('--gods-shadow-image', `url("${encodeURI(imgStr)}")`);
+      el.style.backgroundImage = 'none';
+    }
     const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
     const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
     const hpValue = document.createElement('div'); hpValue.className = 'enemy-hp-value';
@@ -9497,8 +11161,17 @@ function activateGTack(t) {
     else if (gameState.mode === 'corrupto') mult = 1.8;
     else if (gameState.mode === 'pesadilla') mult = 2.0;
     else if (gameState.mode === 'infinito') mult = 1.3 + (gameState.wave || 1) * 0.014;
+    else if (gameState.mode === 'acrossTheTime') mult = 1.6;
 
-    const healthScaled = Math.max(1, (t.health || 10) * (1 + (gameState.wave || 1) * 0.15) * mult);
+    let healthScaled = Math.max(1, (t.health || 10) * (1 + (gameState.wave || 1) * 0.15) * mult);
+    if (gameState.mode === 'tutorial' && !boss) {
+      const tutorialBossHealthCap = getTutorialBossHealthCap();
+      if (tutorialBossHealthCap > 0) healthScaled = Math.min(healthScaled, tutorialBossHealthCap);
+    }
+    if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace === 3 &&
+        gameState.wave === 15 && type === '1x1x1x1_Pyce') {
+      healthScaled *= 2;
+    }
     const shieldVal = t.shieldRatio ? healthScaled * t.shieldRatio : (t.shield || 0) * (t.health || 10);
     const baseDamage = boss ? 10 : (ENEMY_TIER_DAMAGE[tier] || 2);
     const enemyObj = {
@@ -9565,13 +11238,25 @@ function activateGTack(t) {
         paracristalEnergy: gameState.paracristalEnergy,
         paracristalAstrorbSeen: gameState.paracristalAstrorbSeen,
         paracristalFinal: gameState.paracristalFinal,
-        infiniteCompleted: gameState.infiniteCompleted
+        infiniteCompleted: gameState.infiniteCompleted,
+        acrossTheTimeProgress: gameState.acrossTheTimeProgress,
+        acrossTheTimeSpace: gameState.acrossTheTimeSpace,
+        acrossTimeCrystals: gameState.acrossTimeCrystals,
+        acrossTimePuzzleSpots: gameState.acrossTimePuzzleSpots,
+        acrossTimeBossReturns: gameState.acrossTimeBossReturns,
+        acrossTimeTowerAttackTimer: gameState.acrossTimeTowerAttackTimer,
+        acrossTimeTowerCaps: gameState.acrossTimeTowerCaps
       }
     };
   }
 
   function initializeMultiplayerMatch(snapshot) {
-    if (!MAPS[snapshot.map] || typeof snapshot.mode !== 'string') return false;
+    const localAcrossTimeRestore = snapshot.mode === 'acrossTheTime' &&
+      canPlayAcrossTimeSolo() &&
+      (!Array.isArray(snapshot.players) || snapshot.players.length <= 1) &&
+      snapshot.matchStats?.acrossTheTimeProgress?.started === true;
+    if (!MAPS[snapshot.map] || typeof snapshot.mode !== 'string' ||
+        (snapshot.mode === 'acrossTheTime' && !localAcrossTimeRestore)) return false;
     const matchKey = `${snapshot.seed || currentSeed}:${snapshot.map}:${snapshot.mode}`;
     if (synchronizedMatchKey === matchKey) return true;
 
@@ -9767,7 +11452,9 @@ function activateGTack(t) {
         !Array.isArray(snapshot.enemies) ||
         !Array.isArray(snapshot.waveSpawnQueue) ||
         !Number.isFinite(Number(snapshot.wave)) ||
-        (snapshot.mode === 'interstellar' && !hasInterstellarEntryAccess())) return false;
+        (snapshot.mode === 'interstellar' && !hasInterstellarEntryAccess()) ||
+        (snapshot.mode === 'acrossTheTime' &&
+          (!canPlayAcrossTimeSolo() || !snapshot.matchStats?.acrossTheTimeProgress?.started))) return false;
 
     const restoredSnapshot = {
       ...snapshot,
@@ -9779,6 +11466,13 @@ function activateGTack(t) {
     };
     if (!applyMultiplayerGameState(restoredSnapshot)) return false;
 
+    if (gameState.mode === 'acrossTheTime') {
+      if (gameState.acrossTheTimeSpace === 1 && gameState.acrossTimeCrystals > 0) {
+        renderAcrossTimeCrystals(gameState.acrossTimeCrystals, gameState.wave);
+      }
+      if (gameState.acrossTheTimeSpace === 2) createAcrossTimePuzzleMarkers();
+      refreshAcrossTimeAppearance();
+    }
     gameState.paused = false;
     gameState.gameOver = false;
     gameState.savedRoundSnapshot = null;
@@ -9932,7 +11626,10 @@ function activateGTack(t) {
   }
 
   function checkEnemyDialogues(type) {
-    if (seenEnemyDialogues[type] || document.getElementById('narrator-bubble')) return;
+    const dialogueKey = type === 'GODs_Shadow'
+      ? `${type}_${gameState.acrossTheTimeSpace}`
+      : type;
+    if (seenEnemyDialogues[dialogueKey] || document.getElementById('narrator-bubble')) return;
     if (!isBossDialogueAllowed(type)) return;
 
     const triggers = {
@@ -9975,6 +11672,12 @@ function activateGTack(t) {
         pickRandom(DARKSPIRIT_COMBAT_LINES[currentLanguage] || DARKSPIRIT_COMBAT_LINES.es),
         'enemy-voice'
       );
+    } else if (type === 'MoonStar_Pyce' &&
+               gameState.mode === 'acrossTheTime' &&
+               gameState.acrossTheTimeSpace === 2 &&
+               gameState.wave === 15) {
+      seenEnemyDialogues[dialogueKey] = true;
+      showAcrossTimeNarration('across_time_moonstar');
     } else if (type === 'MoonStar_Pyce') {
       seenEnemyDialogues[type] = true;
       if ((gameState.map || 'gelatin_lake') === 'urbanistic_road') {
@@ -10000,6 +11703,9 @@ function activateGTack(t) {
       const data = NARRATOR_DATA.arkyvoid;
       const msg = data[currentLanguage].msgs[Math.floor(Math.random() * data[currentLanguage].msgs.length)];
       showNarratorMsg('arkyvoid', data.img, data[currentLanguage].name, msg);
+    } else if (type === 'GODs_Shadow') {
+      seenEnemyDialogues[dialogueKey] = true;
+      showAcrossTimeNarration('across_time_final_intro');
     }
   }
 
@@ -10074,8 +11780,17 @@ function activateGTack(t) {
   }
 
   let narratorTimeout = null;
+  const narratorQueue = [];
   function showNarratorMsg(speakerId, imgSrc, speakerName, text, variant = '') {
     const old = document.getElementById('narrator-bubble');
+    if (old && (
+      old.querySelector('.narrator-close')?.disabled ||
+      old.dataset.closing === 'true' ||
+      narratorQueue.length > 0
+    )) {
+      narratorQueue.push([speakerId, imgSrc, speakerName, text, variant]);
+      return;
+    }
     if (old) old.remove();
     if (narratorTimeout) clearTimeout(narratorTimeout);
 
@@ -10101,14 +11816,22 @@ function activateGTack(t) {
   `;
     document.body.appendChild(bubble);
     const textElement = bubble.querySelector('.narrator-text');
+    const closeButton = bubble.querySelector('.narrator-close');
     let characterIndex = 0;
+    if (closeButton) closeButton.disabled = true;
+    const finishTyping = () => {
+      if (closeButton) closeButton.disabled = false;
+      narratorTimeout = setTimeout(() => { closeNarratorMsg(); }, 6000);
+    };
     const typeCharacter = () => {
       if (!textElement || !bubble.isConnected) return;
       textElement.textContent = renderedText.slice(0, characterIndex);
-      characterIndex += 1;
-      if (characterIndex <= renderedText.length) {
-        setTimeout(typeCharacter, textElement.textContent.endsWith(' ') ? 18 : 28);
+      if (characterIndex >= renderedText.length) {
+        finishTyping();
+        return;
       }
+      characterIndex += 1;
+      setTimeout(typeCharacter, textElement.textContent.endsWith(' ') ? 18 : 28);
     };
     typeCharacter();
 
@@ -10119,19 +11842,24 @@ function activateGTack(t) {
       }
     }, 500); // 500ms after enter animation finishes
 
-    narratorTimeout = setTimeout(() => { closeNarratorMsg(); }, 6000);
   }
   window._showNarratorMsg = showNarratorMsg;
 
   function closeNarratorMsg() {
     const bubble = document.getElementById('narrator-bubble');
-    if (bubble) {
-      bubble.classList.remove('narrator-float');
-      bubble.classList.add('narrator-exit');
-      setTimeout(() => {
-        if (bubble.parentNode) bubble.remove();
-      }, 500); // match exit animation duration
+    if (!bubble || bubble.querySelector('.narrator-close')?.disabled) return;
+    if (narratorTimeout) {
+      clearTimeout(narratorTimeout);
+      narratorTimeout = null;
     }
+    bubble.dataset.closing = 'true';
+    bubble.classList.remove('narrator-float');
+    bubble.classList.add('narrator-exit');
+    setTimeout(() => {
+      if (bubble.parentNode) bubble.remove();
+      const nextMessage = narratorQueue.shift();
+      if (nextMessage) showNarratorMsg(...nextMessage);
+    }, 500); // match exit animation duration
   }
 
   let lastGameFrameTime = 0;
@@ -10223,11 +11951,48 @@ function activateGTack(t) {
             e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
           }
         } else {
+          if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace === 4 &&
+              gameState.wave === 50 && e.type === 'GODs_Shadow') {
+            if (e.acrossTimeReturning) {
+              e.currentPath = [...e.currentPath].reverse();
+              e.pathIndex = 0;
+              e.acrossTimeReturning = false;
+            } else {
+              gameState.acrossTimeBossReturns = (gameState.acrossTimeBossReturns || 0) + 1;
+              if (gameState.acrossTimeBossReturns >= 3) {
+                gameState.baseTookDamage = true;
+                gameState.health = 0;
+                endGame();
+                return;
+              }
+              e.currentPath = [...e.currentPath].reverse();
+              e.pathIndex = 0;
+              e.acrossTimeReturning = true;
+              showMessage(translate('across_time_final_opportunity', {
+                count: 3 - gameState.acrossTimeBossReturns
+              }), 'warning');
+            }
+            continue;
+          }
           if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
           if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
           e.el.remove(); gameState.enemies.splice(i, 1);
           damageBaseFromEnemy(e);
           continue;
+        }
+
+        if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace === 4 &&
+            gameState.wave === 50 && e.type === 'GODs_Shadow') {
+          e.acrossTimeTowerAttackTimer = (e.acrossTimeTowerAttackTimer || 0) + dt;
+          if (e.acrossTimeTowerAttackTimer >= 20) {
+            e.acrossTimeTowerAttackTimer = 0;
+            gameState.towers
+              .filter(tower => Math.hypot(tower.x - e.x, tower.y - e.y) <= 240)
+              .forEach(tower => {
+                tower.stunTimer = Math.max(tower.stunTimer || 0, 3);
+                showEffect(tower.x, tower.y - 20, '⏳', '#8a68d8');
+              });
+          }
         }
 
         const totalCurrent = e.health + (e.shield || 0);
@@ -10310,7 +12075,7 @@ function activateGTack(t) {
 
         if (e.burnTimer && e.burnTimer > 0) {
           e.burnTimer -= dt;
-          const dmg = (e.burnDamage || 5) * dt;
+          const dmg = (e.burnDamage || 5) * (e.fireWeakMultiplier || 1) * dt;
           if (e.type === 'Fireflies') {
             e.health = Math.min(e.maxHealth, e.health + dmg);
             e.el.classList.add('burning');
@@ -10356,7 +12121,7 @@ function activateGTack(t) {
                 });
               }
               if (trap.whiteSupport) {
-                e.stunned = (e.stunned || 0) + 1.5;
+                applyEnemyStun(e, 1.5);
               }
 
               showEffect(trap.x, trap.y, "TRAP! 💥", "#f39c12");
@@ -10383,13 +12148,14 @@ function activateGTack(t) {
         // Stun immunity countdown
         if (e.stunImmuneTimer && e.stunImmuneTimer > 0) e.stunImmuneTimer -= dt;
 
-        if (e.poisonTimer && e.poisonTimer > 0) {
+        if (!e.poisonImmune && e.poisonTimer && e.poisonTimer > 0) {
           e.poisonTimer -= dt;
           const dmg = 12 * dt;
           e.health -= dmg;
 
           gameState.enemies.forEach(other => {
-            if (other !== e && !other.poisonTimer && Math.hypot(other.x - e.x, other.y - e.y) < 40) {
+            if (other !== e && !other.poisonImmune && !other.poisonTimer &&
+                Math.hypot(other.x - e.x, other.y - e.y) < 40) {
               other.poisonTimer = 3;
             }
           });
@@ -10761,7 +12527,10 @@ function activateGTack(t) {
             if (targets.length > 0) {
               targets.forEach(e => {
                 const wasAlive = e.health > 0;
-                e.health -= t.damage;
+                const damageMultiplier = ['Bomb_Glob', 'TNT_Glob'].includes(t.type)
+                  ? (e.fireWeakMultiplier || 1)
+                  : 1;
+                e.health -= t.damage * damageMultiplier;
                 if (wasAlive && e.health <= 0 && !e.nonIExDamage) {
                   const baseHealth = ENEMY_TYPES[e.type] ? ENEMY_TYPES[e.type].health : 0;
                   const isTank = ['Armored_Pyce', 'Iron_Pyce', 'Titan_Pyce', 'Titan_Pyce2', 'King_Pyce', 'Cristalized_Monster', 'Lenistal'].includes(e.type) || 
@@ -10776,6 +12545,7 @@ function activateGTack(t) {
                 if (gameState.duckgrades.dg_IEx) {
                   if ((t.type === 'Bomb_Glob' || t.type === 'TNT_Glob') && !e.fireImmune) {
                     e.burnTimer = 3;
+                    e.burnDamage = 5;
                   } else if (t.type === 'Nuclear_Glob') {
                     e.toxicTimer = 5;
                   }
@@ -10979,14 +12749,14 @@ function activateGTack(t) {
           if (p.meta.toxic) {
             target.toxicTimer = (target.toxicTimer || 0) + 3.0;
           }
-          if (p.meta.poison) {
+          if (p.meta.poison && !target.poisonImmune) {
             target.poisonTimer = (target.poisonTimer || 0) + 5.0;
           }
           if (p.meta.stunStrike) {
-            target.stunned = (target.stunned || 0) + 3.0;
+            applyEnemyStun(target, 3.0);
           }
           if (p.meta.stun) {
-            target.stunned = Math.max(target.stunned || 0, p.meta.stun);
+            applyEnemyStun(target, p.meta.stun, 'max');
           }
           if (p.meta.knockback && Math.random() < p.meta.knockback) {
             target.pathIndex = Math.max(0, target.pathIndex - 1);
@@ -11001,7 +12771,7 @@ function activateGTack(t) {
           if (Math.random() < 0.15) { dmg *= 2; showEffect(target.x, target.y, "CRIT! 💥"); }
         }
         if (gameState.duckgrades.dg_Soap_Glob && p.family === 'Soap_Glob') {
-          if (Math.random() < 0.2) target.stunned = 1.0;
+          if (Math.random() < 0.2) applyEnemyStun(target, 1.0, 'replace');
         }
         if (gameState.duckgrades.dg_White && p.family === 'White' && Math.random() < 0.15) {
           target.pathIndex = Math.max(0, target.pathIndex - 1);
@@ -11013,7 +12783,7 @@ function activateGTack(t) {
         }
         if (p.projectile === 'glitch' || p.type === 'Pyce_Glob') {
           target.speed = Math.max(0.5, target.speed * 0.9);
-          if (Math.random() < 0.2) target.stunned = 0.5;
+          if (Math.random() < 0.2) applyEnemyStun(target, 0.5, 'replace');
           target.el.classList.add('glitch-shake');
           setTimeout(() => { if (target && target.el) target.el.classList.remove('glitch-shake'); }, 500);
         }
@@ -11023,6 +12793,7 @@ function activateGTack(t) {
           setTimeout(() => { if (target && target.el) target.el.classList.remove('glitch-shake'); }, 800);
         }
 
+        if (p.meta?.burn) dmg *= target.fireWeakMultiplier || 1;
         if (target.shield > 0) {
           const abs = Math.min(target.shield, dmg);
           target.shield -= abs;
@@ -11271,7 +13042,7 @@ function activateGTack(t) {
               inRange.forEach(e => {
                 e.health -= trap.damage * 0.4;
                 if (!e.stunImmuneTimer || e.stunImmuneTimer <= 0) {
-                  e.stunned = (e.stunned || 0) + 1.2;
+                  applyEnemyStun(e, 1.2);
                   e.enemySlowTimer = 2;
                   e.enemySlowFactor = 0.55;
                   e.stunImmuneTimer = 10;
@@ -11299,7 +13070,7 @@ function activateGTack(t) {
                 });
                 if (brownSlowing) unlockBadge('wall_garden');
                 if (!e.stunImmuneTimer || e.stunImmuneTimer <= 0) {
-                  e.stunned = (e.stunned || 0) + 3.0;
+                  applyEnemyStun(e, 3.0);
                   e.enemySlowFactor = 0.0;
                   e.enemySlowTimer = 3;
                   e.stunImmuneTimer = 10;
@@ -11314,7 +13085,8 @@ function activateGTack(t) {
       }
 
 
-      if (gameState.waveActive && !gameState.spawningActive && !gameState.enemies.length) {
+      if (gameState.waveActive && !gameState.spawningActive && !gameState.enemies.length &&
+          !(gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace === 1 && gameState.acrossTimeCrystals > 0)) {
         gameState.waveActive = false;
         gameState.savedRoundSnapshot = null;
         gameState.waveSpawnQueue = [];
@@ -11325,28 +13097,34 @@ function activateGTack(t) {
           clearInterval(roundCheckpointInterval);
           roundCheckpointInterval = null;
         }
-        gameState.globetines += 50 + gameState.wave * 10;
-        const earnedPy = Math.round(10 * getPycoinMultiplier());
-        gameState.pycoins += earnedPy;
+        const earnsNormalRewards = gameState.mode !== 'tutorial';
+        if (earnsNormalRewards) {
+          gameState.globetines += 50 + gameState.wave * 10;
+          const earnedPy = Math.round(10 * getPycoinMultiplier());
+          gameState.pycoins += earnedPy;
+        }
         let xpAmount = 20;
         if (gameState.mode === 'dificil') xpAmount = 25;
         else if (gameState.mode === 'extremo') xpAmount = 30;
         else if (gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') xpAmount = 40;
         else if (gameState.mode === 'pesadilla') xpAmount = 50;
-        addXP(xpAmount);
+        if (earnsNormalRewards) addXP(xpAmount);
+        if (gameState.mode === 'acrossTheTime') {
+          handleAcrossTimeWaveCleared();
+        }
         // Badge: mimic3 (Aura de Cristal) - finish wave with 1 health
-        if (gameState.health === 1) unlockBadge('mimic3');
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.health === 1) unlockBadge('mimic3');
         // Badge: mimic4 (Economía de Guerra) - 10 ducky towers on map
         const duckyCount = gameState.towers.filter(t => t.family === 'Ducky_Glob').length;
-        if (duckyCount >= 10) unlockBadge('mimic4');
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && duckyCount >= 10) unlockBadge('mimic4');
         // Badge: survivor - reach wave 10
-        if (gameState.wave >= 10) unlockBadge('survivor');
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.wave >= 10) unlockBadge('survivor');
         // Badge: millionaire - have over 20000 money
-        if (gameState.globetines >= 20000) unlockBadge('millionaire');
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.globetines >= 20000) unlockBadge('millionaire');
         // Badge: inf wave badges
-        if (gameState.wave >= 100) unlockBadge('inf100');
-        if (gameState.wave >= 500) unlockBadge('inf500');
-        if (gameState.wave >= 999) unlockBadge('inf999');
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.wave >= 100) unlockBadge('inf100');
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.wave >= 500) unlockBadge('inf500');
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.wave >= 999) unlockBadge('inf999');
         if (gameState.mode === 'infinito' && gameState.wave >= 999) {
           gameState.wave = 999;
           gameState.infiniteCompleted = true;
@@ -11354,11 +13132,17 @@ function activateGTack(t) {
           showInfiniteCompletionDucky();
         }
         // Badge: titaniumBuilding - no base damage
-        if (!gameState.baseTookDamage && gameState.wave >= gameState.maxWaves && gameState.mode !== 'infinito') unlockBadge('titaniumBuilding');
+        if (!gameState.baseTookDamage && gameState.wave >= gameState.maxWaves &&
+            !['infinito', 'acrossTheTime', 'tutorial'].includes(gameState.mode)) unlockBadge('titaniumBuilding');
         // Badge: deepSavings - 1500 pycoins and duckpasses
-        if (gameState.pycoins >= 1500 && gameState.duckPassCurrency >= 1500) unlockBadge('deepSavings');
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.pycoins >= 1500 && gameState.duckPassCurrency >= 1500) unlockBadge('deepSavings');
         updateUI(); updateMetaUI(); saveProgress();
-        if (gameState.autoWave) setTimeout(startWave, 2000);
+        if (gameState.mode === 'tutorial' && gameState.wave >= 5) {
+          awardTutorialCompletion();
+          setTutorialStage('complete');
+          saveProgress();
+          endGame(true);
+        } else if (gameState.autoWave) setTimeout(startWave, 2000);
       }
 
       // Anti-Normal random glitch mechanic
@@ -11621,6 +13405,9 @@ function activateGTack(t) {
       'Guest_Pyce': 450, 'Noob_Pyce': 400,
       '4motions_Pyce': 225, 'Flower_Pyce': 225, 'SO_Pyce': 225,
       '1x1x1x1_Pyce': 6, 'NOeye_Pyce': 5, 'MoonStar_Pyce': 4,
+      'GODs_Shadow': 1, 'Roborb': 3, 'Clockwork_Titan': 225,
+      'DIY_Bot': 250, 'Hatspy': 250, 'Local_Engines': 450,
+      'Untimed_Atoms': 450,
       'Stupid_GoldPyce': 15, 'Mimic_Pyce': 3,
       'Bomb_Pyce': 450, 'Knight_Pyce': 250, 'Cannon_Pycer': 250,
       'Arky': 5, 'CrystArky': 3, 'ArkyVoid': 3, 'Fireflies': 250,
@@ -11867,9 +13654,10 @@ function activateGTack(t) {
       }
     }
 
-    if (e.poisonTimer && e.poisonTimer > 0) {
+    if (!e.poisonImmune && e.poisonTimer && e.poisonTimer > 0) {
       gameState.enemies.forEach(other => {
-        if (other !== e && !other.poisonTimer && Math.hypot(other.x - e.x, other.y - e.y) < 100) {
+        if (other !== e && !other.poisonImmune && !other.poisonTimer &&
+            Math.hypot(other.x - e.x, other.y - e.y) < 100) {
           other.poisonTimer = 3;
           showEffect(other.x, other.y - 10, translate('effect_contagion'), "#9b59b6");
         }
@@ -12104,6 +13892,15 @@ function activateGTack(t) {
     const encTabBadges = document.getElementById('enc-tab-badges');
     if (encTabBadges) encTabBadges.innerHTML = translate('enc_tab_badges');
 
+    const tutorialModeButton = document.querySelector('.mode-btn[data-mode="tutorial"]');
+    if (tutorialModeButton) {
+      tutorialModeButton.textContent = translate('tutorial_mode_name');
+      tutorialModeButton.title = translate('tutorial_mode_desc');
+    }
+    if (gameState.mode === 'tutorial' && gameState.tutorialStage) {
+      setTutorialStage(gameState.tutorialStage);
+    }
+
     updateAchievementsBtnUI();
 
     const evolveTitle = document.querySelector('#evolve-panel h3');
@@ -12196,8 +13993,23 @@ function activateGTack(t) {
     return cfg.image;
   }
 
+  function getTowerBackgroundImage(type) {
+    const layers = [];
+    if (type === 'Work_Bombot' &&
+        gameState.equippedSkins.Special === PERSONALIZABLE_BOMBOT_SKIN_ID) {
+      const accessories = gameState.equippedBombotAccessories || {};
+      getBombotAccessoryLayerIds(accessories).forEach(accessoryId => {
+        const image = accessoryId && getBombotAccessoryImage(accessoryId);
+        if (image) layers.push(`url("${encodeURI(image)}")`);
+      });
+    }
+    layers.push(`url("${encodeURI(getTowerImage(type))}")`);
+    return layers.join(', ');
+  }
+
   function applyTowerEffects(el, type) {
     const cfg = TOWER_TYPES[type];
+    el.style.backgroundImage = getTowerBackgroundImage(type);
     el.className = 'tower';
     const globalSkin = gameState.equippedSkins['Global'];
     if (globalSkin !== 'default') {
@@ -12262,6 +14074,11 @@ function activateGTack(t) {
   }
 
   function retryGame(preserveSavedRound = false) {
+    if (!preserveSavedRound && gameState.mode === 'acrossTheTime' &&
+        gameState.acrossTheTimeProgress?.completed) {
+      restartAcrossTimeEvent();
+      return;
+    }
     const savedRoundSnapshot = preserveSavedRound ? gameState.savedRoundSnapshot : null;
     stopWaveSpawnInterval();
     if (roundCheckpointInterval !== null) {
@@ -12277,6 +14094,10 @@ function activateGTack(t) {
     gameState.paused = false;
     if (gameState.mode === 'interstellar') {
       gameState.health = 200;
+    } else if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace >= 3) {
+      gameState.health = 300;
+    } else if (gameState.mode === 'tutorial') {
+      gameState.health = 100;
     } else {
       gameState.health = 100 + (gameState.baseHealthLevel * 20);
     }
@@ -12307,7 +14128,8 @@ function activateGTack(t) {
     gameState.blockQuestStarted = false;
     gameState.blockQuestPending = false;
     gameState.wallGardenSoapMessageShown = false;
-    document.querySelectorAll('.block-quest-marker, .paracristal').forEach(el => el.remove());
+    document.querySelectorAll('.block-quest-marker, .paracristal, .across-time-crystal').forEach(el => el.remove());
+    gameState.acrossTimeCrystals = 0;
     const crystalEnergy = document.getElementById('paracristal-energy');
     if (crystalEnergy && gameState.mode !== 'interstellar') crystalEnergy.style.display = 'none';
     if (gameState.mode !== 'interstellar') gameState.paracristalActive = false;
@@ -12325,6 +14147,8 @@ function activateGTack(t) {
     document.querySelector('#game-over .retry-btn:not(#resume-game)')?.style.removeProperty('display');
     setPauseSaveActionsVisible(false);
     document.getElementById('game-over').style.display = 'none';
+    if (gameState.mode === 'tutorial') initializeTutorialRun();
+    else setTutorialStage(null);
   }
 
   function setPauseSaveActionsVisible(visible) {
@@ -12420,12 +14244,32 @@ function activateGTack(t) {
   }
 
   function chooseModeAfterGame() {
+    if (gameState.mode === 'acrossTheTime') {
+      gameState.mode = null;
+      gameState.acrossTheTimeSpace = 0;
+      refreshAcrossTimeAppearance();
+    } else if (gameState.mode === 'tutorial') {
+      gameState.mode = null;
+      setTutorialSkinsEnabled(false);
+      setTutorialProgressionEnabled(false);
+    }
+    updateBuffs();
     retryGame();
     document.getElementById('map-selection').style.display = 'none';
     showModeSelection();
   }
 
   function chooseMapAfterGame() {
+    if (gameState.mode === 'acrossTheTime') {
+      gameState.mode = null;
+      gameState.acrossTheTimeSpace = 0;
+      refreshAcrossTimeAppearance();
+    } else if (gameState.mode === 'tutorial') {
+      gameState.mode = null;
+      setTutorialSkinsEnabled(false);
+      setTutorialProgressionEnabled(false);
+    }
+    updateBuffs();
     retryGame();
     gameState.modeConfirmed = false;
     setMultiplayerSpectator(false);
@@ -12437,6 +14281,8 @@ function activateGTack(t) {
   }
 
   function exitToLogin(preserveSavedRound = false) {
+    if (tutorialEquippedSkinsBackup) setTutorialSkinsEnabled(false);
+    if (tutorialProgressionBackup) setTutorialProgressionEnabled(false);
     stopSessionClock();
     gameState.paused = false;
     retryGame(preserveSavedRound);
@@ -12452,6 +14298,7 @@ function activateGTack(t) {
     multiplayerServerClosed = false;
     document.getElementById('seed-display').style.display = 'none';
     gameState.mode = null;
+    updateBuffs();
     gameState.map = null;
     gameState.modeConfirmed = false;
     renderMultiplayerPlayerList([]);
@@ -12488,7 +14335,46 @@ function activateGTack(t) {
     const resumeButton = document.getElementById('resume-game');
     if (resumeButton) resumeButton.style.display = 'none';
 
+    if (!victory && gameState.mode === 'acrossTheTime') {
+      if (title) title.textContent = currentLanguage === 'en'
+        ? 'THE TIMELINE HAS COLLAPSED'
+        : 'LA LÍNEA TEMPORAL HA COLAPSADO';
+      if (msg) msg.textContent = currentLanguage === 'en'
+        ? 'Retrying from this space checkpoint. Previously completed spaces remain complete.'
+        : 'Se reintentará desde el checkpoint de este espacio. Los espacios anteriores completados se conservan.';
+      modal.querySelectorAll('.game-over-actions button').forEach(button => {
+        button.style.display = button.classList.contains('exit-btn') ? 'inline-flex' : 'none';
+      });
+      window.setTimeout(() => {
+        if (gameState.mode === 'acrossTheTime' && gameState.gameOver &&
+            !gameState.acrossTheTimeProgress?.completed) {
+          restartAcrossTimeEvent();
+        }
+      }, 2500);
+      return;
+    }
+
     if (victory) {
+      if (gameState.mode === 'tutorial') {
+        awardTutorialCompletion();
+        setTutorialStage('complete');
+        if (content) content.classList.add('victory');
+        if (title) {
+          title.removeAttribute('data-i18n');
+          title.textContent = currentLanguage === 'en' ? 'TUTORIAL COMPLETE!' : '¡TUTORIAL COMPLETADO!';
+        }
+        if (msg) msg.textContent = translate('tutorial_guide_complete');
+        showNarratorMsg(
+          'bombot',
+          NARRATOR_DATA.bombot.img,
+          NARRATOR_DATA.bombot[currentLanguage].name,
+          translate('tutorial_guide_complete')
+        );
+        drawBadges();
+        saveProgress();
+        return;
+      }
+      unlockBombotAccessoriesForVictory();
       const baseModes = ['facil', 'normal', 'dificil', 'extremo'];
 
       if (gameState.map === 'spooktacular_ruins') {
@@ -12516,6 +14402,16 @@ function activateGTack(t) {
             currentLanguage === 'es'
               ? '🧙 ¡Wicked Set desbloqueado! Has vencido Aridez Escalofriante en Corrupto.'
               : '🧙 Wicked Set unlocked! You beat Spooktacular Ruins in Corrupt.',
+            'success'
+          );
+        }
+        if (['dificil', 'extremo'].includes(gameState.mode) &&
+            !gameState.unlockedSkins.includes('rewamped_black_set')) {
+          gameState.unlockedSkins.push('rewamped_black_set');
+          showMessage(
+            currentLanguage === 'es'
+              ? '🌑 ¡Rewamp Negro desbloqueado! Has vencido Aridez Escalofriante en Difícil o Extremo.'
+              : '🌑 Black Rewamp unlocked! You beat Spooktacular Ruins in Hard or Extreme.',
             'success'
           );
         }
@@ -12671,6 +14567,7 @@ function activateGTack(t) {
       if ((gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') && victory === true) {
         if (TOWER_TYPES['Work_Bombot'] && !TOWER_TYPES['Work_Bombot'].unlocked) {
           TOWER_TYPES['Work_Bombot'].unlocked = true;
+          ensurePersonalizableBombotUnlocked();
           showMessage("🤖 ¡TORRE WORK-BOMBOT DESBLOQUEADA!", 'success');
           saveProgress();
         }
@@ -12803,6 +14700,17 @@ function activateGTack(t) {
     if (skinSet.id === 'astrorb_set' || skinSet.id === 'crystal_bombot') {
       shoot(t, target, { damage: dmg, image: 'img/Proyectiles/Crystal Metor.png' });
       return true;
+    }
+
+    if (skinSet.id === 'wicked_set') {
+      if (t.type === 'Comet_Glob' || t.type === 'Dark_Glob') {
+        shoot(t, target, { damage: dmg, image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' });
+        return true;
+      }
+      if (t.type === 'Demglob' || t.type === 'Void_Glob') {
+        shoot(t, target, { damage: dmg, image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' });
+        return true;
+      }
     }
 
     if (skinSet.id === 'starjump_set') {

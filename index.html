@@ -92,6 +92,22 @@
         </div>
     </div>
 
+    <div id="tutorial-skip-modal" class="modal tutorial-skip-modal" role="dialog" aria-modal="true" aria-labelledby="tutorial-skip-title" aria-describedby="tutorial-skip-description" hidden>
+        <div class="modal-content tutorial-skip-content">
+            <div class="tutorial-skip-bombot">
+                <img src="img/Work-Bombot.png" alt="Work-Bombot">
+                <span aria-hidden="true">?</span>
+            </div>
+            <div class="tutorial-skip-kicker" data-i18n="tutorial_skip_kicker">WORK-BOMBOT · ENTRENAMIENTO</div>
+            <h2 id="tutorial-skip-title" data-i18n="tutorial_skip_title">¿Dejamos el entrenamiento?</h2>
+            <p id="tutorial-skip-description" data-i18n="tutorial_skip_confirm"></p>
+            <div class="tutorial-skip-actions">
+                <button id="tutorial-skip-cancel" type="button" data-i18n="tutorial_skip_cancel">Seguir aprendiendo</button>
+                <button id="tutorial-skip-accept" type="button" data-i18n="tutorial_skip_accept">Salir del tutorial</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Meta Controls (Visible after login) -->
     <div id="meta-controls" style="display: none;">
         <button id="open-profile" class="meta-btn" type="button" onclick="openUserProfile()">👤 <span class="meta-btn-text">Perfil</span></button>
@@ -179,6 +195,7 @@
         <div class="login-box">
             <h2 data-i18n="select_mode">Seleccionar Modo</h2>
             <div class="modes-grid">
+                <button class="mode-btn mode-btn-tutorial" data-mode="tutorial" data-i18n="tutorial_mode_name">🎓 Tutorial</button>
                 <button class="mode-btn" data-mode="facil">🌱 Fácil</button>
                 <button class="mode-btn" data-mode="normal">⚔️ Normal</button>
                 <button class="mode-btn" data-mode="dificil">🔥 Difícil</button>

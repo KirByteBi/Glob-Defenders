@@ -7,6 +7,9 @@ usuarios_roles.txt
 # Ignorar instrucciones internas de moderación y despliegue
 supabase/README.md
 
+# Ignorar documento de diseño interno de la misión Across the Time
+ATT BIGUPD.txt
+
 # Ignorar archivos temporales de sistema
 Thumbs.db
 .DS_Store

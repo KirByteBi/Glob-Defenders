@@ -22,6 +22,8 @@ const TRANSLATIONS = {
     offline_play: "Jugar sin conexión",
     offline_mode_notice: "Modo offline: la cuenta no se verifica con el servidor; el progreso se guarda solo en este dispositivo.",
     codeSuccess: "⭐ Código aceptado: {name} desbloqueado",
+    badge_tutorial_name: "Primeros pasos",
+    badge_tutorial_desc: "Completa el tutorial de defensa. Haz clic aquí para repetirlo.",
     badge_survivor_name: "Superviviente", badge_survivor_desc: "Llega a la oleada 10",
     badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Ten más de 20.000 de dinero",
     badge_evolution_name: "Biotecnólogo", badge_evolution_desc: "Evoluciona una torre al máximo",
@@ -266,6 +268,86 @@ const TRANSLATIONS = {
     enemy_Curse_Boneker_desc: "Entre el cielo y el infierno hay almas que no pertenecen a ninguno de los dos. Curse Boneker las encuentra, las elige y las encierra en la pirámide a la que sirve, convencido de que así les ahorra el tormento de vagar sin destino. Lo sabe porque él también fue una de ellas: murió desorientado en el desierto, caminando en círculos hasta olvidar qué era el horizonte. Ahora la pirámide es su brújula y su prisión. Cuando lanza sus huesos malditos, no apunta a destruir tus torres, sino a silenciarlas el tiempo suficiente para que ninguna pueda guiar a esas almas de vuelta a casa.",
     enemy_Ghost_Pyce_name: "Ghost Pyce",
     enemy_Ghost_Pyce_desc: "Un Pyce fantasma que es intangible para las evoluciones inferiores. Pero espera... ¿Los Pyces pueden morir? Quizás solo sea un disfraz, o su pantalla se ha roto y su cara se sostiene mágicamente donde debería estar. Sea cual sea su caso, es un fiel sirviente, y ya lo era antes de convertirse en fantasma.",
+    enemy_Clockwork_Titan_name: "Clockwork Titan",
+    enemy_Clockwork_Titan_desc: "Un reloj que ha cobrado vida gracias al alma de quien una vez fue un gran relojero. Ahora vaga por el multiverso arreglando aquello que no se puede arreglar.",
+    enemy_DIY_Bot_name: "DIY-Bot",
+    enemy_DIY_Bot_desc: "Un robot que puedes construir rápidamente. La empresa que los creó quiso que fueran para Navidad, pero ahora son un útil recurso interdimensional... Y siempre serán tan festivos como en su día especial.",
+    enemy_Hatspy_name: "Hatspy",
+    enemy_Hatspy_desc: "Espías robóticos con forma de sombrero de copa que sirven al Astrorb mecánico, conocido como Roborb. Una empresa mafiosa los creó como prototipos de espionaje.",
+    enemy_Local_Engines_name: "Local Engines",
+    enemy_Local_Engines_desc: "Unos engranajes verdes que cooperan en conjunto como parte vital de la existencia de otras dimensiones. Verlos como enemigos significa que se ha roto la pared equivocada.",
+    enemy_Roborb_name: "Roborb the Time Stealer",
+    enemy_Roborb_desc: "Una empresa de dudosa confianza ensambló este robot utilizando el poder cristalizado restante de aquel astro que huyó al espacio al ser derrotado. Así logró recrear a ese dios en una forma robótica de menor escala, más portátil y estable que la original. Roborb no es Astrorb: es una imitación mecánica alimentada por el poder que dejó atrás.",
+    enemy_Untimed_Atoms_name: "Untimed Atoms",
+    enemy_Untimed_Atoms_desc: "Átomos que no terminan de colocarse correctamente. Son la consecuencia de haber roto el tejido dimensional y un problema si se multiplican, porque eso significa que más átomos están en problemas.",
+    enemy_GODs_Shadow_name: "GODs Shadow",
+    enemy_GODs_Shadow_desc: "L + X + T + _",
+    enemy_GODs_Shadow_completed_desc: "La sombra de quien alguna vez fue alguien importante. El original está libre, pero su sombra fue convertida en una herramienta de destrucción. Al derrotarla, también has derrotado una parte de la mafia y del tejido espacio-tiempo... Pero no te detengas: sigue defendiendo el pasado de I.D. con tus propias manos. Su mundo queda en tus manos.",
+    enemy_GODs_Shadow_show_clue: "Ver pista: L + X + T + _",
+    enemy_GODs_Shadow_show_main_desc: "Volver a la descripción",
+    enemy_GODs_Shadow_show_clue: "Ver pista: L + X + T + _",
+    enemy_GODs_Shadow_show_main_desc: "Volver a la descripción",
+    across_time_mode_name: "Across the Time: GlD (EVENT)",
+    tutorial_mode_name: "🎓 Tutorial",
+    tutorial_mode_desc: "Aprende a colocar, evolucionar y vender Globs y supera cinco oleadas.",
+    tutorial_solo_required: "El tutorial solo se puede jugar en una partida individual.",
+    tutorial_emblem_repeat: "Repetir tutorial",
+    tutorial_skip: "Saltar tutorial",
+    tutorial_skip_kicker: "WORK-BOMBOT · ENTRENAMIENTO",
+    tutorial_skip_title: "¿Dejamos el entrenamiento?",
+    tutorial_skip_confirm: "Work-Bombot dejará de guiarte. Si sales ahora, no conseguirás el emblema Primeros pasos ni sus recompensas. Podrás volver al tutorial desde el emblema cuando quieras.",
+    tutorial_skip_cancel: "Seguir aprendiendo",
+    tutorial_skip_accept: "Salir del tutorial",
+    tutorial_continue: "Continuar",
+    tutorial_restriction: "Sigue las instrucciones de Work-Bombot para continuar.",
+    tutorial_guide_title: "WORK-BOMBOT",
+    tutorial_guide_place_green: "Coloca un Glob verde. Durante esta práctica no podrás colocar el rojo todavía.",
+    tutorial_guide_select_green: "¡Bien hecho! Haz clic en el Glob verde para ver sus opciones de evolución y venta.",
+    tutorial_guide_evolve_green: "Evoluciona el Glob una vez con el botón del panel.",
+    tutorial_guide_sell_green: "¡Muy bien! Cuanto más evolucione un Glob, más potente será. Ahora véndelo desde su panel.",
+    tutorial_guide_place_red: "Coloca un Glob rojo para conocer otra familia.",
+    tutorial_guide_families: "Cada familia tiene su estilo: algunas hacen más daño, otras atacan rápido y otras ralentizan o paralizan. Consulta la Enciclopedia para ver qué hace cada Glob.",
+    tutorial_guide_build: "Prepara tu defensa: deja 3 Globs verdes y 4 rojos en total. El rojo que acabas de colocar cuenta; puedes poner los demás donde quieras.",
+    tutorial_guide_waves: "¡Defensa lista! Supera las cinco oleadas. Work-Bombot te avisará de cada avance.",
+    tutorial_guide_complete: "¡Lo has hecho genial! Prueba otros mapas y compra nuevas familias en la tienda. En tus manos está detener las invasiones que los Globs intentan evitar. Algo malo va a pasar en Gelatin Lake y tenemos que impedirlo. ¡Contamos contigo!",
+    tutorial_wave: "Tutorial · Oleada {wave} de 5",
+    tutorial_boss_warning: "¡Atención! Se acerca el último desafío de este mapa.",
+    tutorial_boss_name_gelatin_lake: "4Motions Pyce",
+    tutorial_boss_name_urbanistic_road: "Cannon Pycer y Knight Pyce",
+    tutorial_boss_name_sunlight_seaside: "Old Fungus",
+    tutorial_boss_name_spooktacular_ruins: "Blood-Taker y SkeleBones Pyce",
+    across_time_mode_desc: "Una serie de mundos paralelos. Desafío Extremo para un solo jugador; puede jugarse online.",
+    across_time_solo_required: "Across the Time y TIME ATTACK son para un solo jugador; la seed no puede tener otros jugadores.",
+    across_time_badges_required: "Necesitas los emblemas Interstellar y llave de Wildsand Leaf.",
+    across_time_map_required: "La misión debe iniciarse desde Gelatin Lake.",
+    across_time_loadout_required: "Equipa en este orden: Verde, Naranja, Azul, Blanco y Rojo.",
+    across_time_crystals: "Cristales temporales: {count}",
+    across_time_puzzle: "Forma L + X + T + _ con torres sobre los marcadores.",
+    across_time_puzzle_failed: "La formación no coincide. Coloca una torre en cada marcador L, X, T y _.",
+    across_time_intro: "Veo que te gustan los retos. ¿Verdad? Pues vamos a jugar, voy a ponerte distintos tipos de enemigos a tu disposición... Solo trata de sobrevivir hasta el final.",
+    across_time_puzzle_solved: "No caeré... ¡NI TÚ ACABARÁS CON EL TIEMPO QUE CONSUMIRÉ!",
+    across_time_moonstar: "Habéis llegado lejos. ¡PERO NO TAN LEJOS! MOONSTAR... ¡ACABA CON ELLOS!",
+    across_time_space_two_complete: "Espacio II completado. Introduce 14/05/26-TIMETRAVEL para continuar.",
+    across_time_after_space_two: "Arg. ¿Pensabas que me habías vencido? Todavía te esperan desgracias, y tienen que ver con tu pasado.",
+    across_time_final_intro: "Me he hartado de esperar. ¡Esta vez no escaparás!",
+    across_time_threat: "La presencia de GODs Shadow se cierne sobre este mundo...",
+    across_time_code_required: "Completa el espacio II antes de usar el código temporal.",
+    across_time_confirm: "¿Preparado para viajar al pasado? Se recomienda preparar el loadout antes de continuar.",
+    across_time_transition: "Transición a un mundo paralelo...",
+    across_time_final_warning: "No permitiré que mi reinado de oscuridad temporal se detenga. ¡Eres listo para viajar al pasado... pero no lo bastante hábil para derrotarme!",
+    across_time_victory_title: "🌌 ¡ACROSS THE TIME COMPLETADO! 🌌",
+    across_time_victory_msg: "Has defendido los mundos paralelos y derrotado a GODs Shadow.<br>Has obtenido Virtuallity Set.",
+    across_time_reward: "🎁 ¡Virtuallity Set desbloqueado!",
+    across_time_final_opportunity: "GODs Shadow regresa a su base. Oportunidades restantes: {count}.",
+    across_time_restart: "Espacio reiniciado desde su checkpoint; se conserva el progreso de los espacios anteriores.",
+    time_attack_mode_name: "TIME ATTACK",
+    time_attack_mode_desc: "Rejuega un espacio: GL inicia I, UR inicia II y AE inicia III–IV. Para un solo jugador; puede jugarse online.",
+    time_attack_map_required: "TIME ATTACK solo se puede iniciar desde Gelatin Lake, Urbanistic Road o Aridez Escalofriante.",
+    time_attack_progress_required: "Completa Across the Time para desbloquear TIME ATTACK.",
+    badge_across_time_name: "Across the Time",
+    badge_across_time_desc: "Completa Across the Time: GlD (EVENT).",
+    skin_virtuallity_name: "Virtuallity Set",
+    skin_virtuallity_desc: "Una recompensa de Across the Time: GlD (EVENT).",
     enemy_ZomPyce_name: "ZomPyce",
     enemy_ZomPyce_desc: "Un Pyce muerto... No, no está muerto: sus circuitos no funcionan, lo que lo ha dejado podrido hasta parecer un zombi. No sabe mantenerse en pie, pero recolectó diferentes ropajes de los humanos y los guarda en el desierto.",
     
@@ -444,6 +526,8 @@ const TRANSLATIONS = {
     skin_mimic_desc: "Skin especial obtenida al derrotar al Mimic Pyce.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
     skin_cuby_name: "Cuby",
     skin_cuby_desc: "¡Colaboración especial! Desbloqueada por superar la misión Interstellar Menace. Esta skin tiene animaciones únicas.",
+    skin_personalizable_bombot_name: "Personalizable Bombot",
+    skin_personalizable_bombot_desc: "Personaliza a Bombot con un accesorio de cabeza, uno frontal y un traje.",
     upgrade_range_name: "Alcance Maestro",
     upgrade_range_desc: "+20 Alcance para todas las torres",
     upgrade_damage_name: "Poder del Pato",
@@ -591,6 +675,9 @@ const TRANSLATIONS = {
     almanac_reward: "💰 +",
     mechanic_common: "Enemigo Común",
     mechanic_spyware: "Spywares: Las primeras y segundas evos de las torres no lo pueden atacar, pero las trampas pueden dañarlo.",
+    mechanic_clockwork_titan: "Inmune a los aturdimientos.",
+    mechanic_diy_bot: "Inmune al veneno y débil al fuego.",
+    mechanic_hatspy: "Fantasma: solo las torres de evolución 3 o superior pueden alcanzarlo.",
     mechanic_mimic: "Cazatesoros: ¡Atrápalo rápido antes de que huya!",
     mechanic_boss: "Jefe Imparable: Altamente resistente al control de masas.",
     mechanic_tank: "Tanque: Absorbe grandes cantidades de daño.",
@@ -644,6 +731,8 @@ const TRANSLATIONS = {
     offline_account_error: "Could not verify the account stored on this device.",
     offline_play: "Play offline",
     offline_mode_notice: "Offline mode: the account cannot be server-verified; progress stays on this device.",
+    badge_tutorial_name: "First Steps",
+    badge_tutorial_desc: "Complete the defense tutorial. Click here to repeat it.",
     badge_survivor_name: "Survivor", badge_survivor_desc: "Reach wave 10",
     badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Have over 20,000 money",
     badge_evolution_name: "Biotechnologist", badge_evolution_desc: "Evolve a tower to the max",
@@ -817,6 +906,86 @@ const TRANSLATIONS = {
     enemy_Curse_Boneker_desc: "Between heaven and hell are souls that belong to neither. Curse Boneker finds them, chooses them, and imprisons them in the pyramid it serves, convinced that this spares them the torment of wandering without a destination. It knows because it was one of them: it died disoriented in the desert, walking in circles until it forgot what the horizon was. Now the pyramid is its compass and its prison. When it hurls its cursed bones, it does not aim to destroy your towers, but to silence them long enough that none can guide those souls home.",
     enemy_Ghost_Pyce_name: "Ghost Pyce",
     enemy_Ghost_Pyce_desc: "A ghost Pyce that is intangible to lower evolutions. But wait... Can Pyces die? Perhaps it is only wearing a costume, or its screen broke and its face is magically floating where the screen should be. Whatever the case, it is a loyal servant, as it was even before becoming a ghost.",
+    enemy_Clockwork_Titan_name: "Clockwork Titan",
+    enemy_Clockwork_Titan_desc: "A clock brought to life by the soul of someone who was once a great clockmaker. Now it wanders the multiverse, fixing what cannot be fixed.",
+    enemy_DIY_Bot_name: "DIY-Bot",
+    enemy_DIY_Bot_desc: "A robot you can build quickly. The company that created them wanted them ready for Christmas, but now they are a useful interdimensional resource... And they will always be as festive as they are on their special day.",
+    enemy_Hatspy_name: "Hatspy",
+    enemy_Hatspy_desc: "Robot spies shaped like top hats who serve the mechanical Astrorb, known as Roborb. A shady company created them as espionage prototypes.",
+    enemy_Local_Engines_name: "Local Engines",
+    enemy_Local_Engines_desc: "Green gears that work together as a vital part of other dimensions' existence. Seeing them as enemies means the wrong wall has been broken.",
+    enemy_Roborb_name: "Roborb the Time Stealer",
+    enemy_Roborb_desc: "A company of questionable trust assembled this robot using the remaining crystallized power of the celestial being that fled into space after its defeat. This allowed them to recreate that god in a smaller robotic form, more portable and stable than the original. Roborb is not Astrorb: it is a mechanical imitation fueled by the power left behind.",
+    enemy_Untimed_Atoms_name: "Untimed Atoms",
+    enemy_Untimed_Atoms_desc: "Atoms that never quite settle into the right places. They are a consequence of tearing the fabric of dimensions, and become a problem when they multiply, because that means more atoms are in trouble.",
+    enemy_GODs_Shadow_name: "GODs Shadow",
+    enemy_GODs_Shadow_desc: "L + X + T + _",
+    enemy_GODs_Shadow_completed_desc: "The shadow of someone who was once important. The original is free, but their shadow was turned into a tool of destruction. By defeating it, you have also defeated a part of the mafia and the space-time fabric... But do not stop: keep defending I.D.'s past with your own hands. Their world is in your hands.",
+    enemy_GODs_Shadow_show_clue: "Show clue: L + X + T + _",
+    enemy_GODs_Shadow_show_main_desc: "Return to description",
+    enemy_GODs_Shadow_show_clue: "Show clue: L + X + T + _",
+    enemy_GODs_Shadow_show_main_desc: "Return to description",
+    across_time_mode_name: "Across the Time: GlD (EVENT)",
+    tutorial_mode_name: "🎓 Tutorial",
+    tutorial_mode_desc: "Learn to place, evolve, and sell Globs, then clear five waves.",
+    tutorial_solo_required: "The tutorial can only be played in a single-player round.",
+    tutorial_emblem_repeat: "Repeat tutorial",
+    tutorial_skip: "Skip tutorial",
+    tutorial_skip_kicker: "WORK-BOMBOT · TRAINING",
+    tutorial_skip_title: "Leave the training?",
+    tutorial_skip_confirm: "Work-Bombot will stop guiding you. If you leave now, you will not earn the First Steps emblem or its rewards. You can return to the tutorial from the emblem whenever you like.",
+    tutorial_skip_cancel: "Keep learning",
+    tutorial_skip_accept: "Leave tutorial",
+    tutorial_continue: "Continue",
+    tutorial_restriction: "Follow Work-Bombot's instructions to continue.",
+    tutorial_guide_title: "WORK-BOMBOT",
+    tutorial_guide_place_green: "Place a green Glob. You cannot place a red one just yet.",
+    tutorial_guide_select_green: "Well done! Click the green Glob to see its evolution and sell options.",
+    tutorial_guide_evolve_green: "Evolve the Glob once using the button in its panel.",
+    tutorial_guide_sell_green: "Great! The further a Glob evolves, the stronger it gets. Now sell it from its panel.",
+    tutorial_guide_place_red: "Place a red Glob to meet another family.",
+    tutorial_guide_families: "Every family has its own style: some deal more damage, some attack faster, and others slow or paralyze. Check the Encyclopedia to see what each Glob does.",
+    tutorial_guide_build: "Prepare your defense: leave 3 green Globs and 4 red ones in total. The red Glob you just placed counts; place the rest wherever you like.",
+    tutorial_guide_waves: "Your defense is ready! Clear all five waves. Work-Bombot will guide you through them.",
+    tutorial_guide_complete: "Great work! Try new maps and buy new families in the shop. It is up to you to stop the invasions the Globs are trying to prevent. Something bad is going to happen in Gelatin Lake, and we have to stop it. We are counting on you!",
+    tutorial_wave: "Tutorial · Wave {wave} of 5",
+    tutorial_boss_warning: "Heads up! This map's final challenge is coming.",
+    tutorial_boss_name_gelatin_lake: "4Motions Pyce",
+    tutorial_boss_name_urbanistic_road: "Cannon Pycer and Knight Pyce",
+    tutorial_boss_name_sunlight_seaside: "Old Fungus",
+    tutorial_boss_name_spooktacular_ruins: "Blood-Taker and SkeleBones Pyce",
+    across_time_mode_desc: "A series of parallel worlds. Extreme single-player challenge; playable online.",
+    across_time_solo_required: "Across the Time and TIME ATTACK are single-player; the seed cannot have other players.",
+    across_time_badges_required: "You need the Interstellar and Wildsand Leaf key badges.",
+    across_time_map_required: "The mission must be started from Gelatin Lake.",
+    across_time_loadout_required: "Equip these towers in order: Green, Orange, Blue, White, and Red.",
+    across_time_crystals: "Temporal crystals: {count}",
+    across_time_puzzle: "Form L + X + T + _ with towers on the markers.",
+    across_time_puzzle_failed: "The formation does not match. Place a tower on every L, X, T, and _ marker.",
+    across_time_intro: "I see you like challenges. Right? Well, let's play. I'm going to throw different kinds of enemies at you... Just try to survive until the end.",
+    across_time_puzzle_solved: "I won't fall... AND YOU WON'T FINISH OFF THE TIME I'M GOING TO CONSUME!",
+    across_time_moonstar: "You've made it far. BUT NOT FAR ENOUGH! MOONSTAR... FINISH THEM!",
+    across_time_space_two_complete: "Space II complete. Enter 14/05/26-TIMETRAVEL to continue.",
+    across_time_after_space_two: "Arg. Did you think you'd beaten me? More misfortunes still await you, and they have to do with your past.",
+    across_time_final_intro: "I've grown tired of waiting. This time, you won't escape!",
+    across_time_threat: "GODs Shadow's presence looms over this world...",
+    across_time_code_required: "Complete Space II before using the time-travel code.",
+    across_time_confirm: "Ready to travel to the past? It is recommended to prepare your loadout before continuing.",
+    across_time_transition: "Transitioning to a parallel world...",
+    across_time_final_warning: "I will not let my reign of temporal darkness end. You are clever enough to travel to the past... but not skilled enough to defeat me!",
+    across_time_victory_title: "🌌 ACROSS THE TIME COMPLETED! 🌌",
+    across_time_victory_msg: "You defended the parallel worlds and defeated GODs Shadow.<br>You have obtained Virtuallity Set.",
+    across_time_reward: "🎁 Virtuallity Set unlocked!",
+    across_time_final_opportunity: "GODs Shadow returns to its base. Opportunities remaining: {count}.",
+    across_time_restart: "The space has restarted from its checkpoint; progress in previously completed spaces is kept.",
+    time_attack_mode_name: "TIME ATTACK",
+    time_attack_mode_desc: "Replay a space: GL starts I, UR starts II, and AE starts III–IV. Single-player; playable online.",
+    time_attack_map_required: "TIME ATTACK can only start from Gelatin Lake, Urbanistic Road, or Spooktacular Ruins.",
+    time_attack_progress_required: "Complete Across the Time to unlock TIME ATTACK.",
+    badge_across_time_name: "Across the Time",
+    badge_across_time_desc: "Complete Across the Time: GlD (EVENT).",
+    skin_virtuallity_name: "Virtuallity Set",
+    skin_virtuallity_desc: "A reward from Across the Time: GlD (EVENT).",
     enemy_ZomPyce_name: "ZomPyce",
     enemy_ZomPyce_desc: "A dead Pyce... No, it is not dead: its circuits do not work, leaving it rotten enough to look like a zombie. It cannot stand upright, but it collected different human clothes and keeps them in the desert.",
     enemy_Bit_name: "Bit",
@@ -956,6 +1125,9 @@ const TRANSLATIONS = {
     enc_tab_gambling: "Gambling Enemies",
     enc_tab_badges: "Badges",
     mechanic_spyware: "Spywares: The first and second evolutions of the towers cannot attack it, but traps can damage it.",
+    mechanic_clockwork_titan: "Immune to stuns.",
+    mechanic_diy_bot: "Immune to poison and weak to fire.",
+    mechanic_hatspy: "Ghost: only evolution 3 or higher towers can hit it.",
 
     shop_title: "🛒 Kirb Shop",
     pass_title: "🦆 Duck Pass",
@@ -1074,6 +1246,8 @@ const TRANSLATIONS = {
     skin_mimic_desc: "Special skin obtained by defeating the Mimic Pyce.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
     skin_cuby_name: "Cuby",
     skin_cuby_desc: "Special collaboration! Unlocked by completing the Interstellar Menace mission. This skin has unique animations.",
+    skin_personalizable_bombot_name: "Personalizable Bombot",
+    skin_personalizable_bombot_desc: "Customize Bombot with one head accessory, one front accessory, and one suit.",
     upgrade_range_name: "Master Range",
     upgrade_range_desc: "+20 Range for all towers",
     upgrade_damage_name: "Duck Power",
@@ -1291,6 +1465,14 @@ const IMAGE_PATHS = {
   'Curse_Boneker': 'Spooks in the Desert (UPD4)/Jefes/Curse Boneker.png',
   'Ghost_Pyce': 'Spooks in the Desert (UPD4)/Pyces/Ghost Pyce.png',
   'ZomPyce': 'Spooks in the Desert (UPD4)/Pyces/ZomPyce.png',
+  'Clockwork_Titan': 'Spooks in the Desert (UPD4)/TIME ATTACK/Clockwork Titan.png',
+  'DIY_Bot': 'Spooks in the Desert (UPD4)/TIME ATTACK/DIY-Bot.png',
+  'Hatspy': 'Spooks in the Desert (UPD4)/TIME ATTACK/Hatspy.png',
+  'Local_Engines': 'Spooks in the Desert (UPD4)/TIME ATTACK/Local Engines.png',
+  'Roborb': 'Spooks in the Desert (UPD4)/TIME ATTACK/Roborb the Time Stealer (JEFE).png',
+  'Untimed_Atoms': 'Spooks in the Desert (UPD4)/TIME ATTACK/Untimed Atoms.png',
+  'Across_Time_Trophy': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Across the Time thropy.png',
+  'GODs_Shadow': 'Spooks in the Desert (UPD4)/KirByte (GOD)/Kirb (GOD).png',
   'Ducky_Glob': 'img/Ducky_Glob.png',
   'Golden_Ducky_Glob': 'img/Golden_Ducky_Glob.png',
   'Rick_Duck_Glob': 'img/Rich Duck Glob (EVO3).png',
@@ -1747,6 +1929,11 @@ const NARRATOR_DATA = {
   },
   login_guy: {
     img: 'img/Sellos/AstralExclamation.png', es: { name: 'LoginGuy', msgs: [] }, en: { name: 'LoginGuy', msgs: [] }
+  },
+  kirb_clone: {
+    img: IMAGE_PATHS.GODs_Shadow,
+    es: { name: 'GODs Shadow', msgs: [] },
+    en: { name: 'GODs Shadow', msgs: [] }
   }
 };
 
@@ -1907,7 +2094,16 @@ const ENEMY_TYPES = {
   'SkeleBone_Pyce': { name: 'enemy_SkeleBone_Pyce_name', desc: 'enemy_SkeleBone_Pyce_desc', health: 110, speed: 1.4, reward: 30, image: IMAGE_PATHS.SkeleBone_Pyce, projectile: 'bone', shooter: true, mapSource: 'spooktacular_ruins', enemyClass: 'shooter' },
   'Curse_Boneker': { name: 'enemy_Curse_Boneker_name', desc: 'enemy_Curse_Boneker_desc', health: 7000, speed: 0.3, reward: 5000, image: IMAGE_PATHS.Curse_Boneker, boss: true, mapSource: 'spooktacular_ruins', enemyClass: 'boss' },
   'Ghost_Pyce': { name: 'enemy_Ghost_Pyce_name', desc: 'enemy_Ghost_Pyce_desc', health: 260, speed: 2.6, reward: 60, image: IMAGE_PATHS.Ghost_Pyce, mapSource: 'spooktacular_ruins', enemyClass: 'melee', ghost: true, ghostMinEvolution: 3 },
-  'ZomPyce': { name: 'enemy_ZomPyce_name', desc: 'enemy_ZomPyce_desc', health: 55, speed: 1.1, reward: 18, image: IMAGE_PATHS.ZomPyce, mapSource: 'spooktacular_ruins', enemyClass: 'melee' }
+  'ZomPyce': { name: 'enemy_ZomPyce_name', desc: 'enemy_ZomPyce_desc', health: 55, speed: 1.1, reward: 18, image: IMAGE_PATHS.ZomPyce, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+
+  // Across the Time enemies. These only enter waves explicitly queued by the event.
+  'Clockwork_Titan': { name: 'enemy_Clockwork_Titan_name', desc: 'enemy_Clockwork_Titan_desc', mechanic_key: 'mechanic_clockwork_titan', health: 900, speed: 0.45, reward: 180, image: IMAGE_PATHS.Clockwork_Titan, category: 'other', enemyClass: 'tank', timeAttackOnly: true, stunImmune: true },
+  'DIY_Bot': { name: 'enemy_DIY_Bot_name', desc: 'enemy_DIY_Bot_desc', mechanic_key: 'mechanic_diy_bot', health: 180, speed: 1.1, reward: 40, image: IMAGE_PATHS.DIY_Bot, category: 'other', enemyClass: 'medium', timeAttackOnly: true, poisonImmune: true, fireWeakMultiplier: 1.5 },
+  'Hatspy': { name: 'enemy_Hatspy_name', desc: 'enemy_Hatspy_desc', mechanic_key: 'mechanic_hatspy', health: 180, speed: 2.4, reward: 45, image: IMAGE_PATHS.Hatspy, category: 'other', enemyClass: 'medium', timeAttackOnly: true, ghost: true, ghostMinEvolution: 3 },
+  'Local_Engines': { name: 'enemy_Local_Engines_name', desc: 'enemy_Local_Engines_desc', health: 100, speed: 1.2, reward: 25, image: IMAGE_PATHS.Local_Engines, category: 'other', enemyClass: 'basic', timeAttackOnly: true },
+  'Roborb': { name: 'enemy_Roborb_name', desc: 'enemy_Roborb_desc', health: 2000, speed: 0.3, reward: 2500, image: IMAGE_PATHS.Roborb, category: 'other', enemyClass: 'boss', boss: true, timeAttackOnly: true },
+  'Untimed_Atoms': { name: 'enemy_Untimed_Atoms_name', desc: 'enemy_Untimed_Atoms_desc', health: 45, speed: 1.6, reward: 15, image: IMAGE_PATHS.Untimed_Atoms, category: 'other', enemyClass: 'basic', timeAttackOnly: true },
+  'GODs_Shadow': { name: 'enemy_GODs_Shadow_name', desc: 'enemy_GODs_Shadow_desc', health: 12000, speed: 0.25, reward: 0, image: IMAGE_PATHS.GODs_Shadow, category: 'other', enemyClass: 'boss', boss: true, timeAttackOnly: true, acrossTimeBoss: true, instakill: false, acrossTimeFinal: true }
 };
 
 // Tier de balance: controla cuándo aparece un enemigo y cuánto daño causa al llegar a la base.
@@ -1937,6 +2133,7 @@ const ENEMY_BALANCE = {
 const ENEMY_TIER_DAMAGE = { basic: 1, medium: 2, tank: 3 };
 
 const BADGES = {
+  tutorial: { key: 'tutorial', icon: '<img src="img/Work-Bombot.png" alt="Work-Bombot">', unlocked: false, reward: { pycoins: 50, duckpass: 1, xp: 25 }, category: 'misiones', colorGroup: 'mission' },
   survivor: { key: 'survivor', icon: '🛡️', unlocked: false, reward: { pycoins: 100, xp: 50 }, category: 'modos' },
   millionaire: { key: 'millionaire', icon: '💰', unlocked: false, reward: { pycoins: 500, xp: 100 }, category: 'economia' },
   evolution: { key: 'evolution', icon: '🧬', unlocked: false, reward: { pycoins: 200, xp: 80 }, category: 'interacciones' },
@@ -1994,6 +2191,7 @@ const BADGES = {
   urban_crystals: { key: 'urban_crystals', icon: '💎', unlocked: false, reward: { pycoins: 700, duckpass: 500 }, category: 'misiones', colorGroup: 'collab' },
   dangerous_set: { key: 'dangerous_set', icon: '⚠️', unlocked: false, reward: { pycoins: 800, xp: 1000 }, category: 'interacciones' },
   globiscal_debt: { key: 'globiscal_debt', icon: '💸', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'economia' },
+  across_time: { key: 'across_time', icon: `<img class="across-time-badge-mark" src="${IMAGE_PATHS.Across_Time_Trophy}" alt="Across the Time">`, unlocked: false, reward: { xp: 0 }, category: 'misiones', colorGroup: 'mission' },
 
   // Sunlight Seaside difficulty badges
   sunlight_facil: { key: 'sunlight_facil', icon: '🌱', unlocked: false, reward: { pycoins: 150, xp: 100 }, category: 'modos' },
@@ -2164,34 +2362,6 @@ const MAP_ISLANDS = [
 const SKINS_DATA = {
   'Glob': [
     {
-      id: 'skelebones_set', name: 'skin_skelebones_name', desc: 'skin_skelebones_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_anti_normal',
-      skins: {
-        'Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Calcium Glob (SK-EVO1).png',
-        'Poop_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Toxic Waste Glob (SK-EVO2).png',
-        'Golden_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/SkeleBone Glob (SK-EVO3).png'
-      },
-      names: {
-        'Glob': 'Calcium Glob',
-        'Poop_Glob': 'Toxic Waste Glob',
-        'Golden_Glob': 'SkeleBone Glob'
-      }
-    },
-    {
-      id: 'wicked_set', name: 'skin_wicked_name', desc: 'skin_wicked_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_corrupto',
-      skins: {
-        'Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Witch Glob (SK-EVO1).png',
-        'Poop_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/CrowWitcher (SK-EVO2).png',
-        'Golden_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Glitchy Wizard (SK-EVO3).png',
-        'Rainbow_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Losed-In Wizard (SK-EVO4).png'
-      },
-      names: {
-        'Glob': 'Witch Glob',
-        'Poop_Glob': 'CrowWitcher',
-        'Golden_Glob': 'Glitchy Wizard',
-        'Rainbow_Glob': 'Losed-In Wizard'
-      }
-    },
-    {
       id: 'rewamped_green_set', name: 'skin_rewamped_green_name', desc: 'skin_rewamped_green_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
         'Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
@@ -2237,9 +2407,22 @@ const SKINS_DATA = {
         'Golden_Glob': 'Emotional Glob',
         'Rainbow_Glob': 'Ancigon Glob'
       }
-    }
+    },
   ],
   'Red_Glob': [
+    {
+      id: 'skelebones_set', name: 'skin_skelebones_name', desc: 'skin_skelebones_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_anti_normal',
+      skins: {
+        'Red_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Calcium Glob (SK-EVO1).png',
+        'Molten_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Toxic Waste Glob (SK-EVO2).png',
+        'Robotic_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/SkeleBone Glob (SK-EVO3).png'
+      },
+      names: {
+        'Red_Glob': 'Calcium Glob',
+        'Molten_Glob': 'Toxic Waste Glob',
+        'Robotic_Glob': 'SkeleBone Glob'
+      }
+    },
     {
       id: 'rewamped_red_set', name: 'skin_rewamped_red_name', desc: 'skin_rewamped_red_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
@@ -2379,9 +2562,37 @@ const SKINS_DATA = {
         'Pyce_Glob': { es: 'Astrorb (Contenida)', en: 'Astrorb (Contained)' },
         'SpyGlob': { es: 'Astrorb (True Form)', en: 'Astrorb (True Form)' }
       }
+    },
+    {
+      id: 'virtuallity_set', name: 'skin_virtuallity_name', desc: 'skin_virtuallity_desc', cost: 0, type: 'free', isSpecial: true,
+      skins: {
+        'Old_Glob': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Discord Glob (SK-EVO1).png',
+        'Pyce_Glob': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Roblox Glob (SK-EVO2).png',
+        'SpyGlob': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Big-Champion Globs (SK-EVO3).png'
+      },
+      names: {
+        'Old_Glob': 'Discord Glob',
+        'Pyce_Glob': 'Roblox Glob',
+        'SpyGlob': 'Big-Champion Glob'
+      }
     }
   ],
   'Comet_Glob': [
+    {
+      id: 'wicked_set', name: 'skin_wicked_name', desc: 'skin_wicked_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_corrupto',
+      skins: {
+        'Comet_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Witch Glob (SK-EVO1).png',
+        'Dark_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/CrowWitcher (SK-EVO2).png',
+        'Demglob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Glitchy Wizard (SK-EVO3).png',
+        'Void_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Losed-In Wizard (SK-EVO4).png'
+      },
+      names: {
+        'Comet_Glob': 'Witch Glob',
+        'Dark_Glob': 'CrowWitcher',
+        'Demglob': 'Glitchy Wizard',
+        'Void_Glob': 'Losed-In Wizard'
+      }
+    },
     {
       id: 'universolar_comet_set', name: 'skin_universolar_name', desc: 'skin_universolar_desc', cost: 450, type: 'pycoin',
       skins: {
@@ -2420,6 +2631,35 @@ const SKINS_DATA = {
         'Demglob': 'MetaGlob',
         'Void_Glob': 'Hammer Glob'
       }
+    },
+    {
+      id: 'rewamped_black_set', name: 'skin_rewamped_black_name', desc: 'skin_rewamped_black_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_hard_or_extreme',
+      skins: {
+        'Comet_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp1.png',
+        'Dark_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp2.png',
+        'Demglob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp3.png',
+        'Void_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp4.png'
+      },
+      names: {
+        'Comet_Glob': 'Black Rewamp 1',
+        'Dark_Glob': 'Black Rewamp 2',
+        'Demglob': 'Black Rewamp 3',
+        'Void_Glob': 'Black Rewamp 4'
+      }
+    },
+    {
+      id: 'black_rgb_sr', name: 'skin_black_rgb_sr_name', desc: 'skin_black_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Comet_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp1.png',
+        'Dark_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp2.png',
+        'Demglob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp3.png',
+        'Void_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp4.png'
+      },
+      rgbTypes: ['Comet_Glob', 'Dark_Glob', 'Demglob', 'Void_Glob'],
+      names: {
+        'Comet_Glob': 'Black RGB 1',
+        'Void_Glob': 'Black RGB 4'
+      }
     }
   ],
   'IEx': [
@@ -2438,6 +2678,12 @@ const SKINS_DATA = {
     }
   ],
   'Special': [
+    {
+      id: 'personalizable_bombot', name: 'skin_personalizable_bombot_name', desc: 'skin_personalizable_bombot_desc', cost: 0, type: 'free', isSpecial: true,
+      skins: {
+        'Work_Bombot': 'Spooks in the Desert (UPD4)/Skins/Personalizable Bombot (SKIN + ACCESORIES)/Personalizable Bombot.png'
+      }
+    },
     {
       id: 'sharkbot_bombot', name: 'skin_sharkbot_name', desc: 'skin_sharkbot_desc', cost: 50, type: 'pycoin',
       skins: {
@@ -2626,6 +2872,10 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_skelebones_desc": "Desbloquea las tres apariencias al vencer Aridez Escalofriante en Anti-Normal.",
   "skin_wicked_name": "Wicked Set",
   "skin_wicked_desc": "Desbloquea este set al vencer Aridez Escalofriante en modo Corrupto.",
+  "skin_rewamped_black_name": "Rewamp Negro",
+  "skin_rewamped_black_desc": "Desbloquea este set al vencer Aridez Escalofriante en modo Difícil o Extremo.",
+  "skin_black_rgb_sr_name": "Rewamp Negro RGB",
+  "skin_black_rgb_sr_desc": "El Rewamp negro con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil.",
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Set Azul Remasterizado",
@@ -2675,6 +2925,10 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_skelebones_desc": "Unlock all three appearances by beating Spooktacular Ruins in Anti-Normal.",
   "skin_wicked_name": "Wicked Set",
   "skin_wicked_desc": "Unlock this set by beating Spooktacular Ruins in Corrupt mode.",
+  "skin_rewamped_black_name": "Black Rewamp",
+  "skin_rewamped_black_desc": "Unlock this set by beating Spooktacular Ruins in Hard or Extreme mode.",
+  "skin_black_rgb_sr_name": "Black RGB Rewamp",
+  "skin_black_rgb_sr_desc": "The Black Rewamp with an animated RGB effect. Unlock it by collecting every profile image.",
   "skin_froggy_name": "Froggy Set",
   "skin_froggy_desc": "Frogs that fish and grow... But their lily pads do deal damage!<br><span style='font-size:0.8em; color: teal;'>Skin designed and drawn by \"Victorillo\", current artwork by KirByte_Bi.</span>",
   "skin_rewamped_blue_name": "Remastered Blue Set",
@@ -2715,6 +2969,14 @@ Object.assign(window.SKIN_META, {
   "crystal_bombot": {
     attacks: {
       1: { type: 'projectile', image: 'img/Proyectiles/Crystal Metor.png' }
+    }
+  },
+  "wicked_set": {
+    attacks: {
+      1: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' },
+      2: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' },
+      3: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' },
+      4: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' }
     }
   }
 });
