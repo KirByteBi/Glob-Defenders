@@ -9,7 +9,6 @@ let showHitbox = false;
 let offlineModeActive = false;
 let lightModeToggleCount = 0;
 let lightModeGlitchTriggered = false;
-let offensiveUsernameAttempts = 0;
 let offensiveUsernameJumpscareTimeout = null;
 let moderationAccountDeletionHandled = false;
 
