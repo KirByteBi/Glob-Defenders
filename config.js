@@ -1,3 +1,4 @@
+// [TRADUCCION DEL JUEGO]
 // ===================== CONFIGURACIÓN Y DATOS DEL JUEGO =====================
 
 const TRANSLATIONS = {

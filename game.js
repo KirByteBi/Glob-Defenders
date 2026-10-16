@@ -1,3 +1,4 @@
+// [LOGICA DEL JUEGO]
 // ===================== ESTADO DEL JUEGO =====================
 
 let currentLanguage = 'es';
