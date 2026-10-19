@@ -1291,6 +1291,15 @@ body.touch-landscape .multiplayer-spectator-notice {
     gap: 8px;
 }
 
+body.multiplayer-chat-visible #debug-panel-toggle {
+    right: 112px;
+}
+
+body.multiplayer-chat-visible.multiplayer-chat-open #debug-panel-toggle {
+    right: 16px;
+    bottom: calc(min(410px, 100dvh - 100px) + 24px);
+}
+
 .multiplayer-chat-toggle,
 .multiplayer-chat-header button,
 .multiplayer-chat-modes button,
@@ -1497,6 +1506,15 @@ body.light-mode .multiplayer-chat-form input {
     .multiplayer-chat {
         right: 8px;
         bottom: 8px;
+    }
+
+    body.multiplayer-chat-visible #debug-panel-toggle {
+        right: 92px;
+    }
+
+    body.multiplayer-chat-visible.multiplayer-chat-open #debug-panel-toggle {
+        right: 8px;
+        bottom: calc(min(360px, 100dvh - 82px) + 16px);
     }
 
     .multiplayer-chat-panel {

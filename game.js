@@ -112,6 +112,9 @@ const BREAK_REMINDERS = {
 function getMultiplayerProfile() {
   const avatar = getProfileAvatarById(gameState.profileAvatar || 'glob:Glob');
   const border = getProfileBorderById(gameState.profileBorder || 'default');
+  const profileProgress = gameState.debugState === 'unlocked' && gameState.debugSnapshot
+    ? gameState.debugSnapshot
+    : gameState;
   return {
     equippedTowers: Array.isArray(gameState.equippedTowers) ? [...gameState.equippedTowers] : ['Glob'],
     towerLimits: { ...gameState.towerLimits },
@@ -126,8 +129,8 @@ function getMultiplayerProfile() {
     borderColors: border?.colors || ['#8796a5', '#202833'],
     rainbowBorder: Boolean(border?.multicolor),
     rgbBorder: Boolean(border?.rgb),
-    duckPassLevel: Math.max(1, Number(gameState.duckPassLevel) || 1),
-    duckPassXP: Math.max(0, Number(gameState.duckPassXP) || 0),
+    duckPassLevel: Math.max(1, Number(profileProgress.duckPassLevel) || 1),
+    duckPassXP: Math.max(0, Number(profileProgress.duckPassXP) || 0),
     unlockedBadges: Object.values(BADGES)
       .filter(badge => badge.unlocked)
       .map(badge => badge.key),
@@ -457,6 +460,8 @@ function updateMultiplayerChatVisibility() {
     panel.hidden = true;
     toggle.setAttribute('aria-expanded', 'false');
   }
+  document.body.classList.toggle('multiplayer-chat-visible', visible);
+  document.body.classList.toggle('multiplayer-chat-open', visible && !panel.hidden);
   renderMultiplayerChat();
 }
 
@@ -548,6 +553,7 @@ function setupMultiplayerChat() {
   toggle.addEventListener('click', () => {
     panel.hidden = !panel.hidden;
     toggle.setAttribute('aria-expanded', String(!panel.hidden));
+    document.body.classList.toggle('multiplayer-chat-open', !panel.hidden);
     if (!panel.hidden && multiplayerChatMode === 'free') {
       document.getElementById('multiplayer-chat-free-message').focus();
     }
@@ -555,6 +561,7 @@ function setupMultiplayerChat() {
   document.getElementById('multiplayer-chat-close').addEventListener('click', () => {
     panel.hidden = true;
     toggle.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('multiplayer-chat-open');
   });
   safeTab.addEventListener('click', () => {
     multiplayerChatMode = 'safe';
@@ -1145,6 +1152,53 @@ function updateSeedDisplay() {
   seedDisplay.style.display = 'flex';
 }
 
+function updateSeedUiLanguage() {
+  const isEnglish = currentLanguage === 'en';
+  const controls = document.getElementById('seed-controls');
+  const description = controls?.querySelector('p');
+  const createButton = controls?.querySelector('button[onclick="createSeed()"]');
+  const loadButton = controls?.querySelector('button[onclick="loadSeed()"]');
+  const seedInput = document.getElementById('seed-input');
+  const copySeedButton = document.getElementById('copy-seed-btn');
+  const playerList = document.getElementById('multiplayer-player-list');
+  const modal = document.getElementById('seed-options-modal');
+  const closeButton = modal?.querySelector('.seed-options-close');
+  const copyText = document.getElementById('seed-copy-text');
+  const instructions = document.getElementById('seed-copy-instructions');
+
+  if (description) description.textContent = isEnglish
+    ? 'Online multiplayer powered by Supabase Realtime.'
+    : 'Multijugador online mediante Supabase Realtime.';
+  if (createButton) createButton.textContent = isEnglish ? '✨ Create Seed' : '✨ Crear Seed';
+  if (loadButton) loadButton.textContent = isEnglish ? 'Load' : 'Cargar';
+  if (seedInput) seedInput.placeholder = isEnglish ? 'E.g. G123456' : 'Ej: G123456';
+  if (copySeedButton) {
+    copySeedButton.setAttribute('aria-label', isEnglish ? 'Seed options' : 'Opciones de seed');
+    copySeedButton.title = isEnglish ? 'Seed options' : 'Opciones de seed';
+  }
+  if (playerList) playerList.setAttribute('aria-label', isEnglish ? 'Seed players' : 'Jugadores de la seed');
+
+  const title = document.getElementById('seed-options-title');
+  const modalDescription = document.getElementById('seed-options-description');
+  const copyButton = document.getElementById('show-seed-copy-btn');
+  const inviteButton = document.getElementById('show-invite-copy-btn');
+  const downloadButton = document.getElementById('download-seed-btn');
+  if (title) title.textContent = isEnglish ? 'Seed options' : 'Opciones de seed';
+  if (modalDescription) modalDescription.textContent = isEnglish
+    ? 'Choose how you want to save or share this seed.'
+    : 'Elige cómo quieres guardar o compartir esta seed.';
+  if (copyButton) copyButton.textContent = isEnglish ? '📋 Copy seed' : '📋 Copiar seed';
+  if (inviteButton) inviteButton.textContent = isEnglish ? '🔗 Copy invite link' : '🔗 Copiar invitación';
+  if (downloadButton) downloadButton.textContent = isEnglish ? '⬇️ Download seed' : '⬇️ Descargar seed';
+  if (closeButton) closeButton.setAttribute('aria-label', isEnglish ? 'Close' : 'Cerrar');
+  if (instructions && !instructions.hidden) {
+    const isInvite = Boolean(currentSeed && copyText?.value !== currentSeed);
+    instructions.textContent = isEnglish
+      ? isInvite ? 'Select and copy this invitation link:' : 'Select the text to copy:'
+      : isInvite ? 'Selecciona y copia este enlace de invitación:' : 'Selecciona el texto para copiarlo:';
+  }
+}
+
 window.createSeed = function() {
   if (blockOfflineSeedAccess()) return;
   joinMultiplayerSeed(generateSeed(), true);
@@ -1246,7 +1300,9 @@ window.downloadSeed = function() {
     console.error('No se pudo crear el enlace de invitación para la descarga:', error);
   }
   const contents = inviteUrl
-    ? `Glob Defenders - invitación multijugador\nSeed: ${currentSeed}\nEnlace: ${inviteUrl}\n`
+    ? currentLanguage === 'en'
+      ? `Glob Defenders - multiplayer invitation\nSeed: ${currentSeed}\nLink: ${inviteUrl}\n`
+      : `Glob Defenders - invitación multijugador\nSeed: ${currentSeed}\nEnlace: ${inviteUrl}\n`
     : `${currentSeed}\n`;
   const file = new Blob([contents], { type: 'text/plain;charset=utf-8' });
   const downloadUrl = URL.createObjectURL(file);
@@ -3274,6 +3330,31 @@ function showOffensiveUsernameWarning() {
   );
 }
 
+function showOffensiveChatWarning() {
+  const isEnglish = currentLanguage === 'en';
+  const speakerId = pickRandom(['bombot', 'glob', 'omnipresent']);
+  const speaker = NARRATOR_DATA[speakerId];
+  const messages = isEnglish
+    ? [
+        'That message was blocked because it contains an insult. Please rephrase it respectfully.',
+        'Insults are not allowed in chat. Try saying it another way.',
+        'Message blocked. Let us keep the chat respectful.'
+      ]
+    : [
+        'Ese mensaje se bloqueó porque contiene un insulto. Reformúlalo con respeto, por favor.',
+        'No se permiten insultos en el chat. Prueba a decirlo de otra manera.',
+        'Mensaje bloqueado. Mantengamos el chat respetuoso.'
+      ];
+  const language = isEnglish ? 'en' : 'es';
+  const message = pickRandom(messages);
+  window._showNarratorMsg?.(
+    speakerId,
+    speaker.img,
+    speaker[language].name,
+    message
+  );
+}
+
 function showOffensiveUsernameFinalDialog(speakerId) {
   const finalLines = {
     noeye: {
@@ -3340,6 +3421,10 @@ function triggerOffensiveUsernameJumpscare() {
 
 function blockOffensiveUsername(username, source = 'login') {
   if (!isOffensiveUsername(username)) return false;
+  if (source === 'chat') {
+    showOffensiveChatWarning();
+    return true;
+  }
   offensiveUsernameAttempts++;
   if (source === 'login' && offensiveUsernameAttempts >= OFFENSIVE_ACCOUNT_DELETION_THRESHOLD) {
     if (offensiveUsernameJumpscareTimeout !== null) {
@@ -13876,6 +13961,8 @@ function activateGTack(t) {
     const loadingTipBtn = document.getElementById('loading-tip-btn');
     if (loadingTipBtn) loadingTipBtn.textContent = currentLanguage === 'es' ? 'Ver todos los tips' : 'View all tips';
     updateLoadSavedRoundButton();
+    updateSeedUiLanguage();
+    renderMultiplayerPlayerList(multiplayerPlayers);
 
     const encBtn = document.getElementById('open-encyclopedia-btn');
     if (encBtn) encBtn.innerHTML = translate('btn_encyclopedia');
