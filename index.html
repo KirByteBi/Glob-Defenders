@@ -382,6 +382,7 @@
                 </div>
             </div>
             <div id="encyclopedia-body" class="encyclopedia-body"></div>
+            <button id="advent-calendar-encyclopedia-btn" class="advent-entry-btn" type="button" onclick="openAdventCalendar()">🎄 Calendario de Adviento</button>
         </div>
     </div>
 
@@ -630,6 +631,19 @@
                 </div>
             </div>
             <div id="pass-rewards" class="meta-grid"></div>
+        </div>
+    </div>
+
+    <div id="advent-calendar-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="advent-calendar-title" onclick="if(event.target===this) closeModal('advent-calendar-modal')">
+        <div class="modal-content advent-calendar-content">
+            <div class="modal-header">
+                <h2 id="advent-calendar-title">🎄 Calendario de Adviento</h2>
+                <button class="close-btn" type="button" onclick="closeModal('advent-calendar-modal')" aria-label="Cerrar">✖</button>
+            </div>
+            <p id="advent-calendar-status" class="advent-calendar-status"></p>
+            <p id="advent-calendar-note" class="advent-calendar-note"></p>
+            <p id="advent-calendar-balance" class="advent-calendar-balance"></p>
+            <div id="advent-calendar-grid" class="advent-calendar-grid"></div>
         </div>
     </div>
 

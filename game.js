@@ -1514,6 +1514,7 @@ let gameState = {
   metaDamageLevel: 0,
   unlockedSkins: ['default'],
   unlockedBombotAccessories: [],
+  adventCalendar: { claimedDays: {}, victoryDays: {}, paidDays: {}, tamperedYears: [], lastSeenDate: null },
   equippedBombotAccessories: { head: null, front: [], suit: null, reskin: null },
   equippedSkins: { 'Glob': 'default', 'Red_Glob': 'default', 'Soap_Glob': 'default', 'Ducky_Glob': 'default', 'Comet_Glob': 'default', 'Grey': 'default', 'Special': 'default', 'Global': 'default' },
   equippedTowers: ['Glob', 'Red_Glob'],
@@ -1592,6 +1593,43 @@ const TUTORIAL_BOSSES_BY_MAP = {
   spooktacular_ruins: ['Blood_Taker', 'SkeleBone_Pyce']
 };
 const PERSONALIZABLE_BOMBOT_SKIN_ID = 'personalizable_bombot';
+const ADVENT_CALENDAR_ACCESSORY_ROOT = 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/PersonalizbleBot/';
+const ADVENT_CALENDAR_REWARDS = [
+  { rewards: [{ type: 'pycoins', amount: 250 }] },
+  { rewards: [{ type: 'accessory', id: 'wb_retro_cap' }] },
+  { rewards: [{ type: 'xp', amount: 500 }] },
+  { rewards: [{ type: 'duckpass', amount: 250 }] },
+  { rewards: [{ type: 'accessory', id: 'blockbot_reskin' }] },
+  { rewards: [{ type: 'pycoins', amount: 350 }] },
+  { rewards: [{ type: 'accessory', id: 'ducky_hat' }] },
+  { rewards: [{ type: 'xp', amount: 750 }] },
+  { rewards: [{ type: 'duckpass', amount: 350 }] },
+  { rewards: [{ type: 'accessory', id: 'guest_bombot_reskin' }] },
+  { rewards: [{ type: 'accessory', id: 'fungunous_hat' }] },
+  { rewards: [{ type: 'pycoins', amount: 450 }] },
+  { rewards: [{ type: 'accessory', id: 'noob_bombot_reskin' }] },
+  { rewards: [{ type: 'duckpass', amount: 500 }] },
+  { rewards: [{ type: 'xp', amount: 1000 }] },
+  { rewards: [{ type: 'accessory', id: 'silent_habitant_reskin' }] },
+  { rewards: [{ type: 'accessory', id: 'kirb_headsets' }] },
+  { rewards: [{ type: 'pycoins', amount: 550 }] },
+  { rewards: [{ type: 'accessory', id: 'monobear_bombot_reskin' }] },
+  { rewards: [{ type: 'duckpass', amount: 600 }] },
+  { rewards: [{ type: 'accessory', id: 'glamour_hat' }] },
+  { rewards: [{ type: 'accessory', id: 'giftbot_reskin' }] },
+  { rewards: [{ type: 'accessory', id: 'toy_and_key' }] },
+  { rewards: [{ type: 'accessory', id: 'bunnity_bombot_reskin' }] },
+  { rewards: [
+    { type: 'accessory', id: 'tvombot_reskin' },
+    { type: 'skin', id: 'snowglob_set' }
+  ] }
+];
+const BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS = [
+  'cuby_reskin', 'pinkbot_reskin', 'popguin_reskin', 'volcabot_reskin',
+  'blockbot_reskin', 'bunnity_bombot_reskin', 'giftbot_reskin',
+  'guest_bombot_reskin', 'monobear_bombot_reskin', 'noob_bombot_reskin',
+  'silent_habitant_reskin', 'tvombot_reskin'
+];
 const BOMBOT_ACCESSORIES = [
   // --- ASPECTOS BASE (RESKINS) ---
   { id: 'cuby_reskin', name: { es: 'Aspecto Cuby', en: 'Cuby Reskin' }, slot: 'reskin', image: 'Cuby (RESKIN).png', unlock: 'duckpass_cuby' },
@@ -1602,9 +1640,9 @@ const BOMBOT_ACCESSORIES = [
   // --- CABEZA (gorros y pelos) ---
   { id: 'worker_cap', name: { es: 'Gorra de Obrero', en: 'Worker Cap' }, slot: 'head', image: 'Worker Cap.png', cost: 50 },
   { id: 'umbrella_hat', name: { es: 'Sombrero Paraguas', en: 'Umbrella Hat' }, slot: 'head', image: 'Umbrella Hat.png', unlock: 'sunlight_hard' },
-  { id: 'santa_hat', name: { es: 'Gorro de Santa', en: 'Santa Hat' }, slot: 'head', image: 'Santa Hat.png', cost: 80 },
-  { id: 'witch_hat', name: { es: 'Sombrero de Bruja', en: 'Witch Hat' }, slot: 'head', image: 'Witch Hat.png', cost: 80 },
-  { id: 'princess_hat', name: { es: 'Sombrero de Princesa', en: 'Princess Hat' }, slot: 'head', image: 'Princess Hat.png', cost: 50 },
+  { id: 'santa_hat', name: { es: 'Gorro de Santa', en: 'Santa Hat' }, slot: 'head', image: 'Santa Hat.png', cost: 80, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
+  { id: 'witch_hat', name: { es: 'Sombrero de Bruja', en: 'Witch Hat' }, slot: 'head', image: 'Witch Hat.png', cost: 80, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
+  { id: 'princess_hat', name: { es: 'Sombrero de Princesa', en: 'Princess Hat' }, slot: 'head', image: 'Princess Hat.png', cost: 50, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
   { id: 'bombot_hair', name: { es: 'Pelo de Bombot', en: 'Bombot Hair' }, slot: 'head', image: 'Bombot Hair.png', unlock: 'duckpass_bombot_hair' },
   { id: 'girly_hair', name: { es: 'Pelo Femenino', en: 'Girly Hair' }, slot: 'head', image: 'Girly Hair.png', unlock: 'duckpass_girly_hair' },
   { id: 'headsets', name: { es: 'Auriculares', en: 'Headsets' }, slot: 'head', image: 'Headsets.png', cost: 50 },
@@ -1612,6 +1650,20 @@ const BOMBOT_ACCESSORIES = [
   { id: 'rewamped_glob', name: { es: 'Gorro Glob Remasterizado', en: 'Rewamped Glob Hat' }, slot: 'head', image: 'RewampedGlob.png', unlock: 'rewamped_skin' },
   { id: 'cutely_haired', name: { es: 'Pelo Adorable', en: 'Cutely Haired' }, slot: 'head', image: 'Cutely Haired.png', cost: 100, copyright: 'Inspired by Hatsune Miku (\u00a9 Crypton Future Media, Inc.)' },
   { id: 'lovely_haired', name: { es: 'Pelo Encantador', en: 'Lovely Haired' }, slot: 'head', image: 'Lovely Haired.png', cost: 100, copyright: 'Inspired by Kasane Teto (\u00a9 AHS Co., Ltd.)' },
+  { id: 'wb_retro_cap', name: { es: 'Gorra Retro W-B', en: 'W-B Retro Cap' }, slot: 'head', image: 'W-B Retro Cap.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
+  { id: 'ducky_hat', name: { es: 'Gorro Ducky', en: 'Ducky Hat' }, slot: 'head', image: 'Ducky Hat.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
+  { id: 'fungunous_hat', name: { es: 'Gorro Fungunous', en: 'Fungunous Hat' }, slot: 'head', image: 'Fungunous Hat.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
+  { id: 'glamour_hat', name: { es: 'Gorro Glamour', en: 'Glamour Hat' }, slot: 'head', image: 'Glamour Hat.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
+  { id: 'kirb_headsets', name: { es: 'Auriculares de Kirb', en: "Kirb's Headsets" }, slot: 'head', image: 'Kirb_s Headsets.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'toy_and_key', name: { es: 'Juguete y llave', en: 'Toy & Key' }, slot: 'front', frontType: 'hand', image: 'Toy&Key.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'blockbot_reskin', name: { es: 'Aspecto Blockbot', en: 'Blockbot Reskin' }, slot: 'reskin', image: 'Blockbot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'bunnity_bombot_reskin', name: { es: 'Aspecto Bunnity Bombot', en: 'Bunnity Bombot Reskin' }, slot: 'reskin', image: 'Bunnity Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'giftbot_reskin', name: { es: 'Aspecto Giftbot', en: 'Giftbot Reskin' }, slot: 'reskin', image: 'Giftbot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'guest_bombot_reskin', name: { es: 'Aspecto Guest Bombot', en: 'Guest Bombot Reskin' }, slot: 'reskin', image: 'Guest Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'monobear_bombot_reskin', name: { es: 'Aspecto Monobear Bombot', en: 'Monobear Bombot Reskin' }, slot: 'reskin', image: 'Monobear Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'noob_bombot_reskin', name: { es: 'Aspecto Noob Bombot', en: 'Noob Bombot Reskin' }, slot: 'reskin', image: 'Noob Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'silent_habitant_reskin', name: { es: 'Aspecto Silent Habitant', en: 'Silent Habitant Reskin' }, slot: 'reskin', image: 'Silent Habitant (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'tvombot_reskin', name: { es: 'Aspecto TVombot', en: 'TVombot Reskin' }, slot: 'reskin', image: 'TVombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
 
   // --- FRONTAL ---
   { id: 'glasses1', name: { es: 'Gafas 1', en: 'Glasses 1' }, slot: 'front', frontType: 'glasses', image: 'Glasses1.png', cost: 50 },
@@ -1665,6 +1717,10 @@ function getEquippedBombotFronts() {
   return fronts ? [fronts] : [];
 }
 
+function isBombotAccessoryCompatible(accessory, accessories = gameState.equippedBombotAccessories) {
+  return !accessory?.incompatibleReskins?.includes(accessories?.reskin);
+}
+
 function normalizeEquippedBombotAccessories(accessories = {}) {
   const rawFrontItems = Array.isArray(accessories.front)
     ? accessories.front
@@ -1702,10 +1758,11 @@ function getBombotAccessoryLayerIds(accessories = gameState.equippedBombotAccess
     BOMBOT_ACCESSORIES.find(accessory => accessory.id === id)?.frontType === 'glasses'
   );
   const otherFronts = fronts.filter(id => !glasses.includes(id));
+  const headAccessory = BOMBOT_ACCESSORIES.find(accessory => accessory.id === normalized.head);
   return [
     ...glasses,
     ...otherFronts,
-    normalized.head,
+    isBombotAccessoryCompatible(headAccessory, normalized) ? normalized.head : null,
     normalized.suit,
     normalized.reskin
   ].filter(Boolean);
@@ -1775,7 +1832,7 @@ function unlockBombotAccessoriesForVictory() {
 
 function getBombotAccessoryImage(id) {
   const accessory = BOMBOT_ACCESSORIES.find(item => item.id === id);
-  return accessory ? `${BOMBOT_ACCESSORY_ASSET_ROOT}${accessory.image}` : null;
+  return accessory ? `${accessory.assetRoot || BOMBOT_ACCESSORY_ASSET_ROOT}${accessory.image}` : null;
 }
 
 function getBombotCustomizationPreviewBackground() {
@@ -2318,6 +2375,29 @@ function init() {
   }
 }
 
+function normalizeAdventCalendarState(value = {}) {
+  const source = value && typeof value === 'object' ? value : {};
+  const normalizeDayMap = source => Object.fromEntries(
+    Object.entries(source && typeof source === 'object' ? source : {})
+      .filter(([year, days]) => /^\d{4}$/.test(year) && Array.isArray(days))
+      .map(([year, days]) => [year, [...new Set(days.filter(day => Number.isInteger(day) && day >= 1 && day <= 25))]])
+  );
+  const paidDays = Object.fromEntries(
+    Object.entries(source.paidDays && typeof source.paidDays === 'object' ? source.paidDays : {})
+      .filter(([year, count]) => /^\d{4}$/.test(year) && Number.isInteger(count) && count >= 0)
+  );
+  return {
+    claimedDays: normalizeDayMap(source.claimedDays),
+    victoryDays: normalizeDayMap(source.victoryDays),
+    paidDays,
+    tamperedYears: [...new Set((Array.isArray(source.tamperedYears) ? source.tamperedYears : [])
+      .filter(year => Number.isInteger(year) && year >= 2000 && year <= 9999))],
+    lastSeenDate: typeof source.lastSeenDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(source.lastSeenDate)
+      ? source.lastSeenDate
+      : null
+  };
+}
+
 function saveProgress() {
   if (multiplayerSpectator) return;
   const user = localStorage.getItem('glob_username') || 'default';
@@ -2347,6 +2427,7 @@ function saveProgress() {
     usedCodes: gameState.usedCodes,
     unlockedSkins: gameState.unlockedSkins,
     unlockedBombotAccessories: gameState.unlockedBombotAccessories,
+    adventCalendar: gameState.adventCalendar,
     equippedBombotAccessories: gameState.equippedBombotAccessories,
     globlandHardWins: gameState.globlandHardWins,
     equippedSkins: tutorialEquippedSkinsBackup || gameState.equippedSkins,
@@ -2515,6 +2596,7 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.usedCodes = progress.usedCodes || {};
       gameState.unlockedSkins = progress.unlockedSkins || ['default'];
       gameState.unlockedBombotAccessories = [...new Set(progress.unlockedBombotAccessories || [])];
+      gameState.adventCalendar = normalizeAdventCalendarState(progress.adventCalendar);
       gameState.equippedBombotAccessories = {
         head: null,
         front: [],
@@ -6293,6 +6375,7 @@ function toggleLanguage() {
   drawTowerShop();
   drawBadges();
   if (document.getElementById('story-logs-modal').style.display === 'flex') drawStoryLogs();
+  if (document.getElementById('advent-calendar-modal').style.display === 'flex') renderAdventCalendar();
 }
 
 function toggleBadgesPanel() {
@@ -6322,6 +6405,11 @@ function switchEncyclopediaTab(tab) {
   document.querySelectorAll('.encyclopedia-tab').forEach(btn => btn.classList.remove('active'));
   const activeBtn = document.getElementById('enc-tab-' + tab);
   if (activeBtn) activeBtn.classList.add('active');
+  const adventButton = document.getElementById('advent-calendar-encyclopedia-btn');
+  if (adventButton) {
+    adventButton.style.display = tab === 'globs' ? 'inline-flex' : 'none';
+    adventButton.textContent = currentLanguage === 'en' ? '🎄 Advent Calendar' : '🎄 Calendario de Adviento';
+  }
 
   const body = document.getElementById('encyclopedia-body');
   if (!body) return;
@@ -7679,6 +7767,286 @@ function openShop() {
   drawShop();
 }
 
+function getAdventCalendarDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+  return {
+    year,
+    month,
+    day,
+    key: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  };
+}
+
+function updateAdventCalendarClock(date = new Date()) {
+  const current = getAdventCalendarDate(date);
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  if (!calendar.lastSeenDate && current.month !== 11) return;
+
+  let changed = false;
+  if (calendar.lastSeenDate && current.key < calendar.lastSeenDate) {
+    const previousYear = Number(calendar.lastSeenDate.slice(0, 4));
+    calendar.tamperedYears = [...new Set([...calendar.tamperedYears, previousYear, current.year])];
+    changed = true;
+  } else if (calendar.lastSeenDate !== current.key) {
+    calendar.lastSeenDate = current.key;
+    changed = true;
+  }
+
+  if (changed) {
+    gameState.adventCalendar = calendar;
+    saveProgress();
+  }
+  return calendar.tamperedYears.includes(current.year);
+}
+
+function getAdventCalendarDays(collection, year) {
+  const yearKey = String(year);
+  if (!Array.isArray(collection[yearKey])) collection[yearKey] = [];
+  return collection[yearKey];
+}
+
+function getAdventRewardLabel(reward) {
+  if (reward.type === 'pycoins') return `${reward.amount} PyCoins`;
+  if (reward.type === 'duckpass') return `${reward.amount} Duckpasses`;
+  if (reward.type === 'xp') return `${reward.amount} XP`;
+  if (reward.type === 'skin') return currentLanguage === 'en' ? 'Green SnowGlob Set' : 'Set SnowGlob verde';
+  const accessory = BOMBOT_ACCESSORIES.find(item => item.id === reward.id);
+  if (!accessory) throw new Error(`Unknown Advent Calendar accessory: ${reward.id}`);
+  return getBombotAccessoryName(accessory);
+}
+
+function grantAdventReward(reward) {
+  if (reward.type === 'pycoins') {
+    gameState.pycoins += reward.amount;
+  } else if (reward.type === 'duckpass') {
+    gameState.duckPassCurrency += reward.amount;
+  } else if (reward.type === 'xp') {
+    addXP(reward.amount);
+  } else if (reward.type === 'accessory') {
+    const accessory = BOMBOT_ACCESSORIES.find(item => item.id === reward.id);
+    if (!accessory) throw new Error(`Unknown Advent Calendar accessory: ${reward.id}`);
+    if (gameState.unlockedBombotAccessories.includes(reward.id)) {
+      gameState.pycoins += 250;
+      return currentLanguage === 'en' ? 'Duplicate cosmetic: +250 PyCoins' : 'Cosmético repetido: +250 PyCoins';
+    }
+    gameState.unlockedBombotAccessories.push(reward.id);
+    gameState.unlockedBombotAccessories = [...new Set(gameState.unlockedBombotAccessories)];
+  } else if (reward.type === 'skin') {
+    const skinId = reward.id;
+    if (!Object.values(SKINS_DATA).flat().some(skin => skin.id === skinId)) {
+      throw new Error(`Unknown Advent Calendar skin: ${skinId}`);
+    }
+    if (gameState.unlockedSkins.includes(skinId)) {
+      gameState.pycoins += 250;
+      return currentLanguage === 'en' ? 'Duplicate skin: +250 PyCoins' : 'Skin repetida: +250 PyCoins';
+    }
+    gameState.unlockedSkins.push(skinId);
+  } else {
+    throw new Error(`Unknown Advent Calendar reward type: ${reward.type}`);
+  }
+  return getAdventRewardLabel(reward);
+}
+
+function renderAdventCalendar() {
+  const modal = document.getElementById('advent-calendar-modal');
+  const grid = document.getElementById('advent-calendar-grid');
+  const status = document.getElementById('advent-calendar-status');
+  const note = document.getElementById('advent-calendar-note');
+  const balance = document.getElementById('advent-calendar-balance');
+  if (!modal || !grid || !status || !note || !balance) return;
+
+  const now = new Date();
+  const { year, month, day } = getAdventCalendarDate(now);
+  const title = document.getElementById('advent-calendar-title');
+  const isTampered = updateAdventCalendarClock(now);
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  gameState.adventCalendar = calendar;
+  const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
+  const victoryDays = getAdventCalendarDays(calendar.victoryDays, year);
+  const paidCount = Number(calendar.paidDays[String(year)] || 0);
+  const isAdventMonth = month === 11;
+  const isAfterCalendar = isAdventMonth && day > 25;
+  const currentDay = isAdventMonth ? day : 0;
+
+  if (title) title.textContent = currentLanguage === 'en' ? '🎄 Advent Calendar' : '🎄 Calendario de Adviento';
+  status.textContent = isTampered
+    ? (currentLanguage === 'en'
+      ? '⚠️ The device date moved backwards. All unclaimed rewards this year now require Duckpasses.'
+      : '⚠️ La fecha del dispositivo retrocedió. Ahora todos los premios pendientes de este año requieren Duckpasses.')
+    : !isAdventMonth
+      ? (currentLanguage === 'en'
+        ? `The calendar opens on December 1, ${year}.`
+        : `El calendario se abre el 1 de diciembre de ${year}.`)
+      : isAfterCalendar
+        ? (currentLanguage === 'en'
+          ? 'The calendar is closed for free claims; missed days can still be recovered with Duckpasses.'
+          : 'El calendario ya no permite reclamar gratis; aún puedes recuperar los días omitidos con Duckpasses.')
+        : (currentLanguage === 'en'
+          ? `Today is day ${day} of the calendar. Beat any map today to claim its reward.`
+          : `Hoy es el día ${day} del calendario. Supera cualquier mapa hoy para reclamar su premio.`);
+  balance.textContent = currentLanguage === 'en'
+    ? `🦆 ${gameState.duckPassCurrency} Duckpasses · 🪙 ${Math.floor(gameState.pycoins)} PyCoins`
+    : `🦆 ${gameState.duckPassCurrency} Duckpasses · 🪙 ${Math.floor(gameState.pycoins)} PyCoins`;
+  note.textContent = currentLanguage === 'en'
+    ? 'If a cosmetic is already unlocked, it converts to 250 PyCoins.'
+    : 'Si ya tienes un cosmético, se convierte en 250 PyCoins.';
+  grid.replaceChildren();
+
+  ADVENT_CALENDAR_REWARDS.forEach((entry, index) => {
+    const dayNumber = index + 1;
+    const isClaimed = claimedDays.includes(dayNumber);
+    const isToday = dayNumber === currentDay;
+    const isPast = dayNumber < currentDay || isAfterCalendar;
+    const canPay = !isClaimed && (isTampered || isPast);
+    const canClaim = !isClaimed && !isTampered && isToday && victoryDays.includes(dayNumber);
+    const cost = 637 + paidCount * 100;
+    const tile = document.createElement('article');
+    tile.className = `advent-day${isClaimed ? ' claimed' : ''}${isToday ? ' today' : ''}${canPay ? ' purchasable' : ''}`;
+
+    const number = document.createElement('strong');
+    number.className = 'advent-day-number';
+    number.textContent = String(dayNumber).padStart(2, '0');
+    const rewards = document.createElement('div');
+    rewards.className = 'advent-day-rewards';
+    entry.rewards.forEach(reward => {
+      const line = document.createElement('div');
+      line.className = 'advent-day-reward';
+      const imagePath = reward.type === 'pycoins'
+        ? 'img/Tokens/PyCoin.png'
+        : reward.type === 'duckpass'
+          ? 'img/Tokens/DuckPass.png'
+          : reward.type === 'accessory'
+            ? getBombotAccessoryImage(reward.id)
+            : reward.type === 'skin'
+              ? SKINS_DATA.Glob.find(skin => skin.id === reward.id)?.skins.Glob
+              : null;
+      if (imagePath) {
+        const image = document.createElement('img');
+        image.src = encodeURI(imagePath);
+        image.alt = '';
+        rewards.appendChild(image);
+      } else {
+        const icon = document.createElement('span');
+        icon.textContent = '✨';
+        icon.setAttribute('aria-hidden', 'true');
+        rewards.appendChild(icon);
+      }
+      const label = document.createElement('span');
+      label.textContent = getAdventRewardLabel(reward);
+      line.appendChild(label);
+      rewards.appendChild(line);
+    });
+
+    const action = document.createElement('button');
+    action.type = 'button';
+    if (isClaimed) {
+      action.textContent = currentLanguage === 'en' ? 'Claimed ✓' : 'Reclamado ✓';
+      action.disabled = true;
+    } else if (canClaim) {
+      action.textContent = currentLanguage === 'en' ? 'Claim reward' : 'Reclamar premio';
+      action.addEventListener('click', () => claimAdventDay(dayNumber));
+    } else if (canPay) {
+      action.textContent = currentLanguage === 'en' ? `Recover · ${cost} DP` : `Recuperar · ${cost} DP`;
+      action.disabled = gameState.duckPassCurrency < cost;
+      action.addEventListener('click', () => buyAdventDay(dayNumber));
+    } else if (isToday && !isTampered) {
+      action.textContent = victoryDays.includes(dayNumber)
+        ? (currentLanguage === 'en' ? 'Ready to claim' : 'Listo para reclamar')
+        : (currentLanguage === 'en' ? 'Win a map first' : 'Supera un mapa primero');
+      action.disabled = true;
+    } else {
+      action.textContent = currentLanguage === 'en' ? 'Not available yet' : 'Aún no disponible';
+      action.disabled = true;
+    }
+
+    tile.append(number, rewards, action);
+    grid.appendChild(tile);
+  });
+}
+
+function claimAdventDay(dayNumber) {
+  if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > 25) return;
+  const now = new Date();
+  const { year, month, day } = getAdventCalendarDate(now);
+  const isTampered = updateAdventCalendarClock(now);
+  if (isTampered || month !== 11 || day !== dayNumber) {
+    renderAdventCalendar();
+    return;
+  }
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
+  const victoryDays = getAdventCalendarDays(calendar.victoryDays, year);
+  if (claimedDays.includes(dayNumber) || !victoryDays.includes(dayNumber)) {
+    renderAdventCalendar();
+    return;
+  }
+
+  claimedDays.push(dayNumber);
+  gameState.adventCalendar = calendar;
+  const granted = ADVENT_CALENDAR_REWARDS[dayNumber - 1].rewards.map(grantAdventReward);
+  saveProgress();
+  updateMetaUI();
+  showMessage(`🎁 ${granted.join(' · ')}`, 'success');
+  renderAdventCalendar();
+}
+
+function buyAdventDay(dayNumber) {
+  if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > 25) return;
+  const now = new Date();
+  const { year, month, day } = getAdventCalendarDate(now);
+  const isTampered = updateAdventCalendarClock(now);
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
+  const isPast = month === 11 && (dayNumber < day || day > 25);
+  if (claimedDays.includes(dayNumber) || (!isTampered && !isPast)) {
+    renderAdventCalendar();
+    return;
+  }
+
+  const yearKey = String(year);
+  const paidCount = Number(calendar.paidDays[yearKey] || 0);
+  const cost = 637 + paidCount * 100;
+  if (gameState.duckPassCurrency < cost) {
+    showMessage(currentLanguage === 'en' ? 'Not enough Duckpasses.' : 'No tienes suficientes Duckpasses.', 'error');
+    return;
+  }
+
+  gameState.duckPassCurrency -= cost;
+  calendar.paidDays[yearKey] = paidCount + 1;
+  claimedDays.push(dayNumber);
+  gameState.adventCalendar = calendar;
+  const granted = ADVENT_CALENDAR_REWARDS[dayNumber - 1].rewards.map(grantAdventReward);
+  saveProgress();
+  updateMetaUI();
+  showMessage(`🎁 ${granted.join(' · ')}`, 'success');
+  renderAdventCalendar();
+}
+
+function recordAdventCalendarVictory() {
+  if (gameState.mode === 'tutorial' || !gameState.map) return;
+  const now = new Date();
+  const { year, month, day } = getAdventCalendarDate(now);
+  updateAdventCalendarClock(now);
+  if (month !== 11 || day < 1 || day > 25) return;
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  const victoryDays = getAdventCalendarDays(calendar.victoryDays, year);
+  if (!victoryDays.includes(day)) victoryDays.push(day);
+  gameState.adventCalendar = calendar;
+  saveProgress();
+}
+
+function openAdventCalendar() {
+  ['encyclopedia-modal', 'shop-modal', 'pass-modal', 'story-logs-modal'].forEach(closeModal);
+  const modal = document.getElementById('advent-calendar-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  renderAdventCalendar();
+}
+
+window.openAdventCalendar = openAdventCalendar;
+
 function openPass() {
   closeModal('shop-modal');
   document.getElementById('pass-modal').style.display = 'flex';
@@ -8802,6 +9170,12 @@ function equipBombotAccessory(id) {
     return;
   }
   if (!gameState.unlockedBombotAccessories.includes(id) && gameState.debugState !== 'unlocked') return;
+  if (!isBombotAccessoryCompatible(accessory)) {
+    showMessage(currentLanguage === 'en'
+      ? 'This hat does not fit the currently equipped Bombot reskin.'
+      : 'Este gorro no encaja con el aspecto de Bombot equipado.', 'warning');
+    return;
+  }
 
   if (accessory.slot === 'front') {
     const fronts = getEquippedBombotFronts();
@@ -8830,6 +9204,16 @@ function equipBombotAccessory(id) {
       gameState.equippedBombotAccessories.front = getEquippedBombotFronts().filter(
         frontId => BOMBOT_ACCESSORIES.find(front => front.id === frontId)?.frontType !== 'glasses'
       );
+    }
+  } else if (accessory.slot === 'reskin') {
+    const nextReskin = gameState.equippedBombotAccessories.reskin === id ? null : id;
+    gameState.equippedBombotAccessories.reskin = nextReskin;
+    const equippedHead = BOMBOT_ACCESSORIES.find(item => item.id === gameState.equippedBombotAccessories.head);
+    if (equippedHead && !isBombotAccessoryCompatible(equippedHead, { ...gameState.equippedBombotAccessories, reskin: nextReskin })) {
+      gameState.equippedBombotAccessories.head = null;
+      showMessage(currentLanguage === 'en'
+        ? 'The equipped hat was removed because it does not fit this reskin.'
+        : 'Se ha quitado el gorro equipado porque no encaja con este aspecto.', 'warning');
     }
   } else {
     gameState.equippedBombotAccessories[accessory.slot] =
@@ -8941,10 +9325,11 @@ function renderBombotAccessoryCustomizer(container) {
       const isUnlocked = gameState.unlockedBombotAccessories.includes(accessory.id) ||
         gameState.debugState === 'unlocked';
       const equipped = category.isEquipped(accessory);
+      const compatible = isBombotAccessoryCompatible(accessory);
       const card = document.createElement('article');
-      card.className = `bombot-accessory-card${equipped ? ' equipped' : ''}${isUnlocked ? '' : ' locked'}`;
+      card.className = `bombot-accessory-card${equipped ? ' equipped' : ''}${isUnlocked ? '' : ' locked'}${compatible ? '' : ' incompatible'}`;
       const image = document.createElement('img');
-      image.src = `${BOMBOT_ACCESSORY_ASSET_ROOT}${accessory.image}`;
+      image.src = encodeURI(getBombotAccessoryImage(accessory.id));
       const accName = getBombotAccessoryName(accessory);
       image.alt = accName;
       const imgBox = document.createElement('div');
@@ -8968,10 +9353,15 @@ function renderBombotAccessoryCustomizer(container) {
       const action = document.createElement('button');
       action.type = 'button';
       if (isUnlocked) {
-        action.textContent = equipped
-          ? (currentLanguage === 'en' ? 'Unequip' : 'Quitar')
-          : (currentLanguage === 'en' ? 'Equip' : 'Equipar');
-        action.addEventListener('click', () => equipBombotAccessory(accessory.id));
+        if (!compatible) {
+          action.textContent = currentLanguage === 'en' ? 'Does not fit this reskin' : 'No encaja con este aspecto';
+          action.disabled = true;
+        } else {
+          action.textContent = equipped
+            ? (currentLanguage === 'en' ? 'Unequip' : 'Quitar')
+            : (currentLanguage === 'en' ? 'Equip' : 'Equipar');
+          action.addEventListener('click', () => equipBombotAccessory(accessory.id));
+        }
       } else if (accessory.cost && accessory.unlock) {
         // Tiene precio Y condición de desbloqueo: verificar prerequisito
         const prereqMet = checkBombotAccessoryPrerequisite(accessory.unlock);
@@ -9168,7 +9558,7 @@ function drawShop() {
     const missionSkinIds = ['corrupt_swords_set', 'fracstal_set', 'old_tycoon_set', 'cuby_bombot'];
     const otherNewSkinIds = [
       'astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set',
-      'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set', 'ducky_rewamp_set',
+      'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set', 'ducky_rewamp_set', 'snowglob_set',
       'ducky_rgb_sr', 'rewamped_black_set', 'black_rgb_sr', PERSONALIZABLE_BOMBOT_SKIN_ID
     ];
     const storeUnlockableIds = [...new Set([
@@ -9332,6 +9722,7 @@ function drawShop() {
       function getUnlockConditionText(skinId, condition) {
         if (skinId === 'mimic_set') return currentLanguage === 'es' ? '🎁 Derrota a un Mimic Pyce Especial' : '🎁 Defeat a Special Mimic Pyce';
         if (skinId === 'pyce_morph') return currentLanguage === 'es' ? '🎁 Recompensa Secreta' : '🎁 Secret Reward';
+        if (condition === 'advent_calendar') return currentLanguage === 'es' ? '🎄 Reclama el día 25 del Calendario de Adviento' : '🎄 Claim day 25 of the Advent Calendar';
         if (condition === 'all_profile_images') return currentLanguage === 'es'
           ? '🖼️ Reúne todas las imágenes de perfil disponibles'
           : '🖼️ Collect every available profile image';
@@ -9519,6 +9910,16 @@ function drawShop() {
     }
   } else if (currentShopTab === 'profile') {
     renderProfileShop(container);
+  }
+  if (currentShopTab === 'skins') {
+    const adventButton = document.createElement('button');
+    adventButton.type = 'button';
+    adventButton.className = 'advent-entry-btn advent-shop-entry-btn';
+    adventButton.textContent = currentLanguage === 'en'
+      ? '🎄 Open the Advent Calendar'
+      : '🎄 Abrir el Calendario de Adviento';
+    adventButton.addEventListener('click', openAdventCalendar);
+    container.appendChild(adventButton);
   }
 }
 
@@ -14461,6 +14862,7 @@ function activateGTack(t) {
         saveProgress();
         return;
       }
+      recordAdventCalendarVictory();
       unlockBombotAccessoriesForVictory();
       const baseModes = ['facil', 'normal', 'dificil', 'extremo'];
 
@@ -14976,6 +15378,10 @@ function activateGTack(t) {
     } else if (currentStoryTab === 'logs') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
+        <h3 style="color:#69e5ff;">📋 Historial de Actualizaciones (GlD v6.0.0 — Frozen Calendar Christmas)</h3>
+        <p style="color:#80edb0;">¡Llega el Calendario de Adviento! Del 1 al 25 de diciembre, supera cualquier mapa para reclamar el premio de ese día: PyCoins, Duckpasses, XP, accesorios y el set SnowGlob. Los días omitidos se recuperan con Duckpasses; el primero cuesta 637 y cada recuperación posterior añade 100. Si el reloj retrocede, los premios pendientes pasan a ser de pago. Esta comprobación local es disuasoria, no una validación segura del servidor.</p>
+        <button type="button" class="advent-entry-btn" onclick="openAdventCalendar()">🎄 Abrir Calendario de Adviento</button>
+
         <h3 style="color:#b58cff;">📋 Historial de Actualizaciones (Parche reciente — Personalización, online y moderación)</h3>
         <p style="color:#b58cff;">Más formas de personalizar tu experiencia, compartir partidas y mantener el chat agradable.</p>
         <h4>Novedades del Parche:</h4>
@@ -15144,6 +15550,10 @@ function activateGTack(t) {
       `;
       } else {
         container.innerHTML = `
+        <h3 style="color:#69e5ff;">📋 Update Logs (GlD v6.0.0 — Frozen Calendar Christmas)</h3>
+        <p style="color:#80edb0;">The Advent Calendar has arrived! From December 1 to 25, beat any map to claim that day's reward: PyCoins, Duckpasses, XP, accessories, and the SnowGlob set. Missed days can be recovered with Duckpasses; the first costs 637 and each later recovery adds 100. If the clock moves backwards, unclaimed rewards become paid. This local check is deterrence, not secure server-side validation.</p>
+        <button type="button" class="advent-entry-btn" onclick="openAdventCalendar()">🎄 Open Advent Calendar</button>
+
         <h3 style="color:#b58cff;">📋 Update Logs (Recent Patch — Customization, Online &amp; Moderation)</h3>
         <p style="color:#b58cff;">More ways to customize your experience, share matches, and keep chat friendly.</p>
         <h4>What's New in this Patch:</h4>

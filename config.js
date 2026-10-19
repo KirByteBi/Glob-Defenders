@@ -2363,6 +2363,21 @@ const MAP_ISLANDS = [
 const SKINS_DATA = {
   'Glob': [
     {
+      id: 'snowglob_set', name: 'skin_snowglob_name', desc: 'skin_snowglob_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'advent_calendar',
+      skins: {
+        'Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/SnowGlob-Body_SKEVO1.png',
+        'Poop_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/Loaded-SnowGlob_SKEVO2.png',
+        'Golden_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/Snowfall-Glob_SKEVO3.png',
+        'Rainbow_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/LIGHTEDSnowGlob_SKEVO4.png'
+      },
+      names: {
+        'Glob': 'SnowGlob',
+        'Poop_Glob': 'Loaded SnowGlob',
+        'Golden_Glob': 'Snowfall Glob',
+        'Rainbow_Glob': 'Lighted SnowGlob'
+      }
+    },
+    {
       id: 'rewamped_green_set', name: 'skin_rewamped_green_name', desc: 'skin_rewamped_green_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
         'Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
@@ -2831,6 +2846,8 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_corrupted_swords_desc": "Los supuestos amos de las espadas legendarias vistos hasta la DEMO 5.<br><span style='font-size:0.8em; color:#aaa;'>El derecho de los personajes vistos aqui les pertecene al equipo de Block Tales, los Globs a Kirb.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
   "skin_military_name": "Set Militar",
   "skin_military_desc": "Aspecto militar.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
+  "skin_snowglob_name": "Set SnowGlob Verde",
+  "skin_snowglob_desc": "La familia Glob vestida para la Navidad, como recompensa del Calendario de Adviento.",
   "skin_music_name": "Set Musical",
   "skin_music_desc": "Aspecto con notas musicales.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
   "skin_abyssal_name": "Set Abismal",
@@ -2890,6 +2907,8 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
+  "skin_snowglob_name": "Green SnowGlob Set",
+  "skin_snowglob_desc": "The Glob family dressed for Christmas, earned through the Advent Calendar.",
   "skin_sharkbot_name": "SharkBot",
   "skin_sharkbot_desc": "A steel robotic shark with propulsion. <br><span style='color: #ff3333; font-weight: bold; text-shadow: 0 0 5px rgba(255,51,51,0.5);'>Credit: Nitrogen</span>",
   "skin_globsus_name": "GlobSus",
