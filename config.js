@@ -1,3 +1,4 @@
+// [TRADUCCION DEL JUEGO]
 // ===================== CONFIGURACIÓN Y DATOS DEL JUEGO =====================
 
 const TRANSLATIONS = {
@@ -5,19 +6,25 @@ const TRANSLATIONS = {
     health: "Salud", money: "Globetines", wave: "Oleada",
     startWave: "Iniciar Oleada", autoWave: "Auto-Oleada",
     autoWaveActive: "Auto-ON", cancel: "Cancelar",
-    gameOver: "💀 GAME OVER 💀", playAgain: "Reintentar",
+    gameOver: "💀 GAME OVER 💀", playAgain: "Reintentar", choose_mode: "Elegir modo", choose_map: "Elegir mapa", exit_game: "Salir",
+    gameOverWave: "Llegaste a la oleada {wave}",
     achievements: "Logros", notEnoughMoney: "💸 Sin Globetines",
     towerPlaced: "✓ {name} colocada",
     towerEvolved: "✨ ¡Evolución a {name}!",
-    towerSold: "🛍� Vendida por {price}",
+    towerSold: "🛍️ Vendida por {price}",
     waveStarted: "🌊 Oleada {wave}!",
     waveCompleted: "✓ Oleada {wave} superada!",
-    enemyReachedEnd: "⚠� ¡Daño a la base!",
+    enemyReachedEnd: "⚠️ ¡Daño a la base!",
     pyceGlobUnlocked: "🌀 ¡Pyce Glob desbloqueado!",
     adminMode: "👑 MODO ADMIN",
     codeInvalid: "❌ Código inválido",
     loginError: "❌ Usuario o contraseña incorrectos",
+    offline_account_error: "No se pudo verificar la cuenta guardada en este dispositivo.",
+    offline_play: "Jugar sin conexión",
+    offline_mode_notice: "Modo offline: la cuenta no se verifica con el servidor; el progreso se guarda solo en este dispositivo.",
     codeSuccess: "⭐ Código aceptado: {name} desbloqueado",
+    badge_tutorial_name: "Primeros pasos",
+    badge_tutorial_desc: "Completa el tutorial de defensa. Haz clic aquí para repetirlo.",
     badge_survivor_name: "Superviviente", badge_survivor_desc: "Llega a la oleada 10",
     badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Ten más de 20.000 de dinero",
     badge_evolution_name: "Biotecnólogo", badge_evolution_desc: "Evoluciona una torre al máximo",
@@ -59,6 +66,10 @@ const TRANSLATIONS = {
     badge_titaniumBuilding_name: "Edificio de titanio", badge_titaniumBuilding_desc: "Pásate un mapa sin dañar la base",
     badge_encyclopediaMaster_name: "Maestro de la Enciclopedia", badge_encyclopediaMaster_desc: "Completa la enciclopedia Pyce y sube todas las familias de torres al máximo nivel al menos una vez",
     badge_unmenaced_name: "Desmenazado", badge_unmenaced_desc: "Completa el modo Interstellar. ¡Buen trabajo defendiendo la amenaza cristalina!",
+    badge_block_city_name: "Block City Quest", badge_block_city_desc: "Completa Block City Quest en Difícil.",
+    badge_old_blox_city_name: "Old Blox City", badge_old_blox_city_desc: "Completa Block City Quest con la skin de Block Tales o en dos victorias.",
+    badge_paracristal_dimension_name: "Dimensión Paralecristal", badge_paracristal_dimension_desc: "Completa la misión de la Dimensión Paralecristal.",
+    badge_future_voyage_name: "La travesía hacia el futuro", badge_future_voyage_desc: "Gana en Difícil en Gelatin Lake, Urbanistic Road y Sunlight Seaside y alcanza el nivel 25 del Duck Pass para abrir Bosques Arenonieves.",
     badge_skinllector_name: "Skinecionable", badge_skinllector_desc: "Consigue al menos 7 skins diferentes.",
     badge_crystalizing_break_name: "Descristalizando Amenazas", badge_crystalizing_break_desc: "Enmarca todos los cristalizados.",
     badge_extended_marc_name: "Enmarcacion Extensa", badge_extended_marc_desc: "Enmarca todos los enemigos de la categoria 'Otros Enemigos'.",
@@ -82,8 +93,11 @@ const TRANSLATIONS = {
     tower_Robotic_Glob_name: "Glob Robótico",
     tower_Soap_Glob_name: "Glob de Jabón",
     tower_Cotton_Glob_name: "Glob de Algodón",
+    tower_ElectroClean_Glob_name: "ElectroClean Glob",
+    tower_ElectroClean_Glob_desc: "Un Glob totalmente limpio, se limpia constantemente y aparte ha sido electrificado para actuar como el autentico paron a los enemigos que osen tocar Gelatin Lake o a cualquiera de sus habitantes y amigos.",
     tower_Ducky_Glob_name: "Pato Glob",
     tower_Golden_Ducky_Glob_name: "Pato de Oro",
+    tower_Rick_Duck_Glob_name: "Rick Duck Glob",
     tower_Comet_Glob_name: "Glob Cometa",
     tower_Dark_Glob_name: "Glob Oscuro",
     tower_Demglob_name: "Demglob",
@@ -160,9 +174,20 @@ const TRANSLATIONS = {
     enemy_Strechy_Pyce_desc: "Un Pyce con forma de robloxiano que muy a pesar de dictar que NO SERIA un Pyce, pues lo acabo siendo, vistiendose como uno. ¿O acaso eso no son ropas? ¿Ah no, que es un Pyce y no un cosplay? Ayayay... En fin, es mas amable que cualquier Pyce supuestamente.",
     enemy_Rebel_Pyce_desc: "Nacido en Bitlands como clon del Pyce 2.0, este rebelde pintarrajea y grafitea por la ciudad cuando se le da la gana y se escabulle... Para ser una copia, es muy distinto al original y no para quieto!",
     enemy_Spyware_name: "Spyware",
+    enemy_Spyware1_name: "Spyware 1",
+    enemy_Spyware2_name: "Spyware 2",
+    enemy_Spyware3_name: "Spyware 3",
     enemy_Spyware_desc: "Pese a ser familiares de los Bits, la función de estos espías es simple, entrar en el casino y robar tanta información como puedan... Pertenecen a una organización un tanto dudosa, que crea distintos seres digitales a la realidad.",
     enemy_Bit_name: "Bit",
+    enemy_BitY1_name: "Bit Amarillo",
+    enemy_BitB4_name: "Bit Azul",
+    enemy_BitG2_name: "Bit Verde",
+    enemy_BitP3_name: "Bit Morado",
     enemy_Byte_name: "Byte",
+    enemy_ByteGB1_name: "Byte Verde-Azul",
+    enemy_ByteYP2_name: "Byte Amarillo-Morado",
+    enemy_BytePG3_name: "Byte Morado-Verde",
+    enemy_ByteYB4_name: "Byte Amarillo-Azul",
     enemy_BitY1_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Feliz)",
     enemy_BitB4_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Enfadada)",
     enemy_BitG2_desc: "Los Bits son pequeños sistemas de programación convertidos en diminutos viruses, pero no hacen daño... ¿Verdad? (Variante Tranquila)",
@@ -177,6 +202,10 @@ const TRANSLATIONS = {
     enemy_AstrorbOrbe_desc: "El sello que mantenía encerrado a este astro rey acabó convirtiendo en una leyenda. Algunos aseguran que fueron los propios habitantes quienes lograron encerrarlo; otros hablan de seres muy superiores. Sea cual sea la verdad, Astrorb solo desea una cosa: volver a cristalizar el mundo.",
     enemy_AstrorbContenida_desc: "Liberado de su sello, Astrorb recupera parte de su poder y puede desplazarse libremente por el mundo. Sin embargo, todavía necesita reunir más energía antes de alcanzar su auténtica forma.",
     enemy_AstrorbTF_desc: "La verdadera forma del ser celestial. Ahora convertido en una figura humanoide, Astrorb pretende vengarse de quienes lo encerraron y eliminar cualquier amenaza para cumplir su misión. Para él, cristalizar el mundo no es maldad... sino el único camino posible.<br><br><strong>Mecánica:</strong> Destruye instantáneamente a cualquier torre y tiene Doble Vuelta (Ignora el daño en su primera pasada).",
+    enemy_Sharowd_name: "Sharowd",
+    enemy_Sharowd_desc: "Una espada corrompida por las emociones negativas y hacks constantes para obtenerla. Se dice ser la Darkheart original, pero nadie ha probado ser digno de su minijuego urbano.<br><br><strong>Recompensa:</strong> 3 derrotas para enmarcar.",
+    enemy_Crystalic_Orb_name: "Crystalic Orb",
+    enemy_Crystalic_Orb_desc: "Tras ser despojado de un cuerpo propio, Astrorb busca vengarse de quienes le traicionaron. Se ha amplificado con su propio poder cristalizado, convirtiéndose en una masa desatada que intenta regresar a su forma original.",
     enemy_Crystal_Bombot_desc: "Toda comunicación con Work-Bombot se ha perdido. Ahora utiliza cristales de tonos astrales como explosivos para atacar sin descanso. Astrorb ha dejado su marca sobre él: un ojo con forma de estrella roja que refleja el odio sembrado por la cristalización.<br><br><strong>Mecánica:</strong> Lanza cristales que roban energía a tus torres.",
     enemy_Crystal_Pyce_name: "Crystal Pyce",
     enemy_Crystal_Pyce_desc: "Un fragmento cristalino desprendido durante la llegada de Astrorb impactó sobre Pyce2, cristalizando solo parte de su cuerpo. Es uno de los pocos casos conocidos de cristalización parcial.",
@@ -224,6 +253,104 @@ const TRANSLATIONS = {
     enemy_Old_Fungus_desc: "El anciano más respetado entre los Shrums. Posee poderes psíquicos capaces de intimidar incluso a los enemigos más valientes, además de utilizar una enorme seta tanto como bate como varita.<br><br>A su lado crece un pequeño Shrum que todavía está desarrollándose y que tampoco parece tener problemas en atacar a los Globs. Pueden ser ciegos, y quizá incluso sordos, pero su presencia y su característico bigote amarillento hacen que nadie se atreva a subestimarlos.",
     enemy_Pysh_desc: "Un pez Pyce cuyo nombre nace de la combinación de pez y Pyce. Originalmente habitaban en Bitlands, hasta que fueron transportados a Techspawn, su antiguo hogar. Recientemente han comenzado a aparecer también por los puertos de Sunlight Seaside, donde parecen disfrutar especialmente de la abundante luz solar.",
     enemy_Clown_Pysh_desc: "Pyces con forma de pez payaso que comparten origen con los Pysh. Siguen habitando en Bitlands, aunque ahora parecen estar disfrutando de unas pequeñas vacaciones junto a sus congéneres en Sunlight Seaside.<br><br>Eso sí, son bastante más resistentes que los Pysh normales, que parecen no durar ni un segundo cuando empieza el combate.",
+    enemy_Broksp_name: "Brokspider",
+    enemy_Broksp_desc: "Una araña que ha ido creciendo alimentándose de pesadillas tan breves y pequeñas que no le han dado para crecer más... Aunque eso sí, está en proceso de ello.",
+    enemy_Blood_Taker_name: "Blood-Taker",
+    enemy_Blood_Taker_desc: "Una mirada penetrante y una gran mano grisácea con una guadaña aguardan tu muerte. Sea cuando sea, esa mano se toma muy en serio su labor de recolectar las muertes de aquellos que fallecen en el desierto... Si es que no terminas primero con él.",
+    enemy_Pumpitch_name: "Pumpitch",
+    enemy_Pumpitch_desc: "Conocido en España como Calabacín, esta calabaza utiliza un sombrero de bruja pero, aun así, es masculino; cosa que se nota en su mirada ardiente y llena de ambición por ser algo más que una calabaza adorable.",
+    enemy_RIPslide_name: "RIPslide",
+    enemy_RIPslide_desc: "Una tumba zombi que se desliza cual pingüino en el hielo... Realmente adora asustar con ese falso \"RIP\" que en realidad son sus ojos y nariz... Pero no consigue hacer mucho en batalla, aunque rápido es, eso lo asegura Kirb.",
+    enemy_Sneekmy_name: "Sneekmy",
+    enemy_Sneekmy_desc: "Un fantasma oscuro con vendas que lo hacen parecer una momia. Está constantemente huyendo de algo, como si no supiera dónde está su casa... Puede ser que su hogar se haya perdido en el pasado.",
+    enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
+    enemy_SkeleBone_Pyce_desc: "Una mejora de la mejora Pyce de Noob Pyce, siguiendo la línea de las versiones mejoradas de Noob y Guest Pyce vistas en Urbanistic Road. Está hecho de huesos encontrados en el desierto y parece simpático con esa mirada y esos zapatos, pero no te confíes: puede lanzarte uno de sus huesos en un visto y no visto. Como los demás Pyces, es feliz de existir y leal, aunque no sea un ordenador convencional... ¿Verdad?",
+    enemy_Curse_Boneker_name: "Curse Boneker",
+    enemy_Curse_Boneker_desc: "Entre el cielo y el infierno hay almas que no pertenecen a ninguno de los dos. Curse Boneker las encuentra, las elige y las encierra en la pirámide a la que sirve, convencido de que así les ahorra el tormento de vagar sin destino. Lo sabe porque él también fue una de ellas: murió desorientado en el desierto, caminando en círculos hasta olvidar qué era el horizonte. Ahora la pirámide es su brújula y su prisión. Cuando lanza sus huesos malditos, no apunta a destruir tus torres, sino a silenciarlas el tiempo suficiente para que ninguna pueda guiar a esas almas de vuelta a casa.",
+    enemy_Ghost_Pyce_name: "Ghost Pyce",
+    enemy_Ghost_Pyce_desc: "Un Pyce fantasma que es intangible para las evoluciones inferiores. Pero espera... ¿Los Pyces pueden morir? Quizás solo sea un disfraz, o su pantalla se ha roto y su cara se sostiene mágicamente donde debería estar. Sea cual sea su caso, es un fiel sirviente, y ya lo era antes de convertirse en fantasma.",
+    enemy_Clockwork_Titan_name: "Clockwork Titan",
+    enemy_Clockwork_Titan_desc: "Un reloj que ha cobrado vida gracias al alma de quien una vez fue un gran relojero. Ahora vaga por el multiverso arreglando aquello que no se puede arreglar.",
+    enemy_DIY_Bot_name: "DIY-Bot",
+    enemy_DIY_Bot_desc: "Un robot que puedes construir rápidamente. La empresa que los creó quiso que fueran para Navidad, pero ahora son un útil recurso interdimensional... Y siempre serán tan festivos como en su día especial.",
+    enemy_Hatspy_name: "Hatspy",
+    enemy_Hatspy_desc: "Espías robóticos con forma de sombrero de copa que sirven al Astrorb mecánico, conocido como Roborb. Una empresa mafiosa los creó como prototipos de espionaje.",
+    enemy_Local_Engines_name: "Local Engines",
+    enemy_Local_Engines_desc: "Unos engranajes verdes que cooperan en conjunto como parte vital de la existencia de otras dimensiones. Verlos como enemigos significa que se ha roto la pared equivocada.",
+    enemy_Roborb_name: "Roborb the Time Stealer",
+    enemy_Roborb_desc: "Una empresa de dudosa confianza ensambló este robot utilizando el poder cristalizado restante de aquel astro que huyó al espacio al ser derrotado. Así logró recrear a ese dios en una forma robótica de menor escala, más portátil y estable que la original. Roborb no es Astrorb: es una imitación mecánica alimentada por el poder que dejó atrás.",
+    enemy_Untimed_Atoms_name: "Untimed Atoms",
+    enemy_Untimed_Atoms_desc: "Átomos que no terminan de colocarse correctamente. Son la consecuencia de haber roto el tejido dimensional y un problema si se multiplican, porque eso significa que más átomos están en problemas.",
+    enemy_GODs_Shadow_name: "GODs Shadow",
+    enemy_GODs_Shadow_desc: "L + X + T + _",
+    enemy_GODs_Shadow_completed_desc: "La sombra de quien alguna vez fue alguien importante. El original está libre, pero su sombra fue convertida en una herramienta de destrucción. Al derrotarla, también has derrotado una parte de la mafia y del tejido espacio-tiempo... Pero no te detengas: sigue defendiendo el pasado de I.D. con tus propias manos. Su mundo queda en tus manos.",
+    enemy_GODs_Shadow_show_clue: "Ver pista: L + X + T + _",
+    enemy_GODs_Shadow_show_main_desc: "Volver a la descripción",
+    enemy_GODs_Shadow_show_clue: "Ver pista: L + X + T + _",
+    enemy_GODs_Shadow_show_main_desc: "Volver a la descripción",
+    across_time_mode_name: "Across the Time: GlD (EVENT)",
+    tutorial_mode_name: "🎓 Tutorial",
+    tutorial_mode_desc: "Aprende a colocar, evolucionar y vender Globs y supera cinco oleadas.",
+    tutorial_solo_required: "El tutorial solo se puede jugar en una partida individual.",
+    tutorial_emblem_repeat: "Repetir tutorial",
+    tutorial_skip: "Saltar tutorial",
+    tutorial_skip_kicker: "WORK-BOMBOT · ENTRENAMIENTO",
+    tutorial_skip_title: "¿Dejamos el entrenamiento?",
+    tutorial_skip_confirm: "Work-Bombot dejará de guiarte. Si sales ahora, no conseguirás el emblema Primeros pasos ni sus recompensas. Podrás volver al tutorial desde el emblema cuando quieras.",
+    tutorial_skip_cancel: "Seguir aprendiendo",
+    tutorial_skip_accept: "Salir del tutorial",
+    tutorial_continue: "Continuar",
+    tutorial_restriction: "Sigue las instrucciones de Work-Bombot para continuar.",
+    tutorial_guide_title: "WORK-BOMBOT",
+    tutorial_guide_place_green: "Coloca un Glob verde. Durante esta práctica no podrás colocar el rojo todavía.",
+    tutorial_guide_select_green: "¡Bien hecho! Haz clic en el Glob verde para ver sus opciones de evolución y venta.",
+    tutorial_guide_evolve_green: "Evoluciona el Glob una vez con el botón del panel.",
+    tutorial_guide_sell_green: "¡Muy bien! Cuanto más evolucione un Glob, más potente será. Ahora véndelo desde su panel.",
+    tutorial_guide_place_red: "Coloca un Glob rojo para conocer otra familia.",
+    tutorial_guide_families: "Cada familia tiene su estilo: algunas hacen más daño, otras atacan rápido y otras ralentizan o paralizan. Consulta la Enciclopedia para ver qué hace cada Glob.",
+    tutorial_guide_build: "Prepara tu defensa: deja 3 Globs verdes y 4 rojos en total. El rojo que acabas de colocar cuenta; puedes poner los demás donde quieras.",
+    tutorial_guide_waves: "¡Defensa lista! Supera las cinco oleadas. Work-Bombot te avisará de cada avance.",
+    tutorial_guide_complete: "¡Lo has hecho genial! Prueba otros mapas y compra nuevas familias en la tienda. En tus manos está detener las invasiones que los Globs intentan evitar. Algo malo va a pasar en Gelatin Lake y tenemos que impedirlo. ¡Contamos contigo!",
+    tutorial_wave: "Tutorial · Oleada {wave} de 5",
+    tutorial_boss_warning: "¡Atención! Se acerca el último desafío de este mapa.",
+    tutorial_boss_name_gelatin_lake: "4Motions Pyce",
+    tutorial_boss_name_urbanistic_road: "Cannon Pycer y Knight Pyce",
+    tutorial_boss_name_sunlight_seaside: "Old Fungus",
+    tutorial_boss_name_spooktacular_ruins: "Blood-Taker y SkeleBones Pyce",
+    across_time_mode_desc: "Una serie de mundos paralelos. Desafío Extremo para un solo jugador; puede jugarse online.",
+    across_time_solo_required: "Across the Time y TIME ATTACK son para un solo jugador; la seed no puede tener otros jugadores.",
+    across_time_badges_required: "Necesitas los emblemas Interstellar y llave de Wildsand Leaf.",
+    across_time_map_required: "La misión debe iniciarse desde Gelatin Lake.",
+    across_time_loadout_required: "Equipa en este orden: Verde, Naranja, Azul, Blanco y Rojo.",
+    across_time_crystals: "Cristales temporales: {count}",
+    across_time_puzzle: "Forma L + X + T + _ con torres sobre los marcadores.",
+    across_time_puzzle_failed: "La formación no coincide. Coloca una torre en cada marcador L, X, T y _.",
+    across_time_intro: "Veo que te gustan los retos. ¿Verdad? Pues vamos a jugar, voy a ponerte distintos tipos de enemigos a tu disposición... Solo trata de sobrevivir hasta el final.",
+    across_time_puzzle_solved: "No caeré... ¡NI TÚ ACABARÁS CON EL TIEMPO QUE CONSUMIRÉ!",
+    across_time_moonstar: "Habéis llegado lejos. ¡PERO NO TAN LEJOS! MOONSTAR... ¡ACABA CON ELLOS!",
+    across_time_space_two_complete: "Espacio II completado. Introduce 14/05/26-TIMETRAVEL para continuar.",
+    across_time_after_space_two: "Arg. ¿Pensabas que me habías vencido? Todavía te esperan desgracias, y tienen que ver con tu pasado.",
+    across_time_final_intro: "Me he hartado de esperar. ¡Esta vez no escaparás!",
+    across_time_threat: "La presencia de GODs Shadow se cierne sobre este mundo...",
+    across_time_code_required: "Completa el espacio II antes de usar el código temporal.",
+    across_time_confirm: "¿Preparado para viajar al pasado? Se recomienda preparar el loadout antes de continuar.",
+    across_time_transition: "Transición a un mundo paralelo...",
+    across_time_final_warning: "No permitiré que mi reinado de oscuridad temporal se detenga. ¡Eres listo para viajar al pasado... pero no lo bastante hábil para derrotarme!",
+    across_time_victory_title: "🌌 ¡ACROSS THE TIME COMPLETADO! 🌌",
+    across_time_victory_msg: "Has defendido los mundos paralelos y derrotado a GODs Shadow.<br>Has obtenido Virtuallity Set.",
+    across_time_reward: "🎁 ¡Virtuallity Set desbloqueado!",
+    across_time_final_opportunity: "GODs Shadow regresa a su base. Oportunidades restantes: {count}.",
+    across_time_restart: "Espacio reiniciado desde su checkpoint; se conserva el progreso de los espacios anteriores.",
+    time_attack_mode_name: "TIME ATTACK",
+    time_attack_mode_desc: "Rejuega un espacio: GL inicia I, UR inicia II y AE inicia III–IV. Para un solo jugador; puede jugarse online.",
+    time_attack_map_required: "TIME ATTACK solo se puede iniciar desde Gelatin Lake, Urbanistic Road o Aridez Escalofriante.",
+    time_attack_progress_required: "Completa Across the Time para desbloquear TIME ATTACK.",
+    badge_across_time_name: "Across the Time",
+    badge_across_time_desc: "Completa Across the Time: GlD (EVENT).",
+    skin_virtuallity_name: "Virtuallity Set",
+    skin_virtuallity_desc: "Una recompensa de Across the Time: GlD (EVENT).",
+    enemy_ZomPyce_name: "ZomPyce",
+    enemy_ZomPyce_desc: "Un Pyce muerto... No, no está muerto: sus circuitos no funcionan, lo que lo ha dejado podrido hasta parecer un zombi. No sabe mantenerse en pie, pero recolectó diferentes ropajes de los humanos y los guarda en el desierto.",
     
     // Leafy Beach Party Bosses & Enemies
     enemy_PhantKeeper_name: "PhantKeeper",
@@ -264,8 +391,8 @@ const TRANSLATIONS = {
     tower_Gamer_Glob_desc: "Con el tiempo se convirtió en un gamer competitivo reconocido en toda la ciudad, pero la fama aún no era suficiente.",
     tower_Youtuber_Glob_desc: "Finalmente alcanzó el éxito como un famoso Youtuber y tiene dinero para aventar... Aunque ya es hora de que deje el internet y busque un trabajo de verdad.",
 
-    login_user: "Nombre de Usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla",
-    select_map: "Seleccionar Mapa",
+    login_user: "Nombre de usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla", create_account: "Crear cuenta", skip_login: "Saltar login",
+    select_map: "Seleccionar Isla",
     select_mode: "Seleccionar Modo",
     backToModes: "Selección de Modo",
 
@@ -328,10 +455,16 @@ const TRANSLATIONS = {
     shop_skins: "Skins",
     mode_selected: "Modo {mode} seleccionado",
     settings_title: "⚙ Ajustes",
+    settings_special: "Especial",
+    hypermutated_effect: "Efecto Hipermutado",
+    hypermutated_unlocked: "¡Efecto Hipermutado desbloqueado! Actívalo en Ajustes → Especial.",
+    glitch_effect: "Efecto Glitch",
+    glitch_unlocked: "¡Efecto Glitch desbloqueado! Has completado el 100% auténtico. Actívalo en Ajustes → Especial.",
     shop_equip: "Equipación",
     show_shop_desc: "Mostrar descripción en tienda",
     show_total_damage: "Ver Daño Total de torres",
     show_ranges: "Ver Rango de torres",
+    hide_date: "Quitar la fecha",
     save_close: "Guardar y Cerrar",
     close: "Cerrar",
     level_label: "Nivel",
@@ -374,6 +507,10 @@ const TRANSLATIONS = {
     skin_abyssal_desc: "Set acuatico, de una pecera a un tiburon, y esa pecera ya estaba preparada junto los millones de Globs que estaban planeados.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
     skin_business_name: "Set Empresarial",
     skin_business_desc: "De un puesto de gelatina a una gran fábrica.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
+    skin_ducky_rewamp_name: "Ducky Rewamp",
+    skin_ducky_rewamp_desc: "Una nueva imagen para la familia Ducky, desde su primera forma hasta Highlight Glob.",
+    skin_ducky_rgb_name: "Ducky RGB Secreto",
+    skin_ducky_rgb_desc: "El Rewamp de Ducky con efecto RGB animado. Se desbloquea al conseguir todas las imágenes de perfil.",
     skin_universolar_name: "Set Universolar",
     skin_universolar_desc: "Un tema galactico simple, no tiene mucha logica detras, asi que mejor no se la busques.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
     skin_robotibu_name: "RoboTibu",
@@ -390,6 +527,8 @@ const TRANSLATIONS = {
     skin_mimic_desc: "Skin especial obtenida al derrotar al Mimic Pyce.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
     skin_cuby_name: "Cuby",
     skin_cuby_desc: "¡Colaboración especial! Desbloqueada por superar la misión Interstellar Menace. Esta skin tiene animaciones únicas.",
+    skin_personalizable_bombot_name: "Personalizable Bombot",
+    skin_personalizable_bombot_desc: "Personaliza a Bombot con un accesorio de cabeza, uno frontal y un traje.",
     upgrade_range_name: "Alcance Maestro",
     upgrade_range_desc: "+20 Alcance para todas las torres",
     upgrade_damage_name: "Poder del Pato",
@@ -407,12 +546,24 @@ const TRANSLATIONS = {
     duckgrade_pyce_desc: "A veces dispara en todas direcciones (Spin).",
     duckgrade_old_name: "Inmunidad Gris",
     duckgrade_old_desc: "Las torres en un radio cercano de una torre Gris son inmunes a aturdimientos y ralentizaciones.",
+    duckgrade_grey_name: "Sincronía Gris",
+    duckgrade_grey_desc: "La familia Gris puede disparar en todas direcciones y protege a las torres cercanas de aturdimientos y ralentizaciones.",
     duckgrade_bombot_name: "Bomba Saltarina",
     duckgrade_bombot_desc: "Las bombas rebotan y explotan dos veces.",
     duckgrade_worker_name: "Trampas de Acero",
     duckgrade_worker_desc: "Aumenta la vida de todas tus trampas desplegadas.",
     duckgrade_brown_name: "Espinas Resecadas",
     duckgrade_brown_desc: "Probabilidad de aturdir a los enemigos dentro del área.",
+    duckgrade_pirate_name: "Artillería Rebotante",
+    duckgrade_pirate_desc: "Las bombas de las dos últimas invocaciones pueden rebotar una vez.",
+    duckgrade_white_name: "Retroceso Blanco",
+    duckgrade_white_desc: "Aumenta el área de influencia de la familia Blanca y puede hacer retroceder ocasionalmente a los enemigos.",
+    duckgrade_pink_name: "Compensación Rosa",
+    duckgrade_pink_desc: "Compensa parte de la pérdida de daño causada por el apoyo de la familia Rosa y mejora ligeramente su daño.",
+    gtack_white_name: "Apoyo Blanco: Refuerzo",
+    gtack_white_desc: "Permite que las trampas y los proyectiles paralizantes apoyen al equipo sin daño directo.",
+    gtack_pink_name: "Apoyo Rosa: Enfriamiento",
+    gtack_pink_desc: "Aumenta temporalmente el cooldown de las torres afectadas.",
     duckgrade_duck_name: "Pato Defensivo",
     duckgrade_duck_desc: "Genera dinero más rápido cerca de enemigos y hace daño de área.",
     duckgrade_iex_name: "Detonación Tóxica/Ígnea",
@@ -440,6 +591,8 @@ const TRANSLATIONS = {
     gtack_comet_desc: "Invoca un agujero negro temporal que absorbe enemigos.",
     gtack_brown_name: "Brown G-Tack: Florecimiento Amigable",
     gtack_brown_desc: "Aumenta temporalmente la velocidad de ataque de las torres cercanas.",
+    gtack_pirate_name: "Marine G-Tack: Bombardeo Glob",
+    gtack_pirate_desc: "Durante 10 segundos, Pirate Glob ataca con bombas y puede lanzar Globs de IEx, pero sus barcos se invocan un 25% más lentamente.",
     gtack_buy: "Comprar",
     gtack_active: "Activo",
     gtack_req_lvl: "🔒 Req. Lvl 50",
@@ -483,10 +636,10 @@ const TRANSLATIONS = {
     skin_buff_damage2_desc: "+10% Daño Extra.",
 
     // Descripciones de Torres
-    tower_Glob_desc: "Un humilde habitante de Bitlands. Lanza orbes de pura energía verde para defender su hogar. Confiable y leal.",
+    tower_Glob_desc: "Un humilde habitante de Gelatin Lake. Lanza orbes de pura energía verde para defender su hogar. Confiable y leal.",
     tower_Poop_Glob_desc: "Su extraña dieta le ha otorgado una densidad abrumadora. Lanza proyectiles fangosos que golpean con fuerza bruta.",
     tower_Golden_Glob_desc: "Bañado en riquezas, este Glob ha perfeccionado su técnica. Sus proyectiles de oro puro son letales y extremadamente veloces.",
-    tower_Rainbow_Glob_desc: "La leyenda de Bitlands. Ha trascendido los colores primarios para canalizar láseres prismáticos que destrozan todo a su paso.",
+    tower_Rainbow_Glob_desc: "La leyenda de Gelatin Lake. Ha trascendido los colores primarios para canalizar láseres prismáticos que destrozan todo a su paso.",
     tower_Red_Glob_desc: "Lleno de adrenalina y furia contenida. Prefiere el combate cuerpo a cuerpo para asestar golpes a una velocidad cegadora.",
     tower_Molten_Glob_desc: "La furia lo ha consumido hasta derretirlo. Su cuerpo irradia un calor intenso que carboniza a quienes se atrevan a acercarse.",
     tower_Robotic_Glob_desc: "Mejorado con tecnología de PixelStar. Este cíborg erradica a los intrusos desde la distancia con un poderoso láser perforador.",
@@ -494,9 +647,10 @@ const TRANSLATIONS = {
     tower_Cotton_Glob_desc: "Suave, tierno y engañosamente resistente. Su campo estático de algodón frena casi por completo cualquier asalto enemigo.",
     tower_Ducky_Glob_desc: "El banquero de los Globs. No ataca, pero su habilidad para encontrar monedas brillantes asegura la economía de tus defensas.",
     tower_Golden_Ducky_Glob_desc: "Realeza financiera. Su plumaje dorado bendice tu tesoro, generando inmensas fortunas en un abrir y cerrar de ojos.",
+    tower_Rick_Duck_Glob_desc: "El magnate definitivo. Genera más Globetines y, en multijugador, cada 15 segundos añade a la bolsa compartida un 25% extra de sus ganancias por cada compañero.",
     tower_Comet_Glob_desc: "Extraído de las estrellas. Lanza astros celestiales como boomerangs para diezmar a las hordas enemigas desde lejos.",
     tower_Dark_Glob_desc: "Corrompido por el vacío del universo. Desata diamantes oscuros que perforan la propia tela de la realidad y a sus enemigos.",
-    tower_Demglob_desc: "La encarnación de la destrucción. Surgió de las sombras más profundas de Bitlands para aniquilar Pyces con caos puro.",
+    tower_Demglob_desc: "La encarnación de la destrucción. Surgió de las sombras más profundas de Gelatin Lake para aniquilar Pyces con caos puro.",
     tower_Pyce_Glob_desc: "Un Glob infectado por el mismo código que creó a los Pyces. Su inestabilidad genera ráfagas anómalas de alta velocidad.",
     tower_Old_Glob_desc: "El sabio ancestro. Conoce los secretos de la tierra y lanza rocas inquebrantables imbuídas de magia antigua.",
     tower_Work_Bombot_desc: "Un prototipo desechado que encontró su propósito. Desencadena explosiones devastadoras de área.",
@@ -522,6 +676,9 @@ const TRANSLATIONS = {
     almanac_reward: "💰 +",
     mechanic_common: "Enemigo Común",
     mechanic_spyware: "Spywares: Las primeras y segundas evos de las torres no lo pueden atacar, pero las trampas pueden dañarlo.",
+    mechanic_clockwork_titan: "Inmune a los aturdimientos.",
+    mechanic_diy_bot: "Inmune al veneno y débil al fuego.",
+    mechanic_hatspy: "Fantasma: solo las torres de evolución 3 o superior pueden alcanzarlo.",
     mechanic_mimic: "Cazatesoros: ¡Atrápalo rápido antes de que huya!",
     mechanic_boss: "Jefe Imparable: Altamente resistente al control de masas.",
     mechanic_tank: "Tanque: Absorbe grandes cantidades de daño.",
@@ -542,7 +699,7 @@ const TRANSLATIONS = {
     badge_unlocked: "¡DESBLOQUEADO!",
     badge_locked: "BLOQUEADO",
     badge_reward_label: "RECOMPENSA: ",
-    skin_unlocked_pyce_randomizer: "🎁 ¡SKIN 'Pyce Randomizer' DESBLOQUEADA!",
+    skin_unlocked_pyce_randomizer: "🎁 ¡SKIN 'All-Stars Randomizer' DESBLOQUEADA!",
     skin_unlocked_crystal_bombot: "🎁 ¡SKIN 'Crystal-Bombot' DESBLOQUEADA!",
     skin_unlocked_astrorb: "🎁 ¡SKIN 'Astrorb' DESBLOQUEADA!",
     skin_unlocked_cuby: "🎁 ¡SKIN CUBY (Work-Bombot) DESBLOQUEADA!",
@@ -558,7 +715,8 @@ const TRANSLATIONS = {
     health: "Health", money: "Globets", wave: "Wave",
     startWave: "Start Wave", autoWave: "Auto-Wave",
     autoWaveActive: "Auto-ON", cancel: "Cancel",
-    gameOver: "💀 GAME OVER 💀", playAgain: "Retry",
+    gameOver: "💀 GAME OVER 💀", playAgain: "Retry", choose_mode: "Choose mode", choose_map: "Choose map", exit_game: "Exit",
+    gameOverWave: "You reached wave {wave}",
     achievements: "Achievements", notEnoughMoney: "💸 No Globets",
     towerPlaced: "✓ {name} placed",
     towerEvolved: "✨ Evolved to {name}!",
@@ -571,6 +729,11 @@ const TRANSLATIONS = {
     codeSuccess: "⭐ Code accepted: {name} unlocked",
     codeInvalid: "❌ Invalid code",
     loginError: "❌ Invalid username or password",
+    offline_account_error: "Could not verify the account stored on this device.",
+    offline_play: "Play offline",
+    offline_mode_notice: "Offline mode: the account cannot be server-verified; progress stays on this device.",
+    badge_tutorial_name: "First Steps",
+    badge_tutorial_desc: "Complete the defense tutorial. Click here to repeat it.",
     badge_survivor_name: "Survivor", badge_survivor_desc: "Reach wave 10",
     badge_millionaire_name: "Aura Farmer", badge_millionaire_desc: "Have over 20,000 money",
     badge_evolution_name: "Biotechnologist", badge_evolution_desc: "Evolve a tower to the max",
@@ -612,6 +775,10 @@ const TRANSLATIONS = {
     badge_titaniumBuilding_name: "Titanium Building", badge_titaniumBuilding_desc: "Complete a map without taking base damage",
     badge_encyclopediaMaster_name: "Encyclopedia Master", badge_encyclopediaMaster_desc: "Complete the Pyce encyclopedia and upgrade all tower families to max level at least once",
     badge_unmenaced_name: "Unmenaced", badge_unmenaced_desc: "Complete Interstellar mode. Good job defending against the crystal threat!",
+    badge_block_city_name: "Block City Quest", badge_block_city_desc: "Complete Block City Quest on Hard.",
+    badge_old_blox_city_name: "Old Blox City", badge_old_blox_city_desc: "Complete Block City Quest with the Block Tales skin or in two victories.",
+    badge_paracristal_dimension_name: "Paracristal Dimension", badge_paracristal_dimension_desc: "Complete the Paracristal Dimension mission.",
+    badge_future_voyage_name: "Boat ride to the future", badge_future_voyage_desc: "Win on Hard in Gelatin Lake, Urbanistic Road, and Sunlight Seaside and reach Duck Pass level 25 to open Wildsand Leaf.",
     badge_skinllector_name: "Skinllector", badge_skinllector_desc: "Get at least 7 different skins.",
     badge_crystalizing_break_name: "Crystalizing Break", badge_crystalizing_break_desc: "Frame all crystallized variants.",
     badge_extended_marc_name: "Extended Marc", badge_extended_marc_desc: "Frame all enemies in the 'Other Enemies' category.",
@@ -635,11 +802,14 @@ const TRANSLATIONS = {
     tower_Robotic_Glob_name: "Robotic Glob",
     tower_Soap_Glob_name: "Soap Glob",
     tower_Cotton_Glob_name: "Cotton Glob",
+    tower_ElectroClean_Glob_name: "ElectroClean Glob",
+    tower_ElectroClean_Glob_desc: "A spotless Glob that keeps cleaning itself. It has also been electrified to stop any enemy that dares touch Gelatin Lake, its inhabitants, or its friends.",
     tower_Bomb_Glob_name: "Bomb Glob",
     tower_TNT_Glob_name: "TNT Glob",
     tower_Nuclear_Glob_name: "Nuclear Glob",
     tower_Ducky_Glob_name: "Ducky Glob",
     tower_Golden_Ducky_Glob_name: "Golden Ducky",
+    tower_Rick_Duck_Glob_name: "Rick Duck Glob",
     tower_Comet_Glob_name: "Comet Glob",
     tower_Dark_Glob_name: "Dark Glob",
     tower_Demglob_name: "Demglob",
@@ -717,9 +887,118 @@ const TRANSLATIONS = {
     enemy_Strechy_Pyce_desc: "A Pyce in the shape of a Robloxian that, despite dictating that it WOULD NOT BE a Pyce, ended up being one, dressing like one. Or are those not clothes? Oh, it's a Pyce and not a cosplay? Oh my... Anyway, it's supposedly friendlier than any Pyce.",
     enemy_Rebel_Pyce_desc: "Born in Bitlands as a clone of Pyce 2.0, this rebel paints and graffitis around the city whenever it wants and sneaks away... For a copy, it's very different from the original and won't stay still!",
     enemy_Spyware_name: "Spyware",
+    enemy_Spyware1_name: "Spyware 1",
+    enemy_Spyware2_name: "Spyware 2",
+    enemy_Spyware3_name: "Spyware 3",
     enemy_Spyware_desc: "Despite being related to Bits, the function of these spies is simple: enter the casino and steal as much information as they can... They belong to a somewhat dubious organization that creates different digital beings from reality.",
+    enemy_Broksp_name: "Brokspider",
+    enemy_Broksp_desc: "A spider that has been growing by feeding on nightmares so brief and small that they have not let it grow much... Though it is still growing.",
+    enemy_Blood_Taker_name: "Blood-Taker",
+    enemy_Blood_Taker_desc: "A penetrating gaze and a large grayish hand holding a scythe await your death. Whenever it comes, that hand takes its job of collecting the deaths of those who perish in the desert very seriously... Unless you finish him first.",
+    enemy_Pumpitch_name: "Pumpitch",
+    enemy_Pumpitch_desc: "Known in Spain as Calabacín, this pumpkin wears a witch's hat but is still male. You can tell from his fiery gaze and ambition to be more than an adorable pumpkin.",
+    enemy_RIPslide_name: "RIPslide",
+    enemy_RIPslide_desc: "A zombie tomb that slides like a penguin on ice... It loves scaring people with that fake \"RIP,\" which is actually its eyes and nose. It cannot do much in battle, though it is fast, Kirb assures us.",
+    enemy_Sneekmy_name: "Sneekmy",
+    enemy_Sneekmy_desc: "A dark ghost wrapped in bandages that make it look like a mummy. It is constantly running away from something, as if it does not know where home is... Perhaps its home was lost in the past.",
+    enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
+    enemy_SkeleBone_Pyce_desc: "Made from bones found in the desert, it looks friendly with that gaze and those shoes. But do not trust it: it can throw one of its bones in the blink of an eye. Like the other Pyces, it is happy to exist and loyal, even if it is not a conventional computer... Right?",
+    enemy_Curse_Boneker_name: "Curse Boneker",
+    enemy_Curse_Boneker_desc: "Between heaven and hell are souls that belong to neither. Curse Boneker finds them, chooses them, and imprisons them in the pyramid it serves, convinced that this spares them the torment of wandering without a destination. It knows because it was one of them: it died disoriented in the desert, walking in circles until it forgot what the horizon was. Now the pyramid is its compass and its prison. When it hurls its cursed bones, it does not aim to destroy your towers, but to silence them long enough that none can guide those souls home.",
+    enemy_Ghost_Pyce_name: "Ghost Pyce",
+    enemy_Ghost_Pyce_desc: "A ghost Pyce that is intangible to lower evolutions. But wait... Can Pyces die? Perhaps it is only wearing a costume, or its screen broke and its face is magically floating where the screen should be. Whatever the case, it is a loyal servant, as it was even before becoming a ghost.",
+    enemy_Clockwork_Titan_name: "Clockwork Titan",
+    enemy_Clockwork_Titan_desc: "A clock brought to life by the soul of someone who was once a great clockmaker. Now it wanders the multiverse, fixing what cannot be fixed.",
+    enemy_DIY_Bot_name: "DIY-Bot",
+    enemy_DIY_Bot_desc: "A robot you can build quickly. The company that created them wanted them ready for Christmas, but now they are a useful interdimensional resource... And they will always be as festive as they are on their special day.",
+    enemy_Hatspy_name: "Hatspy",
+    enemy_Hatspy_desc: "Robot spies shaped like top hats who serve the mechanical Astrorb, known as Roborb. A shady company created them as espionage prototypes.",
+    enemy_Local_Engines_name: "Local Engines",
+    enemy_Local_Engines_desc: "Green gears that work together as a vital part of other dimensions' existence. Seeing them as enemies means the wrong wall has been broken.",
+    enemy_Roborb_name: "Roborb the Time Stealer",
+    enemy_Roborb_desc: "A company of questionable trust assembled this robot using the remaining crystallized power of the celestial being that fled into space after its defeat. This allowed them to recreate that god in a smaller robotic form, more portable and stable than the original. Roborb is not Astrorb: it is a mechanical imitation fueled by the power left behind.",
+    enemy_Untimed_Atoms_name: "Untimed Atoms",
+    enemy_Untimed_Atoms_desc: "Atoms that never quite settle into the right places. They are a consequence of tearing the fabric of dimensions, and become a problem when they multiply, because that means more atoms are in trouble.",
+    enemy_GODs_Shadow_name: "GODs Shadow",
+    enemy_GODs_Shadow_desc: "L + X + T + _",
+    enemy_GODs_Shadow_completed_desc: "The shadow of someone who was once important. The original is free, but their shadow was turned into a tool of destruction. By defeating it, you have also defeated a part of the mafia and the space-time fabric... But do not stop: keep defending I.D.'s past with your own hands. Their world is in your hands.",
+    enemy_GODs_Shadow_show_clue: "Show clue: L + X + T + _",
+    enemy_GODs_Shadow_show_main_desc: "Return to description",
+    enemy_GODs_Shadow_show_clue: "Show clue: L + X + T + _",
+    enemy_GODs_Shadow_show_main_desc: "Return to description",
+    across_time_mode_name: "Across the Time: GlD (EVENT)",
+    tutorial_mode_name: "🎓 Tutorial",
+    tutorial_mode_desc: "Learn to place, evolve, and sell Globs, then clear five waves.",
+    tutorial_solo_required: "The tutorial can only be played in a single-player round.",
+    tutorial_emblem_repeat: "Repeat tutorial",
+    tutorial_skip: "Skip tutorial",
+    tutorial_skip_kicker: "WORK-BOMBOT · TRAINING",
+    tutorial_skip_title: "Leave the training?",
+    tutorial_skip_confirm: "Work-Bombot will stop guiding you. If you leave now, you will not earn the First Steps emblem or its rewards. You can return to the tutorial from the emblem whenever you like.",
+    tutorial_skip_cancel: "Keep learning",
+    tutorial_skip_accept: "Leave tutorial",
+    tutorial_continue: "Continue",
+    tutorial_restriction: "Follow Work-Bombot's instructions to continue.",
+    tutorial_guide_title: "WORK-BOMBOT",
+    tutorial_guide_place_green: "Place a green Glob. You cannot place a red one just yet.",
+    tutorial_guide_select_green: "Well done! Click the green Glob to see its evolution and sell options.",
+    tutorial_guide_evolve_green: "Evolve the Glob once using the button in its panel.",
+    tutorial_guide_sell_green: "Great! The further a Glob evolves, the stronger it gets. Now sell it from its panel.",
+    tutorial_guide_place_red: "Place a red Glob to meet another family.",
+    tutorial_guide_families: "Every family has its own style: some deal more damage, some attack faster, and others slow or paralyze. Check the Encyclopedia to see what each Glob does.",
+    tutorial_guide_build: "Prepare your defense: leave 3 green Globs and 4 red ones in total. The red Glob you just placed counts; place the rest wherever you like.",
+    tutorial_guide_waves: "Your defense is ready! Clear all five waves. Work-Bombot will guide you through them.",
+    tutorial_guide_complete: "Great work! Try new maps and buy new families in the shop. It is up to you to stop the invasions the Globs are trying to prevent. Something bad is going to happen in Gelatin Lake, and we have to stop it. We are counting on you!",
+    tutorial_wave: "Tutorial · Wave {wave} of 5",
+    tutorial_boss_warning: "Heads up! This map's final challenge is coming.",
+    tutorial_boss_name_gelatin_lake: "4Motions Pyce",
+    tutorial_boss_name_urbanistic_road: "Cannon Pycer and Knight Pyce",
+    tutorial_boss_name_sunlight_seaside: "Old Fungus",
+    tutorial_boss_name_spooktacular_ruins: "Blood-Taker and SkeleBones Pyce",
+    across_time_mode_desc: "A series of parallel worlds. Extreme single-player challenge; playable online.",
+    across_time_solo_required: "Across the Time and TIME ATTACK are single-player; the seed cannot have other players.",
+    across_time_badges_required: "You need the Interstellar and Wildsand Leaf key badges.",
+    across_time_map_required: "The mission must be started from Gelatin Lake.",
+    across_time_loadout_required: "Equip these towers in order: Green, Orange, Blue, White, and Red.",
+    across_time_crystals: "Temporal crystals: {count}",
+    across_time_puzzle: "Form L + X + T + _ with towers on the markers.",
+    across_time_puzzle_failed: "The formation does not match. Place a tower on every L, X, T, and _ marker.",
+    across_time_intro: "I see you like challenges. Right? Well, let's play. I'm going to throw different kinds of enemies at you... Just try to survive until the end.",
+    across_time_puzzle_solved: "I won't fall... AND YOU WON'T FINISH OFF THE TIME I'M GOING TO CONSUME!",
+    across_time_moonstar: "You've made it far. BUT NOT FAR ENOUGH! MOONSTAR... FINISH THEM!",
+    across_time_space_two_complete: "Space II complete. Enter 14/05/26-TIMETRAVEL to continue.",
+    across_time_after_space_two: "Arg. Did you think you'd beaten me? More misfortunes still await you, and they have to do with your past.",
+    across_time_final_intro: "I've grown tired of waiting. This time, you won't escape!",
+    across_time_threat: "GODs Shadow's presence looms over this world...",
+    across_time_code_required: "Complete Space II before using the time-travel code.",
+    across_time_confirm: "Ready to travel to the past? It is recommended to prepare your loadout before continuing.",
+    across_time_transition: "Transitioning to a parallel world...",
+    across_time_final_warning: "I will not let my reign of temporal darkness end. You are clever enough to travel to the past... but not skilled enough to defeat me!",
+    across_time_victory_title: "🌌 ACROSS THE TIME COMPLETED! 🌌",
+    across_time_victory_msg: "You defended the parallel worlds and defeated GODs Shadow.<br>You have obtained Virtuallity Set.",
+    across_time_reward: "🎁 Virtuallity Set unlocked!",
+    across_time_final_opportunity: "GODs Shadow returns to its base. Opportunities remaining: {count}.",
+    across_time_restart: "The space has restarted from its checkpoint; progress in previously completed spaces is kept.",
+    time_attack_mode_name: "TIME ATTACK",
+    time_attack_mode_desc: "Replay a space: GL starts I, UR starts II, and AE starts III–IV. Single-player; playable online.",
+    time_attack_map_required: "TIME ATTACK can only start from Gelatin Lake, Urbanistic Road, or Spooktacular Ruins.",
+    time_attack_progress_required: "Complete Across the Time to unlock TIME ATTACK.",
+    badge_across_time_name: "Across the Time",
+    badge_across_time_desc: "Complete Across the Time: GlD (EVENT).",
+    skin_virtuallity_name: "Virtuallity Set",
+    skin_virtuallity_desc: "A reward from Across the Time: GlD (EVENT).",
+    enemy_ZomPyce_name: "ZomPyce",
+    enemy_ZomPyce_desc: "A dead Pyce... No, it is not dead: its circuits do not work, leaving it rotten enough to look like a zombie. It cannot stand upright, but it collected different human clothes and keeps them in the desert.",
     enemy_Bit_name: "Bit",
+    enemy_BitY1_name: "Yellow Bit",
+    enemy_BitB4_name: "Blue Bit",
+    enemy_BitG2_name: "Green Bit",
+    enemy_BitP3_name: "Purple Bit",
     enemy_Byte_name: "Byte",
+    enemy_ByteGB1_name: "Green-Blue Byte",
+    enemy_ByteYP2_name: "Yellow-Purple Byte",
+    enemy_BytePG3_name: "Purple-Green Byte",
+    enemy_ByteYB4_name: "Yellow-Blue Byte",
     enemy_BitY1_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Happy Variant)",
     enemy_BitB4_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Angry Variant)",
     enemy_BitG2_desc: "Bits are small programming systems converted into tiny viruses, but they do no damage... Right? (Calm Variant)",
@@ -734,6 +1013,10 @@ const TRANSLATIONS = {
     enemy_AstrorbOrbe_desc: "The seal that kept this star king imprisoned eventually became a legend. Some claim it was the inhabitants themselves who managed to lock him away; others speak of far superior beings. Whatever the truth, Astrorb desires only one thing: to crystallize the world once more.",
     enemy_AstrorbContenida_desc: "Freed from his seal, Astrorb recovers part of his power and can move freely through the world. However, he still needs to gather more energy before reaching his true form.",
     enemy_AstrorbTF_desc: "The true form of the celestial being. Now transformed into a humanoid figure, Astrorb seeks revenge on those who imprisoned him and aims to eliminate any threat standing in the way of his mission. For him, crystallizing the world is not evil... it is the only path forward.<br><br><strong>Mechanic:</strong> Instantly destroys any tower and has Double Lap (Ignores damage on its first pass).",
+    enemy_Sharowd_name: "Sharowd",
+    enemy_Sharowd_desc: "A sword corrupted by negative emotions and constant hacks used to obtain it. It is said to be the original Darkheart, but nobody has proven worthy of its urban minigame.<br><br><strong>Reward:</strong> 3 kills to frame.",
+    enemy_Crystalic_Orb_name: "Crystalic Orb",
+    enemy_Crystalic_Orb_desc: "After being stripped of a body of its own, Astrorb seeks revenge on those who betrayed it. It amplified itself with crystallized power, becoming an unleashed mass trying to return to its original form.",
     enemy_Crystal_Bombot_desc: "All communication with Work-Bombot has been lost. He now uses astral-toned crystals as explosives to attack relentlessly. Astrorb has left his mark on him: a red star-shaped eye that reflects the hatred sown by crystallization.<br><br><strong>Mechanic:</strong> Throws crystals that steal energy from your towers.",
     enemy_Crystal_Pyce_name: "Crystal Pyce",
     enemy_Crystal_Pyce_desc: "A crystalline fragment detached during Astrorb's arrival impacted Pyce2, crystallizing only part of its body. It is one of the few known cases of partial crystallization.",
@@ -781,6 +1064,16 @@ const TRANSLATIONS = {
     enemy_Old_Fungus_desc: "The most respected elder among the Shrums. Possesses psychic powers capable of intimidating even the bravest enemies, while using a huge mushroom as both a bat and a wand.<br><br>Beside it grows a small developing Shrum that also has no problem attacking Globs. They may be blind, and perhaps even deaf, but their presence and characteristic yellowish mustache ensure no one dares to underestimate them.",
     enemy_Pysh_desc: "A Pyce fish whose name comes from the combination of fish and Pyce. They originally inhabited Bitlands until transported to Techspawn, their former home. Recently they've also started appearing around Sunlight Seaside's ports, seemingly enjoying the abundant sunlight.",
     enemy_Clown_Pysh_desc: "Clownfish-shaped Pyces that share origins with Pysh. They still inhabit Bitlands, though they now seem to be enjoying a vacation with their peers in Sunlight Seaside.<br><br>However, they are much tougher than normal Pysh, which seem to not last a second once combat begins.",
+    enemy_Broksp_name: "Broksp",
+    enemy_Broksp_desc: "A spider that has grown by feeding on nightmares so brief and small that they have not given it much room to grow... though it is still growing.",
+    enemy_Pumpitch_name: "Pumpitch",
+    enemy_Pumpitch_desc: "Known in Spain as Calabacín, this pumpkin wears a witch hat but is male, as shown by his burning gaze and ambition to become more than an adorable pumpkin.",
+    enemy_RIPslide_name: "RIPslide",
+    enemy_RIPslide_desc: "A zombie tomb that slides like a penguin on ice. It loves scaring people with its fake \"RIP\", which is actually its eyes and nose. It is not very useful in battle, though it is fast, Kirb assures us.",
+    enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
+    enemy_SkeleBone_Pyce_desc: "An upgrade of Noob Pyce's upgraded Pyce form, following the same line as the improved Noob and Guest Pyces seen in Urbanistic Road. Made from bones found in the desert, it looks friendly with that gaze and those shoes, but do not be fooled: it can throw a bone in the blink of an eye. Like the other Pyces, it is happy to exist and loyal, even if it is not a conventional computer... right?",
+    enemy_Curse_Boneker_name: "Curse Boneker",
+    enemy_Curse_Boneker_desc: "Between Heaven and Hell, some souls belong to neither. Curse Boneker finds them, chooses them, and seals them inside the pyramid he serves, certain that he is sparing them an eternity of aimless wandering. He knows that limbo well: he was one of those lost souls himself. He died disoriented in the desert, walking in circles until he could no longer tell the horizon from the sand beneath his feet. Now the pyramid is both his compass and his prison. When he hurls his cursed bones, he is not trying to destroy your towers—only to silence them long enough to keep them from guiding those souls home.",
 
     // Leafy Beach Party Bosses & Enemies
     enemy_PhantKeeper_name: "PhantKeeper",
@@ -819,8 +1112,8 @@ const TRANSLATIONS = {
     tower_Planked_Glob_desc: "Generates a screwed fence that deals heavy damage, including area damage when destroyed. Great for stopping hordes easily.<br><br>He's scary to look at, he's not as good as he seems anymore, and what he does seem to have is a friendship with Molten Glob... But I doubt it's because of their relationship, something tells me the color influences it.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
     tower_DJ_Glob_desc: "Generates a radio fence that's very powerful offensively and defensively, and has an attack radius that slows and can stop the Pyce in front of it for a few seconds.<br><br>Far from being someone dedicated to music, he uses speakers as defense, but he is friends with both the pink and white families, cheering them up and making the city an urban disco.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
 
-    login_user: "Username", login_pass: "Password", login_btn: "Join the battle",
-    select_map: "Select Map",
+    login_user: "Username", login_pass: "Password", login_btn: "Join the battle", create_account: "Create account", skip_login: "Skip login",
+    select_map: "Select Island",
     select_mode: "Select Mode",
     backToModes: "Mode Selection",
 
@@ -833,6 +1126,9 @@ const TRANSLATIONS = {
     enc_tab_gambling: "Gambling Enemies",
     enc_tab_badges: "Badges",
     mechanic_spyware: "Spywares: The first and second evolutions of the towers cannot attack it, but traps can damage it.",
+    mechanic_clockwork_titan: "Immune to stuns.",
+    mechanic_diy_bot: "Immune to poison and weak to fire.",
+    mechanic_hatspy: "Ghost: only evolution 3 or higher towers can hit it.",
 
     shop_title: "🛒 Kirb Shop",
     pass_title: "🦆 Duck Pass",
@@ -884,10 +1180,16 @@ const TRANSLATIONS = {
     shop_skins: "Skins",
     mode_selected: "{mode} mode selected",
     settings_title: "⚙ï¸  Settings",
+    settings_special: "Special",
+    hypermutated_effect: "Hypermutated Effect",
+    hypermutated_unlocked: "Hypermutated Effect unlocked! Enable it in Settings → Special.",
+    glitch_effect: "Glitch Effect",
+    glitch_unlocked: "Glitch Effect unlocked! You achieved the true 100% completion. Enable it in Settings → Special.",
     shop_equip: "Equip",
     show_shop_desc: "Show description in shop",
     show_total_damage: "View total tower damage",
     show_ranges: "View tower range",
+    hide_date: "Hide date",
     save_close: "Save & Close",
     close: "Close",
     level_label: "Level",
@@ -925,6 +1227,10 @@ const TRANSLATIONS = {
     skin_abyssal_desc: "Aquatic set, from a fishbowl to a shark, and that fishbowl was already prepared along with the millions of Globs that were planned.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
     skin_business_name: "Business Set",
     skin_business_desc: "From a jelly stand to a giant factory.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
+    skin_ducky_rewamp_name: "Ducky Rewamp",
+    skin_ducky_rewamp_desc: "A new look for the Ducky family, from its first form through Highlight Glob.",
+    skin_ducky_rgb_name: "Secret Ducky RGB",
+    skin_ducky_rgb_desc: "The Ducky Rewamp with an animated RGB effect. Unlock it by collecting every profile image.",
     skin_universolar_name: "Universolar Set",
     skin_universolar_desc: "A simple galactic theme, it doesn't have much logic behind it, so you'd better not look for it.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
     skin_robotibu_name: "RoboTibu",
@@ -941,6 +1247,8 @@ const TRANSLATIONS = {
     skin_mimic_desc: "Special skin obtained by defeating the Mimic Pyce.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
     skin_cuby_name: "Cuby",
     skin_cuby_desc: "Special collaboration! Unlocked by completing the Interstellar Menace mission. This skin has unique animations.",
+    skin_personalizable_bombot_name: "Personalizable Bombot",
+    skin_personalizable_bombot_desc: "Customize Bombot with one head accessory, one front accessory, and one suit.",
     upgrade_range_name: "Master Range",
     upgrade_range_desc: "+20 Range for all towers",
     upgrade_damage_name: "Duck Power",
@@ -958,12 +1266,22 @@ const TRANSLATIONS = {
     duckgrade_pyce_desc: "Sometimes fires in all directions (Spin).",
     duckgrade_old_name: "Grey Immunity",
     duckgrade_old_desc: "Towers in a close radius of a Grey family tower are immune to stuns and slows.",
+    duckgrade_grey_name: "Grey Synchrony",
+    duckgrade_grey_desc: "The Grey family can fire in all directions and protects nearby towers from stuns and slows.",
     duckgrade_bombot_name: "Bouncing Bomb",
     duckgrade_bombot_desc: "Bombs bounce and explode twice.",
     duckgrade_worker_name: "Steel Traps",
     duckgrade_worker_desc: "Increases the health of all deployed traps.",
     duckgrade_brown_name: "Dried Thorns",
     duckgrade_brown_desc: "Chance to stun enemies within the area.",
+    duckgrade_white_name: "White Knockback",
+    duckgrade_white_desc: "Increases the White family's influence area and can occasionally push enemies back.",
+    duckgrade_pink_name: "Pink Compensation",
+    duckgrade_pink_desc: "Offsets part of the damage loss caused by Pink family support and slightly improves its damage.",
+    gtack_white_name: "White Support: Reinforcement",
+    gtack_white_desc: "Allows traps and stunning projectiles to support the team without direct damage.",
+    gtack_pink_name: "Pink Support: Cooldown",
+    gtack_pink_desc: "Temporarily increases the cooldown of affected towers.",
     duckgrade_duck_name: "Defensive Duck",
     duckgrade_duck_desc: "Generates money faster near enemies and deals area damage.",
     duckgrade_iex_name: "Toxic/Fiery Detonation",
@@ -991,6 +1309,8 @@ const TRANSLATIONS = {
     gtack_comet_desc: "Summons a temporary black hole that absorbs enemies.",
     gtack_brown_name: "Brown G-Tack: Friendly Bloom",
     gtack_brown_desc: "Temporarily increases the attack speed of nearby towers.",
+    gtack_pirate_name: "Marine G-Tack: Glob Bombardment",
+    gtack_pirate_desc: "For 10 seconds, Pirate Glob attacks with bombs and can launch IEx Globs, but its boats are summoned 25% more slowly.",
     gtack_buy: "Buy",
     gtack_active: "Active",
     gtack_req_lvl: "🔒 Req. Lvl 50",
@@ -1044,6 +1364,7 @@ const TRANSLATIONS = {
     tower_Cotton_Glob_desc: "Soft inhabitant of the Gelatin Lake, its static cotton field almost completely stops enemy attacks.",
     tower_Ducky_Glob_desc: "The banker of the Gelatin Lake. It doesn't attack, but finds shiny coins to sustain the economy.",
     tower_Golden_Ducky_Glob_desc: "Financial royalty of the Gelatin Lake. Its golden plumage blesses the treasury, generating fortunes.",
+    tower_Rick_Duck_Glob_desc: "The ultimate tycoon. It generates more Globetines and, in multiplayer, adds an extra 25% of its payout to the shared pool for each teammate every 15 seconds.",
     tower_Comet_Glob_desc: "Extracted from the skies above the Gelatin Lake, this Glob is both gelatinous and galactic; it uses its own stars as a throwing weapon that goes back and forth to decimate hordes.",
     tower_Dark_Glob_desc: "A ruinous Glob, its symbols and power could break reality; good thing it's on your side.",
     tower_Demglob_desc: "Ultimate dark evolution. Deadly beams.",
@@ -1089,7 +1410,7 @@ const TRANSLATIONS = {
     badge_unlocked: "UNLOCKED!",
     badge_locked: "LOCKED",
     badge_reward_label: "REWARD: ",
-    skin_unlocked_pyce_randomizer: "🎁 'Pyce Randomizer' SKIN UNLOCKED!",
+    skin_unlocked_pyce_randomizer: "🎁 'All-Stars Randomizer' SKIN UNLOCKED!",
     skin_unlocked_crystal_bombot: "🎁 'Crystal-Bombot' SKIN UNLOCKED!",
     skin_unlocked_astrorb: "🎁 'Astrorb' SKIN UNLOCKED!",
     skin_unlocked_cuby: "🎁 CUBY (Work-Bombot) SKIN UNLOCKED!",
@@ -1111,8 +1432,16 @@ let USERS = {
   "Player": "1234"
 };
 
-// Users that are allowed to use DEV_BUILD code
-const DEV_USERS = new Set(['KirByteBi', 'Glob_BUILD']);
+const ROLES = {
+  'KirByteBi': 'OWNER',
+  'Devbuild': 'DEVBUILD',
+  'Glob_BUILD': 'DEVBUILD',
+  'admin': 'ADMIN',
+  'Admin': 'ADMIN'
+};
+function getUserRole(user) {
+  return ROLES[user] || 'USER';
+}
 
 const IMAGE_PATHS = {
   'Glob': 'img/Glob_DEF.png',
@@ -1124,8 +1453,30 @@ const IMAGE_PATHS = {
   'Robotic_Glob': 'img/Robotic_Glob.png',
   'Soap_Glob': 'img/Soap_Glob.png',
   'Cotton_Glob': 'img/Cotton_Glob.png',
+  'ElectroClean_Glob': 'img/ElectroClean Glob (EVO3).png',
+  'Omnipresent_Glob': 'Spooks in the Desert (UPD4)/PLACEHOLDERS/Omnipresent Glob (PLACEHOLDER).png',
+  'Kirb_Glob': 'Spooks in the Desert (UPD4)/KirByte (GOD)/Kirb (GOD).png',
+  'Broksp': 'Spooks in the Desert (UPD4)/Enemigos/Broksp.png',
+  'Blood_Taker': 'Spooks in the Desert (UPD4)/Enemigos/Blood-Taker.png',
+  'Pumpitch': 'Spooks in the Desert (UPD4)/Enemigos/Pumpitch.png',
+  'RIPslide': 'Spooks in the Desert (UPD4)/Enemigos/RIPslide.png',
+  'Sneekmy': 'Spooks in the Desert (UPD4)/Enemigos/Sneekmy.png',
+  'SkeleBone_Pyce': 'Spooks in the Desert (UPD4)/Pyces/SkeleBone Pyce (RW).png',
+  'SkeleBone_Bone': 'Spooks in the Desert (UPD4)/Pyces/Proyectil Hueso.png',
+  'Curse_Boneker': 'Spooks in the Desert (UPD4)/Jefes/Curse Boneker.png',
+  'Ghost_Pyce': 'Spooks in the Desert (UPD4)/Pyces/Ghost Pyce.png',
+  'ZomPyce': 'Spooks in the Desert (UPD4)/Pyces/ZomPyce.png',
+  'Clockwork_Titan': 'Spooks in the Desert (UPD4)/TIME ATTACK/Clockwork Titan.png',
+  'DIY_Bot': 'Spooks in the Desert (UPD4)/TIME ATTACK/DIY-Bot.png',
+  'Hatspy': 'Spooks in the Desert (UPD4)/TIME ATTACK/Hatspy.png',
+  'Local_Engines': 'Spooks in the Desert (UPD4)/TIME ATTACK/Local Engines.png',
+  'Roborb': 'Spooks in the Desert (UPD4)/TIME ATTACK/Roborb the Time Stealer (JEFE).png',
+  'Untimed_Atoms': 'Spooks in the Desert (UPD4)/TIME ATTACK/Untimed Atoms.png',
+  'Across_Time_Trophy': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Across the Time thropy.png',
+  'GODs_Shadow': 'Spooks in the Desert (UPD4)/KirByte (GOD)/Kirb (GOD).png',
   'Ducky_Glob': 'img/Ducky_Glob.png',
   'Golden_Ducky_Glob': 'img/Golden_Ducky_Glob.png',
+  'Rick_Duck_Glob': 'img/Rich Duck Glob (EVO3).png',
   'Comet_Glob': 'img/Comet_Glob.png',
   'Dark_Glob': 'img/Dark_Glob.png',
   'Demglob': 'img/Demglob.png',
@@ -1199,6 +1550,13 @@ const IMAGE_PATHS = {
   'AstrorbOrbe': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbOrbe.png',
   'AstrorbContenida': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbContenido.png',
   'AstrorbTF': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbTF.png',
+  'Sharowd': 'Misiones (2026)/Jefes/Sharowd.png',
+  'Crystalic_Orb': 'Misiones (2026)/Jefes/Crystalic Orb.png',
+  'MiniCrystal': 'Misiones (2026)/Elementos/Minicristal.png',
+  'Crystal': 'Misiones (2026)/Elementos/Cristal.png',
+  'BigCrystal': 'Misiones (2026)/Elementos/Cristal Grande.png',
+  'MegaCrystal': 'Misiones (2026)/Elementos/Megacristal.png',
+  'GigaCrystal': 'Misiones (2026)/Elementos/Gigacristal.png',
   'Cuby_BombotA1': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA1).png',
   'Cuby_BombotA2': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA2).png',
   'Cube_Bomb_CB': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cube Bomb (SK-CB).png',
@@ -1316,7 +1674,7 @@ const NARRATOR_DATA = {
   },
   glob: {
     img: IMAGE_PATHS.Glob, es: {
-      name: "Glob (DEF)", msgs: [
+      name: "Glob", msgs: [
         "Me pregunto por que atacamos a los Pyces. ¿No son amigos?",
         "¿No viven los Pyces 2.0 en Bitlands? ¡Si este es mi hogar!",
         "¡Ojala pudiera darles su merecido a esos corruptos...",
@@ -1325,7 +1683,7 @@ const NARRATOR_DATA = {
         "¿Alguien tiene un paraguas? Creo que va a llover... Pyces."
       ]
     }, en: {
-      name: "Glob (DEF)", msgs: [
+      name: "Glob", msgs: [
         "I wonder why we attack the Pyces. Aren't they friends?",
         "Don't the Pyces 2.0 live in Bitlands? This is my home!",
         "I wish I could give those corrupt ones what they deserve...",
@@ -1551,6 +1909,32 @@ const NARRATOR_DATA = {
         "*krkr* ...i see your future in the portal... *kzzt*... and there are... no Globs in it. *interference* 💀"
       ]
     }
+  },
+  mysterybug: {
+    img: 'img/Sellos/MysteryBug.png', es: { name: 'MysteryBug', msgs: [] }, en: { name: 'MysteryBug', msgs: [] }
+  },
+  omnipresent: {
+    img: IMAGE_PATHS.Omnipresent_Glob, es: { name: '???', msgs: [] }, en: { name: '???', msgs: [] }
+  },
+  jerry: {
+    img: 'img/Sellos/MysteryBug.png', es: { name: 'Jerry', msgs: [] }, en: { name: 'Jerry', msgs: [] }
+  },
+  mysterybug_custom: {
+    img: 'img/Sellos/MysteryBug.png', es: { name: 'MysteryBug', msgs: [] }, en: { name: 'MysteryBug', msgs: [] }
+  },
+  astral_exclamation: {
+    img: 'img/Sellos/AstralExclamation.png', es: { name: 'AstralExclamation', msgs: [] }, en: { name: 'AstralExclamation', msgs: [] }
+  },
+  error_entity: {
+    img: 'img/Sellos/AstralExclamation.png', es: { name: 'ERROR', msgs: [] }, en: { name: 'ERROR', msgs: [] }
+  },
+  login_guy: {
+    img: 'img/Sellos/AstralExclamation.png', es: { name: 'LoginGuy', msgs: [] }, en: { name: 'LoginGuy', msgs: [] }
+  },
+  kirb_clone: {
+    img: IMAGE_PATHS.GODs_Shadow,
+    es: { name: 'GODs Shadow', msgs: [] },
+    en: { name: 'GODs Shadow', msgs: [] }
   }
 };
 
@@ -1564,11 +1948,13 @@ const TOWER_TYPES = {
   'Molten_Glob': { name: 'tower_Molten_Glob_name', damage: 25, range: 120, speed: 2.2, cost: 150, evolution: 'Robotic_Glob', image: IMAGE_PATHS.Molten_Glob, burn: true, burnDamage: 5, desc: "tower_Molten_Glob_desc", family: 'Red_Glob' },
   'Robotic_Glob': { name: 'tower_Robotic_Glob_name', damage: 65, range: 150, speed: 1.0, cost: 300, image: IMAGE_PATHS.Robotic_Glob, projectile: 'laser_red', piercing: true, burn: true, desc: "tower_Robotic_Glob_desc", family: 'Red_Glob' },
 
-  'Soap_Glob': { name: 'tower_Soap_Glob_name', damage: 0, range: 120, speed: 0.3, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "tower_Soap_Glob_desc", family: 'Soap_Glob' },
-  'Cotton_Glob': { name: 'tower_Cotton_Glob_name', damage: 5, range: 140, speed: 2.6, cost: 120, image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "tower_Cotton_Glob_desc", family: 'Soap_Glob' },
+  'Soap_Glob': { name: 'tower_Soap_Glob_name', damage: 0, range: 120, speed: 0.3, cost: 60, evolution: 'Cotton_Glob', image: IMAGE_PATHS.Soap_Glob, projectile: 'blue', slow: 0.4, desc: "tower_Soap_Glob_desc", family: 'Soap_Glob', unlocked: false },
+  'Cotton_Glob': { name: 'tower_Cotton_Glob_name', damage: 5, range: 140, speed: 2.6, cost: 120, evolution: 'ElectroClean_Glob', image: IMAGE_PATHS.Cotton_Glob, projectile: 'blue', slow: 0.6, desc: "tower_Cotton_Glob_desc", family: 'Soap_Glob' },
+  'ElectroClean_Glob': { name: 'tower_ElectroClean_Glob_name', damage: 12, range: 160, speed: 4.2, cost: 300, image: IMAGE_PATHS.ElectroClean_Glob, projectile: 'blue', stun: 1, knockback: 0.25, desc: "tower_ElectroClean_Glob_desc", family: 'Soap_Glob' },
 
-  'Ducky_Glob': { name: 'tower_Ducky_Glob_name', damage: 0, range: 140, speed: 0, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'none', desc: "tower_Ducky_Glob_desc", family: 'Ducky_Glob' },
-  'Golden_Ducky_Glob': { name: 'tower_Golden_Ducky_Glob_name', damage: 0, range: 160, speed: 0, cost: 180, image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'none', desc: "tower_Golden_Ducky_Glob_desc", family: 'Ducky_Glob' },
+  'Ducky_Glob': { name: 'tower_Ducky_Glob_name', damage: 0, range: 140, speed: 0, cost: 80, evolution: 'Golden_Ducky_Glob', image: IMAGE_PATHS.Ducky_Glob, projectile: 'none', desc: "tower_Ducky_Glob_desc", family: 'Ducky_Glob', unlocked: false },
+  'Golden_Ducky_Glob': { name: 'tower_Golden_Ducky_Glob_name', damage: 0, range: 160, speed: 0, cost: 180, evolution: 'Rick_Duck_Glob', image: IMAGE_PATHS.Golden_Ducky_Glob, projectile: 'none', desc: "tower_Golden_Ducky_Glob_desc", family: 'Ducky_Glob' },
+  'Rick_Duck_Glob': { name: 'tower_Rick_Duck_Glob_name', damage: 0, range: 180, speed: 0, cost: 400, image: IMAGE_PATHS.Rick_Duck_Glob, projectile: 'none', desc: "tower_Rick_Duck_Glob_desc", family: 'Ducky_Glob' },
 
   'Comet_Glob': { name: 'tower_Comet_Glob_name', damage: 50, range: 250, speed: 0.25, cost: 250, evolution: 'Dark_Glob', image: IMAGE_PATHS.Comet_Glob, projectile: 'star_boomerang', piercing: true, boomerang: true, desc: "tower_Comet_Glob_desc", family: 'Comet_Glob' },
   'Dark_Glob': { name: 'tower_Dark_Glob_name', damage: 80, range: 280, speed: 0.5, cost: 400, evolution: 'Demglob', image: IMAGE_PATHS.Dark_Glob, projectile: 'diamond_boomerang', piercing: true, boomerang: true, desc: "tower_Dark_Glob_desc", family: 'Comet_Glob' },
@@ -1581,12 +1967,12 @@ const TOWER_TYPES = {
   'Work_Bombot': { name: 'tower_Work_Bombot_name', damage: 100, range: 150, speed: 0.6, cost: 350, image: IMAGE_PATHS.Work_Bombot, aoe: 80, unlocked: false, desc: "tower_Work_Bombot_desc", family: 'Special' },
 
   // Familia Blanca
-  'Balloon_Glob': { name: 'tower_Balloon_Glob_name', damage: 0, range: 100, speed: 0, cost: 120, evolution: 'Heliglob', image: IMAGE_PATHS.Balloon_Glob, projectile: 'none', desc: "tower_Balloon_Glob_desc", family: 'White' },
+  'Balloon_Glob': { name: 'tower_Balloon_Glob_name', damage: 0, range: 100, speed: 0, cost: 120, evolution: 'Heliglob', image: IMAGE_PATHS.Balloon_Glob, projectile: 'none', desc: "tower_Balloon_Glob_desc", family: 'White', unlocked: false },
   'Heliglob': { name: 'tower_Heliglob_name', damage: 0, range: 150, speed: 0, cost: 250, evolution: 'Alien_Glob', image: IMAGE_PATHS.Heliglob, projectile: 'none', desc: "tower_Heliglob_desc", family: 'White' },
   'Alien_Glob': { name: 'tower_Alien_Glob_name', damage: 0, range: 200, speed: 0, cost: 500, image: IMAGE_PATHS.Alien_Glob, projectile: 'none', desc: "tower_Alien_Glob_desc", family: 'White' },
 
   // Familia Rosa
-  'Streamer_Glob': { name: 'tower_Streamer_Glob_name', damage: 0, range: 100, speed: 0, cost: 100, evolution: 'Gamer_Glob', image: IMAGE_PATHS.Streamer_Glob, projectile: 'none', desc: "tower_Streamer_Glob_desc", family: 'Pink' },
+  'Streamer_Glob': { name: 'tower_Streamer_Glob_name', damage: 0, range: 100, speed: 0, cost: 100, evolution: 'Gamer_Glob', image: IMAGE_PATHS.Streamer_Glob, projectile: 'none', desc: "tower_Streamer_Glob_desc", family: 'Pink', unlocked: false },
   'Gamer_Glob': { name: 'tower_Gamer_Glob_name', damage: 0, range: 150, speed: 0, cost: 200, evolution: 'Youtuber_Glob', image: IMAGE_PATHS.Gamer_Glob, projectile: 'none', desc: "tower_Gamer_Glob_desc", family: 'Pink' },
   'Youtuber_Glob': { name: 'tower_Youtuber_Glob_name', damage: 0, range: 200, speed: 0, cost: 400, image: IMAGE_PATHS.Youtuber_Glob, projectile: 'none', desc: "tower_Youtuber_Glob_desc", family: 'Pink' },
 
@@ -1596,7 +1982,7 @@ const TOWER_TYPES = {
   'Nuclear_Glob': { name: 'tower_Nuclear_Glob_name', damage: 800, range: 220, speed: 0, cost: 1200, image: IMAGE_PATHS.Nuclear_Glob, projectile: 'none', desc: "tower_IEx3_desc", family: 'IEx' },
 
   // Worker Glob Family (Trampas)
-  'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 110, speed: 0.25, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: true },
+  'Worker_Glob': { name: 'tower_Worker_Glob_name', damage: 15, range: 110, speed: 0.25, cost: 150, evolution: 'Police_Glob', image: IMAGE_PATHS.Worker_Glob, trap: 'Worker_Trap', desc: "tower_Worker_Glob_desc", family: 'Worker_Glob', unlocked: false },
   'Police_Glob': { name: 'tower_Police_Glob_name', damage: 30, range: 130, speed: 0.35, cost: 300, evolution: 'Planked_Glob', image: IMAGE_PATHS.Police_Glob, trap: 'Police_Trap', desc: "tower_Police_Glob_desc", family: 'Worker_Glob' },
   'Planked_Glob': { name: 'tower_Planked_Glob_name', damage: 70, range: 140, speed: 0.7, cost: 550, evolution: 'DJ_Glob', image: IMAGE_PATHS.Planked_Glob, trap: 'Planked_Trap', desc: "tower_Planked_Glob_desc", family: 'Worker_Glob' },
   'DJ_Glob': { name: 'tower_DJ_Glob_name', damage: 120, range: 160, speed: 0.8, cost: 1200, image: IMAGE_PATHS.DJ_Glob, trap: 'DJ_Trap', desc: "tower_DJ_Glob_desc", family: 'Worker_Glob' },
@@ -1624,8 +2010,8 @@ const ENEMY_TYPES = {
   'SO_Pyce': { name: 'enemy_SO_Pyce_name', desc: 'enemy_SO_Pyce_desc', health: 450, speed: 0.6, reward: 80, image: IMAGE_PATHS.SO_Pyce },
 
   '1x1x1x1_Pyce': { name: 'enemy_1x1x1x1_Pyce_name', desc: 'enemy_1x1x1x1_Pyce_desc', health: 500, speed: 0.5, reward: 500, image: IMAGE_PATHS['1x1x1x1_Pyce'], boss: true, bossStun: true, stunCooldown: 10 },
-  'NOeye_Pyce': { name: 'enemy_NOeye_Pyce_name', desc: 'enemy_NOeye_Pyce_desc', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12 },
-  'MoonStar_Pyce': { name: 'enemy_MoonStar_Pyce_name', desc: 'enemy_MoonStar_Pyce_desc', mechanic_key: 'mechanic_moonstar', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true },
+  'NOeye_Pyce': { name: 'enemy_NOeye_Pyce_name', desc: 'enemy_NOeye_Pyce_desc', health: 800, speed: 0.4, reward: 800, image: IMAGE_PATHS.NOeye_Pyce, boss: true, paralyzeLaser: true, stunCooldown: 12, shieldRatio: 0.2 },
+  'MoonStar_Pyce': { name: 'enemy_MoonStar_Pyce_name', desc: 'enemy_MoonStar_Pyce_desc', mechanic_key: 'mechanic_moonstar', health: 2500, speed: 0.3, reward: 2000, image: IMAGE_PATHS.MoonStar_Pyce, boss: true, instakill: true, doubleLap: true, shieldRatio: 0.4 },
 
   'Stupid_GoldPyce': { name: 'enemy_Stupid_GoldPyce_name', desc: 'enemy_Stupid_GoldPyce_desc', mechanic_key: 'mechanic_gold', health: 80, speed: 2.0, reward: 150, image: IMAGE_PATHS.Stupid_GoldPyce, mimic: true },
   'Mimic_Pyce': { name: 'enemy_Mimic_Pyce_name', desc: 'enemy_Mimic_Pyce_desc', mechanic_key: 'mechanic_mimic_special', health: 500, speed: 1.8, reward: 1000, image: IMAGE_PATHS.Mimic_Pyce, mimic: true, isSpecialMimic: true },
@@ -1634,27 +2020,27 @@ const ENEMY_TYPES = {
   'Bomb_Pyce': { name: 'enemy_Bomb_Pyce_name', desc: 'enemy_Bomb_Pyce_desc', health: 100, speed: 1.5, reward: 30, image: IMAGE_PATHS.Bomb_Pyce, mechanic_key: 'mechanic_bomb' },
   'Knight_Pyce': { name: 'enemy_Knight_Pyce_name', desc: 'enemy_Knight_Pyce_desc', mechanic_key: 'mechanic_knight', health: 250, speed: 1.0, reward: 60, image: IMAGE_PATHS.Knight_Pyce },
   'Cannon_Pycer': { name: 'enemy_Cannon_Pycer_name', desc: 'enemy_Cannon_Pycer_desc', mechanic_key: 'mechanic_cannon', health: 300, speed: 0.8, reward: 70, image: IMAGE_PATHS.Cannon_Pycer, stunAbility: true, stunCooldown: 6 },
-  'HoloPyce': { name: 'enemy_HoloPyce_name', desc: 'enemy_HoloPyce_desc', health: 180, speed: 1.2, reward: 40, image: IMAGE_PATHS.HoloPyce, holo: true, mechanic_key: 'mechanic_holo' },
+  'HoloPyce': { name: 'enemy_HoloPyce_name', desc: 'enemy_HoloPyce_desc', health: 180, speed: 1.2, reward: 40, image: IMAGE_PATHS.HoloPyce, holo: true, stealth: true, mechanic_key: 'mechanic_holo' },
   'Strechy_Pyce': { name: 'enemy_Strechy_Pyce_name', desc: 'enemy_Strechy_Pyce_desc', health: 220, speed: 1.1, reward: 50, image: IMAGE_PATHS.Strechy_Pyce },
   'Rebel_Pyce': { name: 'enemy_Rebel_Pyce_name', desc: 'enemy_Rebel_Pyce_desc', health: 150, speed: 2.8, reward: 45, image: IMAGE_PATHS.Rebel_Pyce },
   
   // Gambling Enemies
-  'BitY1': { name: 'enemy_Bit_name', desc: 'enemy_BitY1_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitY1, category: 'gambling' },
-  'BitB4': { name: 'enemy_Bit_name', desc: 'enemy_BitB4_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitB4, category: 'gambling' },
-  'BitG2': { name: 'enemy_Bit_name', desc: 'enemy_BitG2_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitG2, category: 'gambling' },
-  'BitP3': { name: 'enemy_Bit_name', desc: 'enemy_BitP3_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitP3, category: 'gambling' },
-  'ByteGB1': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteGB1, category: 'gambling' },
-  'ByteYP2': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYP2, category: 'gambling' },
-  'BytePG3': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.BytePG3, category: 'gambling' },
-  'ByteYB4': { name: 'enemy_Byte_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYB4, category: 'gambling' },
-  'Fireflies': { name: 'enemy_Fireflies_name', desc: 'enemy_Fireflies_desc', health: 30, speed: 1.8, reward: 20, image: IMAGE_PATHS.Fireflies, category: 'gambling' },
-  'Spyware': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling' },
-  'Spyware1': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling' },
-  'Spyware2': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware2, category: 'gambling' },
-  'Spyware3': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware3, category: 'gambling' },
-  'Arky': { name: 'enemy_Arky_name', desc: 'enemy_Arky_desc', mechanic_key: 'mechanic_arky', health: 1000, speed: 0.4, reward: 1000, image: IMAGE_PATHS.Arky, boss: true, arkyType: 'normal', category: 'gambling' },
-  'CrystArky': { name: 'enemy_CrystArky_name', desc: 'enemy_CrystArky_desc', mechanic_key: 'mechanic_crystarky', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.CrystArky, boss: true, arkyType: 'crystal', category: 'gambling' },
-  'ArkyVoid': { name: 'enemy_ArkyVoid_name', desc: 'enemy_ArkyVoid_desc', mechanic_key: 'mechanic_arkyvoid', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.ArkyVoid, boss: true, arkyType: 'void', category: 'gambling' },
+  'BitY1': { name: 'enemy_BitY1_name', desc: 'enemy_BitY1_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitY1, category: 'gambling' },
+  'BitB4': { name: 'enemy_BitB4_name', desc: 'enemy_BitB4_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitB4, category: 'gambling' },
+  'BitG2': { name: 'enemy_BitG2_name', desc: 'enemy_BitG2_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitG2, category: 'gambling' },
+  'BitP3': { name: 'enemy_BitP3_name', desc: 'enemy_BitP3_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitP3, category: 'gambling' },
+  'ByteGB1': { name: 'enemy_ByteGB1_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteGB1, category: 'gambling' },
+  'ByteYP2': { name: 'enemy_ByteYP2_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYP2, category: 'gambling' },
+  'BytePG3': { name: 'enemy_BytePG3_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.BytePG3, category: 'gambling' },
+  'ByteYB4': { name: 'enemy_ByteYB4_name', desc: 'enemy_Byte_desc', health: 24, speed: 1.0, reward: 15, image: IMAGE_PATHS.ByteYB4, category: 'gambling' },
+  'Fireflies': { name: 'enemy_Fireflies_name', desc: 'enemy_Fireflies_desc', health: 30, speed: 1.8, reward: 20, image: IMAGE_PATHS.Fireflies, category: 'gambling', fireImmune: true },
+  'Spyware': { name: 'enemy_Spyware_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling', stealth: true },
+  'Spyware1': { name: 'enemy_Spyware1_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware1, category: 'gambling', stealth: true },
+  'Spyware2': { name: 'enemy_Spyware2_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware2, category: 'gambling', stealth: true },
+  'Spyware3': { name: 'enemy_Spyware3_name', desc: 'enemy_Spyware_desc', mechanic_key: 'mechanic_spyware', health: 130, speed: 1.6, reward: 35, image: IMAGE_PATHS.Spyware3, category: 'gambling', stealth: true },
+  'Arky': { name: 'enemy_Arky_name', desc: 'enemy_Arky_desc', mechanic_key: 'mechanic_arky', health: 1000, speed: 0.4, reward: 1000, image: IMAGE_PATHS.Arky, boss: true, arkyType: 'normal', category: 'gambling', shieldRatio: 0.4 },
+  'CrystArky': { name: 'enemy_CrystArky_name', desc: 'enemy_CrystArky_desc', mechanic_key: 'mechanic_crystarky', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.CrystArky, boss: true, arkyType: 'crystal', category: 'gambling', shieldRatio: 0.2 },
+  'ArkyVoid': { name: 'enemy_ArkyVoid_name', desc: 'enemy_ArkyVoid_desc', mechanic_key: 'mechanic_arkyvoid', health: 1500, speed: 0.35, reward: 1500, image: IMAGE_PATHS.ArkyVoid, boss: true, arkyType: 'void', category: 'gambling', shieldRatio: 0.4 },
   
   // Interstellar Menace Enemies
   'Leni_the_big_Hammer': { name: 'enemy_Leni_the_big_Hammer_name', desc: 'enemy_Leni_the_big_Hammer_desc', health: 120, speed: 1.0, reward: 25, image: IMAGE_PATHS.Leni_the_big_Hammer, category: 'other' },
@@ -1665,10 +2051,12 @@ const ENEMY_TYPES = {
   'Crystal_Pyce': { name: 'enemy_Crystal_Pyce_name', desc: 'enemy_Crystal_Pyce_desc', health: 105, speed: 1.4, reward: 30, image: IMAGE_PATHS.Crystal_Pyce, isCrystallized: true },
   'Dreamy_SPyce': { name: 'enemy_Dreamy_SPyce_name', desc: 'enemy_Dreamy_SPyce_desc', health: 180, speed: 3.2, reward: 40, image: IMAGE_PATHS.Dreamy_SPyce, isCrystallized: true },
   'Astral_BPyce': { name: 'enemy_Astral_BPyce_name', desc: 'enemy_Astral_BPyce_desc', mechanic_key: 'mechanic_bomb', health: 230, speed: 1.5, reward: 45, image: IMAGE_PATHS.Astral_BPyce, isCrystallized: true },
-  'NO_CrystEye_CB': { name: 'enemy_NOCrystEye_CB_name', desc: 'enemy_NOCrystEye_CB_desc', health: 1200, speed: 0.4, reward: 800, image: IMAGE_PATHS.NO_CrystEye_CB, isCrystallized: true, boss: true, paralyzeLaser: true, stunCooldown: 12, category: 'other', crystEyeVariantOf: 'NOeye_Pyce' },
+  'NO_CrystEye_CB': { name: 'enemy_NOCrystEye_CB_name', desc: 'enemy_NOCrystEye_CB_desc', health: 1200, speed: 0.4, reward: 800, image: IMAGE_PATHS.NO_CrystEye_CB, isCrystallized: true, boss: true, paralyzeLaser: true, stunCooldown: 12, category: 'other', crystEyeVariantOf: 'NOeye_Pyce', shieldRatio: 0.2 },
   'AstrorbOrbe': { name: 'enemy_AstrorbOrbe_name', desc: 'enemy_AstrorbOrbe_desc', health: 800, speed: 1.2, reward: 0, image: IMAGE_PATHS.AstrorbOrbe, boss: true, category: 'other', astrorbGroup: true },
-  'AstrorbContenida': { name: 'enemy_AstrorbContenida_name', desc: 'enemy_AstrorbContenida_desc', health: 600, speed: 2.0, reward: 1000, image: IMAGE_PATHS.AstrorbContenida, boss: true, category: 'other', astrorbGroup: true, astrorbForm: 2 },
-  'AstrorbTF': { name: 'enemy_AstrorbTF_name', desc: 'enemy_AstrorbTF_desc', health: 3000, speed: 0.3, reward: 3000, image: IMAGE_PATHS.AstrorbTF, boss: true, instakill: true, doubleLap: true, category: 'other', astrorbGroup: true, astrorbForm: 3 },
+  'AstrorbContenida': { name: 'enemy_AstrorbContenida_name', desc: 'enemy_AstrorbContenida_desc', health: 600, speed: 2.0, reward: 1000, image: IMAGE_PATHS.AstrorbContenida, boss: true, category: 'other', astrorbGroup: true, astrorbForm: 2, shieldRatio: 0.2 },
+  'AstrorbTF': { name: 'enemy_AstrorbTF_name', desc: 'enemy_AstrorbTF_desc', health: 3000, speed: 0.3, reward: 3000, image: IMAGE_PATHS.AstrorbTF, boss: true, instakill: true, doubleLap: true, category: 'other', astrorbGroup: true, astrorbForm: 3, shieldRatio: 0.4 },
+  'Crystalic_Orb': { name: 'enemy_Crystalic_Orb_name', desc: 'enemy_Crystalic_Orb_desc', health: 5000, speed: 0.28, reward: 5000, image: IMAGE_PATHS.Crystalic_Orb, boss: true, instakill: true, category: 'other', isCrystallized: true, astrorbGroup: true, astrorbForm: 4, shieldRatio: 0.4 },
+  'Sharowd': { name: 'enemy_Sharowd_name', desc: 'enemy_Sharowd_desc', health: 1200, speed: 0.45, reward: 1200, image: IMAGE_PATHS.Sharowd, boss: true, category: 'other', blockQuestBoss: true },
 
   // Sunlight Seaside Enemies
   'Ren': { name: 'enemy_Ren_name', desc: 'enemy_Ren_desc', health: 60, speed: 1.5, reward: 15, image: IMAGE_PATHS.Ren, mapSource: 'sunlight_seaside', enemyClass: 'shooter' },
@@ -1695,12 +2083,58 @@ const ENEMY_TYPES = {
 
   // Leafy Beach Party Bosses & Enemies
   'PhantKeeper': { name: 'enemy_PhantKeeper_name', desc: 'enemy_PhantKeeper_desc', health: 3000, speed: 0.3, reward: 2000, image: IMAGE_PATHS.PhantKeeper, boss: true, mechanic_key: 'mechanic_boss', honeySlow: true, mapSource: 'sunlight_seaside' },
-  'GlitchKeeper': { name: 'enemy_GlitchKeeper_name', desc: 'enemy_GlitchKeeper_desc', health: 4500, speed: 0.35, reward: 2500, image: IMAGE_PATHS.GlitchKeeper, boss: true, mechanic_key: 'mechanic_boss', blueHoneySlow: true, mapSource: 'sunlight_seaside' },
-  'DarkSpirit': { name: 'enemy_DarkSpirit_name', desc: 'enemy_DarkSpirit_desc', health: 6000, speed: 0.4, reward: 3000, image: IMAGE_PATHS.DarkSpirit, boss: true, mechanic_key: 'mechanic_boss', darkAura: true, mapSource: 'sunlight_seaside' },
-  'Bushi_Brella': { name: 'enemy_Bushi_Brella_name', desc: 'enemy_Bushi_Brella_desc', health: 400, speed: 1.8, reward: 500, image: IMAGE_PATHS.Bushi_Brella, mimic: true, isSpecialMimic: true, mapSource: 'sunlight_seaside' }
+  'GlitchKeeper': { name: 'enemy_GlitchKeeper_name', desc: 'enemy_GlitchKeeper_desc', health: 4500, speed: 0.35, reward: 2500, image: IMAGE_PATHS.GlitchKeeper, boss: true, mechanic_key: 'mechanic_boss', blueHoneySlow: true, mapSource: 'sunlight_seaside', shieldRatio: 0.2 },
+  'DarkSpirit': { name: 'enemy_DarkSpirit_name', desc: 'enemy_DarkSpirit_desc', health: 6000, speed: 0.4, reward: 3000, image: IMAGE_PATHS.DarkSpirit, boss: true, mechanic_key: 'mechanic_boss', darkAura: true, mapSource: 'sunlight_seaside', shieldRatio: 0.4 },
+  'Bushi_Brella': { name: 'enemy_Bushi_Brella_name', desc: 'enemy_Bushi_Brella_desc', health: 400, speed: 1.8, reward: 500, image: IMAGE_PATHS.Bushi_Brella, mimic: true, mapSource: 'sunlight_seaside' },
+
+  'Broksp': { name: 'enemy_Broksp_name', desc: 'enemy_Broksp_desc', health: 90, speed: 1.2, reward: 20, image: IMAGE_PATHS.Broksp, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+  'Blood_Taker': { name: 'enemy_Blood_Taker_name', desc: 'enemy_Blood_Taker_desc', health: 220, speed: 1.0, reward: 45, image: IMAGE_PATHS.Blood_Taker, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+  'Pumpitch': { name: 'enemy_Pumpitch_name', desc: 'enemy_Pumpitch_desc', health: 150, speed: 1.0, reward: 35, image: IMAGE_PATHS.Pumpitch, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+  'RIPslide': { name: 'enemy_RIPslide_name', desc: 'enemy_RIPslide_desc', health: 70, speed: 3.0, reward: 25, image: IMAGE_PATHS.RIPslide, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+  'Sneekmy': { name: 'enemy_Sneekmy_name', desc: 'enemy_Sneekmy_desc', health: 120, speed: 2.5, reward: 35, image: IMAGE_PATHS.Sneekmy, mapSource: 'spooktacular_ruins', enemyClass: 'melee', ghost: true, ghostMinEvolution: 3 },
+  'SkeleBone_Pyce': { name: 'enemy_SkeleBone_Pyce_name', desc: 'enemy_SkeleBone_Pyce_desc', health: 110, speed: 1.4, reward: 30, image: IMAGE_PATHS.SkeleBone_Pyce, projectile: 'bone', shooter: true, mapSource: 'spooktacular_ruins', enemyClass: 'shooter' },
+  'Curse_Boneker': { name: 'enemy_Curse_Boneker_name', desc: 'enemy_Curse_Boneker_desc', health: 7000, speed: 0.3, reward: 5000, image: IMAGE_PATHS.Curse_Boneker, boss: true, mapSource: 'spooktacular_ruins', enemyClass: 'boss' },
+  'Ghost_Pyce': { name: 'enemy_Ghost_Pyce_name', desc: 'enemy_Ghost_Pyce_desc', health: 260, speed: 2.6, reward: 60, image: IMAGE_PATHS.Ghost_Pyce, mapSource: 'spooktacular_ruins', enemyClass: 'melee', ghost: true, ghostMinEvolution: 3 },
+  'ZomPyce': { name: 'enemy_ZomPyce_name', desc: 'enemy_ZomPyce_desc', health: 55, speed: 1.1, reward: 18, image: IMAGE_PATHS.ZomPyce, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+
+  // Across the Time enemies. These only enter waves explicitly queued by the event.
+  'Clockwork_Titan': { name: 'enemy_Clockwork_Titan_name', desc: 'enemy_Clockwork_Titan_desc', mechanic_key: 'mechanic_clockwork_titan', health: 900, speed: 0.45, reward: 180, image: IMAGE_PATHS.Clockwork_Titan, category: 'other', enemyClass: 'tank', timeAttackOnly: true, stunImmune: true },
+  'DIY_Bot': { name: 'enemy_DIY_Bot_name', desc: 'enemy_DIY_Bot_desc', mechanic_key: 'mechanic_diy_bot', health: 180, speed: 1.1, reward: 40, image: IMAGE_PATHS.DIY_Bot, category: 'other', enemyClass: 'medium', timeAttackOnly: true, poisonImmune: true, fireWeakMultiplier: 1.5 },
+  'Hatspy': { name: 'enemy_Hatspy_name', desc: 'enemy_Hatspy_desc', mechanic_key: 'mechanic_hatspy', health: 180, speed: 2.4, reward: 45, image: IMAGE_PATHS.Hatspy, category: 'other', enemyClass: 'medium', timeAttackOnly: true, ghost: true, ghostMinEvolution: 3 },
+  'Local_Engines': { name: 'enemy_Local_Engines_name', desc: 'enemy_Local_Engines_desc', health: 100, speed: 1.2, reward: 25, image: IMAGE_PATHS.Local_Engines, category: 'other', enemyClass: 'basic', timeAttackOnly: true },
+  'Roborb': { name: 'enemy_Roborb_name', desc: 'enemy_Roborb_desc', health: 2000, speed: 0.3, reward: 2500, image: IMAGE_PATHS.Roborb, category: 'other', enemyClass: 'boss', boss: true, timeAttackOnly: true },
+  'Untimed_Atoms': { name: 'enemy_Untimed_Atoms_name', desc: 'enemy_Untimed_Atoms_desc', health: 45, speed: 1.6, reward: 15, image: IMAGE_PATHS.Untimed_Atoms, category: 'other', enemyClass: 'basic', timeAttackOnly: true },
+  'GODs_Shadow': { name: 'enemy_GODs_Shadow_name', desc: 'enemy_GODs_Shadow_desc', health: 12000, speed: 0.25, reward: 0, image: IMAGE_PATHS.GODs_Shadow, category: 'other', enemyClass: 'boss', boss: true, timeAttackOnly: true, acrossTimeBoss: true, instakill: false, acrossTimeFinal: true }
 };
 
+// Tier de balance: controla cuándo aparece un enemigo y cuánto daño causa al llegar a la base.
+const ENEMY_BALANCE = {
+  gelatin_lake: {
+    basic: ['Stupid_Pyce', 'Pyce2'],
+    medium: ['Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce'],
+    tank: ['4motions_Pyce', 'Flower_Pyce', 'SO_Pyce']
+  },
+  urbanistic_road: {
+    basic: ['BitY1', 'BitG2', 'BitP3', 'BitB4', 'HoloPyce', 'Rebel_Pyce'],
+    medium: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Bomb_Pyce', 'Fireflies', 'Strechy_Pyce'],
+    tank: ['Spyware', 'Spyware1', 'Spyware2', 'Spyware3', 'Knight_Pyce', 'Cannon_Pycer']
+  },
+  sunlight_seaside: {
+    basic: ['Piz', 'Baby_Shrum', 'Ren', 'Pysh'],
+    medium: ['Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Umbrella_Pyce', 'Creamplet'],
+    tank: ['Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers']
+  },
+  spooktacular_ruins: {
+    basic: ['Broksp', 'RIPslide', 'ZomPyce'],
+    medium: ['Pumpitch', 'Blood_Taker', 'Sneekmy', 'Ghost_Pyce', 'SkeleBone_Pyce'],
+    tank: ['Pumpitch', 'Blood_Taker', 'Ghost_Pyce', 'SkeleBone_Pyce']
+  }
+};
+
+const ENEMY_TIER_DAMAGE = { basic: 1, medium: 2, tank: 3 };
+
 const BADGES = {
+  tutorial: { key: 'tutorial', icon: '<img src="img/Work-Bombot.png" alt="Work-Bombot">', unlocked: false, reward: { pycoins: 50, duckpass: 1, xp: 25 }, category: 'misiones', colorGroup: 'mission' },
   survivor: { key: 'survivor', icon: '🛡️', unlocked: false, reward: { pycoins: 100, xp: 50 }, category: 'modos' },
   millionaire: { key: 'millionaire', icon: '💰', unlocked: false, reward: { pycoins: 500, xp: 100 }, category: 'economia' },
   evolution: { key: 'evolution', icon: '🧬', unlocked: false, reward: { pycoins: 200, xp: 80 }, category: 'interacciones' },
@@ -1741,19 +2175,31 @@ const BADGES = {
   angelicFortress: { key: 'angelicFortress', icon: '😇', unlocked: false, reward: { pycoins: 500, xp: 250 }, category: 'modos' },
   titaniumBuilding: { key: 'titaniumBuilding', icon: '🛡️', unlocked: false, reward: { pycoins: 500, xp: 300 }, category: 'modos' },
   encyclopediaMaster: { key: 'encyclopediaMaster', icon: '📖', unlocked: false, reward: { pycoins: 500, duckpass: 500, xp: 2000 }, category: 'misiones' },
-  unmenaced: { key: 'unmenaced', icon: '🌠', unlocked: false, reward: { pycoins: 300, duckpass: 100 }, category: 'misiones' },
+  unmenaced: { key: 'unmenaced', icon: '🌠', unlocked: false, reward: { pycoins: 300, duckpass: 100 }, category: 'misiones', colorGroup: 'collab' },
+  block_city: { key: 'block_city', icon: '🧱', unlocked: false, reward: { xp: 0 }, category: 'misiones', colorGroup: 'mission' },
+  old_blox_city: { key: 'old_blox_city', icon: '🏙️', unlocked: false, reward: { xp: 0 }, category: 'misiones', colorGroup: 'mission' },
+  paracristal_dimension: { key: 'paracristal_dimension', icon: '💎', unlocked: false, reward: { xp: 0 }, category: 'misiones', colorGroup: 'mission' },
+  future_voyage: { key: 'future_voyage', icon: '<span class="windland-key-icon">🔑</span>', unlocked: false, reward: { xp: 0 }, category: 'misiones', colorGroup: 'key' },
   skinllector: { key: 'skinllector', icon: '👗', unlocked: false, reward: { pycoins: 400, duckpass: 200 }, category: 'misiones' },
-  crystalizing_break: { key: 'crystalizing_break', icon: '💎', unlocked: false, reward: { pycoins: 200, xp: 500 }, category: 'interacciones' },
-  extended_marc: { key: 'extended_marc', icon: '🖼️', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'misiones' },
+  crystalizing_break: { key: 'crystalizing_break', icon: '💎', unlocked: false, reward: { pycoins: 200, xp: 500 }, category: 'interacciones', colorGroup: 'collab' },
+  extended_marc: { key: 'extended_marc', icon: '🖼️', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'misiones', colorGroup: 'collab' },
 
-  fracstral_victory: { key: 'fracstral_victory', icon: '<img src="Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png" width="35" height="35" style="border-radius:6px; object-fit:contain;">', unlocked: false, reward: { pycoins: 500, xp: 500 }, category: 'misiones' },
+  fracstral_victory: { key: 'fracstral_victory', icon: '<img src="Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png" width="35" height="35" style="border-radius:6px; object-fit:contain;">', unlocked: false, reward: { pycoins: 500, xp: 500 }, category: 'misiones', colorGroup: 'collab' },
   chain_reaction: { key: 'chain_reaction', icon: '💥', unlocked: false, reward: { pycoins: 400, duckpass: 200 }, category: 'interacciones' },
   fenced_kaboom: { key: 'fenced_kaboom', icon: '🚧', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'interacciones' },
   wall_garden: { key: 'wall_garden', icon: '🧱', unlocked: false, reward: { pycoins: 300, xp: 400 }, category: 'interacciones' },
   urban_king: { key: 'urban_king', icon: '👑', unlocked: false, reward: { pycoins: 600, duckpass: 400 }, category: 'misiones' },
-  urban_crystals: { key: 'urban_crystals', icon: '💎', unlocked: false, reward: { pycoins: 700, duckpass: 500 }, category: 'misiones' },
+  urban_crystals: { key: 'urban_crystals', icon: '💎', unlocked: false, reward: { pycoins: 700, duckpass: 500 }, category: 'misiones', colorGroup: 'collab' },
   dangerous_set: { key: 'dangerous_set', icon: '⚠️', unlocked: false, reward: { pycoins: 800, xp: 1000 }, category: 'interacciones' },
-  globiscal_debt: { key: 'globiscal_debt', icon: '💸', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'economia' }
+  globiscal_debt: { key: 'globiscal_debt', icon: '💸', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'economia' },
+  across_time: { key: 'across_time', icon: `<img class="across-time-badge-mark" src="${IMAGE_PATHS.Across_Time_Trophy}" alt="Across the Time">`, unlocked: false, reward: { xp: 0 }, category: 'misiones', colorGroup: 'mission' },
+
+  // Sunlight Seaside difficulty badges
+  sunlight_facil: { key: 'sunlight_facil', icon: '🌱', unlocked: false, reward: { pycoins: 150, xp: 100 }, category: 'modos' },
+  sunlight_normal: { key: 'sunlight_normal', icon: '🌊', unlocked: false, reward: { pycoins: 300, xp: 200 }, category: 'modos' },
+  sunlight_dificil: { key: 'sunlight_dificil', icon: '🔥', unlocked: false, reward: { pycoins: 500, xp: 400 }, category: 'modos' },
+  sunlight_extremo: { key: 'sunlight_extremo', icon: '💀', unlocked: false, reward: { pycoins: 800, xp: 700 }, category: 'modos' },
+  sunlight_anti_normal: { key: 'sunlight_anti_normal', icon: '🌑', unlocked: false, reward: { duckpass: 50, xp: 1500 }, category: 'modos' }
 };
 
 const MAPS = {
@@ -1813,23 +2259,22 @@ const MAPS = {
     ],
     // Sandy islands where towers can be placed (excluded from collision with paths)
     islandZones: [
-      // Left section (between top and bottom roads)
-      { x: 60,  y: 210, w: 100, h: 100 },
-      { x: 60,  y: 285, w: 100, h: 100 },
-      // Mid section (top) - large island
-      { x: 285, y: 135, w: 180, h: 100 },
-      // Mid section (bottom)
-      { x: 285, y: 285, w: 100, h: 100 },
-      // Right section (top) - large island
-      { x: 585, y: 135, w: 180, h: 100 },
-      // Right section (middle)
-      { x: 660, y: 210, w: 100, h: 100 },
-      // Far right
-      { x: 885, y: 210, w: 100, h: 100 },
-      // Below bottom road
-      { x: 135, y: 510, w: 100, h: 100 },
-      { x: 285, y: 510, w: 100, h: 100 },
-      { x: 660, y: 510, w: 100, h: 100 }
+      // Each round island is sized to hold exactly one tower spot.
+      { x: 40, y: 10, w: 120, h: 120 },
+      { x: 320, y: 10, w: 120, h: 120 },
+      { x: 840, y: 10, w: 120, h: 120 },
+      { x: 40, y: 300, w: 120, h: 120 },
+      { x: 40, y: 175, w: 120, h: 120 },
+      { x: 320, y: 175, w: 120, h: 120 },
+      { x: 320, y: 300, w: 120, h: 120 },
+      { x: 590, y: 180, w: 120, h: 120 },
+      { x: 590, y: 300, w: 120, h: 120 },
+      { x: 840, y: 150, w: 120, h: 120 },
+      { x: 840, y: 320, w: 120, h: 120 },
+      { x: 40, y: 470, w: 120, h: 120 },
+      { x: 320, y: 470, w: 120, h: 120 },
+      { x: 590, y: 470, w: 120, h: 120 },
+      { x: 840, y: 470, w: 120, h: 120 }
     ],
     pathSegments: [
       // Horizontal top road
@@ -1865,8 +2310,55 @@ const MAPS = {
         { x: 803, y: 298 }, { x: 1030, y: 298 }
       ]
     ]
+  },
+  spooktacular_ruins: {
+    name: "Aridez Escalofriante",
+    nameEn: "Spooktacular Ruins",
+    riverZones: [],
+    islandZones: [],
+    pathSegments: [],
+    roadIntersections: [
+      { x: 230, y: 95 }, { x: 420, y: 400 }, { x: 610, y: 95 },
+      { x: 230, y: 365 }, { x: 420, y: 160 }, { x: 610, y: 365 },
+      { x: 330, y: 255 }, { x: 520, y: 255 },
+      { x: 820, y: 95 }, { x: 820, y: 365 }
+    ],
+    enemyPaths: [
+      [
+        { x: 50, y: 95 }, { x: 230, y: 95 }, { x: 420, y: 400 },
+        { x: 610, y: 95 }, { x: 820, y: 95 }, { x: 947, y: 50 }
+      ],
+      [
+        { x: 50, y: 365 }, { x: 230, y: 365 }, { x: 420, y: 160 },
+        { x: 610, y: 365 }, { x: 820, y: 365 }, { x: 947, y: 465 }
+      ]
+    ],
+    bossPlaceholders: { miniboss: null, boss: null }
   }
-}
+};
+
+const MAP_ISLANDS = [
+  {
+    id: 'globland_isle',
+    nameEs: 'Isla de los Globs',
+    nameEn: 'Globland Isle',
+    zones: [
+      { mapId: 'gelatin_lake', nameEs: 'Gelatin Lake', nameEn: 'Gelatin Lake', colors: ['#41b96c', '#28784b'] },
+      { mapId: 'urbanistic_road', nameEs: 'Urbanistic Road', nameEn: 'Urbanistic Road', colors: ['#92999c', '#424a51'] },
+      { mapId: 'sunlight_seaside', nameEs: 'Sunlight Seaside', nameEn: 'Sunlight Seaside', colors: ['#f0c75e', '#1e98b4'] }
+    ]
+  },
+  {
+    id: 'windland_leaf',
+    nameEs: 'Bosques Arenonieves',
+    nameEn: 'Wildsand Leaf',
+    zones: [
+      { mapId: 'spooktacular_ruins', nameEs: 'Aridez Escalofriante', nameEn: 'Spooktacular Ruins', colors: ['#d68738', '#684328'] },
+      { nameEs: 'Frosty Christmas (SOON)', nameEn: 'Frosty Christmas (SOON)', colors: ['#9deaff', '#f3fcff'], locked: true },
+      { nameEs: 'Darkness Forest (RELEASING NEXT YEAR)', nameEn: 'Darkness Forest (RELEASING NEXT YEAR)', colors: ['#47774a', '#59402b'], locked: true }
+    ]
+  }
+];
 
 const SKINS_DATA = {
   'Glob': [
@@ -1877,6 +2369,20 @@ const SKINS_DATA = {
         'Poop_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO2.png',
         'Golden_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO3.png',
         'Rainbow_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO4.png'
+      }
+    },
+    {
+      id: 'green_rgb_sr', name: 'skin_green_rgb_sr_name', desc: 'skin_green_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
+        'Poop_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO2.png',
+        'Golden_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO3.png',
+        'Rainbow_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO4.png'
+      },
+      rgbTypes: ['Glob', 'Poop_Glob', 'Golden_Glob', 'Rainbow_Glob'],
+      names: {
+        'Glob': 'RGreenB1',
+        'Rainbow_Glob': 'RGreenB4'
       }
     },
     {
@@ -1902,15 +2408,41 @@ const SKINS_DATA = {
         'Golden_Glob': 'Emotional Glob',
         'Rainbow_Glob': 'Ancigon Glob'
       }
-    }
+    },
   ],
   'Red_Glob': [
+    {
+      id: 'skelebones_set', name: 'skin_skelebones_name', desc: 'skin_skelebones_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_anti_normal',
+      skins: {
+        'Red_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Calcium Glob (SK-EVO1).png',
+        'Molten_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Toxic Waste Glob (SK-EVO2).png',
+        'Robotic_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/SkeleBone Glob (SK-EVO3).png'
+      },
+      names: {
+        'Red_Glob': 'Calcium Glob',
+        'Molten_Glob': 'Toxic Waste Glob',
+        'Robotic_Glob': 'SkeleBone Glob'
+      }
+    },
     {
       id: 'rewamped_red_set', name: 'skin_rewamped_red_name', desc: 'skin_rewamped_red_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
         'Red_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO1.png',
         'Molten_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO2.png',
         'Robotic_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO3.png'
+      }
+    },
+    {
+      id: 'red_rgb_sr', name: 'skin_red_rgb_sr_name', desc: 'skin_red_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Red_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO1.png',
+        'Molten_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO2.png',
+        'Robotic_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO3.png'
+      },
+      rgbTypes: ['Red_Glob', 'Molten_Glob', 'Robotic_Glob'],
+      names: {
+        'Red_Glob': 'RedGB1',
+        'Robotic_Glob': 'RedGB3'
       }
     },
     {
@@ -1940,7 +2472,29 @@ const SKINS_DATA = {
       id: 'abyssal_set', name: 'skin_abyssal_name', desc: 'skin_abyssal_desc', cost: 400, type: 'pycoin',
       skins: {
         'Soap_Glob': 'img/Skins/Azul Ralentizador/Beachy Glob (SK-EVO1).png',
-        'Cotton_Glob': 'img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png'
+        'Cotton_Glob': 'img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png',
+        'ElectroClean_Glob': 'img/Skins/Azul Ralentizador/LightSea Glob (SK-EVO3).png'
+      }
+    },
+    {
+      id: 'rewamped_blue_set', name: 'skin_rewamped_blue_name', desc: 'skin_rewamped_blue_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
+      skins: {
+        'Soap_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
+        'Cotton_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
+        'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
+      }
+    },
+    {
+      id: 'blue_rgb_sr', name: 'skin_blue_rgb_sr_name', desc: 'skin_blue_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Soap_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
+        'Cotton_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
+        'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
+      },
+      rgbTypes: ['Soap_Glob', 'Cotton_Glob', 'ElectroClean_Glob'],
+      names: {
+        'Soap_Glob': 'RGBlue1',
+        'ElectroClean_Glob': 'RGBlue3'
       }
     }
   ],
@@ -1949,7 +2503,29 @@ const SKINS_DATA = {
       id: 'business_duck_set', name: 'skin_business_name', desc: 'skin_business_desc', cost: 150, type: 'pycoin',
       skins: {
         'Ducky_Glob': 'img/Skins/Amarillo Farmer/Jelly Post (SK-EVO1).png',
-        'Golden_Ducky_Glob': 'img/Skins/Amarillo Farmer/Factory Glob (SK-EVO2).png'
+        'Golden_Ducky_Glob': 'img/Skins/Amarillo Farmer/Factory Glob (SK-EVO2).png',
+        'Rick_Duck_Glob': 'img/Skins/Amarillo Farmer/Highlight Glob (SK-EVO3).png'
+      }
+    },
+    {
+      id: 'ducky_rewamp_set', name: 'skin_ducky_rewamp_name', desc: 'skin_ducky_rewamp_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_gelatin_lake_base',
+      skins: {
+        'Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp1.png',
+        'Golden_Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp2.png',
+        'Rick_Duck_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp3.png'
+      }
+    },
+    {
+      id: 'ducky_rgb_sr', name: 'skin_ducky_rgb_name', desc: 'skin_ducky_rgb_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp1.png',
+        'Golden_Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp2.png',
+        'Rick_Duck_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp3.png'
+      },
+      rgbTypes: ['Ducky_Glob', 'Golden_Ducky_Glob', 'Rick_Duck_Glob'],
+      names: {
+        'Ducky_Glob': 'Ducky RGB 1',
+        'Rick_Duck_Glob': 'Ducky RGB 3'
       }
     }
   ],
@@ -1978,18 +2554,46 @@ const SKINS_DATA = {
     {
       id: 'astrorb_set', name: 'skin_astrorb_name', desc: 'skin_astrorb_desc', cost: 400, duckpass_cost: 350, type: 'pycoin', isSpecial: true, unlockCondition: 'astrorb_frame',
       skins: {
-        'Old_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png',
-        'Pyce_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbContenida.png',
-        'SpyGlob': 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbTF.png'
+        'Old_Glob': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbOrbe.png',
+        'Pyce_Glob': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbContenido.png',
+        'SpyGlob': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbTF.png'
       },
       names: {
         'Old_Glob': { es: 'Astrorb (Orbe)', en: 'Astrorb (Orb)' },
         'Pyce_Glob': { es: 'Astrorb (Contenida)', en: 'Astrorb (Contained)' },
         'SpyGlob': { es: 'Astrorb (True Form)', en: 'Astrorb (True Form)' }
       }
+    },
+    {
+      id: 'virtuallity_set', name: 'skin_virtuallity_name', desc: 'skin_virtuallity_desc', cost: 0, type: 'free', isSpecial: true,
+      skins: {
+        'Old_Glob': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Discord Glob (SK-EVO1).png',
+        'Pyce_Glob': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Roblox Glob (SK-EVO2).png',
+        'SpyGlob': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Big-Champion Globs (SK-EVO3).png'
+      },
+      names: {
+        'Old_Glob': 'Discord Glob',
+        'Pyce_Glob': 'Roblox Glob',
+        'SpyGlob': 'Big-Champion Glob'
+      }
     }
   ],
   'Comet_Glob': [
+    {
+      id: 'wicked_set', name: 'skin_wicked_name', desc: 'skin_wicked_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_corrupto',
+      skins: {
+        'Comet_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Witch Glob (SK-EVO1).png',
+        'Dark_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/CrowWitcher (SK-EVO2).png',
+        'Demglob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Glitchy Wizard (SK-EVO3).png',
+        'Void_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Losed-In Wizard (SK-EVO4).png'
+      },
+      names: {
+        'Comet_Glob': 'Witch Glob',
+        'Dark_Glob': 'CrowWitcher',
+        'Demglob': 'Glitchy Wizard',
+        'Void_Glob': 'Losed-In Wizard'
+      }
+    },
     {
       id: 'universolar_comet_set', name: 'skin_universolar_name', desc: 'skin_universolar_desc', cost: 450, type: 'pycoin',
       skins: {
@@ -2028,6 +2632,35 @@ const SKINS_DATA = {
         'Demglob': 'MetaGlob',
         'Void_Glob': 'Hammer Glob'
       }
+    },
+    {
+      id: 'rewamped_black_set', name: 'skin_rewamped_black_name', desc: 'skin_rewamped_black_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_hard_or_extreme',
+      skins: {
+        'Comet_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp1.png',
+        'Dark_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp2.png',
+        'Demglob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp3.png',
+        'Void_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp4.png'
+      },
+      names: {
+        'Comet_Glob': 'Black Rewamp 1',
+        'Dark_Glob': 'Black Rewamp 2',
+        'Demglob': 'Black Rewamp 3',
+        'Void_Glob': 'Black Rewamp 4'
+      }
+    },
+    {
+      id: 'black_rgb_sr', name: 'skin_black_rgb_sr_name', desc: 'skin_black_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Comet_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp1.png',
+        'Dark_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp2.png',
+        'Demglob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp3.png',
+        'Void_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp4.png'
+      },
+      rgbTypes: ['Comet_Glob', 'Dark_Glob', 'Demglob', 'Void_Glob'],
+      names: {
+        'Comet_Glob': 'Black RGB 1',
+        'Void_Glob': 'Black RGB 4'
+      }
     }
   ],
   'IEx': [
@@ -2046,6 +2679,12 @@ const SKINS_DATA = {
     }
   ],
   'Special': [
+    {
+      id: 'personalizable_bombot', name: 'skin_personalizable_bombot_name', desc: 'skin_personalizable_bombot_desc', cost: 0, type: 'free', isSpecial: true,
+      skins: {
+        'Work_Bombot': 'Spooks in the Desert (UPD4)/Skins/Personalizable Bombot (SKIN + ACCESORIES)/Personalizable Bombot.png'
+      }
+    },
     {
       id: 'sharkbot_bombot', name: 'skin_sharkbot_name', desc: 'skin_sharkbot_desc', cost: 50, type: 'pycoin',
       skins: {
@@ -2080,6 +2719,72 @@ const SKINS_DATA = {
       id: 'crystal_bombot', name: 'skin_crystal_bombot_name', desc: 'skin_crystal_bombot_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_boss_frames',
       skins: {
         'Work_Bombot': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Crystal-Bombot.png'
+      }
+    }
+  ],
+
+  'White': [
+    {
+      id: 'heights_set', name: 'skin_heights_name', desc: 'skin_heights_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest',
+      skins: {
+        'Balloon_Glob': 'Misiones (2026)/Skins/Blanca/House & Bombot (SK-EVO1).png',
+        'Heliglob': 'Misiones (2026)/Skins/Blanca/Castle & Bombot (SK-EVO2).png',
+        'Alien_Glob': 'Misiones (2026)/Skins/Blanca/Earth & KirByte (SK-EVO3).png'
+      }
+    }
+  ],
+  'Pink': [
+    {
+      id: 'old_tycoon_set', name: 'skin_old_tycoon_name', desc: 'skin_old_tycoon_desc', cost: 637, duckpass_cost: 207, type: 'pycoin', isSpecial: true, unlockCondition: 'block_quest_shop',
+      skins: {
+        'Streamer_Glob': 'Misiones (2026)/Skins/Rosa/Noob Tycoon (SK-EVO1).png',
+        'Gamer_Glob': 'Misiones (2026)/Skins/Rosa/Guest Retrohouse (SK-S2).png',
+        'Youtuber_Glob': 'Misiones (2026)/Skins/Rosa/Heights Sword Battle (SK-EVO3).png'
+      }
+    }
+  ],
+  'Brown': [
+    {
+      id: 'jonk_set', name: 'skin_jonk_name', desc: 'skin_jonk_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest',
+      skins: {
+        'Sprout_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO1).png',
+        'Garden_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO2).png',
+        'Flower_Glob': 'Misiones (2026)/Skins/Marron/Jonk the big piranha (SK-EVO3).png'
+      }
+    },
+    {
+      id: 'pumpking_set', name: 'skin_pumpking_name', desc: 'skin_pumpking_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_base',
+      skins: {
+        'Sprout_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob (SK-EVO1).png',
+        'Garden_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Overgrown PumpGlob (SK-EVO2).png',
+        'Flower_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Mutant PumpGlob (SK-EVO3).png'
+      },
+      names: {
+        'Sprout_Glob': 'PumpGlob',
+        'Garden_Glob': 'Overgrown PumpGlob',
+        'Flower_Glob': 'Mutant PumpGlob'
+      }
+    }
+  ],
+
+  'Pirate_Glob': [
+    {
+      id: 'froggy_set', name: 'skin_froggy_name', desc: 'skin_froggy_desc', cost: 1500, type: 'pycoin', isSpecial: true, unlockCondition: 'win_sunlight_summer_anti_normal',
+      skins: {
+        'Pirate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Tadpole Glob (SK-EVO1).png',
+        'PMate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Froggy Glob (SK-EVO2).png',
+        'BreathKing_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Frogold Glob (SK-EVO3).png',
+        'Haunted_Pirate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/King Frog Glob (SK-EVO4).png',
+        'Boat_S1': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lillypad (SK-S1).png',
+        'Boat_S2': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Raft Lillypad (SK-S2).png',
+        'Boat_S3': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Flowered Lillypad (SK-S3).png',
+        'Boat_S4': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lotus Lillypads (SK-S4).png'
+      },
+      names: {
+        'Pirate_Glob': 'Tadpole Glob',
+        'PMate_Glob': 'Froggy Glob',
+        'BreathKing_Glob': 'Frogold Glob',
+        'Haunted_Pirate_Glob': 'King Frog Glob'
       }
     }
   ],
@@ -2138,8 +2843,8 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_globsus_desc": "Un Bombot bastante sospechoso. Creado por KirByte_Bi. <br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
   "tower_Void_Glob_name": "Void Glob",
   "tower_Void_Glob_desc": "El abismo en sí. Los proyectiles de este Glob oscuro se curvan en el aire persiguiendo al enemigo. Ha perdido todo efecto, pero la muerte es segura.",
-  "skin_pyce_morph_name": "Pyce Randomizer",
-  "skin_pyce_morph_desc": "¡Sorpresa! Cada nivel de tu torre adopta la apariencia de un Pyce al azar.",
+  "skin_pyce_morph_name": "All-Stars Randomizer",
+  "skin_pyce_morph_desc": "¡Sorpresa! Cada nivel de tu torre adopta la apariencia de un enemigo al azar... ¡incluidos los más temibles!",
   "skin_dreams_name": "Set de Ensueño",
   "skin_dreams_desc": "¿Son estos tus heroes? Yo diria que si, son un buen equipo de ensueño.<br><span style='font-size:0.8em; color:#aaa;'>Los personajes pertenecen a HAL Laboratory y a Nintendo, yo solo tengo el derecho de Globs y Pyces.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte</span>",
   "skin_judicial_name": "Set Judicial",
@@ -2155,7 +2860,33 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_crystal_bombot_name": "Crystal-Bombot",
   "skin_crystal_bombot_desc": "La variante de cristal del Bombot.",
   "skin_fracstal_name": "Set Fracstral",
-  "skin_fracstal_desc": "Unos Globs que se cristalizaron, pero esto no los detiene de poder estallar mas fuerte gracias a su amplificacion de poder.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Creado por: Credible</span>"
+  "skin_fracstal_desc": "Unos Globs que se cristalizaron, pero esto no los detiene de poder estallar mas fuerte gracias a su amplificacion de poder.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Creado por: Credible</span>",
+  "skin_old_tycoon_name": "Old Tycoon Set",
+  "skin_old_tycoon_desc": "20 Años de Roblox y celebrándolo a lo grande con un esfuerzo de vuestro robot abeja favorito. ¡Que cumplas muchos más, ROBLOX!",
+  "skin_heights_name": "Set de Altura",
+  "skin_heights_desc": "Quién iba a decir que Bombot intentaría volar con un triste globo... ¿¡PERO QUIÉN ES EL ÚLTIMO!?",
+  "skin_jonk_name": "Jonk the big piranha",
+  "skin_jonk_desc": "Una gran carnívora sustituye nuestro Glob jardinero. No se preocupen, esta piraña es nuestra amiga tal y como lo fue en sus tiempos.",
+  "skin_pumpking_name": "Set Pumpkin",
+  "skin_pumpking_desc": "Una calabaza monstruosa toma el lugar de la familia Marrón. Desbloquéala al ganar en Fácil, Normal, Difícil o Extremo en Aridez Escalofriante.",
+  "skin_skelebones_name": "SkeleBones Set",
+  "skin_skelebones_desc": "Desbloquea las tres apariencias al vencer Aridez Escalofriante en Anti-Normal.",
+  "skin_wicked_name": "Wicked Set",
+  "skin_wicked_desc": "Desbloquea este set al vencer Aridez Escalofriante en modo Corrupto.",
+  "skin_rewamped_black_name": "Rewamp Negro",
+  "skin_rewamped_black_desc": "Desbloquea este set al vencer Aridez Escalofriante en modo Difícil o Extremo.",
+  "skin_black_rgb_sr_name": "Rewamp Negro RGB",
+  "skin_black_rgb_sr_desc": "El Rewamp negro con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil.",
+  "skin_froggy_name": "Froggy Set",
+  "skin_froggy_desc": "Unas ranas que pescan y crecen... ¡Pero sus nenufares si dañan!<br><span style='font-size:0.8em; color: teal;'>Skin ideada y dibujada por \"Victorillo\", el dibujo actual esta creado por KirByte_Bi.</span>",
+  "skin_rewamped_blue_name": "Set Azul Remasterizado",
+  "skin_rewamped_blue_desc": "Una versión mejorada visualmente de la familia azul original.",
+  "skin_green_rgb_sr_name": "RGB Verde Secreto",
+  "skin_green_rgb_sr_desc": "La primera y última evolución del Rewamp verde con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RGreenB. Curiosidad: las familias Verde, Roja y Azul son las familias originales de Globs y las primeras en recibir skins Rewamp.",
+  "skin_red_rgb_sr_name": "RGB Rojo Secreto",
+  "skin_red_rgb_sr_desc": "La primera y última evolución del Rewamp rojo con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RedGB. Curiosidad: las familias Verde, Roja y Azul son las familias originales de Globs y las primeras en recibir skins Rewamp.",
+  "skin_blue_rgb_sr_name": "RGB Azul Secreto",
+  "skin_blue_rgb_sr_desc": "La primera y última evolución del Rewamp azul con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RGBlue. Curiosidad: las familias Verde, Roja y Azul son las familias originales de Globs y las primeras en recibir skins Rewamp."
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
@@ -2165,8 +2896,8 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_globsus_desc": "A very suspicious Bombot. Created by KirByte_Bi. <br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte_Bi</span>",
   "tower_Void_Glob_name": "Void Glob",
   "tower_Void_Glob_desc": "The abyss itself. The projectiles of this dark Glob curve in the air chasing the enemy. It has lost all effects, but death is certain.",
-  "skin_pyce_morph_name": "Pyce Randomizer",
-  "skin_pyce_morph_desc": "Surprise! Each level of your tower takes the appearance of a random Pyce.",
+  "skin_pyce_morph_name": "All-Stars Randomizer",
+  "skin_pyce_morph_desc": "Surprise! Each level of your tower takes the appearance of a random enemy... including the most fearsome ones!",
   "skin_dreams_name": "Dreams Set",
   "skin_dreams_desc": "Are these your heroes? I'd say yes, they are a good dream team.<br><span style='font-size:0.8em; color:#aaa;'>The characters belong to HAL Laboratory and Nintendo, I only have the rights to Globs and Pyces.</span><br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Created by: KirByte</span>",
   "skin_judicial_name": "Judicial Set",
@@ -2182,7 +2913,33 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_crystal_bombot_name": "Crystal-Bombot",
   "skin_crystal_bombot_desc": "The crystal variant of the Bombot.",
   "skin_fracstal_name": "Fracstal Set",
-  "skin_fracstal_desc": "Some Globs that crystallized, but this does not stop them from being able to explode stronger thanks to their power amplification.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Created by: Credible</span>"
+  "skin_fracstal_desc": "Some Globs that crystallized, but this does not stop them from being able to explode stronger thanks to their power amplification.<br><span style='color: #ff8c00; font-weight: bold; text-shadow: 0 0 5px rgba(255,140,0,0.5);'>Created by: Credible</span>",
+  "skin_old_tycoon_name": "Old Tycoon Set",
+  "skin_old_tycoon_desc": "20 years of Roblox, celebrated in style with an effort from your favorite bee robot. Happy many more, ROBLOX!",
+  "skin_heights_name": "Height Set",
+  "skin_heights_desc": "Who would have thought Bombot would try to fly with a sad balloon... WHO IS LAST!?",
+  "skin_jonk_name": "Jonk the big piranha",
+  "skin_jonk_desc": "A great carnivore replaces our Garden Glob. Don't worry, this piranha is our friend, just as it was in its time.",
+  "skin_pumpking_name": "Pumpkin Set",
+  "skin_pumpking_desc": "A monstrous pumpkin takes over the Brown family. Unlock it by winning Easy, Normal, Hard, or Extreme on Spooktacular Ruins.",
+  "skin_skelebones_name": "SkeleBones Set",
+  "skin_skelebones_desc": "Unlock all three appearances by beating Spooktacular Ruins in Anti-Normal.",
+  "skin_wicked_name": "Wicked Set",
+  "skin_wicked_desc": "Unlock this set by beating Spooktacular Ruins in Corrupt mode.",
+  "skin_rewamped_black_name": "Black Rewamp",
+  "skin_rewamped_black_desc": "Unlock this set by beating Spooktacular Ruins in Hard or Extreme mode.",
+  "skin_black_rgb_sr_name": "Black RGB Rewamp",
+  "skin_black_rgb_sr_desc": "The Black Rewamp with an animated RGB effect. Unlock it by collecting every profile image.",
+  "skin_froggy_name": "Froggy Set",
+  "skin_froggy_desc": "Frogs that fish and grow... But their lily pads do deal damage!<br><span style='font-size:0.8em; color: teal;'>Skin designed and drawn by \"Victorillo\", current artwork by KirByte_Bi.</span>",
+  "skin_rewamped_blue_name": "Remastered Blue Set",
+  "skin_rewamped_blue_desc": "A visually improved version of the original blue family.",
+  "skin_green_rgb_sr_name": "Green RGB Secret Rewamp",
+  "skin_green_rgb_sr_desc": "The first and final levels of the green Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RGreenB. Fun fact: Green, Red, and Blue are the original Glob families and the first families to receive Rewamp skins.",
+  "skin_red_rgb_sr_name": "Red RGB Secret Rewamp",
+  "skin_red_rgb_sr_desc": "The first and final levels of the red Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RedGB. Fun fact: Green, Red, and Blue are the original Glob families and the first families to receive Rewamp skins.",
+  "skin_blue_rgb_sr_name": "Blue RGB Secret Rewamp",
+  "skin_blue_rgb_sr_desc": "The first and final levels of the blue Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RGBlue. Fun fact: Green, Red, and Blue are the original Glob families and the first families to receive Rewamp skins."
 });
 
 window.SKIN_META = window.SKIN_META || {};
@@ -2214,9 +2971,14 @@ Object.assign(window.SKIN_META, {
     attacks: {
       1: { type: 'projectile', image: 'img/Proyectiles/Crystal Metor.png' }
     }
+  },
+  "wicked_set": {
+    attacks: {
+      1: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' },
+      2: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' },
+      3: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' },
+      4: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' }
+    }
   }
 });
 /* --- END INSERTAR --- */
-
-
-

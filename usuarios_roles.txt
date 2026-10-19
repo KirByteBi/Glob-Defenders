@@ -1,7 +1,0 @@
-# Usuarios y roles
-# Formato: usuario = rol
-# Ejemplo: admin = desarrollador
-
-admin = desarrollador
-moderador = moderador
-jugador = usuario
