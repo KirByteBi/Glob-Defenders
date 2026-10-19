@@ -74,6 +74,17 @@ const SAFE_MULTIPLAYER_CHAT_MESSAGES = {
 };
 const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set'];
 const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr', 'black_rgb_sr', 'ducky_rgb_sr'];
+const NON_INTERSTELLAR_CRYSTAL_FALLBACKS = {
+  CrystArky: 'Arky',
+  Cristalized_Monster: 'Monster',
+  Lenistal: 'Leni_the_big_Hammer',
+  Crystal_Bombot: 'Arky',
+  Crystal_Pyce: 'Pyce2',
+  Dreamy_SPyce: 'Symbol_Pyce',
+  Astral_BPyce: 'Bomb_Pyce',
+  NO_CrystEye_CB: 'NOeye_Pyce',
+  Crystalic_Orb: 'AstrorbOrbe'
+};
 const PROFILE_ENEMY_VARIANT_GROUPS = [
   { canonical: 'BitY1', types: ['BitY1', 'BitB4', 'BitG2', 'BitP3'] },
   { canonical: 'ByteGB1', types: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'] },
@@ -11176,6 +11187,17 @@ function activateGTack(t) {
         if (wave >= 9) pool.push('Cannon_Pycer');
       }
       type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
+    }
+
+    const enemyDefinition = ENEMY_TYPES[type];
+    const isUrbanAntiNormalCrystArky = type === 'CrystArky' &&
+      mapKey === 'urbanistic_road' && gameState.mode === 'antiNormal';
+    if (!isUrbanAntiNormalCrystArky && gameState.mode !== 'interstellar' &&
+        (enemyDefinition?.isCrystallized || enemyDefinition?.arkyType === 'crystal')) {
+      const originalType = type;
+      const fallbackType = NON_INTERSTELLAR_CRYSTAL_FALLBACKS[type];
+      type = ENEMY_TYPES[fallbackType] ? fallbackType : 'Stupid_Pyce';
+      console.warn(`Enemigo cristalizado bloqueado fuera de Interstellar: ${originalType}; se usa ${type}.`);
     }
 
     const currentWave = gameState.wave || 1;
