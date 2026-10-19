@@ -3580,6 +3580,13 @@ input:checked + .slider:before {
     border: 1px solid #fff !important;
 }
 
+.shop-advent-limited-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+}
+
 /* Estado de bloqueo de tarjeta (Duck Pass) */
 .meta-item.locked {
     filter: grayscale(0.5);
@@ -5820,8 +5827,29 @@ body.tablet-landscape #light-mode-toggle {
 }
 
 .advent-calendar-balance {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
     color: #a7f3ce;
     font-weight: 700;
+}
+
+.advent-calendar-balance-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.advent-calendar-balance-item img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.advent-calendar-balance-separator {
+    color: rgba(230, 247, 255, 0.72);
 }
 
 .advent-calendar-grid {
@@ -5896,6 +5924,45 @@ body.tablet-landscape #light-mode-toggle {
     font-weight: 700;
 }
 
+.advent-day-reward-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.advent-day-reward-note {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.68rem;
+    font-weight: 400;
+}
+
+.advent-limited-tag {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 2px 6px;
+    border: 1px solid #f97316;
+    border-radius: 999px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.advent-credit-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: linear-gradient(110deg, #ffe45e, #d9b8ff);
+    color: #30243d;
+    font-size: 0.92em;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
 .advent-day-reward img {
     width: 34px;
     height: 34px;
@@ -5944,10 +6011,6 @@ body.tablet-landscape #light-mode-toggle {
     width: fit-content;
     justify-self: center;
     margin: 18px auto;
-}
-
-.bombot-accessory-card.incompatible {
-    border-color: rgba(255, 119, 127, 0.5) !important;
 }
 
 @media (max-width: 760px) {

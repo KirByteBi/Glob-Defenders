@@ -1595,41 +1595,47 @@ const TUTORIAL_BOSSES_BY_MAP = {
 const PERSONALIZABLE_BOMBOT_SKIN_ID = 'personalizable_bombot';
 const ADVENT_CALENDAR_ACCESSORY_ROOT = 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/PersonalizbleBot/';
 const ADVENT_CALENDAR_REWARDS = [
-  { rewards: [{ type: 'pycoins', amount: 250 }] },
-  { rewards: [{ type: 'accessory', id: 'wb_retro_cap' }] },
-  { rewards: [{ type: 'xp', amount: 500 }] },
-  { rewards: [{ type: 'duckpass', amount: 250 }] },
-  { rewards: [{ type: 'accessory', id: 'blockbot_reskin' }] },
-  { rewards: [{ type: 'pycoins', amount: 350 }] },
-  { rewards: [{ type: 'accessory', id: 'ducky_hat' }] },
-  { rewards: [{ type: 'xp', amount: 750 }] },
-  { rewards: [{ type: 'duckpass', amount: 350 }] },
-  { rewards: [{ type: 'accessory', id: 'guest_bombot_reskin' }] },
-  { rewards: [{ type: 'accessory', id: 'fungunous_hat' }] },
-  { rewards: [{ type: 'pycoins', amount: 450 }] },
-  { rewards: [{ type: 'accessory', id: 'noob_bombot_reskin' }] },
-  { rewards: [{ type: 'duckpass', amount: 500 }] },
-  { rewards: [{ type: 'xp', amount: 1000 }] },
-  { rewards: [{ type: 'accessory', id: 'silent_habitant_reskin' }] },
-  { rewards: [{ type: 'accessory', id: 'kirb_headsets' }] },
-  { rewards: [{ type: 'pycoins', amount: 550 }] },
-  { rewards: [{ type: 'accessory', id: 'monobear_bombot_reskin' }] },
-  { rewards: [{ type: 'duckpass', amount: 600 }] },
-  { rewards: [{ type: 'accessory', id: 'glamour_hat' }] },
-  { rewards: [{ type: 'accessory', id: 'giftbot_reskin' }] },
-  { rewards: [{ type: 'accessory', id: 'toy_and_key' }] },
-  { rewards: [{ type: 'accessory', id: 'bunnity_bombot_reskin' }] },
-  { rewards: [
-    { type: 'accessory', id: 'tvombot_reskin' },
-    { type: 'skin', id: 'snowglob_set' }
-  ] }
+  { reward: { type: 'duckpass', amount: 250 } },
+  { reward: { type: 'xp', amount: 500 } },
+  { reward: { type: 'accessory', id: 'noob_bombot_reskin' } },
+  { reward: { type: 'accessory', id: 'guest_bombot_reskin' } },
+  { reward: { type: 'accessory', id: 'wb_retro_cap' } },
+  { reward: { type: 'accessory', id: 'ducky_hat' } },
+  { reward: { type: 'pycoins', amount: 350 } },
+  { reward: { type: 'xp', amount: 750 } },
+  { reward: { type: 'accessory', id: 'giftbot_reskin' } },
+  { reward: { type: 'accessory', id: 'blockbot_reskin' } },
+  { reward: { type: 'accessory', id: 'toy_and_key' } },
+  { reward: { type: 'accessory', id: 'tvombot_reskin' } },
+  { reward: { type: 'accessory', id: 'kirb_headsets' } },
+  { reward: { type: 'skin', id: 'snowglob_set' } },
+  { reward: { type: 'pycoins', amount: 450 } },
+  { reward: { type: 'xp', amount: 1000 } },
+  { reward: { type: 'accessory', id: 'silent_habitant_reskin' } },
+  { reward: { type: 'accessory', id: 'monobear_bombot_reskin' } },
+  { reward: { type: 'accessory', id: 'bunnity_bombot_reskin' } },
+  { reward: { type: 'accessory', id: 'glamour_hat' } },
+  { reward: { type: 'pycoins', amount: 550 } },
+  { reward: { type: 'duckpass', amount: 350 } },
+  { reward: { type: 'duckpass', amount: 500 } },
+  { reward: { type: 'accessory', id: 'fungunous_hat' } },
+  { reward: { type: 'duckpass', amount: 600 } }
 ];
-const BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS = [
-  'cuby_reskin', 'pinkbot_reskin', 'popguin_reskin', 'volcabot_reskin',
-  'blockbot_reskin', 'bunnity_bombot_reskin', 'giftbot_reskin',
-  'guest_bombot_reskin', 'monobear_bombot_reskin', 'noob_bombot_reskin',
-  'silent_habitant_reskin', 'tvombot_reskin'
-];
+const ADVENT_CALENDAR_CHRISTMAS_REWARD_IDS = new Set([
+  'giftbot_reskin', 'blockbot_reskin', 'toy_and_key', 'tvombot_reskin', 'snowglob_set'
+]);
+const ADVENT_CALENDAR_SHOP_PRICES = {
+  noob_bombot_reskin: 250,
+  guest_bombot_reskin: 250,
+  wb_retro_cap: 130,
+  ducky_hat: 130,
+  fungunous_hat: 130,
+  glamour_hat: 130,
+  kirb_headsets: 130,
+  silent_habitant_reskin: 250,
+  monobear_bombot_reskin: 250,
+  bunnity_bombot_reskin: 250
+};
 const BOMBOT_ACCESSORIES = [
   // --- ASPECTOS BASE (RESKINS) ---
   { id: 'cuby_reskin', name: { es: 'Aspecto Cuby', en: 'Cuby Reskin' }, slot: 'reskin', image: 'Cuby (RESKIN).png', unlock: 'duckpass_cuby' },
@@ -1640,9 +1646,9 @@ const BOMBOT_ACCESSORIES = [
   // --- CABEZA (gorros y pelos) ---
   { id: 'worker_cap', name: { es: 'Gorra de Obrero', en: 'Worker Cap' }, slot: 'head', image: 'Worker Cap.png', cost: 50 },
   { id: 'umbrella_hat', name: { es: 'Sombrero Paraguas', en: 'Umbrella Hat' }, slot: 'head', image: 'Umbrella Hat.png', unlock: 'sunlight_hard' },
-  { id: 'santa_hat', name: { es: 'Gorro de Santa', en: 'Santa Hat' }, slot: 'head', image: 'Santa Hat.png', cost: 80, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
-  { id: 'witch_hat', name: { es: 'Sombrero de Bruja', en: 'Witch Hat' }, slot: 'head', image: 'Witch Hat.png', cost: 80, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
-  { id: 'princess_hat', name: { es: 'Sombrero de Princesa', en: 'Princess Hat' }, slot: 'head', image: 'Princess Hat.png', cost: 50, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
+  { id: 'santa_hat', name: { es: 'Gorro de Santa', en: 'Santa Hat' }, slot: 'head', image: 'Santa Hat.png', cost: 80 },
+  { id: 'witch_hat', name: { es: 'Sombrero de Bruja', en: 'Witch Hat' }, slot: 'head', image: 'Witch Hat.png', cost: 80 },
+  { id: 'princess_hat', name: { es: 'Sombrero de Princesa', en: 'Princess Hat' }, slot: 'head', image: 'Princess Hat.png', cost: 50 },
   { id: 'bombot_hair', name: { es: 'Pelo de Bombot', en: 'Bombot Hair' }, slot: 'head', image: 'Bombot Hair.png', unlock: 'duckpass_bombot_hair' },
   { id: 'girly_hair', name: { es: 'Pelo Femenino', en: 'Girly Hair' }, slot: 'head', image: 'Girly Hair.png', unlock: 'duckpass_girly_hair' },
   { id: 'headsets', name: { es: 'Auriculares', en: 'Headsets' }, slot: 'head', image: 'Headsets.png', cost: 50 },
@@ -1650,19 +1656,19 @@ const BOMBOT_ACCESSORIES = [
   { id: 'rewamped_glob', name: { es: 'Gorro Glob Remasterizado', en: 'Rewamped Glob Hat' }, slot: 'head', image: 'RewampedGlob.png', unlock: 'rewamped_skin' },
   { id: 'cutely_haired', name: { es: 'Pelo Adorable', en: 'Cutely Haired' }, slot: 'head', image: 'Cutely Haired.png', cost: 100, copyright: 'Inspired by Hatsune Miku (\u00a9 Crypton Future Media, Inc.)' },
   { id: 'lovely_haired', name: { es: 'Pelo Encantador', en: 'Lovely Haired' }, slot: 'head', image: 'Lovely Haired.png', cost: 100, copyright: 'Inspired by Kasane Teto (\u00a9 AHS Co., Ltd.)' },
-  { id: 'wb_retro_cap', name: { es: 'Gorra Retro W-B', en: 'W-B Retro Cap' }, slot: 'head', image: 'W-B Retro Cap.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
-  { id: 'ducky_hat', name: { es: 'Gorro Ducky', en: 'Ducky Hat' }, slot: 'head', image: 'Ducky Hat.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
-  { id: 'fungunous_hat', name: { es: 'Gorro Fungunous', en: 'Fungunous Hat' }, slot: 'head', image: 'Fungunous Hat.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
-  { id: 'glamour_hat', name: { es: 'Gorro Glamour', en: 'Glamour Hat' }, slot: 'head', image: 'Glamour Hat.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, incompatibleReskins: BOMBOT_EDGE_HAT_INCOMPATIBLE_RESKINS },
-  { id: 'kirb_headsets', name: { es: 'Auriculares de Kirb', en: "Kirb's Headsets" }, slot: 'head', image: 'Kirb_s Headsets.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'wb_retro_cap', name: { es: 'Gorra Retro W-B', en: 'W-B Retro Cap' }, slot: 'head', image: 'W-B Retro Cap.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, duckpassCost: ADVENT_CALENDAR_SHOP_PRICES.wb_retro_cap },
+  { id: 'ducky_hat', name: { es: 'Gorro Ducky', en: 'Ducky Hat' }, slot: 'head', image: 'Ducky Hat.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, duckpassCost: ADVENT_CALENDAR_SHOP_PRICES.ducky_hat },
+  { id: 'fungunous_hat', name: { es: 'Gorro Fungunous', en: 'Fungunous Hat' }, slot: 'head', image: 'Fungunous Hat.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, duckpassCost: ADVENT_CALENDAR_SHOP_PRICES.fungunous_hat },
+  { id: 'glamour_hat', name: { es: 'Gorro Glamour', en: 'Glamour Hat' }, slot: 'head', image: 'Glamour Hat.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, duckpassCost: ADVENT_CALENDAR_SHOP_PRICES.glamour_hat },
+  { id: 'kirb_headsets', name: { es: 'Auriculares de Kirb', en: "Kirb's Headsets" }, slot: 'head', image: 'Kirb_s Headsets.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, duckpassCost: ADVENT_CALENDAR_SHOP_PRICES.kirb_headsets },
   { id: 'toy_and_key', name: { es: 'Juguete y llave', en: 'Toy & Key' }, slot: 'front', frontType: 'hand', image: 'Toy&Key.png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
   { id: 'blockbot_reskin', name: { es: 'Aspecto Blockbot', en: 'Blockbot Reskin' }, slot: 'reskin', image: 'Blockbot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
-  { id: 'bunnity_bombot_reskin', name: { es: 'Aspecto Bunnity Bombot', en: 'Bunnity Bombot Reskin' }, slot: 'reskin', image: 'Bunnity Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'bunnity_bombot_reskin', name: { es: 'Aspecto Bunnity Bombot', en: 'Bunnity Bombot Reskin' }, slot: 'reskin', image: 'Bunnity Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, duckpassCost: ADVENT_CALENDAR_SHOP_PRICES.bunnity_bombot_reskin },
   { id: 'giftbot_reskin', name: { es: 'Aspecto Giftbot', en: 'Giftbot Reskin' }, slot: 'reskin', image: 'Giftbot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
-  { id: 'guest_bombot_reskin', name: { es: 'Aspecto Guest Bombot', en: 'Guest Bombot Reskin' }, slot: 'reskin', image: 'Guest Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
-  { id: 'monobear_bombot_reskin', name: { es: 'Aspecto Monobear Bombot', en: 'Monobear Bombot Reskin' }, slot: 'reskin', image: 'Monobear Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
-  { id: 'noob_bombot_reskin', name: { es: 'Aspecto Noob Bombot', en: 'Noob Bombot Reskin' }, slot: 'reskin', image: 'Noob Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
-  { id: 'silent_habitant_reskin', name: { es: 'Aspecto Silent Habitant', en: 'Silent Habitant Reskin' }, slot: 'reskin', image: 'Silent Habitant (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
+  { id: 'guest_bombot_reskin', name: { es: 'Aspecto Guest Bombot', en: 'Guest Bombot Reskin' }, slot: 'reskin', image: 'Guest Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, duckpassCost: ADVENT_CALENDAR_SHOP_PRICES.guest_bombot_reskin },
+  { id: 'monobear_bombot_reskin', name: { es: 'Aspecto Monobear Bombot', en: 'Monobear Bombot Reskin' }, slot: 'reskin', image: 'Monobear Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, duckpassCost: ADVENT_CALENDAR_SHOP_PRICES.monobear_bombot_reskin },
+  { id: 'noob_bombot_reskin', name: { es: 'Aspecto Noob Bombot', en: 'Noob Bombot Reskin' }, slot: 'reskin', image: 'Noob Bombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, duckpassCost: ADVENT_CALENDAR_SHOP_PRICES.noob_bombot_reskin },
+  { id: 'silent_habitant_reskin', name: { es: 'Aspecto Silent Habitant', en: 'Silent Habitant Reskin' }, slot: 'reskin', image: 'Silent Habitant (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT, duckpassCost: ADVENT_CALENDAR_SHOP_PRICES.silent_habitant_reskin },
   { id: 'tvombot_reskin', name: { es: 'Aspecto TVombot', en: 'TVombot Reskin' }, slot: 'reskin', image: 'TVombot (RESKIN).png', assetRoot: ADVENT_CALENDAR_ACCESSORY_ROOT },
 
   // --- FRONTAL ---
@@ -1717,10 +1723,6 @@ function getEquippedBombotFronts() {
   return fronts ? [fronts] : [];
 }
 
-function isBombotAccessoryCompatible(accessory, accessories = gameState.equippedBombotAccessories) {
-  return !accessory?.incompatibleReskins?.includes(accessories?.reskin);
-}
-
 function normalizeEquippedBombotAccessories(accessories = {}) {
   const rawFrontItems = Array.isArray(accessories.front)
     ? accessories.front
@@ -1758,11 +1760,10 @@ function getBombotAccessoryLayerIds(accessories = gameState.equippedBombotAccess
     BOMBOT_ACCESSORIES.find(accessory => accessory.id === id)?.frontType === 'glasses'
   );
   const otherFronts = fronts.filter(id => !glasses.includes(id));
-  const headAccessory = BOMBOT_ACCESSORIES.find(accessory => accessory.id === normalized.head);
   return [
     ...glasses,
     ...otherFronts,
-    isBombotAccessoryCompatible(headAccessory, normalized) ? normalized.head : null,
+    normalized.head,
     normalized.suit,
     normalized.reskin
   ].filter(Boolean);
@@ -5574,6 +5575,10 @@ function isOwnerDebugUser() {
 
 function ownerUnlockEverything() {
   Object.keys(TOWER_TYPES).forEach(type => { TOWER_TYPES[type].unlocked = true; });
+  gameState.unlockedBombotAccessories = [...new Set([
+    ...(gameState.unlockedBombotAccessories || []),
+    ...BOMBOT_ACCESSORIES.map(accessory => accessory.id)
+  ])];
   Object.values(SKINS_DATA).forEach(skins => skins.forEach(skin => {
     if (skin.id && !gameState.unlockedSkins.includes(skin.id)) gameState.unlockedSkins.push(skin.id);
   }));
@@ -7504,6 +7509,7 @@ function bindEvents() {
         duckPassXP: gameState.duckPassXP,
         duckPassLevel: gameState.duckPassLevel,
         unlockedSkins: [...(gameState.unlockedSkins || [])],
+        unlockedBombotAccessories: [...(gameState.unlockedBombotAccessories || [])],
         unlockedInfinite: gameState.unlockedInfinite,
         unlockedInterstellar: gameState.unlockedInterstellar,
         claimedRewards: [...(gameState.claimedRewards || [])],
@@ -7538,6 +7544,10 @@ function bindEvents() {
       const allSkinIds = [];
       Object.values(SKINS_DATA).forEach(arr => arr.forEach(s => allSkinIds.push(s.id)));
       allSkinIds.forEach(id => { if (!gameState.unlockedSkins.includes(id)) gameState.unlockedSkins.push(id); });
+      gameState.unlockedBombotAccessories = [...new Set([
+        ...(gameState.unlockedBombotAccessories || []),
+        ...BOMBOT_ACCESSORIES.map(accessory => accessory.id)
+      ])];
       gameState.maxedFamilies = getProfileGlobFamilies().map(({ family }) => family);
       gameState.profileMaxAvatars = [...gameState.maxedFamilies];
       gameState.profileMaxRewampAvatars = [...gameState.maxedFamilies];
@@ -7566,6 +7576,7 @@ function bindEvents() {
           if (snap.towerTypes[k] !== undefined) TOWER_TYPES[k].unlocked = snap.towerTypes[k].unlocked;
         });
         gameState.unlockedSkins = snap.unlockedSkins;
+        gameState.unlockedBombotAccessories = snap.unlockedBombotAccessories || gameState.unlockedBombotAccessories || [];
         gameState.pycoins = snap.pycoins;
         gameState.duckPassCurrency = snap.duckPassCurrency;
         gameState.duckPassXP = snap.duckPassXP;
@@ -7643,7 +7654,34 @@ function bindEvents() {
     if (!isOwnerDebugUser()) return;
     ownerUnlockEverything();
     saveProgress();
+    if (document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
     showMessage('👑 OWNER DEBUG: todo desbloqueado.', 'success');
+  });
+  document.getElementById('debug-grant-advent')?.addEventListener('click', () => {
+    if (!isOwnerDebugUser()) return;
+    const now = new Date();
+    const { year } = getAdventCalendarDate(now);
+    const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+    const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
+    const daysToGrant = ADVENT_CALENDAR_REWARDS
+      .map((entry, index) => ({ ...entry, day: index + 1 }))
+      .filter(({ day }) => !claimedDays.includes(day));
+    const granted = daysToGrant.map(({ reward }) => grantAdventReward(reward));
+    calendar.claimedDays[String(year)] = [
+      ...new Set([...claimedDays, ...ADVENT_CALENDAR_REWARDS.map((_, index) => index + 1)])
+    ];
+    gameState.adventCalendar = calendar;
+    saveProgress();
+    updateUI();
+    updateMetaUI();
+    if (document.getElementById('advent-calendar-modal')?.style.display === 'flex') renderAdventCalendar();
+    if (document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
+    showMessage(
+      currentLanguage === 'en'
+        ? `👑 OWNER DEBUG: ${granted.length} Advent rewards granted.`
+        : `👑 OWNER DEBUG: otorgadas ${granted.length} recompensas de Adviento.`,
+      granted.length ? 'success' : 'info'
+    );
   });
   setupOwnerDebugTools();
 
@@ -7817,6 +7855,45 @@ function getAdventRewardLabel(reward) {
   return getBombotAccessoryName(accessory);
 }
 
+function getAdventRewardNote(reward) {
+  if (reward.type !== 'accessory') return '';
+  const notes = {
+    silent_habitant_reskin: {
+      es: 'Referencia a Waddle Dee · © HAL Laboratory',
+      en: 'Waddle Dee reference · © HAL Laboratory'
+    },
+    monobear_bombot_reskin: {
+      es: 'Danganronpa',
+      en: 'Danganronpa'
+    },
+    bunnity_bombot_reskin: {
+      es: 'Danganronpa',
+      en: 'Danganronpa'
+    },
+    glamour_hat: {
+      es: 'Guiño sutil a Cappy, de Super Mario Odyssey',
+      en: 'A subtle nod to Cappy from Super Mario Odyssey'
+    }
+  };
+  return notes[reward.id]?.[currentLanguage] || '';
+}
+
+function isAdventRewardLimited(reward) {
+  return getAdventCalendarDate(new Date()).month !== 11 &&
+    (reward.type === 'accessory' || reward.type === 'skin') &&
+    ADVENT_CALENDAR_CHRISTMAS_REWARD_IDS.has(reward.id);
+}
+
+function isAdventCosmeticLimited(id) {
+  return getAdventCalendarDate(new Date()).month !== 11 &&
+    ADVENT_CALENDAR_CHRISTMAS_REWARD_IDS.has(id);
+}
+
+function isAdventCosmeticShopAvailable(id) {
+  return getAdventCalendarDate(new Date()).month !== 11 &&
+    Number.isFinite(ADVENT_CALENDAR_SHOP_PRICES[id]);
+}
+
 function grantAdventReward(reward) {
   if (reward.type === 'pycoins') {
     gameState.pycoins += reward.amount;
@@ -7886,12 +7963,36 @@ function renderAdventCalendar() {
         : (currentLanguage === 'en'
           ? `Today is day ${day} of the calendar. Beat any map today to claim its reward.`
           : `Hoy es el día ${day} del calendario. Supera cualquier mapa hoy para reclamar su premio.`);
-  balance.textContent = currentLanguage === 'en'
-    ? `🦆 ${gameState.duckPassCurrency} Duckpasses · 🪙 ${Math.floor(gameState.pycoins)} PyCoins`
-    : `🦆 ${gameState.duckPassCurrency} Duckpasses · 🪙 ${Math.floor(gameState.pycoins)} PyCoins`;
-  note.textContent = currentLanguage === 'en'
-    ? 'If a cosmetic is already unlocked, it converts to 250 PyCoins.'
-    : 'Si ya tienes un cosmético, se convierte en 250 PyCoins.';
+  balance.replaceChildren();
+  [
+    { image: 'img/Tokens/DuckPass.png', amount: gameState.duckPassCurrency, label: 'Duckpasses' },
+    { image: 'img/Tokens/PyCoin.png', amount: Math.floor(gameState.pycoins), label: 'PyCoins' }
+  ].forEach((currency, index) => {
+    if (index > 0) {
+      const separator = document.createElement('span');
+      separator.className = 'advent-calendar-balance-separator';
+      separator.textContent = '·';
+      separator.setAttribute('aria-hidden', 'true');
+      balance.appendChild(separator);
+    }
+    const item = document.createElement('span');
+    item.className = 'advent-calendar-balance-item';
+    const icon = document.createElement('img');
+    icon.src = currency.image;
+    icon.alt = '';
+    icon.setAttribute('aria-hidden', 'true');
+    const amount = document.createElement('span');
+    amount.textContent = `${currency.amount} ${currency.label}`;
+    item.append(icon, amount);
+    balance.appendChild(item);
+  });
+  note.textContent = month !== 11
+    ? (currentLanguage === 'en'
+      ? 'Generic Advent cosmetics are available in the shop for Duckpasses. Items marked LIMITED return only during future Christmas events.'
+      : 'Los cosméticos genéricos del calendario están disponibles en la tienda por Duckpasses. Los marcados LIMITADA solo volverán en futuros eventos navideños.')
+    : (currentLanguage === 'en'
+      ? 'If a cosmetic is already unlocked, it converts to 250 PyCoins.'
+      : 'Si ya tienes un cosmético, se convierte en 250 PyCoins.');
   grid.replaceChildren();
 
   ADVENT_CALENDAR_REWARDS.forEach((entry, index) => {
@@ -7910,34 +8011,57 @@ function renderAdventCalendar() {
     number.textContent = String(dayNumber).padStart(2, '0');
     const rewards = document.createElement('div');
     rewards.className = 'advent-day-rewards';
-    entry.rewards.forEach(reward => {
-      const line = document.createElement('div');
-      line.className = 'advent-day-reward';
-      const imagePath = reward.type === 'pycoins'
-        ? 'img/Tokens/PyCoin.png'
-        : reward.type === 'duckpass'
-          ? 'img/Tokens/DuckPass.png'
-          : reward.type === 'accessory'
-            ? getBombotAccessoryImage(reward.id)
-            : reward.type === 'skin'
-              ? SKINS_DATA.Glob.find(skin => skin.id === reward.id)?.skins.Glob
-              : null;
-      if (imagePath) {
-        const image = document.createElement('img');
-        image.src = encodeURI(imagePath);
-        image.alt = '';
-        rewards.appendChild(image);
+    const reward = entry.reward;
+    const line = document.createElement('div');
+    line.className = 'advent-day-reward';
+    const imagePath = reward.type === 'pycoins'
+      ? 'img/Tokens/PyCoin.png'
+      : reward.type === 'duckpass'
+        ? 'img/Tokens/DuckPass.png'
+        : reward.type === 'accessory'
+          ? getBombotAccessoryImage(reward.id)
+          : reward.type === 'skin'
+            ? SKINS_DATA.Glob.find(skin => skin.id === reward.id)?.skins.Glob
+            : null;
+    if (imagePath) {
+      const image = document.createElement('img');
+      image.src = encodeURI(imagePath);
+      image.alt = '';
+      line.appendChild(image);
+    } else {
+      const icon = document.createElement('span');
+      icon.textContent = '✨';
+      icon.setAttribute('aria-hidden', 'true');
+      line.appendChild(icon);
+    }
+    const labelGroup = document.createElement('span');
+    labelGroup.className = 'advent-day-reward-label';
+    if (isAdventRewardLimited(reward)) {
+      const limitedTag = document.createElement('small');
+      limitedTag.className = 'advent-limited-tag';
+      limitedTag.textContent = currentLanguage === 'en' ? 'LIMITED' : 'LIMITADA';
+      labelGroup.appendChild(limitedTag);
+    }
+    const label = document.createElement('span');
+    label.textContent = getAdventRewardLabel(reward);
+    labelGroup.appendChild(label);
+    const rewardNote = getAdventRewardNote(reward);
+    if (rewardNote) {
+      const noteText = document.createElement('small');
+      noteText.className = 'advent-day-reward-note';
+      if (reward.id === 'monobear_bombot_reskin' || reward.id === 'bunnity_bombot_reskin') {
+        noteText.append(`${rewardNote} · `);
+        const creatorTag = document.createElement('span');
+        creatorTag.className = 'advent-credit-tag';
+        creatorTag.textContent = 'Luna1255';
+        noteText.appendChild(creatorTag);
       } else {
-        const icon = document.createElement('span');
-        icon.textContent = '✨';
-        icon.setAttribute('aria-hidden', 'true');
-        rewards.appendChild(icon);
+        noteText.textContent = rewardNote;
       }
-      const label = document.createElement('span');
-      label.textContent = getAdventRewardLabel(reward);
-      line.appendChild(label);
-      rewards.appendChild(line);
-    });
+      labelGroup.appendChild(noteText);
+    }
+    line.appendChild(labelGroup);
+    rewards.appendChild(line);
 
     const action = document.createElement('button');
     action.type = 'button';
@@ -7985,7 +8109,7 @@ function claimAdventDay(dayNumber) {
 
   claimedDays.push(dayNumber);
   gameState.adventCalendar = calendar;
-  const granted = ADVENT_CALENDAR_REWARDS[dayNumber - 1].rewards.map(grantAdventReward);
+  const granted = grantAdventReward(ADVENT_CALENDAR_REWARDS[dayNumber - 1].reward);
   saveProgress();
   updateMetaUI();
   showMessage(`🎁 ${granted.join(' · ')}`, 'success');
@@ -8017,7 +8141,7 @@ function buyAdventDay(dayNumber) {
   calendar.paidDays[yearKey] = paidCount + 1;
   claimedDays.push(dayNumber);
   gameState.adventCalendar = calendar;
-  const granted = ADVENT_CALENDAR_REWARDS[dayNumber - 1].rewards.map(grantAdventReward);
+  const granted = grantAdventReward(ADVENT_CALENDAR_REWARDS[dayNumber - 1].reward);
   saveProgress();
   updateMetaUI();
   showMessage(`🎁 ${granted.join(' · ')}`, 'success');
@@ -9141,18 +9265,29 @@ function getBombotAccessoryUnlockText(accessory) {
 
 function buyBombotAccessory(id) {
   const accessory = BOMBOT_ACCESSORIES.find(item => item.id === id);
-  if (!accessory || !accessory.cost || gameState.unlockedBombotAccessories.includes(id)) return;
+  if (!accessory || gameState.unlockedBombotAccessories.includes(id)) return;
+  const isDuckpassPurchase = Boolean(accessory.duckpassCost);
+  if (isDuckpassPurchase && (!isAdventCosmeticShopAvailable(id) || isAdventCosmeticLimited(id))) return;
+  const cost = isDuckpassPurchase ? accessory.duckpassCost : accessory.cost;
+  if (!cost) return;
   if (!gameState.unlockedSkins.includes(PERSONALIZABLE_BOMBOT_SKIN_ID)) {
     showMessage(currentLanguage === 'en'
       ? 'Unlock Personalizable Bombot first.'
       : 'Desbloquea primero Personalizable Bombot.', 'warning');
     return;
   }
-  if (gameState.pycoins < accessory.cost) {
-    showMessage(translate('no_pycoins'), 'error');
+  const currency = isDuckpassPurchase ? gameState.duckPassCurrency : gameState.pycoins;
+  if (currency < cost) {
+    showMessage(
+      currentLanguage === 'en'
+        ? `Not enough ${isDuckpassPurchase ? 'Duckpasses' : 'PyCoins'}.`
+        : `No tienes suficientes ${isDuckpassPurchase ? 'Duckpasses' : 'PyCoins'}.`,
+      'error'
+    );
     return;
   }
-  gameState.pycoins -= accessory.cost;
+  if (isDuckpassPurchase) gameState.duckPassCurrency -= cost;
+  else gameState.pycoins -= cost;
   gameState.unlockedBombotAccessories.push(id);
   gameState.unlockedBombotAccessories = [...new Set(gameState.unlockedBombotAccessories)];
   saveProgress();
@@ -9170,12 +9305,6 @@ function equipBombotAccessory(id) {
     return;
   }
   if (!gameState.unlockedBombotAccessories.includes(id) && gameState.debugState !== 'unlocked') return;
-  if (!isBombotAccessoryCompatible(accessory)) {
-    showMessage(currentLanguage === 'en'
-      ? 'This hat does not fit the currently equipped Bombot reskin.'
-      : 'Este gorro no encaja con el aspecto de Bombot equipado.', 'warning');
-    return;
-  }
 
   if (accessory.slot === 'front') {
     const fronts = getEquippedBombotFronts();
@@ -9208,13 +9337,6 @@ function equipBombotAccessory(id) {
   } else if (accessory.slot === 'reskin') {
     const nextReskin = gameState.equippedBombotAccessories.reskin === id ? null : id;
     gameState.equippedBombotAccessories.reskin = nextReskin;
-    const equippedHead = BOMBOT_ACCESSORIES.find(item => item.id === gameState.equippedBombotAccessories.head);
-    if (equippedHead && !isBombotAccessoryCompatible(equippedHead, { ...gameState.equippedBombotAccessories, reskin: nextReskin })) {
-      gameState.equippedBombotAccessories.head = null;
-      showMessage(currentLanguage === 'en'
-        ? 'The equipped hat was removed because it does not fit this reskin.'
-        : 'Se ha quitado el gorro equipado porque no encaja con este aspecto.', 'warning');
-    }
   } else {
     gameState.equippedBombotAccessories[accessory.slot] =
       gameState.equippedBombotAccessories[accessory.slot] === id ? null : id;
@@ -9325,9 +9447,8 @@ function renderBombotAccessoryCustomizer(container) {
       const isUnlocked = gameState.unlockedBombotAccessories.includes(accessory.id) ||
         gameState.debugState === 'unlocked';
       const equipped = category.isEquipped(accessory);
-      const compatible = isBombotAccessoryCompatible(accessory);
       const card = document.createElement('article');
-      card.className = `bombot-accessory-card${equipped ? ' equipped' : ''}${isUnlocked ? '' : ' locked'}${compatible ? '' : ' incompatible'}`;
+      card.className = `bombot-accessory-card${equipped ? ' equipped' : ''}${isUnlocked ? '' : ' locked'}`;
       const image = document.createElement('img');
       image.src = encodeURI(getBombotAccessoryImage(accessory.id));
       const accName = getBombotAccessoryName(accessory);
@@ -9343,6 +9464,12 @@ function renderBombotAccessoryCustomizer(container) {
       const name = document.createElement('strong');
       name.textContent = accName;
       card.append(imgBox, name);
+      if (isAdventCosmeticLimited(accessory.id)) {
+        const limitedTag = document.createElement('small');
+        limitedTag.className = 'advent-limited-tag';
+        limitedTag.textContent = currentLanguage === 'en' ? 'LIMITED' : 'LIMITADA';
+        card.appendChild(limitedTag);
+      }
       if (accessory.copyright) {
         const copyrightNote = document.createElement('small');
         copyrightNote.className = 'bombot-accessory-copyright';
@@ -9353,15 +9480,20 @@ function renderBombotAccessoryCustomizer(container) {
       const action = document.createElement('button');
       action.type = 'button';
       if (isUnlocked) {
-        if (!compatible) {
-          action.textContent = currentLanguage === 'en' ? 'Does not fit this reskin' : 'No encaja con este aspecto';
-          action.disabled = true;
-        } else {
-          action.textContent = equipped
-            ? (currentLanguage === 'en' ? 'Unequip' : 'Quitar')
-            : (currentLanguage === 'en' ? 'Equip' : 'Equipar');
-          action.addEventListener('click', () => equipBombotAccessory(accessory.id));
-        }
+        action.textContent = equipped
+          ? (currentLanguage === 'en' ? 'Unequip' : 'Quitar')
+          : (currentLanguage === 'en' ? 'Equip' : 'Equipar');
+        action.addEventListener('click', () => equipBombotAccessory(accessory.id));
+      } else if (isAdventCosmeticLimited(accessory.id)) {
+        action.textContent = currentLanguage === 'en' ? 'Christmas event exclusive' : 'Exclusivo de eventos navideños';
+        action.disabled = true;
+      } else if (accessory.duckpassCost && !isAdventCosmeticShopAvailable(accessory.id)) {
+        action.textContent = currentLanguage === 'en' ? 'Advent Calendar exclusive' : 'Exclusivo del Calendario de Adviento';
+        action.disabled = true;
+      } else if (accessory.duckpassCost) {
+        action.textContent = `🦆 ${accessory.duckpassCost} Duckpasses`;
+        action.disabled = gameState.duckPassCurrency < accessory.duckpassCost;
+        action.addEventListener('click', () => buyBombotAccessory(accessory.id));
       } else if (accessory.cost && accessory.unlock) {
         // Tiene precio Y condición de desbloqueo: verificar prerequisito
         const prereqMet = checkBombotAccessoryPrerequisite(accessory.unlock);
@@ -9646,7 +9778,10 @@ function drawShop() {
         }
 
         const previewImg = skin.skins ? (skin.skins[family] || Object.values(skin.skins)[0]) : 'img/Glob_DEF.png';
-        const specialBadge = skin.isSpecial ? `<div class="special-badge">⭐ ESPECIAL</div>` : '';
+        const limitedBadge = isAdventCosmeticLimited(skin.id)
+          ? `<div class="advent-limited-tag shop-advent-limited-tag">${currentLanguage === 'en' ? 'LIMITED' : 'LIMITADA'}</div>`
+          : '';
+        const specialBadge = `${limitedBadge}${skin.isSpecial ? '<div class="special-badge">⭐ ESPECIAL</div>' : ''}`;
 
         const buyable = isUnlocked ? true : (skin.type === 'free' ? false : canBuy);
         const skinAction = isUnlocked
@@ -9685,7 +9820,7 @@ function drawShop() {
           isProfileImageUnlockConditionMet(skin);
         const isAlwaysVisible = [
           'rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set', 'ducky_rgb_sr',
-          ...RGB_REWAMP_SKIN_IDS, 'judicial_set', ...storeUnlockableIds
+          ...RGB_REWAMP_SKIN_IDS, 'judicial_set', 'snowglob_set', ...storeUnlockableIds
         ].includes(skin.id);
 
         // Solo mostrar si está desbloqueada, o si es de las siempre visibles
@@ -9722,7 +9857,9 @@ function drawShop() {
       function getUnlockConditionText(skinId, condition) {
         if (skinId === 'mimic_set') return currentLanguage === 'es' ? '🎁 Derrota a un Mimic Pyce Especial' : '🎁 Defeat a Special Mimic Pyce';
         if (skinId === 'pyce_morph') return currentLanguage === 'es' ? '🎁 Recompensa Secreta' : '🎁 Secret Reward';
-        if (condition === 'advent_calendar') return currentLanguage === 'es' ? '🎄 Reclama el día 25 del Calendario de Adviento' : '🎄 Claim day 25 of the Advent Calendar';
+        if (condition === 'advent_calendar') return isAdventCosmeticLimited(skinId)
+          ? (currentLanguage === 'es' ? '🎄 Reservada para futuros eventos navideños' : '🎄 Reserved for future Christmas events')
+          : (currentLanguage === 'es' ? '🎄 Reclama el día 25 del Calendario de Adviento' : '🎄 Claim day 25 of the Advent Calendar');
         if (condition === 'all_profile_images') return currentLanguage === 'es'
           ? '🖼️ Reúne todas las imágenes de perfil disponibles'
           : '🖼️ Collect every available profile image';
@@ -9762,6 +9899,9 @@ function drawShop() {
           el.className = `skin-item special-skin unlockable-skin ${isEquipped ? 'equipped' : ''}`;
           el.style.opacity = isUnlocked ? '1' : '0.85';
           el.style.border = isUnlocked ? `1px solid ${skinColor}` : `1px solid ${skinColor}55`;
+          const limitedBadge = isAdventCosmeticLimited(skin.id)
+            ? `<div class="advent-limited-tag shop-advent-limited-tag">${currentLanguage === 'en' ? 'LIMITED' : 'LIMITADA'}</div>`
+            : '';
 
           // Determine the best preview image for special skins
           let previewImg;
@@ -9797,6 +9937,7 @@ function drawShop() {
               ? `<img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}`
               : `<img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost}`;
             el.innerHTML = `
+              ${limitedBadge}
               <div class="special-badge" style="background:${skinColor}; color:#000;">🌟 ${currentLanguage === 'es' ? 'NUEVA' : 'NEW'}</div>
               <div class="skin-preview"><img src="${previewImg}" style="width:100%; height:100%;"></div>
               <h3>${translate(skin.name)}</h3>
@@ -9808,6 +9949,7 @@ function drawShop() {
             btnText = `🔒 ${currentLanguage === 'es' ? 'Bloqueada' : 'Locked'}`;
             
             el.innerHTML = `
+              ${limitedBadge}
               <div class="special-badge" style="background:${skinColor}; color:#000;">🔓 ${currentLanguage === 'es' ? 'DESBLOQUEABLE' : 'UNLOCKABLE'}</div>
               <div class="skin-preview ${rgbPreviewClass}" style="filter:grayscale(0.4) brightness(0.8);${rgbPreviewStyle}"><img src="${previewImg}" style="width:100%; height:100%;"></div>
               <h3>${translate(skin.name)}</h3>
@@ -9823,6 +9965,7 @@ function drawShop() {
             canBuy = true;
 
             el.innerHTML = `
+              ${limitedBadge}
               <div class="special-badge" style="background:${skinColor}; color:#000;">🌟 ${currentLanguage === 'es' ? 'DESBLOQUEADA' : 'UNLOCKED'}</div>
               <div class="skin-preview ${skin.class || ''} ${rgbPreviewClass}" style="${rgbPreviewStyle}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
               <h3>${translate(skin.name)}</h3>
