@@ -181,6 +181,29 @@ function getSafeProfileImageUrl(imagePath) {
   }
 }
 
+function launchChristmasGiftProjectile(rect) {
+  const projectile = document.createElement('img');
+  const angle = Math.random() * Math.PI * 2;
+  const dx = Math.cos(angle);
+  const dy = Math.sin(angle);
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  const distance = Math.min(
+    dx > 0 ? (window.innerWidth - centerX) / dx : -centerX / dx,
+    dy > 0 ? (window.innerHeight - centerY) / dy : -centerY / dy
+  ) + 60;
+  projectile.className = 'christmas-gift-projectile';
+  projectile.src = encodeURI(IMAGE_PATHS.Santa_Workshop_Gift_Projectile);
+  projectile.alt = '';
+  projectile.setAttribute('aria-hidden', 'true');
+  projectile.style.left = `${centerX}px`;
+  projectile.style.top = `${centerY}px`;
+  projectile.style.setProperty('--gift-flight-x', `${dx * distance}px`);
+  projectile.style.setProperty('--gift-flight-y', `${dy * distance}px`);
+  document.body.appendChild(projectile);
+  setTimeout(() => projectile.remove(), 1200);
+}
+
 function getSafeProfileColors(profile) {
   const fallback = ['#8796a5', '#202833'];
   const colors = profile?.borderColors;
@@ -247,7 +270,7 @@ function createProfileAvatarImage(avatar, size, alt = '') {
 
 function createMultiplayerProfileBadge(profile, size = 38) {
   const frame = document.createElement('span');
-  const borderStyle = ['time-attack-a', 'time-attack-b'].includes(profile?.borderStyle)
+  const borderStyle = PROFILE_BORDER_STYLE_CLASSES.has(profile?.borderStyle)
     ? ` ${profile.borderStyle}`
     : '';
   frame.className = `multiplayer-profile-badge${profile?.rainbowBorder ? ' rainbow' : ''}${profile?.rgbBorder ? ' glb-fever' : ''}${borderStyle}${profile?.rgbAvatar ? ' rgb-avatar' : ''}`;
@@ -1466,7 +1489,13 @@ function generateSpots() {
         return Math.hypot(x - (start.x + projection * dx), y - (start.y + projection * dy)) < 58;
       })) collides = true;
       if (!collides) {
-        TOWER_SPOTS.push({ x: x - 40, y: y - 40, w: 80, h: 80 });
+        TOWER_SPOTS.push({
+          x: x - 40,
+          y: y - 40,
+          w: 80,
+          h: 80,
+          christmasColor: TOWER_SPOTS.length % 2 === 0 ? 'red' : 'green'
+        });
       }
     }
   }
@@ -1590,7 +1619,7 @@ const TUTORIAL_BOSSES_BY_MAP = {
   gelatin_lake: ['4motions_Pyce'],
   urbanistic_road: ['Cannon_Pycer', 'Knight_Pyce'],
   sunlight_seaside: ['Old_Fungus'],
-  spooktacular_ruins: ['Blood_Taker', 'SkeleBone_Pyce']
+  spooktacular_ruins: ['Blood_Taker', 'SkeleBone_Pyce'],
 };
 const PERSONALIZABLE_BOMBOT_SKIN_ID = 'personalizable_bombot';
 const ADVENT_CALENDAR_ACCESSORY_ROOT = 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/PersonalizbleBot/';
@@ -1622,8 +1651,17 @@ const ADVENT_CALENDAR_REWARDS = [
   { reward: { type: 'duckpass', amount: 600 } }
 ];
 const ADVENT_CALENDAR_CHRISTMAS_REWARD_IDS = new Set([
-  'giftbot_reskin', 'blockbot_reskin', 'toy_and_key', 'tvombot_reskin', 'snowglob_set'
+  'giftbot_reskin', 'blockbot_reskin', 'toy_and_key', 'tvombot_reskin', 'kirb_headsets', 'snowglob_set', 'santa_workshop_set'
 ]);
+const CHRISTMAS_ENEMY_TYPES = new Set([
+  'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'
+]);
+const CHRISTMAS_LOGIN_ENEMY_IMAGES = new Set(
+  [...CHRISTMAS_ENEMY_TYPES].flatMap(type => {
+    const enemy = ENEMY_TYPES[type];
+    return enemy?.imageVariants || [enemy?.image];
+  }).filter(Boolean)
+);
 const ADVENT_CALENDAR_SHOP_PRICES = {
   noob_bombot_reskin: 250,
   guest_bombot_reskin: 250,
@@ -2706,8 +2744,8 @@ function getLoginGlobDecorationTypes() {
     const family = getTowerFamily(types[0]);
     if (!isTowerOwned(family)) return;
     let type = types.find(candidate => !evolvedTypes.has(candidate));
-    for (let level = 0; type && level < 2; level++) {
-      visibleTypes.add(type);
+    for (let level = 0; type; level++) {
+      if (level === 0 || level === 2) visibleTypes.add(type);
       const nextType = TOWER_TYPES[type].evolution;
       type = types.includes(nextType) ? nextType : null;
     }
@@ -2719,6 +2757,14 @@ function isHalloweenLoginEnemy(imagePath) {
   return HALLOWEEN_LOGIN_SKIN_IMAGES.has(imagePath) || Object.keys(IMAGE_PATHS).some(type =>
     HALLOWEEN_LOGIN_ENEMIES.has(type) && IMAGE_PATHS[type] === imagePath
   );
+}
+
+function getLoginDecorationWeight(imagePath, month) {
+  if (CHRISTMAS_LOGIN_ENEMY_IMAGES.has(imagePath)) {
+    return month === 11 ? 5 : 1;
+  }
+  if (isHalloweenLoginEnemy(imagePath) && month === 9) return 5;
+  return 1;
 }
 
 function triggerHalloweenJumpscare(type, enemyElement, imagePathOverride = null) {
@@ -2791,11 +2837,13 @@ function spawnDecorations(containerId) {
 
     // For login/mode screens, exclude collab assets and check unlocks
     const isLoginScreen = (containerId === 'login-decorations' || containerId === 'mode-decorations' || containerId === 'map-decorations');
+    const loginMonth = new Date().getMonth();
     let images = allImages;
     if (isLoginScreen) {
       const loginGlobTypes = getLoginGlobDecorationTypes();
       images = allImages.filter(p => {
         if (p === IMAGE_PATHS.Omnipresent_Glob || p === IMAGE_PATHS.Kirb_Glob) return false;
+        if (CHRISTMAS_LOGIN_ENEMY_IMAGES.has(p)) return loginMonth === 9 || loginMonth === 11;
         const key = Object.keys(IMAGE_PATHS).find(k => IMAGE_PATHS[k] === p);
         if (!key) return true;
 
@@ -2818,11 +2866,15 @@ function spawnDecorations(containerId) {
 
     const pool = images.length > 0 ? images : allImages;
     const availableGlobPaths = images.filter(imagePath => getGlobDecorationType(imagePath));
-    const shuffledPool = [...pool];
+    const weightedPool = pool.flatMap(imagePath =>
+      Array(isLoginScreen ? getLoginDecorationWeight(imagePath, loginMonth) : 1).fill(imagePath)
+    );
+    const shuffledPool = [...weightedPool];
     for (let i = shuffledPool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffledPool[i], shuffledPool[j]] = [shuffledPool[j], shuffledPool[i]];
     }
+    const uniqueShuffledPool = [...new Set(shuffledPool)];
     let clickedGlobPaths;
     try {
       const storedGlobs = JSON.parse(localStorage.getItem(HYPERMUTATED_GLOBS_KEY) || '[]');
@@ -2831,14 +2883,12 @@ function spawnDecorations(containerId) {
       console.error('No se pudo leer la lista de Globs secretos ya descubiertos:', error);
       clickedGlobPaths = new Set();
     }
-    const globImagesToShow = shuffledPool.filter(path =>
+    const globImagesToShow = uniqueShuffledPool.filter(path =>
       availableGlobPaths.includes(path) && !clickedGlobPaths.has(path)
     );
     const selectedGlobImages = globImagesToShow.slice(0, 8);
     const selectedImages = [...selectedGlobImages];
-    const halloweenImages = shuffledPool.filter(isHalloweenLoginEnemy);
-    selectedImages.push(...halloweenImages);
-    for (const imagePath of shuffledPool) {
+    for (const imagePath of uniqueShuffledPool) {
       if (selectedImages.length >= 15) break;
       if (
         !selectedImages.includes(imagePath) &&
@@ -2851,8 +2901,8 @@ function spawnDecorations(containerId) {
 
     const getNextDecorationImage = excludedImagePath => {
       for (let checked = 0; checked < shuffledPool.length; checked++) {
-        const imagePath = shuffledPool[replacementIndex];
-        replacementIndex = (replacementIndex + 1) % shuffledPool.length;
+        const imagePath = uniqueShuffledPool[replacementIndex];
+        replacementIndex = (replacementIndex + 1) % uniqueShuffledPool.length;
         if (imagePath === excludedImagePath) continue;
         if (availableGlobPaths.includes(imagePath) && clickedGlobPaths.has(imagePath)) continue;
         const alreadyVisible = [...container.querySelectorAll('.floating-char')]
@@ -2860,10 +2910,10 @@ function spawnDecorations(containerId) {
         if (!alreadyVisible) return imagePath;
       }
 
-      return shuffledPool.find(imagePath =>
+      return uniqueShuffledPool.find(imagePath =>
         imagePath !== excludedImagePath &&
         (!availableGlobPaths.includes(imagePath) || !clickedGlobPaths.has(imagePath))
-      ) || shuffledPool.find(imagePath =>
+      ) || uniqueShuffledPool.find(imagePath =>
         !availableGlobPaths.includes(imagePath) || !clickedGlobPaths.has(imagePath)
       ) || null;
     };
@@ -2901,6 +2951,12 @@ function spawnDecorations(containerId) {
         if (isHalloweenLoginEnemy(imgPath)) {
           const enemyType = Object.keys(IMAGE_PATHS).find(type => IMAGE_PATHS[type] === imgPath);
           triggerHalloweenJumpscare(enemyType, null, imgPath);
+          img.remove();
+          setTimeout(() => refillDecorations(imgPath), 850);
+          return;
+        }
+        if (CHRISTMAS_LOGIN_ENEMY_IMAGES.has(imgPath)) {
+          launchChristmasGiftProjectile(img.getBoundingClientRect());
           img.remove();
           setTimeout(() => refillDecorations(imgPath), 850);
           return;
@@ -5083,6 +5139,7 @@ function createMap() {
     el.className = 'path-segment';
     if (mapKey === 'urbanistic_road') el.classList.add('urban-path');
     if (mapKey === 'sunlight_seaside') el.classList.add('seaside-path');
+    if (mapKey === 'frosty_christmas') el.classList.add('christmas-path');
     if (mapKey === 'spooktacular_ruins') {
       el.classList.add('spook-path');
       if (p.intersection) el.classList.add('spook-crossing');
@@ -5121,6 +5178,9 @@ function createMap() {
     const el = document.createElement('div');
     el.className = 'tower-spot';
     if (mapKey === 'urbanistic_road') el.classList.add('urban-spot');
+    if (mapKey === 'frosty_christmas') {
+      el.classList.add('christmas-spot', `christmas-spot-${s.christmasColor}`);
+    }
     el.dataset.id = i;
     el.style.left = `${s.x}px`; el.style.top = `${s.y}px`;
     el.style.width = `${s.w}px`; el.style.height = `${s.h}px`;
@@ -5135,7 +5195,7 @@ function createMap() {
   const oldSecondAllyBase = document.getElementById('ally-base-2');
   if (oldSecondAllyBase) oldSecondAllyBase.remove();
 
-  map.classList.remove('urban-map', 'sunlight-map', 'spook-map');
+  map.classList.remove('urban-map', 'sunlight-map', 'spook-map', 'frosty-map');
   if (allyBase) {
     allyBase.classList.remove('casino-base', 'tunnel-base', 'boat-base', 'spook-oasis-base');
     allyBase.style.left = '';
@@ -5143,20 +5203,20 @@ function createMap() {
     allyBase.style.top = '';
   }
   if (enemyBase) {
-    enemyBase.classList.remove('casino-base', 'tunnel-base', 'raft-base', 'spook-pyramid-base');
+    enemyBase.classList.remove('casino-base', 'tunnel-base', 'raft-base', 'spook-pyramid-base', 'christmas-base');
     enemyBase.style.left = '';
     enemyBase.style.top = '';
     enemyBase.style.display = '';
   }
   if (enemyBase2) {
-    enemyBase2.classList.remove('tunnel-base', 'raft-base', 'spook-pyramid-base');
+    enemyBase2.classList.remove('tunnel-base', 'raft-base', 'spook-pyramid-base', 'christmas-base');
     enemyBase2.style.display = 'none';
     enemyBase2.style.left = '';
     enemyBase2.style.top = '';
   }
 
   const gameArea = document.getElementById('game-area');
-  if (gameArea) gameArea.classList.remove('sunlight-map', 'spook-map');
+  if (gameArea) gameArea.classList.remove('sunlight-map', 'spook-map', 'frosty-map');
 
   if (mapKey === 'urbanistic_road') {
     map.classList.add('urban-map');
@@ -5234,6 +5294,27 @@ function createMap() {
       enemyBase2.title = 'Base enemiga: Pirámide suroccidental';
       enemyBase2.style.left = '0px';
       enemyBase2.style.top = '320px';
+      enemyBase2.style.display = 'flex';
+    }
+  } else if (mapKey === 'frosty_christmas') {
+    map.classList.add('frosty-map');
+    if (gameArea) gameArea.classList.add('frosty-map');
+    if (allyBase) {
+      allyBase.title = currentLanguage === 'en' ? 'Allied base: Christmas workshop' : 'Base aliada: Taller navideño';
+    }
+    if (enemyBase) {
+      enemyBase.classList.add('christmas-base');
+      enemyBase.textContent = '🎁';
+      enemyBase.title = currentLanguage === 'en' ? 'Enemy base: northern gift factory' : 'Base enemiga: fábrica de regalos norte';
+      enemyBase.style.left = '0px';
+      enemyBase.style.top = '125px';
+    }
+    if (enemyBase2) {
+      enemyBase2.classList.add('christmas-base');
+      enemyBase2.textContent = '🎁';
+      enemyBase2.title = currentLanguage === 'en' ? 'Enemy base: southern gift factory' : 'Base enemiga: fábrica de regalos sur';
+      enemyBase2.style.left = '0px';
+      enemyBase2.style.top = '405px';
       enemyBase2.style.display = 'flex';
     }
   } else {
@@ -5606,7 +5687,8 @@ function ownerUnlockEverything() {
     ...(gameState.profilePurchasedBorders || []),
     'placeholder',
     'coded',
-    ...PROFILE_SHOP_BORDERS.map(border => border.id)
+    ...PROFILE_SHOP_BORDERS.map(border => border.id),
+    ...PROFILE_EVENT_BORDERS.map(border => border.id)
   ])];
   gameState.profileMapModeWins = Object.fromEntries(
     PROFILE_MAP_BORDERS.map(({ map }) => [
@@ -5668,8 +5750,10 @@ function debugSearchScore(query, values) {
 }
 
 const DEBUG_ENEMY_GROUP_ALIASES = {
-  pyces: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
-  enemigos: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
+  pyces: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
+  enemigos: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
+  christmas: ['Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
+  navidad: ['Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
   bits: ['BitY1', 'BitB4', 'BitG2', 'BitP3'],
   bytes: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'],
   spyware: ['Spyware', 'Spyware1', 'Spyware2', 'Spyware3'],
@@ -5699,7 +5783,12 @@ const DEBUG_ENEMY_GROUP_ALIASES = {
 };
 
 const DEBUG_SPEAKER_ALIASES = {
-  omnipresent: ['???', 'omnipresent', 'omnipresent glob'],
+  omnipresent: ['???'],
+  festive_pyce: ['festive', 'festive pyce', 'navidad', 'regalo'],
+  toybomb_pyce: ['toy bomb', 'toy bomb pyce', 'bomb toy'],
+  snowcapsule_pyce: ['snow capsule', 'snowcapsule pyce', 'nieve'],
+  elf_pyce: ['elf', 'elf pyce', 'elfo'],
+  giftbox_pyce: ['giftbox', 'gift box', 'caja regalo'],
   mysterybug: ['mysterybug', 'mystery bug'],
   jerry: ['jerry'],
   mysterybug_custom: ['mysterybug', 'mystery bug'],
@@ -5843,6 +5932,7 @@ function setupOwnerDebugTools() {
     const narratorData = typeof NARRATOR_DATA === 'object' ? NARRATOR_DATA : {};
     const registeredSpeakers = Object.entries(narratorData)
       .filter(([id]) => id === 'mysterybug' || !mysteryBugSearchAliases.includes(id))
+      .filter(([id]) => id !== 'omnipresent' || !query.trim() || query.trim() === '???')
       .map(([id, data]) => {
         const languageData = data[currentLanguage] || data.es || data.en || {};
         const mysteryBugLabel = mysteryBugName?.value.trim() || 'MysteryBug';
@@ -5924,13 +6014,13 @@ function setupOwnerDebugTools() {
     if (socket && currentSeed) {
       socket.emit('spawn-enemy', { enemyType: selectedEnemy.id, boss: false, forcedPath: null });
     }
-    showMessage(`DEBUG: ${selectedEnemy.label} spawneado.`, 'info');
+    showMessage(translate('debug_enemy_spawned', { name: selectedEnemy.label }), 'info');
   });
   showDialogueButton?.addEventListener('click', () => {
     if (!isOwnerDebugUser() || !selectedSpeaker) return;
     const text = dialogueText.value.trim();
     if (!text) {
-      showMessage('Escribe un texto para el diálogo.', 'warning');
+      showMessage(translate('debug_empty_dialogue'), 'warning');
       dialogueText.focus();
       return;
     }
@@ -5960,6 +6050,10 @@ function setupOwnerDebugTools() {
       socket.emit('show-dialog', { id: emitId, img: emitImg, name: emitName, text: text });
     }
   });
+  window.refreshOwnerDebugLanguage = () => {
+    searchEnemies();
+    searchSpeakers();
+  };
 }
 
 function setupOwnerDebugPanelDrag() {
@@ -6379,6 +6473,11 @@ function toggleLanguage() {
   renderMapSelection();
   drawTowerShop();
   drawBadges();
+  if (document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
+  if (document.getElementById('encyclopedia-modal')?.style.display === 'flex') {
+    const activeTab = document.querySelector('.encyclopedia-tab.active')?.id.replace('enc-tab-', '') || 'globs';
+    switchEncyclopediaTab(activeTab);
+  }
   if (document.getElementById('story-logs-modal').style.display === 'flex') drawStoryLogs();
   if (document.getElementById('advent-calendar-modal').style.display === 'flex') renderAdventCalendar();
 }
@@ -6464,6 +6563,7 @@ function switchEncyclopediaTab(tab) {
     const filterContainer = document.createElement('div');
     filterContainer.style.gridColumn = '1 / -1';
     filterContainer.style.display = 'flex';
+    filterContainer.style.flexWrap = 'wrap';
     filterContainer.style.gap = '10px';
     filterContainer.style.marginBottom = '15px';
     
@@ -6505,6 +6605,19 @@ function switchEncyclopediaTab(tab) {
     typeSelect.style.border = '1px solid #555';
     typeSelect.style.backgroundColor = '#1a1a1f';
     typeSelect.style.color = '#fff';
+
+    const themeSelect = document.createElement('select');
+    themeSelect.innerHTML = `
+      <option value="all">${currentLanguage === 'en' ? 'All themes' : 'Todos los temas'}</option>
+      <option value="halloween">Halloween</option>
+      <option value="christmas">${currentLanguage === 'en' ? 'Christmas' : 'Navidad'}</option>
+      <option value="events">${currentLanguage === 'en' ? 'Events' : 'Eventos'}</option>
+    `;
+    themeSelect.style.padding = '8px';
+    themeSelect.style.borderRadius = '5px';
+    themeSelect.style.border = '1px solid #555';
+    themeSelect.style.backgroundColor = '#1a1a1f';
+    themeSelect.style.color = '#fff';
 
     const groupContainer = document.createElement('div');
     groupContainer.style.display = 'flex';
@@ -6580,6 +6693,7 @@ function switchEncyclopediaTab(tab) {
     filterContainer.appendChild(searchInput);
     filterContainer.appendChild(mapSelect);
     filterContainer.appendChild(typeSelect);
+    filterContainer.appendChild(themeSelect);
     
     const headerWrapper = document.createElement('div');
     headerWrapper.style.gridColumn = '1 / -1';
@@ -6605,9 +6719,10 @@ function switchEncyclopediaTab(tab) {
       const term = searchInput.value.toLowerCase();
       const mapVal = mapSelect.value;
       const typeVal = typeSelect.value;
+      const themeVal = themeSelect.value;
       const groupVal = activeGroup;
 
-      if (!term && mapVal === 'all' && typeVal === 'all' && groupVal === 'all') {
+      if (!term && mapVal === 'all' && typeVal === 'all' && themeVal === 'all' && groupVal === 'all') {
         enemyGrid.innerHTML = `
           <div class="enemy-category-card" onclick="triggerFilterGroup('pyces')" style="width:100%; max-width:200px; padding:20px; background:#e74c3c; border:3px solid #c0392b; border-radius:15px; text-align:center; cursor:pointer; transition:transform 0.2s; margin:auto;">
             <img src="${IMAGE_PATHS.Stupid_Pyce || 'img/Sellos/CuboPyceIcon.png'}" style="width:80px; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5));" onerror="this.src='img/Sellos/CuboPyceIcon.png'">
@@ -6656,7 +6771,11 @@ function switchEncyclopediaTab(tab) {
              mapSource = 'interstellar_menace';
            }
         }
-        
+        const isHalloweenEnemy = mapSource === 'spooktacular_ruins';
+        const isChristmasEnemy = mapSource === 'frosty_christmas';
+        const isInterstellarEnemy = mapSource === 'interstellar_menace' || e.category === 'other';
+        const isAcrossTimeEnemy = Boolean(e.timeAttackOnly || e.acrossTimeBoss || e.acrossTimeFinal);
+
         let enemyClass = e.enemyClass || 'melee';
         if (!e.enemyClass) {
           if (e.boss) enemyClass = 'boss';
@@ -6669,6 +6788,9 @@ function switchEncyclopediaTab(tab) {
         if (term && !name.includes(term)) return;
         if (mapVal !== 'all' && mapSource !== mapVal) return;
         if (typeVal !== 'all' && enemyClass !== typeVal) return;
+        if (themeVal === 'halloween' && !isHalloweenEnemy) return;
+        if (themeVal === 'christmas' && !isChristmasEnemy) return;
+        if (themeVal === 'events' && !(isHalloweenEnemy || isChristmasEnemy || isInterstellarEnemy || isAcrossTimeEnemy)) return;
         
         if (groupVal !== 'all') {
           if (groupVal === 'pyces' && !PYCES_ENEMIES.includes(type)) return;
@@ -6713,12 +6835,13 @@ function switchEncyclopediaTab(tab) {
       });
       
       if (firstItem) selectAlmanacItem(firstItem, 'enemies');
-      else details.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">No se encontraron enemigos.</div>';
+      else details.innerHTML = `<div style="padding:20px; text-align:center; color:#888;">${currentLanguage === 'en' ? 'No enemies found.' : 'No se encontraron enemigos.'}</div>`;
     };
 
     searchInput.addEventListener('input', renderFilteredEnemies);
     mapSelect.addEventListener('change', renderFilteredEnemies);
     typeSelect.addEventListener('change', renderFilteredEnemies);
+    themeSelect.addEventListener('change', renderFilteredEnemies);
     
     renderFilteredEnemies();
   } else if (tab === 'emblemas') {
@@ -6783,6 +6906,20 @@ function selectAlmanacItem(id, category) {
     }
     if (gameState.duckgrades && gameState.duckgrades['dg_' + t.family]) {
       metaHTML += `<div style="color:#ff9f43; font-size:0.85rem; font-weight:bold; margin-top:5px;">${translate('almanac_duckgrade_active')}</div>`;
+    }
+    const rgbFamilyLore = {
+      Glob: ['green_rgb_sr', 'encyclopedia_rgb_lore_green'],
+      Red_Glob: ['red_rgb_sr', 'encyclopedia_rgb_lore_red'],
+      Soap_Glob: ['blue_rgb_sr', 'encyclopedia_rgb_lore_blue'],
+      Ducky_Glob: ['ducky_rgb_sr', 'encyclopedia_rgb_lore_ducky'],
+      Comet_Glob: ['black_rgb_sr', 'encyclopedia_rgb_lore_black']
+    }[t.family];
+    const rgbLoreSkin = rgbFamilyLore && SKINS_DATA[t.family]?.find(skin => skin.id === rgbFamilyLore[0]);
+    if (rgbFamilyLore && (
+      gameState.unlockedSkins.includes(rgbFamilyLore[0]) ||
+      isProfileImageUnlockConditionMet(rgbLoreSkin || {})
+    )) {
+      metaHTML += `<div class="encyclopedia-secret-lore">🔎 ${translate(rgbFamilyLore[1])}</div>`;
     }
 
     details.innerHTML = `
@@ -7426,6 +7563,21 @@ function bindEvents() {
       return;
     }
 
+    if (code === 'FESTIVE_XMAS') {
+      unlockProfileBorderReward('festive');
+      gameState.usedCodes[code] = true;
+      updateMetaUI();
+      saveProgress();
+      if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+      publishMultiplayerProfile();
+      showMessage(
+        currentLanguage === 'en' ? 'Festive profile frame unlocked!' : '¡Borde de perfil Festivo desbloqueado!',
+        'success'
+      );
+      input.value = '';
+      return;
+    }
+
     let valid = false;
     const rewards = {
       'GL0B_CL1CKER': { py: 100, msg: '100 PyCoins', badge: 'secret' },
@@ -7554,7 +7706,8 @@ function bindEvents() {
       gameState.profilePurchasedBorders = [
         'placeholder',
         'coded',
-        ...PROFILE_SHOP_BORDERS.map(border => border.id)
+        ...PROFILE_SHOP_BORDERS.map(border => border.id),
+        ...PROFILE_EVENT_BORDERS.map(border => border.id)
       ];
       gameState.profileMapModeWins = Object.fromEntries(
         PROFILE_MAP_BORDERS.map(border => [border.map, [...PROFILE_MAP_MODES]])
@@ -7564,7 +7717,7 @@ function bindEvents() {
         const target = typeof getPyceKillTarget === 'function' ? getPyceKillTarget(type) : 9999;
         gameState.pycesKilled[type] = Math.max(gameState.pycesKilled[type] || 0, target);
       });
-      showMessage('🛠️ DEBUG: Torres, skins y enciclopedia desbloqueadas. Pulsa de nuevo para restaurar.', 'success');
+      showMessage(translate('debug_unlocked_notice'), 'success');
       const indicator = document.getElementById('admin-indicator');
       indicator.textContent = role === 'OWNER' ? '👑 OWNER MODE' : '🛠 DEVBUILD MODE';
       indicator.style.display = 'block';
@@ -7601,7 +7754,7 @@ function bindEvents() {
       gameState.debugSnapshot = null;
       saveProgress();
       updateRoleIndicator();
-      showMessage('🔄 DEBUG: Estado restaurado al original.', 'warning');
+      showMessage(translate('debug_restored_notice'), 'warning');
     }
     updateHypermutatedTowers();
     updateGlitchTowers();
@@ -7636,7 +7789,7 @@ function bindEvents() {
     updateUI();
     updateMetaUI();
     saveProgress();
-    showMessage('👑 OWNER DEBUG: recursos añadidos.', 'success');
+    showMessage(translate('debug_resources_added_notice'), 'success');
   });
   document.getElementById('debug-max-resources')?.addEventListener('click', () => {
     if (!isOwnerDebugUser()) return;
@@ -7648,14 +7801,14 @@ function bindEvents() {
     updateUI();
     updateMetaUI();
     saveProgress();
-    showMessage('👑 OWNER DEBUG: recursos al máximo.', 'success');
+    showMessage(translate('debug_resources_maxed_notice'), 'success');
   });
   document.getElementById('debug-unlock-all')?.addEventListener('click', () => {
     if (!isOwnerDebugUser()) return;
     ownerUnlockEverything();
     saveProgress();
     if (document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
-    showMessage('👑 OWNER DEBUG: todo desbloqueado.', 'success');
+    showMessage(translate('debug_everything_unlocked_notice'), 'success');
   });
   document.getElementById('debug-grant-advent')?.addEventListener('click', () => {
     if (!isOwnerDebugUser()) return;
@@ -7671,6 +7824,7 @@ function bindEvents() {
       ...new Set([...claimedDays, ...ADVENT_CALENDAR_REWARDS.map((_, index) => index + 1)])
     ];
     gameState.adventCalendar = calendar;
+    const completionReward = unlockSantaWorkshopForCompletedCalendar(year);
     saveProgress();
     updateUI();
     updateMetaUI();
@@ -7678,8 +7832,8 @@ function bindEvents() {
     if (document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
     showMessage(
       currentLanguage === 'en'
-        ? `👑 OWNER DEBUG: ${granted.length} Advent rewards granted.`
-        : `👑 OWNER DEBUG: otorgadas ${granted.length} recompensas de Adviento.`,
+        ? `👑 OWNER DEBUG: ${granted.length} Advent rewards granted.${completionReward ? ` ${completionReward}` : ''}`
+        : `👑 OWNER DEBUG: otorgadas ${granted.length} recompensas de Adviento.${completionReward ? ` ${completionReward}` : ''}`,
       granted.length ? 'success' : 'info'
     );
   });
@@ -7878,6 +8032,43 @@ function getAdventRewardNote(reward) {
   return notes[reward.id]?.[currentLanguage] || '';
 }
 
+function unlockSantaWorkshopForCompletedCalendar(year) {
+  const claimedDays = getAdventCalendarDays(
+    normalizeAdventCalendarState(gameState.adventCalendar).claimedDays,
+    year
+  );
+  const allDays = ADVENT_CALENDAR_REWARDS.length;
+  if (claimedDays.length !== allDays || gameState.unlockedSkins.includes('santa_workshop_set')) {
+    return '';
+  }
+  gameState.unlockedSkins.push('santa_workshop_set');
+  return currentLanguage === 'en'
+    ? 'Santa\'s Workshop unlocked!'
+    : '¡Santa\'s Workshop desbloqueado!';
+}
+
+function isChristmasEventActive(date = new Date()) {
+  return getAdventCalendarDate(date).month === 11;
+}
+
+function unlockProfileBorderReward(borderId) {
+  if (gameState.profilePurchasedBorders.includes(borderId)) return false;
+  gameState.profilePurchasedBorders.push(borderId);
+  gameState.profilePurchasedBorders = [...new Set(gameState.profilePurchasedBorders)];
+  return true;
+}
+
+function unlockSantaProfileBorderForCalendar(year) {
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
+  if (claimedDays.length < Math.ceil(ADVENT_CALENDAR_REWARDS.length / 2)) return false;
+  return unlockProfileBorderReward('santa');
+}
+
+function isChristmasEnemyType(type) {
+  return CHRISTMAS_ENEMY_TYPES.has(type);
+}
+
 function isAdventRewardLimited(reward) {
   return getAdventCalendarDate(new Date()).month !== 11 &&
     (reward.type === 'accessory' || reward.type === 'skin') &&
@@ -7942,6 +8133,16 @@ function renderAdventCalendar() {
   gameState.adventCalendar = calendar;
   const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
   const victoryDays = getAdventCalendarDays(calendar.victoryDays, year);
+  const santaBorderUnlocked = unlockSantaProfileBorderForCalendar(year);
+  if (santaBorderUnlocked) {
+    saveProgress();
+    showMessage(
+      currentLanguage === 'en'
+        ? 'Santa profile frame unlocked after claiming 13 Advent Calendar rewards!'
+        : '¡Borde de perfil Santa desbloqueado tras reclamar 13 premios del Calendario de Adviento!',
+      'success'
+    );
+  }
   const paidCount = Number(calendar.paidDays[String(year)] || 0);
   const isAdventMonth = month === 11;
   const isAfterCalendar = isAdventMonth && day > 25;
@@ -8109,10 +8310,13 @@ function claimAdventDay(dayNumber) {
 
   claimedDays.push(dayNumber);
   gameState.adventCalendar = calendar;
-  const granted = grantAdventReward(ADVENT_CALENDAR_REWARDS[dayNumber - 1].reward);
+  const granted = [grantAdventReward(ADVENT_CALENDAR_REWARDS[dayNumber - 1].reward)];
+  const completionReward = unlockSantaWorkshopForCompletedCalendar(year);
+  const santaBorderUnlocked = unlockSantaProfileBorderForCalendar(year);
   saveProgress();
   updateMetaUI();
-  showMessage(`🎁 ${granted.join(' · ')}`, 'success');
+  showMessage(`🎁 ${granted.join(' · ')}${completionReward ? ` · ${completionReward}` : ''}${santaBorderUnlocked ? (currentLanguage === 'en' ? ' · Santa profile frame unlocked!' : ' · ¡Borde de perfil Santa desbloqueado!') : ''}`, 'success');
+  if (santaBorderUnlocked && document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
   renderAdventCalendar();
 }
 
@@ -8141,10 +8345,13 @@ function buyAdventDay(dayNumber) {
   calendar.paidDays[yearKey] = paidCount + 1;
   claimedDays.push(dayNumber);
   gameState.adventCalendar = calendar;
-  const granted = grantAdventReward(ADVENT_CALENDAR_REWARDS[dayNumber - 1].reward);
+  const granted = [grantAdventReward(ADVENT_CALENDAR_REWARDS[dayNumber - 1].reward)];
+  const completionReward = unlockSantaWorkshopForCompletedCalendar(year);
+  const santaBorderUnlocked = unlockSantaProfileBorderForCalendar(year);
   saveProgress();
   updateMetaUI();
-  showMessage(`🎁 ${granted.join(' · ')}`, 'success');
+  showMessage(`🎁 ${granted.join(' · ')}${completionReward ? ` · ${completionReward}` : ''}${santaBorderUnlocked ? (currentLanguage === 'en' ? ' · Santa profile frame unlocked!' : ' · ¡Borde de perfil Santa desbloqueado!') : ''}`, 'success');
+  if (santaBorderUnlocked && document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
   renderAdventCalendar();
 }
 
@@ -8443,9 +8650,21 @@ const PROFILE_SHOP_BORDERS = [
   { id: 'color:red', label: 'Rojo', labelEn: 'Red', colors: ['#ff5555', '#202833'], cost: 250 },
   { id: 'color:purple', label: 'Morado', labelEn: 'Purple', colors: ['#c18aff', '#202833'], cost: 350 },
   { id: 'color:cyan', label: 'Cian', labelEn: 'Cyan', colors: ['#67e6e1', '#202833'], cost: 350 },
-  { id: 'spooky', label: 'Fantasmal', labelEn: 'Spooky', colors: ['#175b30', 'rgba(56, 190, 92, 0.35)'], cost: 500 },
-  { id: 'pumpkin', label: 'Calabaza', labelEn: 'Pumpkin', colors: ['#65c86e', '#d77b28'], cost: 500 }
+  { id: 'spooky', label: 'Fantasmal', labelEn: 'Spooky', colors: ['#175b30', 'rgba(56, 190, 92, 0.35)'], cost: 500, currency: 'duckpass' },
+  { id: 'pumpkin', label: 'Calabaza', labelEn: 'Pumpkin', colors: ['#65c86e', '#d77b28'], cost: 500, currency: 'duckpass' },
+  { id: 'candy', label: 'Caramelo', labelEn: 'Candy', colors: ['#c62838', '#1e8b54'], cost: 500, currency: 'duckpass', style: 'candy' },
+  { id: 'bomb', label: 'Bomba', labelEn: 'Bomb', colors: ['#d84934', '#8f241f'], cost: 350, currency: 'pycoins', style: 'bomb' },
+  { id: 'ice', label: 'Hielo', labelEn: 'Ice', colors: ['#6bd9ff', '#d8f7ff'], cost: 150, currency: 'pycoins', style: 'ice' },
+  { id: 'gift', label: 'Regalo', labelEn: 'Gift', colors: ['#d52830', '#ffd84a'], cost: 250, currency: 'pycoins', style: 'gift' }
 ];
+const PROFILE_EVENT_BORDERS = [
+  { id: 'festive', label: 'Festivo', labelEn: 'Festive', colors: ['#d52830', '#16834a'], style: 'festive' },
+  { id: 'elf', label: 'Elfo', labelEn: 'Elf', colors: ['#16834a', '#d52830'], style: 'elf' },
+  { id: 'santa', label: 'Santa', labelEn: 'Santa', colors: ['#d52830', '#fff8e8'], style: 'santa' }
+];
+const PROFILE_BORDER_STYLE_CLASSES = new Set([
+  'candy', 'bomb', 'ice', 'gift', 'festive', 'elf', 'santa', 'time-attack-a', 'time-attack-b'
+]);
 const PROFILE_TIME_ATTACK_BORDERS = [
   { id: 'time-attack-a', label: 'TIME ATTACK A', colors: ['#2600FF', '#00FFFF'], style: 'time-attack-a' },
   { id: 'time-attack-b', label: 'TIME ATTACK B', colors: ['#b8873b', '#392614'], style: 'time-attack-b' }
@@ -8580,6 +8799,7 @@ function hasUnlockedAllProfileBorders() {
     ...PROFILE_FREE_BORDERS.map(border => border.id),
     ...PROFILE_PASS_BORDERS.map(border => border.id),
     ...PROFILE_SHOP_BORDERS.map(border => border.id),
+    ...PROFILE_EVENT_BORDERS.map(border => border.id),
     ...PROFILE_TIME_ATTACK_BORDERS.map(border => border.id),
     'interstellar',
     'placeholder',
@@ -8654,7 +8874,16 @@ function getAvailableProfileBorders() {
       borders.push({
         id: border.id,
         label: currentLanguage === 'en' ? border.labelEn : border.label,
-        colors: border.colors
+        colors: border.colors,
+        style: border.style
+      });
+    }
+  });
+  PROFILE_EVENT_BORDERS.forEach(border => {
+    if (gameState.profilePurchasedBorders.includes(border.id)) {
+      borders.push({
+        ...border,
+        label: currentLanguage === 'en' ? border.labelEn : border.label
       });
     }
   });
@@ -8783,6 +9012,7 @@ function getProfileAvatarChoices() {
     }
   }
   getUniqueProfileEnemies().forEach(({ type, image, types }) => {
+    if (types.some(isChristmasEnemyType) && !isChristmasEventActive()) return;
     if (!types.some(isProfileEnemyFramed)) return;
     avatars.push({
       id: `enemy:${type}`,
@@ -8907,18 +9137,25 @@ function renderProfileShop(container) {
 
   PROFILE_SHOP_BORDERS.forEach(border => {
     const owned = gameState.profilePurchasedBorders.includes(border.id);
+    const currency = border.currency || 'duckpass';
+    const balance = currency === 'pycoins' ? gameState.pycoins : gameState.duckPassCurrency;
+    const icon = currency === 'pycoins' ? 'img/Tokens/PyCoin.png' : 'img/Tokens/DuckPass.png';
+    const description = {
+      candy: currentLanguage === 'en' ? 'Candy stripes match Frosty Christmas paths.' : 'Rayas de caramelo con los colores de los caminos de Frosty Christmas.',
+      bomb: currentLanguage === 'en' ? 'A bomb fuse flickers red before returning to its original color.' : 'Una mecha de bomba parpadea en rojo y vuelve a su color original.',
+      ice: currentLanguage === 'en' ? 'A cool, icy blue frame.' : 'Un borde azul frío con aspecto helado.',
+      gift: currentLanguage === 'en' ? 'A red gift wrapped with golden ribbons.' : 'Un regalo rojo envuelto con cintas doradas.',
+      spooky: currentLanguage === 'en' ? 'Translucent green background with a dark green frame.' : 'Fondo verde translúcido con borde verde oscuro.',
+      pumpkin: currentLanguage === 'en' ? 'Orange background with a green frame.' : 'Fondo naranja con borde verde.'
+    }[border.id] || (currentLanguage === 'en' ? 'A colored profile frame.' : 'Un borde de perfil de color.');
     const card = document.createElement('div');
     card.className = `meta-item ${owned ? 'unlocked' : ''}`;
     card.innerHTML = `
-      <div class="profile-placeholder-sample" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};" aria-hidden="true"></div>
+      <div class="profile-placeholder-sample${border.style ? ` ${border.style}` : ''}" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};" aria-hidden="true"></div>
       <h3>${currentLanguage === 'en' ? border.labelEn : border.label}</h3>
-      <p>${border.id === 'spooky'
-        ? (currentLanguage === 'en' ? 'Translucent green background with a dark green frame.' : 'Fondo verde translúcido con borde verde oscuro.')
-        : border.id === 'pumpkin'
-          ? (currentLanguage === 'en' ? 'Orange background with a green frame.' : 'Fondo naranja con borde verde.')
-          : (currentLanguage === 'en' ? 'A colored profile frame.' : 'Un borde de perfil de color.')}</p>
-      <div class="cost">${owned ? '✅' : `<img src="img/Tokens/DuckPass.png" width="18"> ${border.cost}`}</div>
-      <button class="meta-buy-btn" ${owned || gameState.duckPassCurrency < border.cost ? 'disabled' : ''}
+      <p>${description}</p>
+      <div class="cost">${owned ? '✅' : `<img src="${icon}" width="18"> ${border.cost}`}</div>
+      <button class="meta-buy-btn" ${owned || balance < border.cost ? 'disabled' : ''}
         onclick="buyProfileBorder('${border.id}')">${owned ? (currentLanguage === 'en' ? 'Owned' : 'Comprado') : translate('buy')}</button>`;
     container.appendChild(card);
   });
@@ -8953,11 +9190,14 @@ window.buyProfileBorder = function(borderId) {
   const shopBorder = PROFILE_SHOP_BORDERS.find(border => border.id === borderId);
   if ((borderId !== 'placeholder' && !shopBorder) || gameState.profilePurchasedBorders.includes(borderId)) return;
   const cost = shopBorder?.cost || 250;
-  if (gameState.duckPassCurrency < cost) {
+  const currency = shopBorder?.currency || 'duckpass';
+  const balance = currency === 'pycoins' ? gameState.pycoins : gameState.duckPassCurrency;
+  if (balance < cost) {
     showMessage(translate('notEnoughMoney'), 'error');
     return;
   }
-  gameState.duckPassCurrency -= cost;
+  if (currency === 'pycoins') gameState.pycoins -= cost;
+  else gameState.duckPassCurrency -= cost;
   gameState.profilePurchasedBorders.push(borderId);
   drawShop();
   updateMetaUI();
@@ -9213,7 +9453,13 @@ function getShopSkinDescription(skin) {
   const description = translate(skin.desc);
   const normalizedDescription = description.replace(/<span\b[^>]*>([\s\S]*?)<\/span>/gi, (span, content) => {
     if (/(created by|creado por|credit:|crédito:|designed by|drawn by|diseñad[oa] por|dibujad[oa] por|idead[oa] y dibujad[oa])/i.test(content)) {
-      return `<span class="skin-creator-tag">${content}</span>`;
+      let authorClass = '';
+      if (/credible/i.test(content)) authorClass = ' skin-creator-credible';
+      else if (/justauser/i.test(content)) authorClass = ' skin-creator-justauser';
+      else if (/luna1255/i.test(content)) authorClass = ' skin-creator-luna1255';
+      else if (/victorillo/i.test(content)) authorClass = ' skin-creator-victorillo';
+      else if (/kirbyte/i.test(content)) authorClass = ' skin-creator-kirbyte';
+      return `<span class="skin-creator-tag${authorClass}">${content}</span>`;
     }
     return span;
   }).replace(/\b(Created by:|Creado por:)\s*KirByte\b(?!_Bi)/g, '$1 KirByte_Bi');
@@ -9349,7 +9595,7 @@ function equipBombotAccessory(id) {
 window.buyBombotAccessory = buyBombotAccessory;
 window.equipBombotAccessory = equipBombotAccessory;
 
-function renderBombotAccessoryCustomizer(container) {
+function renderBombotAccessoryCustomizer(container, accessoryFilter = () => true) {
   syncBombotAccessoryUnlocksFromProgress();
   ensurePersonalizableBombotUnlocked();
   if (!gameState.unlockedSkins.includes(PERSONALIZABLE_BOMBOT_SKIN_ID)) return;
@@ -9427,6 +9673,10 @@ function renderBombotAccessoryCustomizer(container) {
   ];
 
   customizerCategories.forEach(category => {
+    const categoryAccessories = BOMBOT_ACCESSORIES
+      .filter(category.filter)
+      .filter(accessoryFilter);
+    if (categoryAccessories.length === 0) return;
     const group = document.createElement('div');
     group.className = 'bombot-accessory-slot';
     const heading = document.createElement('h4');
@@ -9443,7 +9693,7 @@ function renderBombotAccessoryCustomizer(container) {
     noneButton.addEventListener('click', () => category.onClear());
     items.appendChild(noneButton);
 
-    BOMBOT_ACCESSORIES.filter(category.filter).forEach(accessory => {
+    categoryAccessories.forEach(accessory => {
       const isUnlocked = gameState.unlockedBombotAccessories.includes(accessory.id) ||
         gameState.debugState === 'unlocked';
       const equipped = category.isEquipped(accessory);
@@ -9699,18 +9949,58 @@ function drawShop() {
       ...REWAMPED_SKIN_IDS,
       ...RGB_REWAMP_SKIN_IDS
     ])];
+    const halloweenSkinIds = new Set([
+      'pumpking_set', 'skelebones_set', 'wicked_set', 'rewamped_black_set', 'black_rgb_sr'
+    ]);
+    const christmasSkinIds = new Set(['snowglob_set', 'santa_workshop_set']);
+    const acrossTimeSkinIds = new Set(['virtuallity_set']);
+    const halloweenAccessoryIds = new Set(['witch_hat', 'pumpkin', 'darkness_emissary']);
+    const christmasAccessoryIds = new Set([...ADVENT_CALENDAR_CHRISTMAS_REWARD_IDS, 'santa_hat']);
+
+    function accessoryMatchesEvent(accessory, event) {
+      const isHalloween = halloweenAccessoryIds.has(accessory.id);
+      const isChristmas = christmasAccessoryIds.has(accessory.id);
+      const isInterstellar = accessory.unlock === 'interstellar';
+
+      if (event === 'halloween') return isHalloween;
+      if (event === 'christmas') return isChristmas;
+      return isHalloween || isChristmas || isInterstellar;
+    }
+
+    function skinMatchesEvent(skin, event) {
+      const assetPaths = Object.values(skin.skins || {}).join(' ').toLowerCase();
+      const condition = String(skin.unlockCondition || '').toLowerCase();
+      const isRewamp = REWAMPED_SKIN_IDS.includes(skin.id) || RGB_REWAMP_SKIN_IDS.includes(skin.id);
+      const isHalloween = halloweenSkinIds.has(skin.id) || condition.includes('spooktacular');
+      const isChristmas = christmasSkinIds.has(skin.id) ||
+        assetPaths.includes('frozen calendar christmas') ||
+        condition.includes('advent_calendar');
+      const isAcrossTime = acrossTimeSkinIds.has(skin.id) ||
+        assetPaths.includes('across the time') ||
+        assetPaths.includes('virtuallity set');
+      const isInterstellar = assetPaths.includes('interestelar menace') ||
+        condition.includes('interstellar') ||
+        ['astrorb_set', 'fracstal_set', 'crystal_bombot', 'cuby_bombot', 'spanish_bombot'].includes(skin.id);
+
+      if (event === 'halloween') return isHalloween;
+      if (event === 'christmas') return isChristmas;
+      return isHalloween || isChristmas || isAcrossTime || isInterstellar || isRewamp;
+    }
 
     const filterDiv = document.createElement('div');
     filterDiv.className = 'shop-filters';
     filterDiv.style.cssText = 'grid-column: 1 / -1; display:flex; justify-content:center; gap:8px; margin-bottom:15px; flex-wrap:wrap; width: 100%;';
     
     const filters = [
-      { id: 'all', label: 'Todos' },
-      { id: 'new', label: 'Nuevas' },
-      { id: 'buyable', label: 'Comprables' },
-      { id: 'special', label: 'Especiales' },
-      { id: 'equipped', label: 'Equipados' },
-      { id: 'unlockable', label: 'Desbloqueables' }
+      { id: 'all', label: currentLanguage === 'en' ? 'All' : 'Todos' },
+      { id: 'new', label: currentLanguage === 'en' ? 'New' : 'Nuevas' },
+      { id: 'buyable', label: currentLanguage === 'en' ? 'Buyable' : 'Comprables' },
+      { id: 'special', label: currentLanguage === 'en' ? 'Special' : 'Especiales' },
+      { id: 'equipped', label: currentLanguage === 'en' ? 'Equipped' : 'Equipados' },
+      { id: 'unlockable', label: currentLanguage === 'en' ? 'Unlockable' : 'Desbloqueables' },
+      { id: 'halloween', label: 'Halloween' },
+      { id: 'christmas', label: currentLanguage === 'en' ? 'Christmas' : 'Navidad' },
+      { id: 'events', label: currentLanguage === 'en' ? 'Events' : 'Eventos' }
     ];
 
     filters.forEach(f => {
@@ -9732,6 +10022,9 @@ function drawShop() {
 
     function shouldShowSkin(skin, family, isUnlockableCat) {
       if (window.activeSkinFilter === 'all') return true;
+      if (['halloween', 'christmas', 'events'].includes(window.activeSkinFilter)) {
+        return skinMatchesEvent(skin, window.activeSkinFilter);
+      }
       if (window.activeSkinFilter === 'new') return storeUnlockableIds.includes(skin.id);
       const isEquipped = gameState.equippedSkins[family] === skin.id;
 
@@ -9800,6 +10093,9 @@ function drawShop() {
 
     if (['all', 'new'].includes(window.activeSkinFilter)) {
       renderBombotAccessoryCustomizer(container);
+    } else if (['halloween', 'christmas', 'events'].includes(window.activeSkinFilter)) {
+      const event = window.activeSkinFilter;
+      renderBombotAccessoryCustomizer(container, accessory => accessoryMatchesEvent(accessory, event));
     }
 
     // ── Sección DESBLOQUEABLES ──
@@ -9820,7 +10116,7 @@ function drawShop() {
           isProfileImageUnlockConditionMet(skin);
         const isAlwaysVisible = [
           'rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set', 'ducky_rgb_sr',
-          ...RGB_REWAMP_SKIN_IDS, 'judicial_set', 'snowglob_set', ...storeUnlockableIds
+          ...RGB_REWAMP_SKIN_IDS, 'judicial_set', 'snowglob_set', 'santa_workshop_set', ...storeUnlockableIds
         ].includes(skin.id);
 
         // Solo mostrar si está desbloqueada, o si es de las siempre visibles
@@ -9857,9 +10153,12 @@ function drawShop() {
       function getUnlockConditionText(skinId, condition) {
         if (skinId === 'mimic_set') return currentLanguage === 'es' ? '🎁 Derrota a un Mimic Pyce Especial' : '🎁 Defeat a Special Mimic Pyce';
         if (skinId === 'pyce_morph') return currentLanguage === 'es' ? '🎁 Recompensa Secreta' : '🎁 Secret Reward';
-        if (condition === 'advent_calendar') return isAdventCosmeticLimited(skinId)
-          ? (currentLanguage === 'es' ? '🎄 Reservada para futuros eventos navideños' : '🎄 Reserved for future Christmas events')
-          : (currentLanguage === 'es' ? '🎄 Reclama el día 25 del Calendario de Adviento' : '🎄 Claim day 25 of the Advent Calendar');
+        if (condition === 'advent_calendar') return currentLanguage === 'es'
+          ? '🎄 Recompensa del Calendario de Adviento'
+          : '🎄 Advent Calendar reward';
+        if (condition === 'advent_calendar_complete') return currentLanguage === 'es'
+          ? '🎄 Reclama las 25 recompensas del Calendario de Adviento'
+          : '🎄 Claim all 25 Advent Calendar rewards';
         if (condition === 'all_profile_images') return currentLanguage === 'es'
           ? '🖼️ Reúne todas las imágenes de perfil disponibles'
           : '🖼️ Collect every available profile image';
@@ -10237,6 +10536,13 @@ function buySkin(family, skinId, cost) {
     console.error(`No se encontró la skin ${skinId} para la familia ${family}.`);
     return;
   }
+  if (skin.unlockCondition === 'advent_calendar_complete' &&
+      !gameState.unlockedSkins.includes(skinId)) {
+    showMessage(currentLanguage === 'en'
+      ? 'Claim all 25 Advent Calendar rewards to unlock this skin.'
+      : 'Reclama las 25 recompensas del Calendario de Adviento para desbloquear esta skin.', 'warning');
+    return;
+  }
   if (gameState.unlockedSkins.includes(skinId)) {
     equipSkin(family, skinId);
     return;
@@ -10274,6 +10580,13 @@ function equipSkin(family, skinId) {
     return;
   }
   const skin = SKINS_DATA[family]?.find(item => item.id === skinId);
+  if (skin?.unlockCondition === 'advent_calendar_complete' &&
+      !gameState.unlockedSkins.includes(skin.id)) {
+    showMessage(currentLanguage === 'en'
+      ? 'Claim all 25 Advent Calendar rewards to unlock this skin.'
+      : 'Reclama las 25 recompensas del Calendario de Adviento para desbloquear esta skin.', 'warning');
+    return;
+  }
   if (skin?.unlockCondition === 'all_profile_images' &&
       !gameState.unlockedSkins.includes(skin.id) &&
       !isProfileImageUnlockConditionMet(skin)) {
@@ -10288,6 +10601,14 @@ function equipSkin(family, skinId) {
     gameState.unlockedSkins.push(skin.id);
   }
   gameState.towers.forEach(t => { if (t.family === family || family === 'Global') { t.el.style.backgroundImage = `url('${encodeURI(getTowerImage(t.type))}')`; applyTowerEffects(t.el, t.type); } });
+  if (family === 'Worker_Glob') {
+    const trapImages = skin?.traps || {};
+    gameState.traps?.forEach(trap => {
+      if (TOWER_TYPES[trap.parentType]?.family !== family) return;
+      const image = trapImages[trap.trapType] || IMAGE_PATHS[trap.trapType];
+      trap.el.style.backgroundImage = `url('${encodeURI(image)}')`;
+    });
+  }
   if (currentShopTab === 'skins') drawShop();
   if (document.getElementById('pass-modal').style.display === 'flex') drawPass();
   saveProgress();
@@ -10989,6 +11310,10 @@ function activateGTack(t) {
       spooktacular_ruins: {
         enemies: ['Broksp', 'Blood_Taker', 'Pumpitch', 'RIPslide', 'Sneekmy', 'SkeleBone_Pyce', 'Ghost_Pyce', 'ZomPyce'],
         bosses: ['Curse_Boneker']
+      },
+      frosty_christmas: {
+        enemies: ['Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
+        bosses: []
       }
     };
     const plan = mapPools[mapKey] || mapPools.gelatin_lake;
@@ -11421,6 +11746,12 @@ function activateGTack(t) {
           medium: ['Blood_Taker', 'Pumpitch', 'Sneekmy', 'Ghost_Pyce', 'SkeleBone_Pyce'],
           hard: ['Pumpitch', 'Blood_Taker', 'Ghost_Pyce', 'SkeleBone_Pyce'],
           special: ['SkeleBone_Pyce', 'Ghost_Pyce']
+        },
+        frosty_christmas: {
+          regular: ['Festive_Pyce'],
+          medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce'],
+          hard: ['Giftbox_Pyce'],
+          special: ['ToyBomb_Pyce', 'Giftbox_Pyce']
         }
       };
 
@@ -11718,6 +12049,11 @@ function activateGTack(t) {
         if (wave >= 6) pool.push('Spyware');
         if (wave >= 7) pool.push('Knight_Pyce');
         if (wave >= 9) pool.push('Cannon_Pycer');
+      } else if (gameState.map === 'frosty_christmas') {
+        if (wave >= 1) pool.push('Festive_Pyce');
+        if (wave >= 3) pool.push('Elf_Pyce', 'SnowCapsule_Pyce');
+        if (wave >= 5) pool.push('ToyBomb_Pyce');
+        if (wave >= 7) pool.push('Giftbox_Pyce');
       }
       type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
     }
@@ -11758,6 +12094,8 @@ function activateGTack(t) {
     if (type === 'Spyware') {
       const spywareImages = [IMAGE_PATHS.Spyware1, IMAGE_PATHS.Spyware2, IMAGE_PATHS.Spyware3];
       imgStr = spywareImages[Math.floor(Math.random() * spywareImages.length)];
+    } else if (t.imageVariants?.length) {
+      imgStr = t.imageVariants[Math.floor(Math.random() * t.imageVariants.length)];
     }
     if (imgStr) el.style.backgroundImage = `url('${imgStr}')`;
     if (type === 'GODs_Shadow') {
@@ -13069,6 +13407,10 @@ function activateGTack(t) {
         if (gameState.enemies.some(e => e.darkAura)) {
           currentSpeed *= 0.6; // DarkSpirit ralentiza
         }
+        const freezingEnemy = gameState.enemies.find(e =>
+          e.coldAura && Math.hypot(t.x - e.x, t.y - e.y) <= (e.coldAuraRange || 125)
+        );
+        if (freezingEnemy) currentSpeed *= freezingEnemy.coldAuraSlow || 0.65;
 
         if (t.brownBuffTimer && t.brownBuffTimer > 0) {
           t.brownBuffTimer -= dt;
@@ -13250,7 +13592,7 @@ function activateGTack(t) {
                 `left:${spot.x}px;top:${spot.y}px;` +
                 `width:${trapSize}px;height:${trapSize}px;` +
                 `transform:translate(-50%,-50%);` +
-                `background:url('${encodeURI(IMAGE_PATHS[trapType])}') center/contain no-repeat;` +
+                `background:url('${encodeURI(getTowerSkinSet(t.family)?.traps?.[trapType] || IMAGE_PATHS[trapType])}') center/contain no-repeat;` +
                 `z-index:5;`;
               mapEl.appendChild(trap.el);
               gameState.traps.push(trap);
@@ -13805,6 +14147,9 @@ function activateGTack(t) {
 
   function shoot(shooter, target, opts = {}) {
     const typeCfg = TOWER_TYPES[shooter.type];
+    if (!opts.image) {
+      opts.image = getTowerSkinSet(shooter.family)?.projectiles?.[shooter.type];
+    }
     if (typeCfg) {
       if (typeCfg.slow) opts.slow = typeCfg.slow;
       if (typeCfg.stun) opts.stun = typeCfg.stun;
@@ -14050,7 +14395,9 @@ function activateGTack(t) {
       // Spooks in the Desert (UPD4)
       'Broksp': 450, 'Pumpitch': 250, 'RIPslide': 300, 'SkeleBone_Pyce': 275,
       'Curse_Boneker': 5, 'Blood_Taker': 325, 'Sneekmy': 350, 'Ghost_Pyce': 375, 'ZomPyce': 475,
-      'Piz': 500, 'Followishers': 250, 'Creamplet': 150
+      'Piz': 500, 'Followishers': 250, 'Creamplet': 150,
+      'Festive_Pyce': 550, 'ToyBomb_Pyce': 350, 'SnowCapsule_Pyce': 350,
+      'Elf_Pyce': 250, 'Giftbox_Pyce': 250
     };
     return targets[type] || 9999;
   }
@@ -14070,7 +14417,7 @@ function activateGTack(t) {
 
   function checkPyceMorphUnlock() {
     if (!gameState.unlockedSkins.includes('pyce_morph')) {
-      const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce'];
+      const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'];
       let allMaxed = true;
       for (const t of types) {
         if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
@@ -14128,7 +14475,7 @@ function activateGTack(t) {
       checkCollectionMasterDialogue();
       return;
     }
-    const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce'];
+    const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'];
     let allPycesMaxed = true;
     for (const t of types) {
       if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
@@ -14261,7 +14608,7 @@ function activateGTack(t) {
       }
     }
 
-    if (e.type === 'Bomb_Pyce') {
+    if (e.type === 'Bomb_Pyce' || e.explosive) {
       showEffect(e.x, e.y, translate('effect_boom'), "#ff4d4d");
       if (gameState.towers) {
         gameState.towers.forEach(t => {
@@ -14456,6 +14803,7 @@ function activateGTack(t) {
         }
       }
     });
+    window.refreshOwnerDebugLanguage?.();
 
     document.querySelectorAll('.btn-text').forEach(el => {
       const parent = el.parentElement;
@@ -14604,6 +14952,13 @@ function activateGTack(t) {
     setTimeout(() => { explosion.remove(); }, 500);
   }
 
+  function getTowerSkinSet(family) {
+    const skinId = gameState.equippedSkins?.[family];
+    return skinId && skinId !== 'default'
+      ? SKINS_DATA[family]?.find(skin => skin.id === skinId)
+      : null;
+  }
+
   function getTowerImage(type) {
     const cfg = TOWER_TYPES[type];
     const family = cfg.family || type;
@@ -14616,11 +14971,8 @@ function activateGTack(t) {
       return ENEMY_TYPES[pyceKeys[idx % pyceKeys.length]].image;
     }
 
-    const equipped = gameState.equippedSkins[family];
-    if (equipped && equipped !== 'default') {
-      const skinSet = SKINS_DATA[family]?.find(s => s.id === equipped);
-      if (skinSet?.skins?.[type]) return skinSet.skins[type];
-    }
+    const skinSet = getTowerSkinSet(family);
+    if (skinSet?.skins?.[type]) return skinSet.skins[type];
     return cfg.image;
   }
 
@@ -15006,6 +15358,14 @@ function activateGTack(t) {
         return;
       }
       recordAdventCalendarVictory();
+      if (isChristmasEventActive() && unlockProfileBorderReward('elf')) {
+        showMessage(
+          currentLanguage === 'en'
+            ? '🎄 Elf profile frame unlocked for winning a map during Christmas!'
+            : '🎄 ¡Borde de perfil Elfo desbloqueado por superar un mapa durante Navidad!',
+          'success'
+        );
+      }
       unlockBombotAccessoriesForVictory();
       const baseModes = ['facil', 'normal', 'dificil', 'extremo'];
 
@@ -15524,6 +15884,7 @@ function activateGTack(t) {
         <h3 style="color:#69e5ff;">📋 Historial de Actualizaciones (GlD v6.0.0 — Frozen Calendar Christmas)</h3>
         <p style="color:#80edb0;">¡Llega el Calendario de Adviento! Del 1 al 25 de diciembre, supera cualquier mapa para reclamar el premio de ese día: PyCoins, Duckpasses, XP, accesorios y el set SnowGlob. Los días omitidos se recuperan con Duckpasses; el primero cuesta 637 y cada recuperación posterior añade 100. Si el reloj retrocede, los premios pendientes pasan a ser de pago. Esta comprobación local es disuasoria, no una validación segura del servidor.</p>
         <button type="button" class="advent-entry-btn" onclick="openAdventCalendar()">🎄 Abrir Calendario de Adviento</button>
+        <p>Canjea <code>FESTIVE_XMAS</code> para obtener el borde Festivo. En diciembre, gana cualquier mapa para conseguir el borde Elfo; reclama 13 recompensas del calendario para el borde Santa. Los bordes Candy, Bomb, Ice y Gift están en la tienda de perfiles.</p>
 
         <h3 style="color:#b58cff;">📋 Historial de Actualizaciones (Parche reciente — Personalización, online y moderación)</h3>
         <p style="color:#b58cff;">Más formas de personalizar tu experiencia, compartir partidas y mantener el chat agradable.</p>
@@ -15539,7 +15900,7 @@ function activateGTack(t) {
           <li>👁️ <strong>Voces de NOeye y DarkSpirit</strong>: NOeye usa leetspeak en sus diálogos generales y DarkSpirit tiene un tono más terrorífico y un borde rojo. NOeye mantiene su voz normal como héroe de Interstellar.</li>
           <li>🪲 <strong>Identidad de ???</strong>: Los avisos de moderación de ??? muestran a Omnipresent Glob, no a MysteryBug.</li>
           <li>🧩 <strong>Login más pulido</strong>: Las imágenes decorativas se reponen al quitarlas, y alternar muchas veces entre los temas activa el easter egg de glitch hasta reiniciar la página.</li>
-          <li>🎃 <strong>Sets de Halloween</strong>: Gana Aridez Escalofriante en Anti-Normal para desbloquear SkeleBones Set, en Corrupto para Wicked Set, o en Fácil, Normal, Difícil o Extremo para Pumpkin Set. Son recompensas independientes. SkeleBones, Wicked (solo EVO 1 y 2) y PumpGlob pueden aparecer en el login y dar un jumpscare al pulsarlos.</li>
+          <li>🎃 <strong>Sets de Halloween</strong>: Gana Aridez Escalofriante en Anti-Normal para desbloquear SkeleBones Set, en Corrupto para Wicked Set, o en Fácil, Normal, Difícil o Extremo para Pumpkin Set. Son recompensas independientes. SkeleBones, Wicked (EVO 1 y 3) y PumpGlob pueden aparecer en el login y dar un jumpscare al pulsarlos. En octubre son más frecuentes; en diciembre pueden aparecer, pero con menos frecuencia.</li>
         </ul>
 
         <h3 style="color:#ff9f43;">📋 Historial de Actualizaciones (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
@@ -15696,6 +16057,7 @@ function activateGTack(t) {
         <h3 style="color:#69e5ff;">📋 Update Logs (GlD v6.0.0 — Frozen Calendar Christmas)</h3>
         <p style="color:#80edb0;">The Advent Calendar has arrived! From December 1 to 25, beat any map to claim that day's reward: PyCoins, Duckpasses, XP, accessories, and the SnowGlob set. Missed days can be recovered with Duckpasses; the first costs 637 and each later recovery adds 100. If the clock moves backwards, unclaimed rewards become paid. This local check is deterrence, not secure server-side validation.</p>
         <button type="button" class="advent-entry-btn" onclick="openAdventCalendar()">🎄 Open Advent Calendar</button>
+        <p>Redeem <code>FESTIVE_XMAS</code> for the Festive frame. During December, win any map for the Elf frame; claim 13 calendar rewards for the Santa frame. Candy, Bomb, Ice, and Gift frames are available in the profile shop.</p>
 
         <h3 style="color:#b58cff;">📋 Update Logs (Recent Patch — Customization, Online &amp; Moderation)</h3>
         <p style="color:#b58cff;">More ways to customize your experience, share matches, and keep chat friendly.</p>
@@ -15713,7 +16075,7 @@ function activateGTack(t) {
           <li>👁️ <strong>NOeye and DarkSpirit voices</strong>: NOeye uses leetspeak in general dialogue, while DarkSpirit has a more terrifying tone and a red border. NOeye keeps the normal voice when appearing as an Interstellar hero.</li>
           <li>🪲 <strong>??? identity</strong>: Moderation notices from ??? show Omnipresent Glob, not MysteryBug.</li>
           <li>🧩 <strong>Polished login</strong>: Decorative images refill as they are removed, and switching themes repeatedly triggers the glitch easter egg until the page is restarted.</li>
-          <li>🎃 <strong>Halloween sets</strong>: Beat Spooktacular Ruins in Anti-Normal for SkeleBones Set, in Corrupt for Wicked Set, or in Easy, Normal, Hard, or Extreme for Pumpkin Set. These rewards are independent. SkeleBones, Wicked (EVO 1 and 2 only), and PumpGlob can appear on the login screen and jumpscare when clicked.</li>
+          <li>🎃 <strong>Halloween sets</strong>: Beat Spooktacular Ruins in Anti-Normal for SkeleBones Set, in Corrupt for Wicked Set, or in Easy, Normal, Hard, or Extreme for Pumpkin Set. These rewards are independent. SkeleBones, Wicked (EVO 1 and 3), and PumpGlob can appear on the login screen and jumpscare when clicked. Halloween characters are more common in October and rarer in December.</li>
         </ul>
 
         <h3 style="color:#ff9f43;">📋 Update Logs (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>

@@ -312,7 +312,7 @@
     <!-- FIN GAME CONTAINER -->
 
     <button id="debug-toggle" style="position: fixed; bottom: 10px; right: 10px; opacity: 0.1; background-color: #ff69b4; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 100;">🐛</button>
-    <button id="debug-panel-toggle" type="button" title="Abrir panel debug">⚙</button>
+    <button id="debug-panel-toggle" type="button" data-i18n="debug_panel_open" data-i18n-attr="title" title="Abrir panel debug">⚙</button>
 
     <div id="owner-debug-panel" class="owner-debug-panel" style="display:none;">
         <div class="owner-debug-header">
@@ -320,45 +320,45 @@
             <button type="button" id="close-debug-panel" class="close-btn-round">×</button>
         </div>
         <div class="owner-debug-resources">
-            <label>Globetines / Globets <input id="debug-globetines" type="number" min="0" value="1000"></label>
-            <label>PyCoins <input id="debug-pycoins" type="number" min="0" value="1000"></label>
-            <label>DuckPass <input id="debug-duckpass" type="number" min="0" value="1000"></label>
-            <label>XP <input id="debug-xp" type="number" min="0" value="1000"></label>
-            <label>Nivel <input id="debug-level" type="number" min="1" value="30"></label>
+            <label><span data-i18n="debug_resources_globetines">Globetines / Globets</span> <input id="debug-globetines" type="number" min="0" value="1000"></label>
+            <label><span data-i18n="debug_resources_pycoins">PyCoins</span> <input id="debug-pycoins" type="number" min="0" value="1000"></label>
+            <label><span data-i18n="debug_resources_duckpass">DuckPass</span> <input id="debug-duckpass" type="number" min="0" value="1000"></label>
+            <label><span data-i18n="debug_resources_xp">XP</span> <input id="debug-xp" type="number" min="0" value="1000"></label>
+            <label><span data-i18n="debug_resources_level">Nivel</span> <input id="debug-level" type="number" min="1" value="30"></label>
         </div>
         <div class="owner-debug-actions">
-            <button type="button" id="debug-add-resources">+ Recursos</button>
-            <button type="button" id="debug-max-resources">Max recursos</button>
-            <button type="button" id="debug-unlock-all">Desbloquear todo</button>
-            <button type="button" id="debug-grant-advent">Dar recompensas de Adviento</button>
+            <button type="button" id="debug-add-resources" data-i18n="debug_add_resources">+ Recursos</button>
+            <button type="button" id="debug-max-resources" data-i18n="debug_max_resources">Max recursos</button>
+            <button type="button" id="debug-unlock-all" data-i18n="debug_unlock_all">Desbloquear todo</button>
+            <button type="button" id="debug-grant-advent" data-i18n="debug_grant_advent">Dar recompensas de Adviento</button>
         </div>
         <div class="owner-debug-section">
-            <strong>Spawnear enemigo</strong>
-            <input id="debug-enemy-search" type="search" placeholder="Busca: PY, BIT, ASTRORB..." autocomplete="off">
+            <strong data-i18n="debug_spawn_enemy_title">Spawnear enemigo</strong>
+            <input id="debug-enemy-search" type="search" data-i18n="debug_enemy_search" data-i18n-attr="placeholder" placeholder="Busca: PY, BIT, ASTRORB..." autocomplete="off">
             <div id="debug-enemy-results" class="debug-search-results"></div>
-            <button type="button" id="debug-spawn-enemy" disabled>Spawnear seleccionado</button>
+            <button type="button" id="debug-spawn-enemy" data-i18n="debug_spawn_selected" disabled>Spawnear seleccionado</button>
         </div>
         <div class="owner-debug-section">
-            <strong>Diálogo personalizado</strong>
-            <input id="debug-speaker-search" type="search" placeholder="Busca personaje o imagen..." autocomplete="off">
+            <strong data-i18n="debug_custom_dialogue">Diálogo personalizado</strong>
+            <input id="debug-speaker-search" type="search" data-i18n="debug_speaker_search" data-i18n-attr="placeholder" placeholder="Busca personaje o imagen..." autocomplete="off">
             <div id="debug-speaker-results" class="debug-search-results"></div>
             <div id="debug-mysterybug-options" class="debug-mysterybug-options" hidden>
-                <label>Nombre de MysteryBug <input id="debug-mysterybug-name" type="text" maxlength="32" value="MysteryBug"></label>
-                <label>Icono
+                <label><span data-i18n="debug_mysterybug_name">Nombre de MysteryBug</span> <input id="debug-mysterybug-name" type="text" maxlength="32" value="MysteryBug"></label>
+                <label><span data-i18n="debug_mysterybug_icon">Icono</span>
                     <select id="debug-mysterybug-image">
-                        <option value="img/Sellos/MysteryBug.png|blacked-out">MysteryBug (BLACKED OUT)</option>
-                        <option value="img/Sellos/MysteryBug.png">MysteryBug (ORIGINAL)</option>
-                        <option value="img/Sellos/AstralExclamation.png|blacked-out">Astral Exclamation (BLACKED OUT)</option>
-                        <option value="img/Sellos/AstralExclamation.png">Astral Exclamation (ORIGINAL)</option>
-                        <option value="Misiones (2026)/Elementos/ZONESUBJECT.gif|blacked-out">ZONE SUBJECT (BLACKED OUT)</option>
-                        <option value="Misiones (2026)/Elementos/ZONESUBJECT.gif">ZONE SUBJECT (ORIGINAL)</option>
+                        <option value="img/Sellos/MysteryBug.png|blacked-out" data-i18n="debug_mysterybug_blacked">MysteryBug (BLACKED OUT)</option>
+                        <option value="img/Sellos/MysteryBug.png" data-i18n="debug_mysterybug_original">MysteryBug (ORIGINAL)</option>
+                        <option value="img/Sellos/AstralExclamation.png|blacked-out" data-i18n="debug_astral_blacked">Astral Exclamation (BLACKED OUT)</option>
+                        <option value="img/Sellos/AstralExclamation.png" data-i18n="debug_astral_original">Astral Exclamation (ORIGINAL)</option>
+                        <option value="Misiones (2026)/Elementos/ZONESUBJECT.gif|blacked-out" data-i18n="debug_zone_blacked">ZONE SUBJECT (BLACKED OUT)</option>
+                        <option value="Misiones (2026)/Elementos/ZONESUBJECT.gif" data-i18n="debug_zone_original">ZONE SUBJECT (ORIGINAL)</option>
                     </select>
                 </label>
             </div>
-            <textarea id="debug-dialogue-text" rows="3" placeholder="Escribe lo que quieres que diga..."></textarea>
-            <button type="button" id="debug-show-dialogue" disabled>Mostrar diálogo</button>
+            <textarea id="debug-dialogue-text" rows="3" data-i18n="debug_dialogue_text" data-i18n-attr="placeholder" placeholder="Escribe lo que quieres que diga..."></textarea>
+            <button type="button" id="debug-show-dialogue" data-i18n="debug_show_dialogue" disabled>Mostrar diálogo</button>
         </div>
-        <small>Solo visible para usuarios de desarrollo autorizados.</small>
+        <small data-i18n="debug_authorized_only">Solo visible para usuarios de desarrollo autorizados.</small>
     </div>
 
     <!-- PANEL DE LOGROS FLOTANTE -->

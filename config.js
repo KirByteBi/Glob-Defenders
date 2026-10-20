@@ -1541,6 +1541,21 @@ const IMAGE_PATHS = {
   'Gamer_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Rosa/Gamer Glob (EVO2).png',
   'Youtuber_Glob': 'Urbanistic Road (BIG UPDATE)/Globs/Familia Rosa/Youtuber Glob (EVO3).png',
 
+  // Frozen Calendar Christmas assets
+  'Festive_Pyce': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Enemigos/Pyces/Festive Pyce.png',
+  'ToyBomb_Pyce': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Enemigos/Pyces/ToyBomb Pyce.png',
+  'SnowCapsule_Pyce': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Enemigos/Pyces/SnowCapaule Pyce.png',
+  'Elf_Pyce': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Enemigos/Pyces/Elf Pyce.png',
+  'Giftbox1': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Enemigos/Otros enemigos/GiftBox1.png',
+  'Giftbox2': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Enemigos/Otros enemigos/GiftBox2.png',
+  'Giftbox3': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Enemigos/Otros enemigos/GiftBox3.png',
+  'Giftbox4': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Enemigos/Otros enemigos/GiftBox4.png',
+  'Santa_Workshop_Trap1': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Vallas/Festive Fence (T1).png',
+  'Santa_Workshop_Trap2': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Vallas/Portable Factory (T2).png',
+  'Santa_Workshop_Trap3': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Vallas/North Maquette (T3).png',
+  'Santa_Workshop_Trap4': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Vallas/Rudolf Glob (T4).png',
+  'Santa_Workshop_Gift_Projectile': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Proyectil exclusivo/Gifts (Spinning Projectile).png',
+
   // Interstellar Menace Assets
   'Leni_the_big_Hammer': 'Interestelar Menace (COLLAB UPD)/Enemigos/Leni the big Hammer.png',
   'Monster': 'Interestelar Menace (COLLAB UPD)/Enemigos/Monster.png',
@@ -1916,6 +1931,31 @@ const NARRATOR_DATA = {
   omnipresent: {
     img: IMAGE_PATHS.Omnipresent_Glob, es: { name: '???', msgs: [] }, en: { name: '???', msgs: [] }
   },
+  festive_pyce: {
+    img: IMAGE_PATHS.Festive_Pyce,
+    es: { name: 'Festive Pyce', msgs: ['¡Este año voy a ayudar a repartir todos los regalos!'] },
+    en: { name: 'Festive Pyce', msgs: ['This year, I will help deliver every gift!'] }
+  },
+  toybomb_pyce: {
+    img: IMAGE_PATHS.ToyBomb_Pyce,
+    es: { name: 'ToyBomb Pyce', msgs: ['¡Estoy perfectamente... calibrado! Creo.'] },
+    en: { name: 'ToyBomb Pyce', msgs: ['I am perfectly... calibrated! I think.'] }
+  },
+  snowcapsule_pyce: {
+    img: IMAGE_PATHS.SnowCapsule_Pyce,
+    es: { name: 'SnowCapsule Pyce', msgs: ['No hace falta que tenga cara para dejaros helados.'] },
+    en: { name: 'SnowCapsule Pyce', msgs: ['I do not need a face to freeze you in your tracks.'] }
+  },
+  elf_pyce: {
+    img: IMAGE_PATHS.Elf_Pyce,
+    es: { name: 'Elf Pyce', msgs: ['Santa Pyce puede contar conmigo. ¡Volvemos a la carga!'] },
+    en: { name: 'Elf Pyce', msgs: ['Santa Pyce can count on me. We are back in action!'] }
+  },
+  giftbox_pyce: {
+    img: IMAGE_PATHS.Giftbox1,
+    es: { name: 'Giftbox', msgs: ['¡No intentes abrirme! Lo de dentro es puro metal.'] },
+    en: { name: 'Giftbox', msgs: ['Do not try to open me! I am solid metal inside.'] }
+  },
   jerry: {
     img: 'img/Sellos/MysteryBug.png', es: { name: 'Jerry', msgs: [] }, en: { name: 'Jerry', msgs: [] }
   },
@@ -2023,6 +2063,11 @@ const ENEMY_TYPES = {
   'HoloPyce': { name: 'enemy_HoloPyce_name', desc: 'enemy_HoloPyce_desc', health: 180, speed: 1.2, reward: 40, image: IMAGE_PATHS.HoloPyce, holo: true, stealth: true, mechanic_key: 'mechanic_holo' },
   'Strechy_Pyce': { name: 'enemy_Strechy_Pyce_name', desc: 'enemy_Strechy_Pyce_desc', health: 220, speed: 1.1, reward: 50, image: IMAGE_PATHS.Strechy_Pyce },
   'Rebel_Pyce': { name: 'enemy_Rebel_Pyce_name', desc: 'enemy_Rebel_Pyce_desc', health: 150, speed: 2.8, reward: 45, image: IMAGE_PATHS.Rebel_Pyce },
+  'Festive_Pyce': { name: 'enemy_Festive_Pyce_name', desc: 'enemy_Festive_Pyce_desc', health: 90, speed: 1.4, reward: 25, image: IMAGE_PATHS.Festive_Pyce, mapSource: 'frosty_christmas' },
+  'ToyBomb_Pyce': { name: 'enemy_ToyBomb_Pyce_name', desc: 'enemy_ToyBomb_Pyce_desc', health: 120, speed: 2.3, reward: 35, image: IMAGE_PATHS.ToyBomb_Pyce, mechanic_key: 'mechanic_bomb', mapSource: 'frosty_christmas', explosive: true },
+  'SnowCapsule_Pyce': { name: 'enemy_SnowCapsule_Pyce_name', desc: 'enemy_SnowCapsule_Pyce_desc', health: 260, speed: 0.85, reward: 55, image: IMAGE_PATHS.SnowCapsule_Pyce, mapSource: 'frosty_christmas', coldAura: true, coldAuraRange: 125, coldAuraSlow: 0.65 },
+  'Elf_Pyce': { name: 'enemy_Elf_Pyce_name', desc: 'enemy_Elf_Pyce_desc', health: 210, speed: 0.95, reward: 50, image: IMAGE_PATHS.Elf_Pyce, mapSource: 'frosty_christmas' },
+  'Giftbox_Pyce': { name: 'enemy_Giftbox_Pyce_name', desc: 'enemy_Giftbox_Pyce_desc', health: 750, speed: 0.55, reward: 80, image: IMAGE_PATHS.Giftbox1, imageVariants: [IMAGE_PATHS.Giftbox1, IMAGE_PATHS.Giftbox2, IMAGE_PATHS.Giftbox3, IMAGE_PATHS.Giftbox4], mapSource: 'frosty_christmas' },
   
   // Gambling Enemies
   'BitY1': { name: 'enemy_BitY1_name', desc: 'enemy_BitY1_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitY1, category: 'gambling' },
@@ -2128,6 +2173,11 @@ const ENEMY_BALANCE = {
     basic: ['Broksp', 'RIPslide', 'ZomPyce'],
     medium: ['Pumpitch', 'Blood_Taker', 'Sneekmy', 'Ghost_Pyce', 'SkeleBone_Pyce'],
     tank: ['Pumpitch', 'Blood_Taker', 'Ghost_Pyce', 'SkeleBone_Pyce']
+  },
+  frosty_christmas: {
+    basic: ['Festive_Pyce'],
+    medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce'],
+    tank: ['Giftbox_Pyce']
   }
 };
 
@@ -2251,6 +2301,30 @@ const MAPS = {
       ]
     ]
   },
+  frosty_christmas: {
+    name: 'Frosty Christmas',
+    riverZones: [],
+    pathSegments: [
+      { x: 0, y: 145, w: 365, h: 62 },
+      { x: 300, y: 45, w: 62, h: 162 },
+      { x: 300, y: 45, w: 365, h: 62 },
+      { x: 603, y: 45, w: 62, h: 360 },
+      { x: 603, y: 343, w: 397, h: 62 },
+      { x: 0, y: 425, w: 365, h: 62 },
+      { x: 300, y: 343, w: 62, h: 144 },
+      { x: 300, y: 343, w: 365, h: 62 }
+    ],
+    enemyPaths: [
+      [
+        { x: -30, y: 176 }, { x: 330, y: 176 }, { x: 330, y: 76 },
+        { x: 635, y: 76 }, { x: 635, y: 374 }, { x: 1030, y: 374 }
+      ],
+      [
+        { x: -30, y: 456 }, { x: 330, y: 456 }, { x: 330, y: 374 },
+        { x: 635, y: 374 }, { x: 1030, y: 374 }
+      ]
+    ]
+  },
   sunlight_seaside: {
     name: "Sunlight Seaside",
     // Everything is ocean - only paths and islands are solid ground
@@ -2354,13 +2428,33 @@ const MAP_ISLANDS = [
     nameEn: 'Wildsand Leaf',
     zones: [
       { mapId: 'spooktacular_ruins', nameEs: 'Aridez Escalofriante', nameEn: 'Spooktacular Ruins', colors: ['#d68738', '#684328'] },
-      { nameEs: 'Frosty Christmas (SOON)', nameEn: 'Frosty Christmas (SOON)', colors: ['#9deaff', '#f3fcff'], locked: true },
+      { mapId: 'frosty_christmas', nameEs: 'Frosty Christmas', nameEn: 'Frosty Christmas', colors: ['#9deaff', '#f3fcff'] },
       { nameEs: 'Darkness Forest (RELEASING NEXT YEAR)', nameEn: 'Darkness Forest (RELEASING NEXT YEAR)', colors: ['#47774a', '#59402b'], locked: true }
     ]
   }
 ];
 
 const SKINS_DATA = {
+  'Worker_Glob': [
+    {
+      id: 'santa_workshop_set', name: 'skin_santa_workshop_name', desc: 'skin_santa_workshop_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'advent_calendar_complete',
+      skins: {
+        'Worker_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Elf-Glob_SKEVO1.png',
+        'Police_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/GiftedElf-Glob_SKEVO2.png',
+        'Planked_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Sleeping-Santa-Glob_SKEVO3.png',
+        'DJ_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Sleigh-Santa-Glob_SKEVO4.png'
+      },
+      traps: {
+        'Worker_Trap': IMAGE_PATHS.Santa_Workshop_Trap1,
+        'Police_Trap': IMAGE_PATHS.Santa_Workshop_Trap2,
+        'Planked_Trap': IMAGE_PATHS.Santa_Workshop_Trap3,
+        'DJ_Trap': IMAGE_PATHS.Santa_Workshop_Trap4
+      },
+      projectiles: {
+        'DJ_Glob': IMAGE_PATHS.Santa_Workshop_Gift_Projectile
+      }
+    }
+  ],
   'Glob': [
     {
       id: 'snowglob_set', name: 'skin_snowglob_name', desc: 'skin_snowglob_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'advent_calendar',
@@ -2848,6 +2942,51 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_military_desc": "Aspecto militar.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
   "skin_snowglob_name": "Set SnowGlob Verde",
   "skin_snowglob_desc": "La familia Glob vestida para la Navidad, como recompensa del Calendario de Adviento.",
+  "skin_santa_workshop_name": "Santa's Workshop",
+  "skin_santa_workshop_desc": "Un set navideño para Worker Glob y su familia, con trampas y un proyectil de regalos propios. Se desbloquea al reclamar las 25 recompensas del Calendario de Adviento.",
+  "enemy_Festive_Pyce_name": "Festive Pyce",
+  "enemy_Festive_Pyce_desc": "Un Pyce de colores alegres que sueña con ser un gran colaborador de regalos.",
+  "enemy_ToyBomb_Pyce_name": "ToyBomb Pyce",
+  "enemy_ToyBomb_Pyce_desc": "Un prototipo explosivo de Toy Pyce: rápido, inestable y fabricado para otros Pyces.",
+  "enemy_SnowCapsule_Pyce_name": "SnowCapsule Pyce",
+  "enemy_SnowCapsule_Pyce_desc": "Su presencia congela los alrededores y ralentiza las torres cercanas.",
+  "enemy_Elf_Pyce_name": "Elf Pyce",
+  "enemy_Elf_Pyce_desc": "Un fiel miembro del Santa Pyce de Techspawn que ha regresado para ayudar a recuperar el ambiente festivo.",
+  "enemy_Giftbox_Pyce_name": "Giftbox",
+  "enemy_Giftbox_Pyce_desc": "Una caja de regalo de gran resistencia: bajo el envoltorio guarda una estructura de puro metal.",
+  "debug_resources_globetines": "Globetines / Globets",
+  "debug_resources_pycoins": "PyCoins",
+  "debug_resources_duckpass": "DuckPass",
+  "debug_resources_xp": "XP",
+  "debug_resources_level": "Nivel",
+  "debug_add_resources": "+ Recursos",
+  "debug_max_resources": "Max recursos",
+  "debug_unlock_all": "Desbloquear todo",
+  "debug_grant_advent": "Dar recompensas de Adviento",
+  "debug_spawn_enemy_title": "Spawnear enemigo",
+  "debug_enemy_search": "Busca: PY, BIT, ASTRORB...",
+  "debug_spawn_selected": "Spawnear seleccionado",
+  "debug_custom_dialogue": "Diálogo personalizado",
+  "debug_speaker_search": "Busca personaje o imagen...",
+  "debug_mysterybug_name": "Nombre de MysteryBug",
+  "debug_mysterybug_icon": "Icono",
+  "debug_mysterybug_blacked": "MysteryBug (OCULTO)",
+  "debug_mysterybug_original": "MysteryBug (ORIGINAL)",
+  "debug_astral_blacked": "Astral Exclamation (OCULTO)",
+  "debug_astral_original": "Astral Exclamation (ORIGINAL)",
+  "debug_zone_blacked": "ZONE SUBJECT (OCULTO)",
+  "debug_zone_original": "ZONE SUBJECT (ORIGINAL)",
+  "debug_dialogue_text": "Escribe lo que quieres que diga...",
+  "debug_show_dialogue": "Mostrar diálogo",
+  "debug_authorized_only": "Solo visible para usuarios de desarrollo autorizados.",
+  "debug_panel_open": "Abrir panel debug",
+  "debug_empty_dialogue": "Escribe un texto para el diálogo.",
+  "debug_enemy_spawned": "DEBUG: {name} spawneado.",
+  "debug_unlocked_notice": "🛠️ DEBUG: Torres, skins y enciclopedia desbloqueadas. Pulsa de nuevo para restaurar.",
+  "debug_restored_notice": "🔄 DEBUG: Estado restaurado al original.",
+  "debug_resources_added_notice": "👑 OWNER DEBUG: recursos añadidos.",
+  "debug_resources_maxed_notice": "👑 OWNER DEBUG: recursos al máximo.",
+  "debug_everything_unlocked_notice": "👑 OWNER DEBUG: todo desbloqueado.",
   "skin_music_name": "Set Musical",
   "skin_music_desc": "Aspecto con notas musicales.<br><span style='color: #ff69b4; font-weight: bold; text-shadow: 0 0 5px rgba(255,105,180,0.5);'>Creado por: KirByte_Bi</span>",
   "skin_abyssal_name": "Set Abismal",
@@ -2899,16 +3038,66 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_rewamped_blue_name": "Set Azul Remasterizado",
   "skin_rewamped_blue_desc": "Una versión mejorada visualmente de la familia azul original.",
   "skin_green_rgb_sr_name": "RGB Verde Secreto",
-  "skin_green_rgb_sr_desc": "La primera y última evolución del Rewamp verde con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RGreenB. Curiosidad: las familias Verde, Roja y Azul son las familias originales de Globs y las primeras en recibir skins Rewamp.",
+  "skin_green_rgb_sr_desc": "La primera y última evolución del Rewamp verde con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RGreenB.",
   "skin_red_rgb_sr_name": "RGB Rojo Secreto",
-  "skin_red_rgb_sr_desc": "La primera y última evolución del Rewamp rojo con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RedGB. Curiosidad: las familias Verde, Roja y Azul son las familias originales de Globs y las primeras en recibir skins Rewamp.",
+  "skin_red_rgb_sr_desc": "La primera y última evolución del Rewamp rojo con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RedGB.",
   "skin_blue_rgb_sr_name": "RGB Azul Secreto",
-  "skin_blue_rgb_sr_desc": "La primera y última evolución del Rewamp azul con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RGBlue. Curiosidad: las familias Verde, Roja y Azul son las familias originales de Globs y las primeras en recibir skins Rewamp."
+  "skin_blue_rgb_sr_desc": "La primera y última evolución del Rewamp azul con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RGBlue.",
+  "encyclopedia_rgb_lore_green": "Durante la beta de Glob para I.D., el verde y el rojo eran los Globs principales y más originales. El rojo fue el segundo creado y el recolor oficial del verde. La beta también tuvo los recolores azul y lila oscuro.",
+  "encyclopedia_rgb_lore_red": "El rojo fue el segundo Glob creado y el recolor oficial del verde. Ambos eran los Globs principales y más originales. En la beta para I.D. también existieron los recolores azul y lila oscuro.",
+  "encyclopedia_rgb_lore_blue": "El Glob azul fue uno de los cuatro colores del Glob original en su beta para I.D., junto al verde, rojo y lila oscuro.",
+  "encyclopedia_rgb_lore_ducky": "Ducky Glob empezó como un recolor. Le añadieron un sombrero de copa y una cara naranja porque parecía un pato; de ahí su nombre. También hace referencia al Epic Duck de Roblox.",
+  "encyclopedia_rgb_lore_black": "El lila oscuro fue uno de los cuatro recolores del Glob original durante la beta para I.D., junto al verde, rojo y azul."
 });
 
 TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_snowglob_name": "Green SnowGlob Set",
   "skin_snowglob_desc": "The Glob family dressed for Christmas, earned through the Advent Calendar.",
+  "skin_santa_workshop_name": "Santa's Workshop",
+  "skin_santa_workshop_desc": "A Christmas set for Worker Glob and its family, with custom traps and a gift projectile. Unlock it by claiming all 25 Advent Calendar rewards.",
+  "enemy_Festive_Pyce_name": "Festive Pyce",
+  "enemy_Festive_Pyce_desc": "A cheerfully colored Pyce who dreams of becoming a great gift-making helper.",
+  "enemy_ToyBomb_Pyce_name": "ToyBomb Pyce",
+  "enemy_ToyBomb_Pyce_desc": "An explosive Toy Pyce prototype: fast, unstable, and made to help other Pyces.",
+  "enemy_SnowCapsule_Pyce_name": "SnowCapsule Pyce",
+  "enemy_SnowCapsule_Pyce_desc": "Its presence freezes the surroundings and slows nearby towers.",
+  "enemy_Elf_Pyce_name": "Elf Pyce",
+  "enemy_Elf_Pyce_desc": "A faithful member of Techspawn's Santa Pyce who has returned to help restore the festive atmosphere.",
+  "enemy_Giftbox_Pyce_name": "Giftbox",
+  "enemy_Giftbox_Pyce_desc": "A remarkably sturdy gift box; beneath the wrapping is a solid metal frame.",
+  "debug_resources_globetines": "Globetines / Globets",
+  "debug_resources_pycoins": "PyCoins",
+  "debug_resources_duckpass": "DuckPass",
+  "debug_resources_xp": "XP",
+  "debug_resources_level": "Level",
+  "debug_add_resources": "+ Resources",
+  "debug_max_resources": "Max resources",
+  "debug_unlock_all": "Unlock everything",
+  "debug_grant_advent": "Grant Advent rewards",
+  "debug_spawn_enemy_title": "Spawn enemy",
+  "debug_enemy_search": "Search: PY, BIT, ASTRORB...",
+  "debug_spawn_selected": "Spawn selected",
+  "debug_custom_dialogue": "Custom dialogue",
+  "debug_speaker_search": "Search character or image...",
+  "debug_mysterybug_name": "MysteryBug name",
+  "debug_mysterybug_icon": "Icon",
+  "debug_mysterybug_blacked": "MysteryBug (BLACKED OUT)",
+  "debug_mysterybug_original": "MysteryBug (ORIGINAL)",
+  "debug_astral_blacked": "Astral Exclamation (BLACKED OUT)",
+  "debug_astral_original": "Astral Exclamation (ORIGINAL)",
+  "debug_zone_blacked": "ZONE SUBJECT (BLACKED OUT)",
+  "debug_zone_original": "ZONE SUBJECT (ORIGINAL)",
+  "debug_dialogue_text": "Write what you want them to say...",
+  "debug_show_dialogue": "Show dialogue",
+  "debug_authorized_only": "Only visible to authorized development users.",
+  "debug_panel_open": "Open debug panel",
+  "debug_empty_dialogue": "Enter dialogue text.",
+  "debug_enemy_spawned": "DEBUG: {name} spawned.",
+  "debug_unlocked_notice": "🛠️ DEBUG: Towers, skins, and encyclopedia unlocked. Click again to restore.",
+  "debug_restored_notice": "🔄 DEBUG: State restored to its original values.",
+  "debug_resources_added_notice": "👑 OWNER DEBUG: resources added.",
+  "debug_resources_maxed_notice": "👑 OWNER DEBUG: resources maxed out.",
+  "debug_everything_unlocked_notice": "👑 OWNER DEBUG: everything unlocked.",
   "skin_sharkbot_name": "SharkBot",
   "skin_sharkbot_desc": "A steel robotic shark with propulsion. <br><span style='color: #ff3333; font-weight: bold; text-shadow: 0 0 5px rgba(255,51,51,0.5);'>Credit: Nitrogen</span>",
   "skin_globsus_name": "GlobSus",
@@ -2954,11 +3143,16 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_rewamped_blue_name": "Remastered Blue Set",
   "skin_rewamped_blue_desc": "A visually improved version of the original blue family.",
   "skin_green_rgb_sr_name": "Green RGB Secret Rewamp",
-  "skin_green_rgb_sr_desc": "The first and final levels of the green Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RGreenB. Fun fact: Green, Red, and Blue are the original Glob families and the first families to receive Rewamp skins.",
+  "skin_green_rgb_sr_desc": "The first and final levels of the green Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RGreenB.",
   "skin_red_rgb_sr_name": "Red RGB Secret Rewamp",
-  "skin_red_rgb_sr_desc": "The first and final levels of the red Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RedGB. Fun fact: Green, Red, and Blue are the original Glob families and the first families to receive Rewamp skins.",
+  "skin_red_rgb_sr_desc": "The first and final levels of the red Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RedGB.",
   "skin_blue_rgb_sr_name": "Blue RGB Secret Rewamp",
-  "skin_blue_rgb_sr_desc": "The first and final levels of the blue Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RGBlue. Fun fact: Green, Red, and Blue are the original Glob families and the first families to receive Rewamp skins."
+  "skin_blue_rgb_sr_desc": "The first and final levels of the blue Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RGBlue.",
+  "encyclopedia_rgb_lore_green": "During Glob's beta for I.D., Green and Red were the main and most original Globs. Red was created second as Green's official recolor. The beta also had the blue and dark purple recolors.",
+  "encyclopedia_rgb_lore_red": "Red was the second Glob created and Green's official recolor. Both were the main and most original Globs. The I.D. beta also had the blue and dark purple recolors.",
+  "encyclopedia_rgb_lore_blue": "The blue Glob was one of the original Glob's four colors in its I.D. beta, alongside green, red, and dark purple.",
+  "encyclopedia_rgb_lore_ducky": "Ducky Glob began as a recolor. A top hat and orange face were added because it looked like a duck, which inspired its name. It also references Roblox's Epic Duck.",
+  "encyclopedia_rgb_lore_black": "Dark purple was one of the original Glob's four color variants during its I.D. beta, alongside green, red, and blue."
 });
 
 window.SKIN_META = window.SKIN_META || {};

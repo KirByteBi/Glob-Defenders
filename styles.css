@@ -652,6 +652,156 @@ body.light-mode .loading-tip-btn {
     box-shadow: inset 0 0 0 2px #6e461e, 0 0 0 1px #edcf87, 0 0 12px rgba(180, 128, 49, 0.45);
 }
 
+.profile-avatar-frame.candy,
+.profile-border-swatch.candy,
+.multiplayer-profile-badge.candy {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #1e8b54), var(--profile-border-end, #1e8b54)) padding-box,
+        repeating-linear-gradient(135deg, #c62838 0 8px, #fff8e8 8px 16px, #1e8b54 16px 24px, #fff8e8 24px 32px) border-box;
+    box-shadow: 0 0 10px rgba(255, 248, 232, 0.45);
+}
+
+.profile-avatar-frame.festive,
+.profile-border-swatch.festive,
+.multiplayer-profile-badge.festive {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #16834a), var(--profile-border-end, #16834a)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 10px, #16834a 10px 20px) border-box;
+}
+
+.profile-avatar-frame.elf,
+.profile-border-swatch.elf,
+.multiplayer-profile-badge.elf {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #d52830), var(--profile-border-end, #d52830)) padding-box,
+        repeating-linear-gradient(135deg, #16834a 0 13px, #d52830 13px 17px, #16834a 17px 26px) border-box;
+}
+
+.profile-avatar-frame.santa,
+.profile-border-swatch.santa,
+.multiplayer-profile-badge.santa {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #fff8e8), var(--profile-border-end, #fff8e8)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 12px, #fff8e8 12px 20px) border-box;
+    box-shadow: 0 0 12px rgba(255, 248, 232, 0.5);
+}
+
+.profile-avatar-frame.gift,
+.profile-border-swatch.gift,
+.multiplayer-profile-badge.gift {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #ffd84a), var(--profile-border-end, #ffd84a)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 12px, #ffd84a 12px 16px, #d52830 16px 28px) border-box;
+}
+
+.profile-avatar-frame.ice,
+.profile-border-swatch.ice,
+.multiplayer-profile-badge.ice {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #d8f7ff), var(--profile-border-end, #d8f7ff)) padding-box,
+        repeating-conic-gradient(from 10deg, #55c9f3 0deg 24deg, #e7fbff 24deg 38deg, #91e2ff 38deg 60deg) border-box;
+    box-shadow: 0 0 12px rgba(107, 217, 255, 0.55);
+    animation: profile-ice-shimmer 4s linear infinite;
+}
+
+.profile-avatar-frame.bomb,
+.profile-border-swatch.bomb,
+.profile-placeholder-sample.bomb,
+.multiplayer-profile-badge.bomb {
+    position: relative;
+    animation: profile-bomb-flicker 1.8s steps(1, end) infinite;
+}
+
+.profile-avatar-frame.bomb::before,
+.profile-border-swatch.bomb::before,
+.profile-placeholder-sample.bomb::before,
+.multiplayer-profile-badge.bomb::before {
+    content: "";
+    position: absolute;
+    top: -13%;
+    right: 17%;
+    width: 7px;
+    height: 12px;
+    border-top: 2px solid #e4bd70;
+    border-right: 2px solid #e4bd70;
+    border-radius: 0 8px 0 0;
+    transform: rotate(18deg);
+    pointer-events: none;
+}
+
+.profile-avatar-frame.bomb::after,
+.profile-border-swatch.bomb::after,
+.profile-placeholder-sample.bomb::after,
+.multiplayer-profile-badge.bomb::after {
+    content: "";
+    position: absolute;
+    top: -22%;
+    right: 7%;
+    width: 11px;
+    height: 17px;
+    background: radial-gradient(ellipse at 50% 75%, #fff36b 0 15%, #ff9c24 38%, #ef3018 70%, transparent 72%);
+    clip-path: polygon(48% 100%, 8% 65%, 34% 50%, 20% 18%, 63% 38%, 77% 0, 94% 61%);
+    animation: profile-bomb-flame 1.8s steps(1, end) infinite;
+    pointer-events: none;
+}
+
+@keyframes profile-bomb-flicker {
+    0%, 67%, 100% { border-color: #d84934; outline-color: #8f241f; }
+    70%, 82% { border-color: #ff3020; outline-color: #ff3020; box-shadow: 0 0 14px rgba(255, 48, 32, 0.9); }
+}
+
+@keyframes profile-bomb-flame {
+    0%, 66%, 100% { opacity: 0.75; transform: scale(0.9); }
+    70%, 82% { opacity: 1; transform: scale(1.12); }
+}
+
+@keyframes profile-ice-shimmer {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.2); }
+}
+
+.profile-placeholder-sample.candy {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #1e8b54), var(--profile-border-end, #1e8b54)) padding-box,
+        repeating-linear-gradient(135deg, #c62838 0 8px, #fff8e8 8px 16px, #1e8b54 16px 24px, #fff8e8 24px 32px) border-box;
+}
+
+.profile-placeholder-sample.festive,
+.profile-placeholder-sample.elf {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #16834a), var(--profile-border-end, #16834a)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 10px, #16834a 10px 20px) border-box;
+}
+
+.profile-placeholder-sample.santa {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #fff8e8), var(--profile-border-end, #fff8e8)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 12px, #fff8e8 12px 20px) border-box;
+}
+
+.profile-placeholder-sample.gift {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #ffd84a), var(--profile-border-end, #ffd84a)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 12px, #ffd84a 12px 16px, #d52830 16px 28px) border-box;
+}
+
+.profile-placeholder-sample.ice {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #d8f7ff), var(--profile-border-end, #d8f7ff)) padding-box,
+        repeating-conic-gradient(from 10deg, #55c9f3 0deg 24deg, #e7fbff 24deg 38deg, #91e2ff 38deg 60deg) border-box;
+}
+
 .profile-clock-hands {
     position: absolute;
     inset: 0;
@@ -1838,7 +1988,8 @@ button.active {
     border-color: #e040fb;
 }
 
-#forest-base {
+#forest-base,
+#forest-base-2 {
     position: absolute;
     left: 0;
     top: 150px;
@@ -1852,6 +2003,16 @@ button.active {
     justify-content: center;
     font-size: 2rem;
     box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+}
+
+#forest-base-2.christmas-base,
+#forest-base.christmas-base {
+    width: 80px;
+    height: 100px;
+    background: linear-gradient(145deg, #d93445, #8f1023);
+    border: 3px solid #f3d67a;
+    border-radius: 8px 24px 24px 8px;
+    box-shadow: 0 0 18px rgba(255, 224, 130, 0.55);
 }
 
 #ally-base {
@@ -2041,6 +2202,29 @@ button.active {
     box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
 }
 
+.frosty-map {
+    background-color: #d9f4ff;
+    background-image:
+        radial-gradient(circle at 20% 25%, rgba(255,255,255,0.9) 0 2px, transparent 3px),
+        radial-gradient(circle at 75% 65%, rgba(255,255,255,0.75) 0 2px, transparent 3px),
+        linear-gradient(135deg, #b8e8f7, #e8fbff 55%, #a8deef);
+    background-size: 90px 90px, 130px 130px, 100% 100%;
+    border-color: #75cce5 !important;
+    box-shadow: 0 0 32px rgba(104, 217, 244, 0.35);
+}
+
+.path-segment.christmas-path {
+    background: repeating-linear-gradient(
+        135deg,
+        #c62838 0 18px,
+        #fff8e8 18px 36px,
+        #1e8b54 36px 54px,
+        #fff8e8 54px 72px
+    );
+    border: 2px solid #f1d58a;
+    box-shadow: inset 0 0 12px rgba(105, 37, 32, 0.35), 0 0 8px rgba(255,255,255,0.55);
+}
+
 .tower-spot {
     position: absolute;
     background: transparent;
@@ -2049,6 +2233,42 @@ button.active {
     z-index: 3;
     cursor: pointer;
     transition: all 0.3s;
+}
+
+.tower-spot.christmas-spot {
+    border-style: solid;
+    border-width: 3px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 12px rgba(255,255,255,0.32), 0 0 10px rgba(255,255,255,0.25);
+}
+
+.tower-spot.christmas-spot-red {
+    background: rgba(196, 37, 52, 0.32);
+    border-color: rgba(165, 27, 43, 0.82);
+}
+
+.tower-spot.christmas-spot-green {
+    background: rgba(38, 144, 82, 0.32);
+    border-color: rgba(28, 111, 63, 0.82);
+}
+
+.christmas-gift-projectile {
+    position: fixed;
+    z-index: 10000;
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.85));
+    animation: christmas-gift-launch 1.1s ease-in forwards;
+}
+
+@keyframes christmas-gift-launch {
+    to {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--gift-flight-x)), calc(-50% + var(--gift-flight-y))) rotate(900deg) scale(0.55);
+    }
 }
 
 #map.show-hitboxes .tower-spot {
@@ -3348,6 +3568,45 @@ input:checked + .slider:before {
     color: #ff69b4 !important;
     font-weight: bold;
     text-shadow: 0 0 5px rgba(255, 105, 180, 0.5);
+}
+
+.skin-creator-tag.skin-creator-kirbyte {
+    color: #ff69b4 !important;
+    text-shadow: 0 0 5px rgba(255, 105, 180, 0.5);
+}
+
+.skin-creator-tag.skin-creator-credible {
+    color: #ff8c00 !important;
+    text-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
+}
+
+.skin-creator-tag.skin-creator-justauser {
+    color: #999 !important;
+    text-shadow: 0 0 5px rgba(153, 153, 153, 0.45);
+}
+
+.skin-creator-tag.skin-creator-luna1255 {
+    background: linear-gradient(90deg, #ffe45c, #c69bff);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent !important;
+    text-shadow: none;
+}
+
+.skin-creator-tag.skin-creator-victorillo {
+    color: #40c9c0 !important;
+    text-shadow: 0 0 5px rgba(64, 201, 192, 0.45);
+}
+
+.encyclopedia-secret-lore {
+    margin-top: 12px;
+    padding: 9px 11px;
+    border: 1px dashed rgba(255, 215, 0, 0.55);
+    border-radius: 8px;
+    background: rgba(255, 215, 0, 0.08);
+    color: #ffe69a;
+    font-size: 0.82rem;
+    line-height: 1.45;
 }
 
 .bombot-accessory-customizer {
