@@ -22,6 +22,12 @@ let cloudProgressSaveQueue = Promise.resolve();
 let pendingCloudProgressSave = null;
 let cloudProgressSaveError = null;
 let multiplayerServerClosed = false;
+let signupTurnstileWidgetId = null;
+let signupTurnstileToken = '';
+let signupTurnstileScriptPromise = null;
+let signupCaptchaMessageKey = '';
+let signupCaptchaMessageColor = '';
+let accountCreationInProgress = false;
 let autoJoinAttempted = false;
 let currentSeed = null;
 let isSeedHost = false;
@@ -35,6 +41,8 @@ let multiplayerSpectatorSavedGlobetines = null;
 let multiplayerViewedProfile = null;
 let applyingMultiplayerAction = false;
 let multiplayerActionOwner = null;
+let pvpLobby = null;
+let pvpIncomeInterval = null;
 let multiplayerChatMode = 'safe';
 let multiplayerChatEntries = [];
 let multiplayerChatLastSentAt = 0;
@@ -81,6 +89,7 @@ const PROFILE_ENEMY_VARIANT_GROUPS = [
   { canonical: 'Arky', types: ['Arky', 'CrystArky', 'ArkyVoid'] },
   { canonical: 'AstrorbOrbe', types: ['AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb'] },
   { canonical: 'NOeye_Pyce', types: ['NOeye_Pyce', 'NO_CrystEye_CB'] },
+  { canonical: 'Puz_Zle', types: ['Puz_Zle', 'Puz', 'Zle'] },
   { canonical: 'Monster', types: ['Monster', 'Cristalized_Monster'] },
   { canonical: 'Leni_the_big_Hammer', types: ['Leni_the_big_Hammer', 'Lenistal'] }
 ];
@@ -815,6 +824,7 @@ class SupabaseGameConnection {
     multiplayerEnabled = multiplayerPlayerCount > 1;
     renderMultiplayerPlayerList(roster);
     if (window._refreshMultiplayerUI) window._refreshMultiplayerUI();
+    refreshCompetitiveModeAvailability();
     this.dispatch('player-count', { playerCount: multiplayerPlayerCount });
     this.dispatch('player-roster', { players: roster, playerCount: multiplayerPlayerCount });
 
@@ -860,6 +870,7 @@ class SupabaseGameConnection {
         hostName: this.presence.username,
         playerCount: multiplayerPlayers.length,
         players: multiplayerPlayers,
+        pvpLobby: pvpLobby && !pvpLobby.started ? pvpLobby : null,
         snapshot,
         spectator: snapshot?.mode === 'interstellar' && !requester?.interstellarAccess
       };
@@ -940,6 +951,7 @@ class SupabaseGameConnection {
     multiplayerPlayerCount = 1;
     multiplayerEnabled = false;
     renderMultiplayerPlayerList([]);
+    refreshCompetitiveModeAvailability();
     this.channel.unsubscribe().catch(error => {
       console.error('No se pudo cerrar el canal Supabase Realtime:', error);
     });
@@ -977,6 +989,26 @@ function isOfflineSession() {
 
 function canPlayAcrossTimeSolo() {
   return !multiplayerEnabled && multiplayerPlayerCount <= 1;
+}
+
+function hasPvpMultiplayerRoom() {
+  const playerIds = new Set(multiplayerPlayers.map(player => player.playerId));
+  return Boolean(
+    currentSeed &&
+    socket?.connected &&
+    multiplayerEnabled &&
+    multiplayerPlayerCount >= 2 &&
+    playerIds.size >= 2
+  );
+}
+
+function refreshCompetitiveModeAvailability() {
+  if (!hasPvpMultiplayerRoom() && pvpLobby && !pvpLobby.started) {
+    pvpLobby = null;
+    document.getElementById('pvp-team-selection')?.remove();
+  }
+  const modeSelection = document.getElementById('mode-selection');
+  if (modeSelection && modeSelection.style.display !== 'none') showModeSelection();
 }
 
 function hasInterstellarEntryAccess() {
@@ -1060,6 +1092,7 @@ async function joinMultiplayerSeed(seed, creating) {
 
   connection.on('game-state', state => {
     if (isSeedHost) return;
+    if (state?.mode === 'pvpSurvival' || gameState.mode === 'pvpSurvival') return;
     setMultiplayerSpectator(
       state?.mode === 'interstellar' && !hasInterstellarEntryAccess()
     );
@@ -1067,11 +1100,19 @@ async function joinMultiplayerSeed(seed, creating) {
   });
   connection.on('player-joined', data => {
     showPlayerJoinedNotice(data);
+    if (pvpLobby && !pvpLobby.started) showPvpTeamSelection();
   });
   connection.on('player-left', data => {
     window._showMultiplayerNotice?.(currentLanguage === 'en'
       ? `${data.username || 'A player'} left the match.`
       : `${data.username || 'Un jugador'} ha salido de la partida.`);
+    if (gameState.mode === 'pvpSurvival' && data.id) {
+      handlePvpElimination(data.id, gameState.wave);
+    }
+    if (pvpLobby && !pvpLobby.started) {
+      delete pvpLobby.teams[data.id];
+      showPvpTeamSelection();
+    }
   });
   connection.on('game-action', action => {
     if (!multiplayerSpectator && window._applyMultiplayerAction) window._applyMultiplayerAction(action);
@@ -1108,6 +1149,13 @@ async function joinMultiplayerSeed(seed, creating) {
             : `Te has unido a la partida activa de ${response.hostName || 'el anfitrión'}.`);
         }
       } else {
+        if (response.pvpLobby?.mode && ['pvpSurvival', 'pvpDual'].includes(response.pvpLobby.mode)) {
+          pvpLobby = {
+            ...response.pvpLobby,
+            teams: { ...(response.pvpLobby.teams || {}) }
+          };
+          showPvpTeamSelection();
+        }
         window._showMultiplayerNotice?.(currentLanguage === 'en'
           ? 'Connected to the room. Waiting for the host to start the match.'
           : 'Conectado a la sala. Esperando a que el anfitrión inicie la partida.');
@@ -1137,14 +1185,17 @@ async function joinMultiplayerSeed(seed, creating) {
   if (isSeedHost && multiplayerSyncInterval === null) {
     multiplayerSyncInterval = setInterval(() => {
       if (!socket?.connected || !currentSeed || !window._getMultiplayerGameState) return;
+      if (gameState.mode === 'pvpSurvival') return;
       const state = window._getMultiplayerGameState();
       if (state) socket.emit('update-game-state', state);
     }, 750);
   }
 }
 
-function sendMultiplayerAction(action) {
-  if (!multiplayerSpectator && socket?.connected && currentSeed && !applyingMultiplayerAction) {
+function sendMultiplayerAction(action, force = false) {
+  if (!multiplayerSpectator && socket?.connected && currentSeed && (!applyingMultiplayerAction || force)) {
+    if (gameState.mode === 'pvpSurvival' &&
+        ['place-tower', 'evolve-tower', 'sell-tower'].includes(action.type)) return;
     socket.emit('game-action', action);
   }
 }
@@ -1608,9 +1659,11 @@ let gameState = {
   waveSpawnIsBoss: false,
   waveBossTypes: [],
   waveSpawnIntervalMs: 0,
+  pvpWaveTimer: 0,
+  pvp: null,
   collectionMasterDialogueShown: false,
   wallGardenSoapMessageShown: false,
-  uniquesBossSpawned: {}  // Tracks NOeye_Pyce, MoonStar_Pyce (only 1 per game)
+  uniquesBossSpawned: {}  // Tracks unique boss appearances within the round
 };
 
 let tutorialEquippedSkinsBackup = null;
@@ -3307,8 +3360,89 @@ async function startGameSession(username, offline, accountId = null, isNewAccoun
 function showLoginError(message) {
   const msgEl = document.getElementById('login-msg');
   if (!msgEl) return;
+  signupCaptchaMessageKey = '';
   msgEl.textContent = message;
   msgEl.style.color = 'red';
+}
+
+function showSignupCaptchaMessage(key, color) {
+  signupCaptchaMessageKey = key;
+  signupCaptchaMessageColor = color;
+  renderSignupCaptchaMessage();
+}
+
+function renderSignupCaptchaMessage() {
+  if (!signupCaptchaMessageKey) return;
+  const msgEl = document.getElementById('login-msg');
+  if (!msgEl) return;
+  msgEl.textContent = translate(signupCaptchaMessageKey);
+  msgEl.style.color = signupCaptchaMessageColor;
+}
+
+async function ensureSignupTurnstile() {
+  const siteKey = window.GLOB_DEFENDERS_TURNSTILE?.siteKey?.trim();
+  if (!siteKey) throw new Error(translate('signup_captcha_unconfigured'));
+
+  const container = document.getElementById('signup-captcha');
+  if (!container) throw new Error(translate('signup_captcha_unavailable'));
+  container.hidden = false;
+
+  if (!window.turnstile) {
+    if (!signupTurnstileScriptPromise) {
+      signupTurnstileScriptPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+          if (window.turnstile) resolve();
+          else reject(new Error(translate('signup_captcha_unavailable')));
+        };
+        script.onerror = () => {
+          signupTurnstileScriptPromise = null;
+          reject(new Error(translate('signup_captcha_unavailable')));
+        };
+        document.head.appendChild(script);
+      });
+    }
+    try {
+      await signupTurnstileScriptPromise;
+    } catch (error) {
+      signupTurnstileScriptPromise = null;
+      throw error;
+    }
+  }
+
+  if (signupTurnstileWidgetId !== null) return;
+  try {
+    signupTurnstileWidgetId = window.turnstile.render(container, {
+      sitekey: siteKey,
+      theme: 'auto',
+      callback: token => {
+        signupTurnstileToken = token;
+        showSignupCaptchaMessage('signup_captcha_verified', '#2ecc71');
+      },
+      'expired-callback': () => {
+        signupTurnstileToken = '';
+        showSignupCaptchaMessage('signup_captcha_expired', '#ff4d4d');
+      },
+      'error-callback': errorCode => {
+        signupTurnstileToken = '';
+        console.warn('Cloudflare Turnstile challenge failed:', errorCode);
+        showSignupCaptchaMessage('signup_captcha_unavailable', '#ff4d4d');
+      }
+    });
+  } catch (error) {
+    console.error('No se pudo renderizar el reto de Cloudflare Turnstile:', error);
+    throw new Error(translate('signup_captcha_unavailable'), { cause: error });
+  }
+}
+
+function resetSignupTurnstile() {
+  signupTurnstileToken = '';
+  if (signupTurnstileWidgetId !== null && window.turnstile) {
+    window.turnstile.reset(signupTurnstileWidgetId);
+  }
 }
 
 function getSessionUserRole() {
@@ -3703,9 +3837,12 @@ async function handleLogin() {
 }
 
 async function handleCreateAccount() {
+  if (accountCreationInProgress) return;
+  const captchaEnabled = window.GLOB_DEFENDERS_TURNSTILE?.enabled === true;
   const usernameInput = document.getElementById('username-input');
   const passInput = document.getElementById('password-input');
   const msgEl = document.getElementById('login-msg');
+  const createButton = document.getElementById('create-account-btn');
   const username = usernameInput ? usernameInput.value.trim() : '';
   const password = passInput ? passInput.value : '';
   const playerName = username;
@@ -3718,12 +3855,30 @@ async function handleCreateAccount() {
   }
   if (blockOffensiveUsername(username)) return;
 
+  if (captchaEnabled && !signupTurnstileToken) {
+    if (createButton) createButton.disabled = true;
+    try {
+      await ensureSignupTurnstile();
+      showSignupCaptchaMessage('signup_captcha_required', '#f1c40f');
+    } catch (error) {
+      console.error('No se pudo preparar Cloudflare Turnstile:', error);
+      showLoginError(error.message || translate('signup_captcha_unavailable'));
+    } finally {
+      if (createButton) createButton.disabled = false;
+    }
+    return;
+  }
+
+  accountCreationInProgress = true;
+  if (createButton) createButton.disabled = true;
   try {
     await flushCloudProgressSave();
+    const signupOptions = { data: { player_name: playerName } };
+    if (captchaEnabled) signupOptions.captchaToken = signupTurnstileToken;
     const { data, error } = await getSupabaseClient().auth.signUp({
       email: getSupabaseAuthEmail(username),
       password,
-      options: { data: { player_name: playerName } }
+      options: signupOptions
     });
     if (error) throw error;
     if (data.user) {
@@ -3735,6 +3890,7 @@ async function handleCreateAccount() {
         : 'La cuenta se creó, pero Supabase exige confirmar un correo. Desactiva Confirm email en los ajustes de Authentication para usar cuentas solo con usuario.';
       const confirmation = document.getElementById('login-msg');
       if (confirmation) {
+        signupCaptchaMessageKey = '';
         confirmation.textContent = confirmationMessage;
         confirmation.style.color = '#2ecc71';
       }
@@ -3751,6 +3907,10 @@ async function handleCreateAccount() {
       return;
     }
     showLoginError(error.message || (currentLanguage === 'en' ? 'Could not create the account.' : 'No se pudo crear la cuenta.'));
+  } finally {
+    if (captchaEnabled) resetSignupTurnstile();
+    accountCreationInProgress = false;
+    if (createButton) createButton.disabled = false;
   }
 }
 
@@ -4032,9 +4192,11 @@ function showModeSelection() {
       grid.appendChild(btn);
     }
 
-    if (hasAcrossTimeAccessBadges() && canPlayAcrossTimeSolo() && gameState.map === 'gelatin_lake') {
+    if (hasAcrossTimeAccessBadges() &&
+        canPlayAcrossTimeSolo() &&
+        gameState.map === 'gelatin_lake') {
       const btn = document.createElement('button');
-      btn.className = 'mode-btn dynamic-mode mode-btn-across-time';
+      btn.className = 'mode-btn dynamic-mode mode-btn-time-attack';
       btn.dataset.mode = 'acrossTheTime';
       btn.textContent = translate('across_time_mode_name');
       btn.title = translate('across_time_mode_desc');
@@ -4053,6 +4215,23 @@ function showModeSelection() {
       btn.onclick = () => selectMode('timeAttack');
       grid.appendChild(btn);
     }
+
+    if (hasPvpMultiplayerRoom()) {
+      [
+        { id: 'pvpSurvival', label: currentLanguage === 'en' ? 'SURVIVAL PVP' : 'PVP SUPERVIVENCIA' },
+        { id: 'pvpDual', label: 'PVP DUAL' }
+      ].forEach(({ id, label }) => {
+        const btn = document.createElement('button');
+        btn.className = 'mode-btn dynamic-mode mode-btn-time-attack';
+        btn.dataset.mode = id;
+        btn.textContent = label;
+        btn.title = currentLanguage === 'en'
+          ? 'Multiplayer-only competitive mode.'
+          : 'Modo competitivo exclusivo para multijugador.';
+        btn.onclick = () => beginPvpLobby(id);
+        grid.appendChild(btn);
+      });
+    }
   }
 
   modes.forEach(m => {
@@ -4070,6 +4249,295 @@ function showModeSelection() {
       }
     }
   });
+}
+
+function getPvpLocalPlayerId() {
+  return socket?.id || localStorage.getItem('glob_username') || 'Jugador';
+}
+
+function escapePvpMarkup(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[character]);
+}
+
+function getPvpTeam(playerId = getPvpLocalPlayerId()) {
+  return gameState.pvp?.teams?.[playerId] || pvpLobby?.teams?.[playerId] || null;
+}
+
+function getPvpWavePlannerId() {
+  const eliminated = new Set(gameState.pvp?.eliminated || []);
+  return [...multiplayerPlayers]
+    .sort((left, right) => left.playerId.localeCompare(right.playerId))
+    .find(player => !eliminated.has(player.playerId))?.playerId || null;
+}
+
+function beginPvpLobby(mode) {
+  if (!['pvpSurvival', 'pvpDual'].includes(mode) ||
+      !hasPvpMultiplayerRoom()) {
+    showMessage(currentLanguage === 'en'
+      ? 'PVP modes require an online room with at least two players.'
+      : 'Los modos PVP requieren una sala online con al menos dos jugadores.',
+    'warning');
+    return;
+  }
+  if (!isSeedHost) {
+    showMessage(currentLanguage === 'en'
+      ? 'Wait for the room host to choose a PVP mode.'
+      : 'Espera a que el anfitrión elija un modo PVP.',
+    'warning');
+    return;
+  }
+
+  pvpLobby = {
+    mode,
+    map: gameState.map,
+    teams: {},
+    started: false
+  };
+  showPvpTeamSelection();
+  sendMultiplayerAction({ type: 'pvp-lobby-start', mode, map: gameState.map });
+}
+
+function showPvpTeamSelection() {
+  if (!pvpLobby || pvpLobby.started) return;
+  if (!hasPvpMultiplayerRoom()) {
+    pvpLobby = null;
+    document.getElementById('pvp-team-selection')?.remove();
+    return;
+  }
+  document.getElementById('mode-selection').style.display = 'none';
+  let panel = document.getElementById('pvp-team-selection');
+  if (!panel) {
+    panel = document.createElement('section');
+    panel.id = 'pvp-team-selection';
+    panel.className = 'pvp-team-selection';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    document.body.appendChild(panel);
+  }
+
+  const isSurvival = pvpLobby.mode === 'pvpSurvival';
+  const title = isSurvival
+    ? (currentLanguage === 'en' ? 'SURVIVAL PVP' : 'PVP SUPERVIVENCIA')
+    : 'PVP DUAL';
+  const localTeam = getPvpTeam();
+  const globSide = currentLanguage === 'en' ? 'Glob side' : 'Bando Glob';
+  const pyceSide = currentLanguage === 'en' ? 'Pyce side' : 'Bando Pyce';
+  const teamButtons = isSurvival
+    ? ''
+    : `<div class="pvp-team-options">
+        <button type="button" data-team="glob" class="${localTeam === 'glob' ? 'selected' : ''}">${globSide}</button>
+        <button type="button" data-team="pyce" class="${localTeam === 'pyce' ? 'selected' : ''}">${pyceSide}</button>
+      </div>`;
+  const rows = multiplayerPlayers.map(player => {
+    const team = pvpLobby.teams[player.playerId];
+    const label = team === 'pyce'
+      ? pyceSide
+      : team === 'glob'
+        ? globSide
+        : currentLanguage === 'en' ? 'Not chosen' : 'Sin elegir';
+    return `<li>${escapePvpMarkup(player.username || 'Jugador')} — ${label}</li>`;
+  }).join('');
+  const hasAllChoices = isSurvival || multiplayerPlayers.every(player => pvpLobby.teams[player.playerId]);
+  const teamCounts = Object.values(pvpLobby.teams).reduce((counts, team) => {
+    if (team === 'pyce') counts.pyce++;
+    if (team === 'glob') counts.glob++;
+    return counts;
+  }, { pyce: 0, glob: 0 });
+  const oddPlayerRuleValid = multiplayerPlayers.length % 2 === 0 || teamCounts.pyce === 1;
+  const validDualTeams = teamCounts.pyce > 0 && teamCounts.glob > 0 && oddPlayerRuleValid;
+  const canStart = isSeedHost && multiplayerPlayers.length >= 2 &&
+    hasAllChoices && (isSurvival || validDualTeams);
+  const rules = isSurvival
+    ? (currentLanguage === 'en'
+      ? 'Everyone defends their own 250-HP base and keeps their own Globetines. The last survivors win; survivors at wave 50 share victory.'
+      : 'Cada persona defiende su propia base de 250 de vida y conserva sus Globetines. Ganan quienes sobrevivan; quienes lleguen a la oleada 50 comparten la victoria.')
+    : (currentLanguage === 'en'
+      ? 'Choose a side. Pyce earns Pyckets over time and by keeping enemies alive; Glob defends a 250-HP base.'
+      : 'Elige bando. Pyce gana Pyckets con el tiempo y manteniendo enemigos vivos; Glob defiende una base de 250 de vida.');
+  panel.innerHTML = `<h2>${title}</h2>
+    <p>${rules}</p>
+    ${teamButtons}
+    <ul class="pvp-team-roster">${rows}</ul>
+    ${!oddPlayerRuleValid && !isSurvival
+      ? `<p class="pvp-team-warning">${currentLanguage === 'en' ? 'With an odd number of players, exactly one must be on the Pyce side.' : 'Con un número impar de jugadores, debe haber exactamente una persona en el Bando Pyce.'}</p>`
+      : ''}
+    ${!validDualTeams && !isSurvival && hasAllChoices
+      ? `<p class="pvp-team-warning">${currentLanguage === 'en' ? 'Both sides need at least one player.' : 'Debe haber al menos una persona en cada bando.'}</p>`
+      : ''}
+    <button type="button" class="pvp-start-match" ${canStart ? '' : 'disabled'}>
+      ${currentLanguage === 'en' ? 'Start match' : 'Iniciar partida'}
+    </button>`;
+
+  panel.querySelectorAll('[data-team]').forEach(button => {
+    button.addEventListener('click', () => choosePvpTeam(button.dataset.team));
+  });
+  const startButton = panel.querySelector('.pvp-start-match');
+  startButton?.addEventListener('click', startPvpMatchFromLobby);
+  panel.style.display = 'flex';
+}
+
+function choosePvpTeam(team) {
+  if (!pvpLobby || pvpLobby.started || !['glob', 'pyce'].includes(team)) return;
+  pvpLobby.teams[getPvpLocalPlayerId()] = team;
+  showPvpTeamSelection();
+  sendMultiplayerAction({ type: 'pvp-team-choice', team });
+}
+
+function startPvpMatchFromLobby() {
+  if (!pvpLobby || !isSeedHost || !hasPvpMultiplayerRoom()) return;
+  const playerCount = multiplayerPlayers.length;
+  const teams = { ...pvpLobby.teams };
+  const pickedTeams = multiplayerPlayers.map(player => teams[player.playerId]);
+  if (playerCount < 2 ||
+      (pvpLobby.mode === 'pvpDual' && pickedTeams.some(team => !team)) ||
+      (pvpLobby.mode === 'pvpDual' &&
+       (!pickedTeams.includes('glob') || !pickedTeams.includes('pyce') ||
+        (playerCount % 2 === 1 && pickedTeams.filter(team => team === 'pyce').length !== 1)))) {
+    showPvpTeamSelection();
+    return;
+  }
+
+  const waveRanges = {
+    2: [40, 50],
+    3: [35, 45],
+    4: [30, 40]
+  };
+  const [minimumWave, maximumWave] = waveRanges[Math.min(4, playerCount)] || [30, 50];
+  const match = {
+    mode: pvpLobby.mode,
+    map: pvpLobby.map,
+    teams,
+    maxWaves: pvpLobby.mode === 'pvpDual'
+      ? minimumWave + Math.floor(Math.random() * (maximumWave - minimumWave + 1))
+      : 50,
+    pyckets: 500,
+    eliminated: [],
+    started: true
+  };
+  beginPvpMatch(match);
+  sendMultiplayerAction({ type: 'pvp-match-start', match });
+}
+
+function beginPvpMatch(match) {
+  if (!match || !['pvpSurvival', 'pvpDual'].includes(match.mode) ||
+      !MAPS[match.map] || !match.teams || typeof match.teams !== 'object') return;
+  if (pvpIncomeInterval !== null) {
+    clearInterval(pvpIncomeInterval);
+    pvpIncomeInterval = null;
+  }
+  pvpLobby = { ...match, teams: { ...match.teams } };
+  pvpLobby.eliminated = Array.isArray(match.eliminated) ? [...match.eliminated] : [];
+  gameState.pvp = { ...pvpLobby };
+  gameState.map = match.map;
+  gameState.mode = match.mode;
+  gameState.modeConfirmed = true;
+  gameState.maxWaves = Number(match.maxWaves) || 50;
+  generateSpots();
+  createMap();
+  retryGame();
+  gameState.mode = match.mode;
+  gameState.modeConfirmed = true;
+  gameState.maxWaves = Number(match.maxWaves) || 50;
+  gameState.pvp = { ...pvpLobby };
+  gameState.health = 250;
+  gameState.globetines = 500;
+  gameState.wave = 0;
+  gameState.autoWave = match.mode === 'pvpDual';
+  gameState.pvpWaveTimer = 0;
+  document.getElementById('pvp-team-selection')?.remove();
+  document.getElementById('map-selection').style.display = 'none';
+  document.getElementById('mode-selection').style.display = 'none';
+  document.getElementById('game-container').style.display = 'flex';
+  document.getElementById('meta-controls').style.display = 'flex';
+  drawPvpEnemyShop();
+  updateUI();
+  applyingMultiplayerAction = true;
+  try {
+    startWave();
+  } finally {
+    applyingMultiplayerAction = false;
+  }
+  if (match.mode === 'pvpDual' && isSeedHost) {
+    pvpIncomeInterval = setInterval(() => {
+      if (gameState.mode !== 'pvpDual' || gameState.gameOver || !gameState.pvp) return;
+      const livingEnemyValue = gameState.enemies.reduce(
+        (total, enemy) => total + getPvpEnemyCost(enemy.type),
+        0
+      );
+      gameState.pvp.pyckets += 100 + Math.floor(livingEnemyValue * 0.05);
+      updatePvpEnemyShop();
+      updateUI();
+    }, 10000);
+  }
+}
+
+function handlePvpElimination(playerId, wave) {
+  if (!gameState.pvp || gameState.mode !== 'pvpSurvival' ||
+      gameState.pvp.eliminated.includes(playerId)) return;
+  gameState.pvp.eliminated.push(playerId);
+  if (playerId === getPvpLocalPlayerId() && currentSeed) {
+    sendMultiplayerAction({ type: 'pvp-player-eliminated', wave });
+  }
+  const survivors = multiplayerPlayers.filter(player =>
+    !gameState.pvp.eliminated.includes(player.playerId)
+  );
+  if (survivors.length <= 1) {
+    if (survivors.some(player => player.playerId === getPvpLocalPlayerId())) {
+      endGame(true);
+    }
+  }
+}
+
+function getPvpEnemyCost(type) {
+  const enemy = ENEMY_TYPES[type];
+  if (!enemy || enemy.timeAttackOnly) return 0;
+  return Math.max(20, Math.ceil((Number(enemy.health) || 10) * 0.12 + (Number(enemy.speed) || 1) * 20));
+}
+
+function drawPvpEnemyShop() {
+  document.getElementById('pvp-enemy-shop')?.remove();
+  if (gameState.mode !== 'pvpDual' || getPvpTeam() !== 'pyce' || gameState.gameOver) return;
+  const panel = document.createElement('aside');
+  panel.id = 'pvp-enemy-shop';
+  panel.className = 'pvp-enemy-shop';
+  const entries = Object.keys(ENEMY_TYPES)
+    .filter(type => !ENEMY_TYPES[type].timeAttackOnly)
+    .sort((left, right) => getPvpEnemyCost(left) - getPvpEnemyCost(right));
+  panel.innerHTML = `<h3>${currentLanguage === 'en' ? 'PYCE INVOCATIONS' : 'INVOCACIONES PYCE'}</h3>
+    <p><img src="img/Tokens/Pyckets.png" alt="Pyckets"> <span id="pvp-pycket-count">${gameState.pvp.pyckets}</span></p>
+    <select aria-label="${currentLanguage === 'en' ? 'Enemy to summon' : 'Enemigo a invocar'}">
+      ${entries.map(type => `<option value="${escapePvpMarkup(type)}">${escapePvpMarkup(translate(`enemy_${type}_name`) || type)} · ${getPvpEnemyCost(type)} 🪙</option>`).join('')}
+    </select>
+    <button type="button">${currentLanguage === 'en' ? 'Summon enemy' : 'Invocar enemigo'}</button>`;
+  panel.querySelector('button').addEventListener('click', () => {
+    const type = panel.querySelector('select').value;
+    const cost = getPvpEnemyCost(type);
+    if (!gameState.pvp || gameState.pvp.pyckets < cost) {
+      showMessage(currentLanguage === 'en' ? 'Not enough Pyckets.' : 'No tienes suficientes Pyckets.', 'error');
+      return;
+    }
+    gameState.pvp.pyckets -= cost;
+    spawnEnemy(type, false, null, true);
+    updatePvpEnemyShop();
+    sendMultiplayerAction({ type: 'pvp-enemy-purchase', enemyType: type });
+  });
+  document.body.appendChild(panel);
+}
+
+function updatePvpEnemyShop() {
+  const count = document.getElementById('pvp-pycket-count');
+  if (count && gameState.pvp) count.textContent = String(gameState.pvp.pyckets);
+  if (gameState.mode !== 'pvpDual' || getPvpTeam() !== 'pyce') {
+    document.getElementById('pvp-enemy-shop')?.remove();
+  } else if (!document.getElementById('pvp-enemy-shop')) {
+    drawPvpEnemyShop();
+  }
 }
 
 function ensureTutorialGuide() {
@@ -6182,6 +6650,13 @@ function drawTowerShop() {
   const shopContainer = document.getElementById('tower-shop');
   if (!shopContainer) return;
   shopContainer.innerHTML = '';
+  if (gameState.mode === 'pvpDual' && getPvpTeam() === 'pyce') {
+    shopContainer.textContent = currentLanguage === 'en'
+      ? 'Pyce side: summon enemies with Pyckets.'
+      : 'Bando Pyce: invoca enemigos usando Pyckets.';
+    drawPvpEnemyShop();
+    return;
+  }
   if (gameState.mode === 'tutorial') {
     const skipButton = document.createElement('button');
     skipButton.type = 'button';
@@ -6468,6 +6943,7 @@ function grantBadgeReward(badge) {
 function toggleLanguage() {
   currentLanguage = currentLanguage === 'es' ? 'en' : 'es';
   updateLanguage();
+  renderSignupCaptchaMessage();
   updateLightModeButton();
   renderMultiplayerChat();
   renderMapSelection();
@@ -6810,12 +7286,7 @@ function switchEncyclopediaTab(tab) {
         if (!firstItem) firstItem = type;
         const btn = document.createElement('div');
         btn.className = 'almanac-btn';
-        let killed = gameState.pycesKilled[type] || 0;
-        if (type === 'BitY1' || type.startsWith('Bit')) {
-          killed = ['BitY1', 'BitB4', 'BitG2', 'BitP3'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
-        } else if (type === 'ByteGB1' || type.startsWith('Byte')) {
-          killed = ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
-        }
+        const killed = getPyceKillProgress(type);
 
         let imageToShow = e.image;
         if (killed === 0) {
@@ -6954,12 +7425,7 @@ function selectAlmanacItem(id, category) {
     else if (e.stunAbility) mechanicText = translate('mechanic_annoying');
 
     const target = typeof getPyceKillTarget === 'function' ? getPyceKillTarget(id) : 9999;
-    let killed = gameState.pycesKilled[id] || 0;
-    if (id.startsWith('Bit')) {
-      killed = ['BitY1', 'BitB4', 'BitG2', 'BitP3'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
-    } else if (id.startsWith('Byte')) {
-      killed = ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
-    }
+    const killed = getPyceKillProgress(id);
     const isMaxed = killed >= target;
     const progressBg = isMaxed ? 'rgba(255, 215, 0, 0.3)' : 'rgba(0,0,0,0.3)';
     const barWidth = Math.min(100, (killed / target) * 100);
@@ -8717,6 +9183,13 @@ function isProfileEnemyFramed(type) {
   if (!Number.isFinite(totalTarget)) return false;
 
   if (imageGroup.types.includes(canonical)) {
+    const totalKills = types.reduce((sum, enemyType) =>
+      sum + (gameState.pycesKilled[enemyType] || 0), 0
+    );
+    return totalKills >= totalTarget;
+  }
+
+  if (canonical === 'Puz_Zle') {
     const totalKills = types.reduce((sum, enemyType) =>
       sum + (gameState.pycesKilled[enemyType] || 0), 0
     );
@@ -10776,6 +11249,13 @@ function drawPass() {
 }
 
 function placeTower(spotId, type) {
+  if (gameState.mode === 'pvpDual' && getPvpTeam() !== 'glob' && !applyingMultiplayerAction) {
+    showMessage(currentLanguage === 'en'
+      ? 'Only the Glob side can place towers.'
+      : 'Solo el Bando Glob puede colocar torres.',
+    'warning');
+    return;
+  }
   if (gameState.mode === 'tutorial' && gameState.tutorialStage !== 'waves') {
     const allowedTypes = {
       place_green: ['Glob'],
@@ -11312,8 +11792,8 @@ function activateGTack(t) {
         bosses: ['Curse_Boneker']
       },
       frosty_christmas: {
-        enemies: ['Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
-        bosses: []
+        enemies: ['Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce', 'Wingel_Pyce', 'Puz_Zle'],
+        bosses: ['NOeye_Pyce', 'NOssense_Pyce', 'NOIRrupt_Pyce']
       }
     };
     const plan = mapPools[mapKey] || mapPools.gelatin_lake;
@@ -11365,8 +11845,10 @@ function activateGTack(t) {
     }
   }
 
-  function startWaveSpawnInterval() {
+  function startWaveSpawnInterval(useSynchronizedPlan = false) {
     stopWaveSpawnInterval();
+    if (gameState.mode === 'pvpSurvival' && currentSeed &&
+        getPvpLocalPlayerId() !== getPvpWavePlannerId() && !useSynchronizedPlan) return;
     if (!gameState.waveSpawnQueue?.length ||
         gameState.waveSpawnIndex >= gameState.waveSpawnQueue.length) {
       gameState.spawningActive = false;
@@ -11412,6 +11894,14 @@ function activateGTack(t) {
 
     if (gameState.mode === 'acrossTheTime') {
       startAcrossTimeWave();
+      return;
+    }
+    if (gameState.mode === 'pvpDual' &&
+        getPvpTeam(multiplayerActionOwner || getPvpLocalPlayerId()) !== 'glob') {
+      showMessage(currentLanguage === 'en'
+        ? 'The Glob side starts each wave.'
+        : 'El Bando Glob inicia cada oleada.',
+      'warning');
       return;
     }
     if (gameState.mode === 'tutorial' && gameState.tutorialStage !== 'waves') {
@@ -11516,6 +12006,16 @@ function activateGTack(t) {
           : (typeof translate === 'function' ? translate('waveStarted', { wave: gameState.wave }) : `¡Oleada ${gameState.wave}!`),
         'info'
       );
+    }
+
+    if (mode === 'pvpDual') {
+      gameState.waveSpawnQueue = [];
+      gameState.waveSpawnIndex = 0;
+      gameState.waveSpawnIsBoss = false;
+      gameState.waveBossTypes = [];
+      gameState.pvpWaveTimer = 0;
+      updateUI();
+      return;
     }
 
     let mult = 1.0;
@@ -11749,14 +12249,15 @@ function activateGTack(t) {
         },
         frosty_christmas: {
           regular: ['Festive_Pyce'],
-          medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce'],
-          hard: ['Giftbox_Pyce'],
-          special: ['ToyBomb_Pyce', 'Giftbox_Pyce']
+          medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Wingel_Pyce'],
+          hard: ['Giftbox_Pyce', 'Puz_Zle'],
+          special: ['ToyBomb_Pyce', 'Giftbox_Pyce', 'Puz_Zle']
         }
       };
 
       const mapPool = MAP_POOLS[mapKey] || MAP_POOLS.gelatin_lake;
-      const mapTankPool = (ENEMY_BALANCE[mapKey] && ENEMY_BALANCE[mapKey].tank) || mapPool.hard;
+      const mapTankPool = ((ENEMY_BALANCE[mapKey] && ENEMY_BALANCE[mapKey].tank) || mapPool.hard)
+        .filter(type => !ENEMY_TYPES[type]?.splitChildOnly);
 
       if (mapKey === 'sunlight_seaside' && mode === 'facil') {
          let count = 2 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
@@ -11872,6 +12373,10 @@ function activateGTack(t) {
          } else if (mapKey === 'spooktacular_ruins') {
              if (mode === 'antiNormal') bossesToSpawn.push('Curse_Boneker');
              else isBossWave = false;
+         } else if (mapKey === 'frosty_christmas') {
+            if (mode === 'corrupto') bossesToSpawn.push('NOssense_Pyce');
+            else if (mode === 'antiNormal') bossesToSpawn.push('NOIRrupt_Pyce');
+            else bossesToSpawn.push('NOeye_Pyce');
          }
       }
       
@@ -11896,7 +12401,7 @@ function activateGTack(t) {
       }
 
       // Limpiar Jefes únicos
-      const UNIQUE_BOSSES = ['NOeye_Pyce', 'MoonStar_Pyce'];
+      const UNIQUE_BOSSES = ['NOeye_Pyce', 'MoonStar_Pyce', 'NOssense_Pyce', 'NOIRrupt_Pyce'];
       if (mode !== 'infinito') {
         UNIQUE_BOSSES.forEach(b => {
           if (gameState.uniquesBossSpawned && gameState.uniquesBossSpawned[b]) {
@@ -11975,6 +12480,16 @@ function activateGTack(t) {
     gameState.waveSpawnIntervalMs = mobileDevice
       ? Math.max(240, 650 - Math.min(420, wave * 22))
       : Math.max(300, 800 - Math.min(500, wave * 25));
+    if (mode === 'pvpSurvival' && getPvpLocalPlayerId() === getPvpWavePlannerId()) {
+      sendMultiplayerAction({
+        type: 'pvp-survival-wave-plan',
+        wave,
+        queue: [...gameState.waveSpawnQueue],
+        isBossWave: gameState.waveSpawnIsBoss,
+        bosses: [...gameState.waveBossTypes],
+        intervalMs: gameState.waveSpawnIntervalMs
+      }, true);
+    }
     startWaveSpawnInterval();
   }
 
@@ -12054,6 +12569,8 @@ function activateGTack(t) {
         if (wave >= 3) pool.push('Elf_Pyce', 'SnowCapsule_Pyce');
         if (wave >= 5) pool.push('ToyBomb_Pyce');
         if (wave >= 7) pool.push('Giftbox_Pyce');
+        if (wave >= 4) pool.push('Wingel_Pyce');
+        if (wave >= 8) pool.push('Puz_Zle');
       }
       type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
     }
@@ -12116,7 +12633,7 @@ function activateGTack(t) {
     checkEnemyDialogues(type);
 
     // NOeye y MoonStar son únicos: marcarlos para no repetir
-    if (type === 'NOeye_Pyce' || type === 'MoonStar_Pyce') {
+    if (['NOeye_Pyce', 'MoonStar_Pyce', 'NOssense_Pyce', 'NOIRrupt_Pyce'].includes(type)) {
       gameState.uniquesBossSpawned[type] = true;
     }
 
@@ -12189,6 +12706,8 @@ function activateGTack(t) {
       waveSpawnIsBoss: Boolean(gameState.waveSpawnIsBoss),
       waveBossTypes: [...(gameState.waveBossTypes || [])],
       waveSpawnIntervalMs: gameState.waveSpawnIntervalMs || 0,
+      pvpWaveTimer: gameState.pvpWaveTimer || 0,
+      pvp: gameState.pvp ? { ...gameState.pvp, teams: { ...gameState.pvp.teams }, eliminated: [...gameState.pvp.eliminated] } : null,
       matchStats: {
         totalDamage: gameState.totalDamage,
         moneySpentThisGame: gameState.moneySpentThisGame,
@@ -12255,6 +12774,7 @@ function activateGTack(t) {
         !Array.isArray(snapshot.towers) || !Array.isArray(snapshot.enemies) ||
         !initializeMultiplayerMatch(snapshot)) return;
 
+    const wasGameOver = gameState.gameOver;
     const oldCapacityState = `${multiplayerEnabled}:${JSON.stringify(multiplayerTowerLimits)}`;
     const oldTowerLayout = gameState.towers.map(tower =>
       `${tower.spotId}:${tower.type}:${tower.ownerId || ''}`
@@ -12281,6 +12801,15 @@ function activateGTack(t) {
     gameState.waveSpawnIsBoss = Boolean(snapshot.waveSpawnIsBoss);
     gameState.waveBossTypes = Array.isArray(snapshot.waveBossTypes) ? [...snapshot.waveBossTypes] : [];
     gameState.waveSpawnIntervalMs = Math.max(0, Number(snapshot.waveSpawnIntervalMs) || 0);
+    gameState.pvpWaveTimer = Math.max(0, Number(snapshot.pvpWaveTimer) || 0);
+    if (snapshot.pvp && typeof snapshot.pvp === 'object') {
+      gameState.pvp = {
+        ...snapshot.pvp,
+        teams: { ...(snapshot.pvp.teams || {}) },
+        eliminated: Array.isArray(snapshot.pvp.eliminated) ? [...snapshot.pvp.eliminated] : []
+      };
+      pvpLobby = { ...gameState.pvp };
+    }
     if (snapshot.matchStats && typeof snapshot.matchStats === 'object') {
       Object.assign(gameState, snapshot.matchStats);
     }
@@ -12365,15 +12894,56 @@ function activateGTack(t) {
       const modal = document.getElementById('game-over');
       if (modal) modal.style.display = 'none';
     }
+    if (!wasGameOver && gameState.gameOver && gameState.mode === 'pvpDual') {
+      endGame(gameState.health > 0);
+    }
+    updatePvpEnemyShop();
     return true;
   }
 
   function applyMultiplayerAction(action) {
     if (multiplayerSpectator || !action || typeof action.type !== 'string') return;
+    if (gameState.mode === 'pvpSurvival' &&
+        ['place-tower', 'evolve-tower', 'sell-tower'].includes(action.type)) return;
     applyingMultiplayerAction = true;
     multiplayerActionOwner = action.playerId || null;
     try {
-      if (action.type === 'place-tower') {
+      if (action.type === 'pvp-lobby-start' && action.playerId === socket?.hostId) {
+        pvpLobby = { mode: action.mode, map: action.map, teams: {}, started: false };
+        showPvpTeamSelection();
+      } else if (action.type === 'pvp-team-choice') {
+        if (pvpLobby &&
+            multiplayerPlayers.some(player => player.playerId === action.playerId) &&
+            ['glob', 'pyce'].includes(action.team)) {
+          pvpLobby.teams[action.playerId] = action.team;
+          showPvpTeamSelection();
+        }
+      } else if (action.type === 'pvp-match-start' && action.playerId === socket?.hostId) {
+        beginPvpMatch(action.match);
+      } else if (action.type === 'pvp-player-eliminated') {
+        handlePvpElimination(action.playerId, action.wave);
+      } else if (action.type === 'pvp-survival-wave-plan') {
+        if (gameState.mode === 'pvpSurvival' &&
+            action.playerId === getPvpWavePlannerId() &&
+            Number(action.wave) === gameState.wave &&
+            Array.isArray(action.queue)) {
+          gameState.waveSpawnQueue = [...action.queue];
+          gameState.waveSpawnIntervalMs = Math.max(300, Number(action.intervalMs) || 800);
+            gameState.waveSpawnIsBoss = Boolean(action.isBossWave);
+            gameState.waveBossTypes = Array.isArray(action.bosses) ? [...action.bosses] : [];
+            startWaveSpawnInterval(true);
+        }
+      } else if (action.type === 'pvp-enemy-purchase') {
+        const cost = getPvpEnemyCost(action.enemyType);
+        if (gameState.mode === 'pvpDual' &&
+            getPvpTeam(action.playerId) === 'pyce' &&
+            cost > 0 &&
+            gameState.pvp?.pyckets >= cost) {
+          gameState.pvp.pyckets -= cost;
+          spawnEnemy(action.enemyType, false, null, true);
+          updatePvpEnemyShop();
+        }
+      } else if (action.type === 'place-tower') {
         placeTower(action.spotId, action.towerType);
       } else if (action.type === 'evolve-tower') {
         const tower = gameState.towers.find(item => item.spotId === action.spotId);
@@ -12381,7 +12951,8 @@ function activateGTack(t) {
       } else if (action.type === 'sell-tower') {
         const tower = gameState.towers.find(item => item.spotId === action.spotId);
         if (tower) sellTower(tower);
-      } else if (action.type === 'start-wave') {
+      } else if (action.type === 'start-wave' &&
+                 (gameState.mode !== 'pvpDual' || getPvpTeam(action.playerId) === 'glob')) {
         startWave();
       } else if (action.type === 'pause') {
         pauseGame();
@@ -12837,9 +13408,18 @@ function activateGTack(t) {
     const damage = Math.max(1, Number(enemy.baseDamage) || 2);
     gameState.health = Math.max(0, gameState.health - damage);
     gameState.baseTookDamage = true;
+    if (gameState.mode === 'pvpDual' && isSeedHost && gameState.pvp) {
+      gameState.pvp.pyckets += Math.max(1, Math.ceil(getPvpEnemyCost(enemy.type) * 0.2));
+      updatePvpEnemyShop();
+    }
     showEffect(enemy.x, enemy.y, `-${damage}`);
     updateUI();
-    if (gameState.health <= 0) endGame();
+    if (gameState.health <= 0) {
+      if (gameState.mode === 'pvpSurvival') {
+        handlePvpElimination(getPvpLocalPlayerId(), gameState.wave);
+      }
+      endGame();
+    }
   }
 
   function gameLoop(timestamp = performance.now()) {
@@ -12854,6 +13434,12 @@ function activateGTack(t) {
       lastGameFrameTime = timestamp;
       frameCount++;
       gameState.simultaneousExplosions = 0;
+      if (gameState.mode === 'pvpDual' && gameState.waveActive && gameState.spawningActive) {
+        gameState.pvpWaveTimer = (gameState.pvpWaveTimer || 0) + dt;
+        if (gameState.pvpWaveTimer >= 20) {
+          gameState.spawningActive = false;
+        }
+      }
 
       // === ANTI-LAG: Eliminar proyectiles en exceso (los más viejos, no jefes ni piercing) ===
       if (gameState.projectiles.length > MAX_PROJECTILES) {
@@ -14397,30 +14983,41 @@ function activateGTack(t) {
       'Curse_Boneker': 5, 'Blood_Taker': 325, 'Sneekmy': 350, 'Ghost_Pyce': 375, 'ZomPyce': 475,
       'Piz': 500, 'Followishers': 250, 'Creamplet': 150,
       'Festive_Pyce': 550, 'ToyBomb_Pyce': 350, 'SnowCapsule_Pyce': 350,
-      'Elf_Pyce': 250, 'Giftbox_Pyce': 250
+      'Elf_Pyce': 250, 'Giftbox_Pyce': 250,
+      'Wingel_Pyce': 250,
+      'Puz_Zle': 310, 'Puz': 310, 'Zle': 310,
+      'NOssense_Pyce': 3, 'NOIRrupt_Pyce': 3
     };
     return targets[type] || 9999;
   }
-  window._getPyceKillTarget = getPyceKillTarget;
-  window._isEnemyFramed = function(type) {
-    if (!ENEMY_TYPES[type]) return false;
+  function getPyceKillProgress(type) {
+    if (['Puz_Zle', 'Puz', 'Zle'].includes(type)) {
+      return ['Puz_Zle', 'Puz', 'Zle']
+        .reduce((sum, enemyType) => sum + (gameState.pycesKilled[enemyType] || 0), 0);
+    }
     if (type.startsWith('Bit')) {
       return ['BitY1', 'BitB4', 'BitG2', 'BitP3']
-        .reduce((sum, bit) => sum + (gameState.pycesKilled[bit] || 0), 0) >= getPyceKillTarget(type);
+        .reduce((sum, enemyType) => sum + (gameState.pycesKilled[enemyType] || 0), 0);
     }
     if (type.startsWith('Byte')) {
       return ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4']
-        .reduce((sum, byte) => sum + (gameState.pycesKilled[byte] || 0), 0) >= getPyceKillTarget(type);
+        .reduce((sum, enemyType) => sum + (gameState.pycesKilled[enemyType] || 0), 0);
     }
-    return (gameState.pycesKilled[type] || 0) >= getPyceKillTarget(type);
+    return gameState.pycesKilled[type] || 0;
+  }
+  window._getPyceKillTarget = getPyceKillTarget;
+  window._getPyceKillProgress = getPyceKillProgress;
+  window._isEnemyFramed = function(type) {
+    if (!ENEMY_TYPES[type]) return false;
+    return getPyceKillProgress(type) >= getPyceKillTarget(type);
   };
 
   function checkPyceMorphUnlock() {
     if (!gameState.unlockedSkins.includes('pyce_morph')) {
-      const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'];
+      const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce', 'Wingel_Pyce', 'Puz_Zle', 'NOssense_Pyce', 'NOIRrupt_Pyce'];
       let allMaxed = true;
       for (const t of types) {
-        if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
+        if (getPyceKillProgress(t) < getPyceKillTarget(t)) {
           allMaxed = false; break;
         }
       }
@@ -14475,10 +15072,10 @@ function activateGTack(t) {
       checkCollectionMasterDialogue();
       return;
     }
-    const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'];
+    const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce', 'Wingel_Pyce', 'Puz_Zle', 'NOssense_Pyce', 'NOIRrupt_Pyce'];
     let allPycesMaxed = true;
     for (const t of types) {
-      if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
+      if (getPyceKillProgress(t) < getPyceKillTarget(t)) {
         allPycesMaxed = false; break;
       }
     }
@@ -14532,7 +15129,11 @@ function activateGTack(t) {
         return ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4']
           .reduce((sum, byte) => sum + (gameState.pycesKilled[byte] || 0), 0) >= getPyceKillTarget(type);
       }
-      return (gameState.pycesKilled[type] || 0) >= getPyceKillTarget(type);
+      if (['Puz_Zle', 'Puz', 'Zle'].includes(type)) {
+        if (framedGroups.has('puz-zle')) return true;
+        framedGroups.add('puz-zle');
+      }
+      return getPyceKillProgress(type) >= getPyceKillTarget(type);
     });
     const allBadgesUnlocked = Object.values(BADGES).every(badge => badge.unlocked);
 
@@ -14548,6 +15149,19 @@ function activateGTack(t) {
     triggerHalloweenJumpscare(e.type, e.el);
     if (e.type === 'Sharowd') {
       finishBlockQuest();
+    }
+    if (ENEMY_TYPES[e.type]?.splitOnDeath) {
+      ENEMY_TYPES[e.type].splitOnDeath.forEach(type => {
+        spawnEnemy(type, false, e.currentPath, true);
+        const splitEnemy = gameState.enemies[gameState.enemies.length - 1];
+        if (splitEnemy) {
+          splitEnemy.x = e.x;
+          splitEnemy.y = e.y;
+          splitEnemy.pathIndex = e.pathIndex;
+          splitEnemy.el.style.left = `${e.x}px`;
+          splitEnemy.el.style.top = `${e.y}px`;
+        }
+      });
     }
 
     if (e.type === 'AstrorbTF' && gameState.mode === 'interstellar' && gameState.paracristalActive && !gameState.paracristalFinal) {
@@ -14687,10 +15301,11 @@ function activateGTack(t) {
     e.el.remove();
     if (e.boss) unlockBadge('bossKiller');
     gameState.enemies.splice(idx, 1);
-    const previousKills = gameState.pycesKilled[e.type] || 0;
-    gameState.pycesKilled[e.type] = previousKills + 1;
+    const previousKills = getPyceKillProgress(e.type);
+    gameState.pycesKilled[e.type] = (gameState.pycesKilled[e.type] || 0) + 1;
+    const currentKills = getPyceKillProgress(e.type);
     const frameTarget = getPyceKillTarget(e.type);
-    if (previousKills < frameTarget && gameState.pycesKilled[e.type] >= frameTarget) {
+    if (previousKills < frameTarget && currentKills >= frameTarget) {
       showEncyclopediaPopup({ ...e, key: e.type });
     }
 
@@ -14707,7 +15322,27 @@ function activateGTack(t) {
 
   function updateUI() {
     document.getElementById('health').textContent = Math.max(0, gameState.health);
-    document.getElementById('money').textContent = Math.floor(gameState.globetines);
+    const moneyDisplay = gameState.mode === 'pvpDual' && getPvpTeam() === 'pyce'
+      ? gameState.pvp?.pyckets || 0
+      : gameState.globetines;
+    const moneyValue = document.getElementById('money');
+    if (moneyValue) moneyValue.textContent = Math.floor(moneyDisplay);
+    const moneyStat = document.getElementById('money-stat');
+    const moneyIcon = moneyStat?.querySelector('img');
+    const pyceCurrency = gameState.mode === 'pvpDual' && getPvpTeam() === 'pyce';
+    if (moneyStat) moneyStat.title = pyceCurrency ? 'Pyckets' : translate('money');
+    if (moneyIcon) moneyIcon.src = pyceCurrency ? 'img/Tokens/Pyckets.png' : 'img/Tokens/Globetin.png';
+    const moneyLabel = document.querySelector('[data-i18n="money"]');
+    if (moneyLabel) {
+      moneyLabel.textContent = pyceCurrency
+        ? 'Pyckets'
+        : translate('money');
+    }
+    const startWaveButton = document.getElementById('start-wave');
+    const autoWaveButton = document.getElementById('auto-wave');
+    const pycePlayer = gameState.mode === 'pvpDual' && getPvpTeam() === 'pyce';
+    if (startWaveButton) startWaveButton.disabled = pycePlayer;
+    if (autoWaveButton) autoWaveButton.style.display = pycePlayer ? 'none' : '';
     document.getElementById('wave-count').textContent = gameState.wave;
     if (gameState.settings.showTotalDamage) document.getElementById('total-damage').textContent = Math.floor(gameState.totalDamage);
 
@@ -15334,6 +15969,45 @@ function activateGTack(t) {
           restartAcrossTimeEvent();
         }
       }, 2500);
+      return;
+    }
+
+    if (['pvpSurvival', 'pvpDual'].includes(gameState.mode)) {
+      if (pvpIncomeInterval !== null) {
+        clearInterval(pvpIncomeInterval);
+        pvpIncomeInterval = null;
+      }
+      document.getElementById('pvp-enemy-shop')?.remove();
+      const team = getPvpTeam();
+      let localWon = victory;
+      if (gameState.mode === 'pvpDual') localWon = team === 'glob' ? victory : !victory;
+      if (title) {
+        title.removeAttribute('data-i18n');
+        title.textContent = localWon
+          ? (currentLanguage === 'en' ? '🏆 VICTORY!' : '🏆 ¡VICTORIA!')
+          : (currentLanguage === 'en' ? '💀 DEFEAT' : '💀 DERROTA');
+      }
+      if (msg) {
+        if (gameState.mode === 'pvpSurvival') {
+          msg.textContent = localWon
+            ? (currentLanguage === 'en'
+              ? `You survived through wave ${gameState.wave}.`
+              : `Has sobrevivido hasta la oleada ${gameState.wave}.`)
+            : (currentLanguage === 'en'
+              ? `You were eliminated on wave ${gameState.wave}.`
+              : `Has sido eliminado en la oleada ${gameState.wave}.`);
+        } else {
+          const winningSide = victory
+            ? currentLanguage === 'en' ? 'Glob side' : 'Bando Glob'
+            : currentLanguage === 'en' ? 'Pyce side' : 'Bando Pyce';
+          msg.textContent = currentLanguage === 'en'
+            ? `${winningSide} wins the PVP Dual match.`
+            : `${winningSide} gana la partida de PVP Dual.`;
+        }
+      }
+      modal.querySelectorAll('.game-over-actions button').forEach(button => {
+        button.style.display = button.classList.contains('exit-btn') ? 'inline-flex' : 'none';
+      });
       return;
     }
 
