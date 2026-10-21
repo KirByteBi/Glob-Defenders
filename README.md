@@ -36,13 +36,6 @@ Run [`supabase-progress-schema.sql`](./SQL-editor_Supabase/supabase-progress-sch
 once in the SQL Editor in the Supabase project dashboard before using online accounts.
 Supabase's Email provider must be enabled, with email confirmation disabled.
 
-Cloudflare Turnstile integration is present but intentionally disabled for now;
-account creation and sign-in do not use CAPTCHA yet. To enable it later, create
-a Turnstile widget for the game's deployed domain, set `enabled` to `true` and
-configure its public sitekey in `turnstile-config.js`, then enable CAPTCHA in
-the Supabase Auth bot-protection settings with the matching Turnstile secret.
-Never put the secret in this repository.
-
 The game also keeps a local backup in IndexedDB and `localStorage`. Offline play
 uses only that local backup and does not synchronize. If an online account has
 no cloud save and a local save for the same player name exists, the game asks
