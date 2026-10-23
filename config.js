@@ -316,7 +316,8 @@ const MAPS = {
       { x: -30, y: 200 }, { x: 200, y: 200 }, { x: 200, y: 360 },
       { x: 460, y: 360 }, { x: 460, y: 180 }, { x: 730, y: 180 },
       { x: 730, y: 360 }, { x: 1030, y: 360 }
-    ]
+    ],
+    decorationTypes: ['tree', 'tree', 'bush', 'tree', 'bush', 'tree', 'bush', 'tree']
   },
   urbanistic_road: {
     name: "Urbanistic Road",
@@ -343,7 +344,8 @@ const MAPS = {
         { x: -30, y: 200 }, { x: 330, y: 200 }, { x: 330, y: 460 },
         { x: 630, y: 460 }, { x: 630, y: 360 }, { x: 1030, y: 360 }
       ]
-    ]
+    ],
+    decorationTypes: ['lamp', 'lamp', 'bush', 'lamp', 'bush', 'lamp', 'bush']
   },
   frosty_christmas: {
     name: 'Frosty Christmas',
@@ -367,7 +369,8 @@ const MAPS = {
         { x: -30, y: 456 }, { x: 330, y: 456 }, { x: 330, y: 374 },
         { x: 635, y: 374 }, { x: 1030, y: 374 }
       ]
-    ]
+    ],
+    decorationTypes: ['snowtree', 'snowman', 'snowtree', 'snowtree', 'snowman', 'snowtree', 'snowtree']
   },
   sunlight_seaside: {
     name: "Sunlight Seaside",
@@ -388,7 +391,6 @@ const MAPS = {
       { x: 590, y: 180, w: 120, h: 120 },
       { x: 590, y: 300, w: 120, h: 120 },
       { x: 840, y: 150, w: 120, h: 120 },
-      { x: 840, y: 320, w: 120, h: 120 },
       { x: 40, y: 470, w: 120, h: 120 },
       { x: 320, y: 470, w: 120, h: 120 },
       { x: 590, y: 470, w: 120, h: 120 },
@@ -427,6 +429,13 @@ const MAPS = {
         { x: 532, y: 148 }, { x: 532, y: 448 }, { x: 803, y: 448 },
         { x: 803, y: 298 }, { x: 1030, y: 298 }
       ]
+    ],
+    decorations: [
+      { x: 260, y: 90, type: 'palm' },
+      { x: 745, y: 100, type: 'palm' },
+      { x: 745, y: 230, type: 'umbrella' },
+      { x: 260, y: 540, type: 'palm' },
+      { x: 745, y: 540, type: 'umbrella' }
     ]
   },
   spooktacular_ruins: {
@@ -451,7 +460,8 @@ const MAPS = {
         { x: 610, y: 365 }, { x: 820, y: 365 }, { x: 947, y: 465 }
       ]
     ],
-    bossPlaceholders: { miniboss: null, boss: null }
+    bossPlaceholders: { miniboss: null, boss: null },
+    decorationTypes: ['cactus', 'deadtree', 'cactus', 'deadtree', 'cactus', 'deadtree', 'cactus', 'rock']
   }
 };
 

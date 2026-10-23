@@ -57,6 +57,20 @@
     --gd-t-slow: 0.4s;
 
     --gd-focus: 0 0 0 3px rgba(255, 215, 0, 0.55);
+
+    /* Semántica de estado (unifica mensajes, banners y feedback) */
+    --gd-success: #2ecc71;
+    --gd-success-ink: #7bedab;
+    --gd-danger: #e74c3c;
+    --gd-danger-ink: #ff8a7a;
+    --gd-warning: #f1c40f;
+    --gd-warning-ink: #ffe066;
+    --gd-info: #3aa0e8;
+    --gd-info-ink: #8fd0ff;
+
+    /* Acento de oleada de jefe */
+    --gd-boss: #b24bff;
+    --gd-boss-ink: #e0b0ff;
 }
 
 /* Accesibilidad: foco visible y coherente en todo lo interactivo.
@@ -571,25 +585,50 @@ body.light-mode .loading-tip-btn {
     object-fit: cover;
 }
 
+/* ===== EFECTO RGB SOBRE LA IMAGEN: arcoíris recortado a la silueta =======
+   El arcoíris se pinta ENCIMA de la imagen pero recortado por el canal alfa
+   de la propia imagen (mask-image), así solo cubre al Glob. El degradado gira
+   de forma continua. No depende de mix-blend-mode (que antes no se veía). */
+@property --rgb-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.rgb-avatar-image {
+    position: relative;
+}
+
 .rgb-avatar-image::after {
     content: '';
     position: absolute;
     inset: 0;
-    z-index: 1;
-    background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
-    background-size: 100% 100%;
-    opacity: 0.9;
-    mix-blend-mode: color;
+    z-index: 2;
+    border-radius: inherit;
+    /* Arcoíris animado girando, visible SIEMPRE (no depende de máscara ni
+       de mix-blend-mode). Se recorta al círculo del avatar por border-radius. */
+    background: conic-gradient(from var(--rgb-angle, 0deg),
+        #ff0040, #ff8c00, #ffee00, #28e04b, #00c2ff, #6a5cff, #d138ff, #ff0040);
+    opacity: 0.5;
     pointer-events: none;
-    animation: rgb-rewamp-shift 1.5s linear infinite;
-    mask-image: var(--rgb-avatar-mask-image);
-    -webkit-mask-image: var(--rgb-avatar-mask-image);
-    mask-size: 100% 100%;
-    -webkit-mask-size: 100% 100%;
-    mask-repeat: no-repeat;
-    -webkit-mask-repeat: no-repeat;
-    mask-position: center;
-    -webkit-mask-position: center;
+    animation: rgb-angle-spin 2.6s linear infinite;
+}
+
+@keyframes rgb-angle-spin {
+    to { --rgb-angle: 360deg; }
+}
+
+/* Respaldo sin @property: el arcoíris lineal se desplaza en bucle. */
+@supports not (background: conic-gradient(from var(--rgb-angle))) {
+    .rgb-avatar-image::after {
+        background: linear-gradient(90deg,
+            #ff0040, #ff8c00, #ffee00, #28e04b, #00c2ff, #6a5cff, #d138ff, #ff0040);
+        background-size: 200% 100%;
+        animation: rgb-linear-slide 1.6s linear infinite;
+    }
+    @keyframes rgb-linear-slide {
+        to { background-position: 200% 0; }
+    }
 }
 
 .profile-choice-grid,
@@ -700,12 +739,51 @@ body.light-mode .loading-tip-btn {
     background: #202833;
 }
 
+/* Borde RGB (GLB Fever): aro de arcoíris girando alrededor del marco. */
 .profile-avatar-frame.glb-fever,
 .profile-border-swatch.glb-fever,
+.profile-placeholder-sample.glb-fever,
 .multiplayer-profile-badge.glb-fever {
-    border-color: #38e64b;
-    outline-color: #38e64b;
-    animation: profile-glb-fever-color-cycle 5s linear infinite;
+    position: relative;
+    border-color: transparent;
+    outline-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #202833), var(--profile-border-end, #202833)) padding-box,
+        conic-gradient(from var(--rgb-angle, 0deg),
+            #ff0040, #ff8c00, #ffee00, #28e04b, #00c2ff, #6a5cff, #d138ff, #ff0040) border-box;
+    box-shadow: 0 0 16px rgba(120, 200, 120, 0.4);
+    animation: rgb-angle-spin 2.6s linear infinite;
+}
+
+/* Halo exterior que gira a juego con el borde RGB. */
+.profile-avatar-frame.glb-fever::before,
+.profile-border-swatch.glb-fever::before,
+.profile-placeholder-sample.glb-fever::before,
+.multiplayer-profile-badge.glb-fever::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    z-index: -1;
+    border-radius: 50%;
+    background: conic-gradient(from var(--rgb-angle, 0deg),
+        #ff0040, #ff8c00, #ffee00, #28e04b, #00c2ff, #6a5cff, #d138ff, #ff0040);
+    filter: blur(5px);
+    opacity: 0.7;
+    pointer-events: none;
+    animation: rgb-angle-spin 2.6s linear infinite;
+}
+
+/* Respaldo sin @property para el borde RGB */
+@supports not (background: conic-gradient(from var(--rgb-angle))) {
+    .profile-avatar-frame.glb-fever,
+    .profile-border-swatch.glb-fever,
+    .profile-placeholder-sample.glb-fever,
+    .multiplayer-profile-badge.glb-fever {
+        animation: profile-glb-fever-color-cycle 5s linear infinite;
+        background: none;
+        border-color: #38e64b;
+        outline-color: #38e64b;
+    }
 }
 
 .profile-avatar-frame.time-attack-a,
@@ -780,13 +858,41 @@ body.light-mode .loading-tip-btn {
 
 .profile-avatar-frame.ice,
 .profile-border-swatch.ice,
+.profile-placeholder-sample.ice,
 .multiplayer-profile-badge.ice {
+    position: relative;
     border-color: transparent;
+    /* Blanco arriba, azul abajo */
     background:
         linear-gradient(var(--profile-border-end, #d8f7ff), var(--profile-border-end, #d8f7ff)) padding-box,
-        repeating-conic-gradient(from 10deg, #55c9f3 0deg 24deg, #e7fbff 24deg 38deg, #91e2ff 38deg 60deg) border-box;
+        linear-gradient(180deg, #ffffff 0%, #d6f1ff 42%, #6bb9ff 72%, #2b7fd6 100%) border-box;
     box-shadow: 0 0 12px rgba(107, 217, 255, 0.55);
     animation: profile-ice-shimmer 4s linear infinite;
+    overflow: hidden;
+}
+
+/* Nieve cayendo sobre el borde Ice */
+.profile-avatar-frame.ice::before,
+.profile-border-swatch.ice::before,
+.profile-placeholder-sample.ice::before,
+.multiplayer-profile-badge.ice::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    z-index: 2;
+    border-radius: 50%;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle, #fff 0 1.4px, transparent 1.8px),
+        radial-gradient(circle, rgba(255,255,255,0.85) 0 1.1px, transparent 1.5px);
+    background-size: 14px 14px, 20px 20px;
+    background-position: 0 0, 7px 10px;
+    animation: profile-ice-snow 2.4s linear infinite;
+}
+
+@keyframes profile-ice-snow {
+    0%   { background-position: 0 -14px, 7px -10px; }
+    100% { background-position: 0 14px, 7px 20px; }
 }
 
 .profile-avatar-frame.bomb,
@@ -4679,36 +4785,76 @@ body.light-mode-glitch #game-container {
 }
 
 .game-message {
-    background: rgba(0, 0, 0, 0.85);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    animation: fadeInOutMsg 3s forwards;
-    border: 1px solid rgba(255,255,255,0.2);
-    text-align: center;
-    backdrop-filter: blur(5px);
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 12px 20px 12px 16px;
+    border-radius: var(--gd-r-lg, 12px);
+    background: linear-gradient(135deg, rgba(18, 18, 30, 0.94), rgba(10, 12, 24, 0.92));
+    color: #fff;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: left;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-left-width: 4px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    animation:
+        gdMsgIn 0.3s var(--gd-ease-bounce, cubic-bezier(0.175, 0.885, 0.32, 1.275)) both,
+        gdMsgOut 0.4s ease 2.6s forwards;
+    will-change: transform, opacity;
+}
+
+/* Icono semántico a la izquierda de cada mensaje */
+.game-message::before {
+    content: '';
+    flex: 0 0 auto;
+    font-size: 1.1rem;
+    line-height: 1;
 }
 
 .game-message.success {
-    border-color: #2ecc71;
-    color: #2ecc71;
+    border-left-color: var(--gd-success, #2ecc71);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 18px rgba(46, 204, 113, 0.22);
 }
+.game-message.success::before { content: '✅'; }
 
 .game-message.error {
-    border-color: #e74c3c;
-    color: #e74c3c;
+    border-left-color: var(--gd-danger, #e74c3c);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 18px rgba(231, 76, 60, 0.22);
+    animation:
+        gdMsgIn 0.3s var(--gd-ease-bounce, cubic-bezier(0.175, 0.885, 0.32, 1.275)) both,
+        gdMsgShake 0.34s ease 0.3s,
+        gdMsgOut 0.4s ease 2.6s forwards;
 }
+.game-message.error::before { content: '⛔'; }
 
 .game-message.warning {
-    border-color: #f1c40f;
-    color: #f1c40f;
+    border-left-color: var(--gd-warning, #f1c40f);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 18px rgba(241, 196, 15, 0.22);
 }
+.game-message.warning::before { content: '⚠️'; }
 
 .game-message.info {
-    border-color: #3498db;
-    color: #3498db;
+    border-left-color: var(--gd-info, #3aa0e8);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 18px rgba(58, 160, 232, 0.22);
+}
+.game-message.info::before { content: 'ℹ️'; }
+
+@keyframes gdMsgIn {
+    0%   { opacity: 0; transform: translateY(-14px) scale(0.96); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes gdMsgOut {
+    0%   { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px) scale(0.98); }
+}
+@keyframes gdMsgShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
 }
 
 .token-inline-icon {
@@ -6441,7 +6587,11 @@ body.tablet-landscape #light-mode-toggle {
     inset: 18%;
     z-index: 2;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 244, 190, 0.95) 0%, rgba(255, 210, 90, 0.55) 45%, transparent 70%);
+    /* Núcleo claro + halo del acento del Glob (acorde al tipo) */
+    background: radial-gradient(circle,
+        rgba(255, 255, 255, 0.95) 0%,
+        var(--tower-accent, rgba(255, 210, 90, 0.55)) 45%,
+        transparent 70%);
     opacity: 0;
     pointer-events: none;
     animation: towerMuzzleFlash 0.22s ease-out;
@@ -6467,11 +6617,1073 @@ body.tablet-landscape #light-mode-toggle {
     border-radius: 50%;
     pointer-events: none;
     transform: translate(-50%, -50%);
-    background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255, 220, 120, 0.6) 40%, transparent 72%);
+    /* Núcleo blanco + halo del color del Glob que disparó (acorde al tipo) */
+    background: radial-gradient(circle,
+        rgba(255, 255, 255, 0.95) 0%,
+        var(--impact-color, rgba(255, 220, 120, 0.6)) 42%,
+        transparent 72%);
     animation: projectileImpact 0.28s ease-out forwards;
+}
+
+/* Impacto de láser: destello alargado en vez de circular */
+.projectile-impact.impact-laser {
+    width: 40px;
+    height: 14px;
+    border-radius: 999px;
+    background: radial-gradient(ellipse,
+        rgba(255, 255, 255, 0.95) 0%,
+        var(--impact-color, #6fe0ff) 45%,
+        transparent 74%);
+}
+
+/* Impacto de boomerang/estrella: chispa con destellos en aspa */
+.projectile-impact.impact-boomerang {
+    width: 30px;
+    height: 30px;
+    clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+    background: radial-gradient(circle,
+        rgba(255, 255, 255, 0.95) 0%,
+        var(--impact-color, #b89bff) 48%,
+        transparent 76%);
 }
 
 @keyframes projectileImpact {
     0%   { opacity: 0.95; transform: translate(-50%, -50%) scale(0.3); }
     100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
+}
+
+/* ==========================================================================
+   SELECCIÓN DE ISLA / ZONA / MODO — transiciones y feedback más naturales
+   Solo presentación: conserva gradientes, colores e imágenes de cada tarjeta.
+   Añade entrada escalonada, hover con profundidad y pulsación con tacto.
+   ========================================================================== */
+
+/* --- Entrada escalonada de las tarjetas al renderizarse ----------------- */
+@keyframes gdCardIn {
+    0%   { opacity: 0; transform: translateY(16px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.island-card,
+.zone-card,
+.mode-btn {
+    animation: gdCardIn 0.34s var(--gd-ease-bounce, cubic-bezier(0.175, 0.885, 0.32, 1.275)) both;
+    transition:
+        transform 0.18s var(--gd-ease-smooth, cubic-bezier(0.25, 0.8, 0.25, 1)),
+        box-shadow 0.2s ease,
+        filter 0.2s ease,
+        border-color 0.2s ease;
+    will-change: transform;
+}
+
+/* Escalona la aparición: cada tarjeta entra un pelín después que la anterior */
+.island-selection .island-card:nth-child(1),
+.zone-selection .zone-card:nth-child(1),
+.modes-grid .mode-btn:nth-child(1) { animation-delay: 0.02s; }
+.island-selection .island-card:nth-child(2),
+.zone-selection .zone-card:nth-child(2),
+.modes-grid .mode-btn:nth-child(2) { animation-delay: 0.07s; }
+.island-selection .island-card:nth-child(3),
+.zone-selection .zone-card:nth-child(3),
+.modes-grid .mode-btn:nth-child(3) { animation-delay: 0.12s; }
+.island-selection .island-card:nth-child(4),
+.zone-selection .zone-card:nth-child(4),
+.modes-grid .mode-btn:nth-child(4) { animation-delay: 0.17s; }
+.island-selection .island-card:nth-child(5),
+.zone-selection .zone-card:nth-child(5),
+.modes-grid .mode-btn:nth-child(5) { animation-delay: 0.22s; }
+.island-selection .island-card:nth-child(6),
+.zone-selection .zone-card:nth-child(6),
+.modes-grid .mode-btn:nth-child(6) { animation-delay: 0.27s; }
+.zone-selection .zone-card:nth-child(n+7),
+.modes-grid .mode-btn:nth-child(n+7) { animation-delay: 0.3s; }
+
+/* --- Hover con profundidad (sin alterar el gradiente de cada tarjeta) ---- */
+.island-card:not(:disabled):hover,
+.zone-card:not(:disabled):hover {
+    transform: translateY(-5px) scale(1.025);
+    box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    filter: brightness(1.08) saturate(1.05);
+    border-color: var(--gd-gold, #ffd700);
+}
+
+.island-card:not(:disabled):active,
+.zone-card:not(:disabled):active {
+    transform: translateY(-1px) scale(0.99);
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.4);
+    filter: brightness(0.98);
+    transition-duration: 0.08s;
+}
+
+/* Brillo que recorre la tarjeta al pasar el cursor (sutil, de marca) */
+.island-card,
+.zone-card {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.island-card::after,
+.zone-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.22) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.55s ease;
+    pointer-events: none;
+}
+
+.island-card:not(:disabled):hover::after,
+.zone-card:not(:disabled):hover::after {
+    transform: translateX(120%);
+}
+
+/* El candado de las tarjetas bloqueadas reacciona en vez de quedarse mudo */
+.island-card.is-locked:hover,
+.zone-card.is-locked:hover {
+    filter: grayscale(0.25) brightness(1.02);
+    transform: translateY(-2px);
+}
+
+/* --- Botón "volver a islas": tacto de navegación ------------------------ */
+.map-selection-back {
+    transition:
+        transform 0.18s var(--gd-ease-smooth, cubic-bezier(0.25, 0.8, 0.25, 1)),
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.map-selection-back:hover {
+    transform: translateX(-4px);
+    background: #3f5a51;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.map-selection-back:active {
+    transform: translateX(-1px) scale(0.98);
+}
+
+/* --- Modos: feedback más vivo conservando sus gradientes ---------------- */
+.mode-btn:not(:disabled):hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.38);
+    filter: brightness(1.06);
+}
+
+.mode-btn:not(:disabled):active {
+    transform: translateY(-1px) scale(0.98);
+    transition-duration: 0.08s;
+}
+
+/* El icono (emoji) del modo cobra un poco de vida al pasar por encima */
+.mode-btn { gap: 8px; }
+
+/* --- Entrada suave del cuadro de selección al mostrarse ----------------- */
+#map-selection .login-box,
+#mode-selection .login-box {
+    animation: gdPanelIn 0.4s var(--gd-ease-bounce, cubic-bezier(0.175, 0.885, 0.32, 1.275)) both;
+}
+
+@keyframes gdPanelIn {
+    0%   { opacity: 0; transform: translateY(22px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* El overlay oscuro de fondo aparece con un fundido en vez de un corte seco */
+#map-selection,
+#mode-selection {
+    animation: gdOverlayFade 0.28s ease both;
+}
+
+@keyframes gdOverlayFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ==========================================================================
+   CALIDAD DE MAPA — profundidad y textura sin cambiar colores ni layout
+   Se superpone a los fondos existentes mediante capas semitransparentes.
+   ========================================================================== */
+
+/* Viñeteado + luz superior: da volumen al terreno sin tapar su color base */
+#game-area::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(130% 90% at 50% -10%, rgba(255, 255, 255, 0.10), transparent 55%),
+        radial-gradient(140% 120% at 50% 115%, rgba(0, 0, 0, 0.28), transparent 60%);
+    mix-blend-mode: soft-light;
+}
+
+/* Los caminos ganan relieve: bisel claro arriba, sombra abajo */
+.path-segment {
+    box-shadow:
+        inset 0 0 15px rgba(0, 0, 0, 0.2),
+        inset 0 2px 0 rgba(255, 255, 255, 0.14),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.22);
+}
+
+/* Los huecos de torre respiran: aro guía al pasar el cursor */
+.tower-spot {
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s var(--gd-ease-smooth, cubic-bezier(0.25, 0.8, 0.25, 1));
+}
+
+.tower-spot:hover {
+    border-color: rgba(255, 215, 0, 0.75);
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.28), inset 0 0 12px rgba(255, 215, 0, 0.12);
+}
+
+/* Cuando hay una torre seleccionada para colocar, los huecos libres laten
+   suavemente para guiar al jugador (solo si el cuerpo marca la intención). */
+@keyframes gdSpotPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.0); }
+    50%      { box-shadow: 0 0 14px 2px rgba(255, 215, 0, 0.22); }
+}
+
+body.placing-tower .tower-spot {
+    border-color: rgba(255, 215, 0, 0.45);
+    animation: gdSpotPulse 1.6s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   PANTALLA DE CARGA — más presencia ahora que la barra se rellena de verdad
+   El Glob giratorio (.loading-glob-spinner) recibe un halo y la barra un
+   brillo que la recorre, para que la espera se sienta "viva".
+   ========================================================================== */
+
+/* Halo suave bajo el Glob que gira */
+.loading-glob-gallery {
+    position: relative;
+}
+
+.loading-glob-gallery::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 120px;
+    height: 120px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(104, 215, 255, 0.28), transparent 68%);
+    animation: gdLoadingHalo 2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.loading-glob-spinner {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes gdLoadingHalo {
+    0%, 100% { opacity: 0.45; transform: translate(-50%, -50%) scale(0.9); }
+    50%      { opacity: 0.85; transform: translate(-50%, -50%) scale(1.12); }
+}
+
+/* Reflejo que recorre la barra mientras se rellena */
+.loading-bar-fill {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading-bar-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    transform: translateX(-100%);
+    animation: gdBarSheen 1.1s ease-in-out infinite;
+}
+
+@keyframes gdBarSheen {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(260%); }
+}
+
+/* ==========================================================================
+   REFACTOR UI/UX — Banner de oleadas, carga, feedback económico, evolución
+   Todo sobre tokens --gd-*. Solo transform/opacity/filter (rápido en GPU).
+   Respeta prefers-reduced-motion (regla global ya definida arriba).
+   ========================================================================== */
+
+/* ---------- B · BANNER DE OLEADAS -------------------------------------- */
+.wave-banner {
+    position: absolute;
+    top: 18%;
+    left: 50%;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 12px 34px;
+    border-radius: var(--gd-r-xl, 16px);
+    background: linear-gradient(135deg, rgba(16, 18, 32, 0.92), rgba(8, 10, 22, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    color: #fff;
+    text-align: center;
+    pointer-events: none;
+    white-space: nowrap;
+    transform: translate(-50%, -50%) scale(0.9);
+    backdrop-filter: blur(6px);
+    animation: gdWaveBanner 2.6s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+    will-change: transform, opacity;
+}
+
+.wave-banner-kicker {
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.wave-banner-title {
+    font-size: clamp(1.3rem, 4.5vw, 2rem);
+    font-weight: 900;
+    line-height: 1.05;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+/* Variante normal: acento oro de marca */
+.wave-banner-normal {
+    border-left: 4px solid var(--gd-gold, #ffd700);
+    border-right: 4px solid var(--gd-gold, #ffd700);
+}
+.wave-banner-normal .wave-banner-kicker { color: var(--gd-gold, #ffd700); }
+
+/* Variante jefe: dramática, púrpura, con pulso de peligro */
+.wave-banner-boss {
+    border-color: var(--gd-boss, #b24bff);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 26px rgba(178, 75, 255, 0.5);
+    background: linear-gradient(135deg, rgba(40, 12, 56, 0.95), rgba(14, 8, 24, 0.92));
+}
+.wave-banner-boss .wave-banner-kicker { color: var(--gd-boss-ink, #e0b0ff); }
+.wave-banner-boss .wave-banner-title {
+    color: #fff;
+    animation: gdBossThrob 0.9s ease-in-out infinite;
+}
+
+/* Variante final: dorada intensa */
+.wave-banner-final {
+    border-color: var(--gd-gold, #ffd700);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 28px rgba(255, 215, 0, 0.5);
+    background: linear-gradient(135deg, rgba(58, 44, 2, 0.95), rgba(20, 16, 4, 0.92));
+}
+.wave-banner-final .wave-banner-kicker { color: var(--gd-gold, #ffd700); }
+
+@keyframes gdWaveBanner {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.8) translateY(-16px); }
+    14%  { opacity: 1; transform: translate(-50%, -50%) scale(1.04); }
+    24%  { transform: translate(-50%, -50%) scale(1); }
+    82%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.96) translateY(-10px); }
+}
+
+@keyframes gdBossThrob {
+    0%, 100% { transform: scale(1); text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); }
+    50%      { transform: scale(1.04); text-shadow: 0 0 14px rgba(178, 75, 255, 0.8); }
+}
+
+/* ---------- A · CARGA: intercambio suave de tips ----------------------- */
+.loading-tip.loading-tip-swap {
+    animation: gdTipSwap 0.4s ease both;
+}
+
+@keyframes gdTipSwap {
+    0%   { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- D · FEEDBACK ECONÓMICO ------------------------------------- */
+/* Texto flotante (daño, recompensa, efectos) — antes no tenía estilo */
+.money-popup {
+    position: absolute;
+    z-index: 30;
+    transform: translate(-50%, -50%);
+    font-weight: 900;
+    font-size: 0.95rem;
+    color: #fff;
+    text-shadow: 0 1px 3px #000, 0 0 6px rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+    white-space: nowrap;
+    animation: gdFloatUp 1s ease-out both;
+    will-change: transform, opacity;
+}
+
+@keyframes gdFloatUp {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+    18%  { opacity: 1; transform: translate(-50%, -62%) scale(1.05); }
+    100% { opacity: 0; transform: translate(-50%, -130%) scale(1); }
+}
+
+/* "Pop" al subir un stat; tinte al bajar */
+.stat-value.stat-bump-up {
+    animation: gdStatPopUp 0.42s var(--gd-ease-bounce, cubic-bezier(0.175, 0.885, 0.32, 1.275));
+}
+.stat-value.stat-bump-down {
+    animation: gdStatPopDown 0.42s ease;
+}
+
+@keyframes gdStatPopUp {
+    0%   { transform: scale(1); color: #fff; }
+    40%  { transform: scale(1.28); color: var(--gd-gold, #ffd700); text-shadow: 0 0 12px rgba(255, 215, 0, 0.7); }
+    100% { transform: scale(1); color: #fff; }
+}
+
+@keyframes gdStatPopDown {
+    0%   { transform: scale(1); color: #fff; }
+    40%  { transform: scale(0.9); color: var(--gd-danger-ink, #ff8a7a); }
+    100% { transform: scale(1); color: #fff; }
+}
+
+/* ---------- E · PANEL DE EVOLUCIÓN (alineado con tokens) --------------- */
+.evolve-btn {
+    transition:
+        transform 0.18s var(--gd-ease-smooth, cubic-bezier(0.25, 0.8, 0.25, 1)),
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+}
+.evolve-btn:hover {
+    filter: brightness(1.08);
+}
+.evolve-btn:active {
+    transform: translateY(1px) scale(0.98);
+    transition-duration: 0.08s;
+}
+
+#tower-name {
+    letter-spacing: 0.01em;
+}
+
+/* ---------- Accesibilidad: contraste de la etiqueta de stats ----------- */
+.stat-label {
+    color: #c3ccd6; /* sube de #aaa para cumplir contraste AA sobre fondo oscuro */
+}
+
+/* ==========================================================================
+   G · UI DE PARTIDA — controles unificados, legibles y accesibles
+   Mantiene el color semántico de cada acción; iguala tamaño y tacto.
+   ========================================================================== */
+.controls button {
+    min-height: 44px;              /* objetivo táctil accesible */
+    padding: 10px 18px;
+    font-size: 0.95rem;
+    border-radius: var(--gd-r-md, 10px);
+}
+
+/* Iniciar oleada: verde "adelante" (ya era verde; se refuerza el tacto) */
+#start-wave:not(:disabled):hover { filter: brightness(1.08); }
+
+/* Pausa: neutro ámbar, acción de "espera" */
+#pause-game {
+    background: linear-gradient(135deg, #5b6677 0%, #3f4857 100%);
+}
+#pause-game:not(:disabled):hover {
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+    filter: brightness(1.1);
+}
+
+/* Auto-oleada: estado de interruptor claro (apagado vs. encendido) */
+#auto-wave {
+    background: linear-gradient(135deg, #3a4a63 0%, #2b3850 100%);
+    position: relative;
+}
+#auto-wave.active {
+    background: linear-gradient(135deg, var(--gd-success, #2ecc71) 0%, #1e9e55 100%);
+    box-shadow: 0 0 16px rgba(46, 204, 113, 0.45);
+}
+#auto-wave.active::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #eaffef;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+    animation: gdAutoPulse 1.3s ease-in-out infinite;
+}
+
+@keyframes gdAutoPulse {
+    0%, 100% { opacity: 0.55; transform: scale(0.9); }
+    50%      { opacity: 1; transform: scale(1.15); }
+}
+
+/* Cancelar: rojo (ya lo era); tacto consistente */
+#deselect-tower:not(:disabled):hover { filter: brightness(1.08); }
+
+/* La barra de stats gana un poco de aire y legibilidad */
+.stat-value {
+    font-variant-numeric: tabular-nums; /* números no "bailan" al cambiar */
+}
+
+/* ==========================================================================
+   F · TRANSICIONES DE PANTALLA — flujo cohesivo login → mapa → modo → juego
+   La animación se reinicia cuando el contenedor pasa de display:none a visible.
+   ========================================================================== */
+#game-container {
+    animation: gdScreenIn 0.42s var(--gd-ease-smooth, cubic-bezier(0.25, 0.8, 0.25, 1)) both;
+}
+
+@keyframes gdScreenIn {
+    0%   { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* El área de juego entra con un leve asentamiento (sensación de "aterrizar") */
+#game-area {
+    animation: gdArenaIn 0.5s var(--gd-ease-bounce, cubic-bezier(0.175, 0.885, 0.32, 1.275)) both;
+}
+
+@keyframes gdArenaIn {
+    0%   { opacity: 0; transform: scale(0.98); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* ==========================================================================
+   DECORACIÓN DE MAPAS — escenografía ambiental por tema
+   Formas 100% CSS (sin imágenes nuevas). Puramente visual, sin interacción.
+   Se dibuja detrás de torres/enemigos (z-index bajo). Balanceo suave idle.
+   ========================================================================== */
+.map-decor {
+    position: absolute;
+    z-index: 4;               /* por debajo de torres (10) y enemigos (10) */
+    width: 46px;
+    height: 56px;
+    transform: translate(-50%, -100%) scale(var(--decor-scale, 1));
+    transform-origin: bottom center;
+    pointer-events: none;
+    filter: drop-shadow(0 6px 5px rgba(0, 0, 0, 0.28));
+    will-change: transform;
+}
+
+/* Sombra elíptica en el suelo, común a todas las piezas con "tronco/base" */
+.map-decor::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -4px;
+    width: 70%;
+    height: 10px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.28), transparent 70%);
+    z-index: -1;
+}
+
+@keyframes decorSway {
+    0%, 100% { transform: translate(-50%, -100%) scale(var(--decor-scale, 1)) rotate(-1.4deg); }
+    50%      { transform: translate(-50%, -100%) scale(var(--decor-scale, 1)) rotate(1.4deg); }
+}
+
+.map-decor-tree,
+.map-decor-palm,
+.map-decor-snowtree,
+.map-decor-deadtree,
+.map-decor-cactus {
+    animation: decorSway 4.2s ease-in-out infinite;
+    animation-delay: var(--decor-delay, 0s);
+}
+
+/* --- Árbol frondoso (Gelatin Lake) ------------------------------------- */
+.map-decor-tree::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 42px;
+    height: 42px;
+    transform: translateX(-50%);
+    border-radius: 50% 50% 46% 54%;
+    background: radial-gradient(circle at 38% 32%, #4fbf6b, #2f8f4c 60%, #1f6b38);
+    box-shadow: inset -4px -6px 8px rgba(0, 0, 0, 0.25);
+}
+.map-decor-tree {
+    background:
+        linear-gradient(#7a4a24, #5c3617) no-repeat center bottom / 9px 22px;
+}
+
+/* --- Arbusto (relleno bajo) -------------------------------------------- */
+.map-decor-bush {
+    width: 40px;
+    height: 26px;
+}
+.map-decor-bush::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50% 50% 48% 52%;
+    background: radial-gradient(circle at 40% 30%, #57c070, #318a4c 65%, #216a39);
+    box-shadow: inset -3px -4px 6px rgba(0, 0, 0, 0.22);
+}
+
+/* --- Palmera (Sunlight Seaside) ---------------------------------------- */
+.map-decor-palm {
+    width: 54px;
+    height: 64px;
+    background: linear-gradient(90deg, #a06a33, #7c4e22) no-repeat 48% bottom / 8px 40px;
+}
+.map-decor-palm::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 52px;
+    height: 30px;
+    transform: translateX(-50%);
+    background:
+        radial-gradient(ellipse 26px 9px at 14% 46%, #3bbf6a 0 46%, transparent 48%),
+        radial-gradient(ellipse 26px 9px at 86% 46%, #3bbf6a 0 46%, transparent 48%),
+        radial-gradient(ellipse 9px 22px at 50% 100%, #35b062 0 46%, transparent 48%),
+        radial-gradient(ellipse 22px 9px at 50% 20%, #43cf74 0 46%, transparent 48%);
+}
+.map-decor-palm::after {
+    /* cocos */
+    box-shadow:
+        -4px 2px 0 1px #6b451f,
+        4px 3px 0 0 #6b451f;
+}
+
+/* --- Sombrilla de playa (Sunlight Seaside) ----------------------------- */
+.map-decor-umbrella {
+    width: 50px;
+    height: 54px;
+    animation: none;
+}
+.map-decor-umbrella::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 50px;
+    height: 26px;
+    transform: translateX(-50%);
+    border-radius: 50% 50% 0 0;
+    background:
+        conic-gradient(from 0deg,
+            #ff5a5f 0deg 45deg, #fff 45deg 90deg,
+            #ff5a5f 90deg 135deg, #fff 135deg 180deg);
+    clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
+.map-decor-umbrella {
+    background: linear-gradient(90deg, #d8d2c4, #b6b0a2) no-repeat 48% bottom / 4px 34px;
+}
+
+/* --- Cactus (Spooktacular Ruins) --------------------------------------- */
+.map-decor-cactus {
+    width: 34px;
+    height: 50px;
+}
+.map-decor-cactus::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 14px;
+    height: 46px;
+    transform: translateX(-50%);
+    border-radius: 7px;
+    background: linear-gradient(90deg, #4a8f4a, #357a39 70%, #2a6630);
+    box-shadow:
+        -11px -6px 0 -4px #3a7a3e,   /* brazo izq */
+        11px -12px 0 -4px #3a7a3e;   /* brazo der */
+}
+.map-decor-cactus::after {
+    /* mantiene la sombra de suelo (hereda de .map-decor::after no aplica aquí) */
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -4px;
+    width: 70%;
+    height: 9px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.3), transparent 70%);
+    z-index: -1;
+}
+
+/* --- Árbol pelado / seco (Spooktacular Ruins) -------------------------- */
+.map-decor-deadtree {
+    width: 40px;
+    height: 54px;
+    background: linear-gradient(90deg, #6b5338, #4a3824) no-repeat 48% bottom / 8px 40px;
+}
+.map-decor-deadtree::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 4px;
+    width: 30px;
+    height: 26px;
+    transform: translateX(-50%);
+    background:
+        linear-gradient(55deg, transparent 46%, #5a452d 46% 52%, transparent 52%),
+        linear-gradient(-55deg, transparent 46%, #5a452d 46% 52%, transparent 52%),
+        linear-gradient(20deg, transparent 47%, #4a3824 47% 53%, transparent 53%);
+}
+
+/* --- Roca (relleno árido) ---------------------------------------------- */
+.map-decor-rock {
+    width: 40px;
+    height: 24px;
+}
+.map-decor-rock::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 44% 56% 50% 50% / 60% 62% 40% 38%;
+    background: linear-gradient(160deg, #a9896a, #7c6245 70%, #5e4a34);
+    box-shadow: inset -3px -4px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* --- Pino nevado (Frosty Christmas) ------------------------------------ */
+.map-decor-snowtree {
+    width: 44px;
+    height: 58px;
+    background: linear-gradient(90deg, #7a4a24, #5c3617) no-repeat 48% bottom / 8px 12px;
+}
+.map-decor-snowtree::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 40px;
+    height: 48px;
+    transform: translateX(-50%);
+    clip-path: polygon(50% 0, 72% 34%, 60% 34%, 84% 64%, 70% 64%, 100% 100%, 0 100%, 30% 64%, 16% 64%, 40% 34%, 28% 34%);
+    background: linear-gradient(160deg, #2f8f55, #1e6b3e);
+}
+.map-decor-snowtree::after {
+    /* nieve encima */
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 40px;
+    height: 48px;
+    transform: translateX(-50%);
+    clip-path: polygon(50% 0, 72% 34%, 60% 34%, 84% 64%, 70% 64%, 100% 100%, 0 100%, 30% 64%, 16% 64%, 40% 34%, 28% 34%);
+    background:
+        radial-gradient(circle at 50% 8%, rgba(255,255,255,0.95) 0 16%, transparent 18%),
+        radial-gradient(circle at 32% 44%, rgba(255,255,255,0.8) 0 10%, transparent 12%),
+        radial-gradient(circle at 68% 44%, rgba(255,255,255,0.8) 0 10%, transparent 12%);
+    z-index: 1;
+}
+
+/* --- Muñeco de nieve (Frosty Christmas) -------------------------------- */
+.map-decor-snowman {
+    width: 36px;
+    height: 48px;
+    animation: none;
+}
+.map-decor-snowman::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 30px;
+    height: 30px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #ffffff, #d7e6ef 70%, #b9cdd9);
+    box-shadow: inset -3px -4px 6px rgba(120, 150, 170, 0.35);
+}
+.map-decor-snowman::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #ffffff, #d7e6ef 70%, #b9cdd9);
+    box-shadow:
+        inset -2px -3px 5px rgba(120, 150, 170, 0.35),
+        /* ojos */ -4px 2px 0 -5px #333, 4px 2px 0 -5px #333,
+        /* nariz */ 0 5px 0 -6px #ff8a3d;
+    z-index: 1;
+}
+
+/* --- Farola (Urbanistic Road) ------------------------------------------ */
+.map-decor-lamp {
+    width: 22px;
+    height: 58px;
+    animation: none;
+    background: linear-gradient(90deg, #4a4f57, #2d3138) no-repeat 48% bottom / 6px 52px;
+}
+.map-decor-lamp::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 20px;
+    height: 12px;
+    transform: translateX(-50%);
+    border-radius: 6px 6px 3px 3px;
+    background: radial-gradient(circle at 50% 40%, #fff6c4, #ffd34f 60%, #caa033);
+    box-shadow: 0 0 12px rgba(255, 211, 79, 0.75);
+    animation: lampGlow 3.5s ease-in-out infinite;
+    animation-delay: var(--decor-delay, 0s);
+}
+
+@keyframes lampGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 211, 79, 0.55); }
+    50%      { box-shadow: 0 0 18px rgba(255, 211, 79, 0.95); }
+}
+
+/* ==========================================================================
+   BORDES DE PERFIL MEJORADOS — suben de nivel según su dificultad/tema
+   Mismo patrón de 4 clases que los bordes existentes (candy/festive/...).
+   Antes eran anillos planos de dos colores; ahora tienen textura y vida.
+   ========================================================================== */
+
+/* --- Fantasmal (Spooky) — niebla verde fantasmal que late --------------- */
+.profile-avatar-frame.spooky,
+.profile-border-swatch.spooky,
+.profile-placeholder-sample.spooky,
+.multiplayer-profile-badge.spooky {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #0b2015), var(--profile-border-end, #0b2015)) padding-box,
+        conic-gradient(from 0deg, #175b30, #38be5c, #0d3a1f, #58e08a, #175b30) border-box;
+    box-shadow: 0 0 14px rgba(56, 190, 92, 0.5);
+    animation: profile-spooky-haunt 3.6s ease-in-out infinite;
+}
+@keyframes profile-spooky-haunt {
+    0%, 100% { filter: brightness(0.95); box-shadow: 0 0 10px rgba(56, 190, 92, 0.35); }
+    50%      { filter: brightness(1.2); box-shadow: 0 0 20px rgba(88, 224, 138, 0.7); }
+}
+
+/* --- Calabaza (Pumpkin) — gajos naranjas con brillo de linterna -------- */
+.profile-avatar-frame.pumpkin,
+.profile-border-swatch.pumpkin,
+.profile-placeholder-sample.pumpkin,
+.multiplayer-profile-badge.pumpkin {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #3a2410), var(--profile-border-end, #3a2410)) padding-box,
+        repeating-conic-gradient(from 0deg, #e8771f 0deg 14deg, #ffae4d 14deg 20deg, #c75d18 20deg 30deg) border-box;
+    box-shadow: inset 0 0 0 2px #7a3d12, 0 0 12px rgba(232, 119, 31, 0.55);
+    animation: profile-pumpkin-flicker 2.4s steps(1, end) infinite;
+}
+@keyframes profile-pumpkin-flicker {
+    0%, 72%, 100% { box-shadow: inset 0 0 0 2px #7a3d12, 0 0 12px rgba(232, 119, 31, 0.5); }
+    78%, 88%      { box-shadow: inset 0 0 0 2px #7a3d12, 0 0 20px rgba(255, 174, 77, 0.9); }
+}
+
+/* --- Interstellar — nebulosa rosa/azul girando (badge de evento duro) --- */
+.profile-avatar-frame.interstellar,
+.profile-border-swatch.interstellar,
+.profile-placeholder-sample.interstellar,
+.multiplayer-profile-badge.interstellar {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #0a1430), var(--profile-border-end, #0a1430)) padding-box,
+        conic-gradient(from 0deg, #174caa, #ff68d1, #7a3bd6, #38c6ff, #ff68d1, #174caa) border-box;
+    box-shadow: 0 0 16px rgba(255, 104, 209, 0.5), inset 0 0 8px rgba(56, 198, 255, 0.4);
+    animation: profile-interstellar-spin 6s linear infinite;
+}
+@keyframes profile-interstellar-spin {
+    to { filter: hue-rotate(360deg); }
+}
+
+/* --- Bordes de MAPA (dificultad alta: ganar los 6 modos) --------------- */
+/* Gelatin Lake — verde gelatina con pulso suave */
+.profile-avatar-frame.map-gelatin,
+.profile-border-swatch.map-gelatin,
+.profile-placeholder-sample.map-gelatin,
+.multiplayer-profile-badge.map-gelatin {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #3a5a2a), var(--profile-border-end, #3a5a2a)) padding-box,
+        repeating-linear-gradient(45deg, #4fb96c 0 8px, #b7d98b 8px 14px, #2f8f4c 14px 22px) border-box;
+    box-shadow: 0 0 12px rgba(79, 185, 108, 0.5);
+}
+
+/* Urbanistic Road — asfalto con líneas de carretera amarillas */
+.profile-avatar-frame.map-urban,
+.profile-border-swatch.map-urban,
+.profile-placeholder-sample.map-urban,
+.multiplayer-profile-badge.map-urban {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #17191d), var(--profile-border-end, #17191d)) padding-box,
+        repeating-linear-gradient(45deg, #3a3f46 0 12px, #ffd34f 12px 16px, #3a3f46 16px 26px, #aeb5ba 26px 30px) border-box;
+    box-shadow: inset 0 0 0 2px #0d0f12, 0 0 10px rgba(255, 211, 79, 0.35);
+}
+
+/* Sunlight Seaside — oleaje dorado/turquesa en movimiento */
+.profile-avatar-frame.map-seaside,
+.profile-border-swatch.map-seaside,
+.profile-placeholder-sample.map-seaside,
+.multiplayer-profile-badge.map-seaside {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #1e6b7a), var(--profile-border-end, #1e6b7a)) padding-box,
+        conic-gradient(from 0deg, #eed28b, #26c6da, #b8e2ac, #29b6cf, #eed28b) border-box;
+    box-shadow: 0 0 12px rgba(38, 198, 218, 0.5);
+    animation: profile-seaside-tide 5s linear infinite;
+}
+@keyframes profile-seaside-tide {
+    to { filter: hue-rotate(40deg) brightness(1.05); }
+}
+
+/* Spooktacular Ruins — arena agrietada con brasas naranjas */
+.profile-avatar-frame.map-spook,
+.profile-border-swatch.map-spook,
+.profile-placeholder-sample.map-spook,
+.multiplayer-profile-badge.map-spook {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #452817), var(--profile-border-end, #452817)) padding-box,
+        repeating-conic-gradient(from 8deg, #ed7d32 0deg 10deg, #8a4d20 10deg 24deg, #d59751 24deg 30deg) border-box;
+    box-shadow: inset 0 0 0 2px #2e1a0e, 0 0 12px rgba(237, 125, 50, 0.5);
+    animation: profile-spook-embers 3s ease-in-out infinite;
+}
+@keyframes profile-spook-embers {
+    0%, 100% { box-shadow: inset 0 0 0 2px #2e1a0e, 0 0 10px rgba(237, 125, 50, 0.4); }
+    50%      { box-shadow: inset 0 0 0 2px #2e1a0e, 0 0 18px rgba(255, 150, 70, 0.8); }
+}
+
+/* ==========================================================================
+   TRAMPA DJ — ondas de sonido visibles (y onda de regalos con skin navideña)
+   ========================================================================== */
+/* Anillo de sonido que se expande desde la trampa */
+.dj-sound-wave {
+    position: absolute;
+    z-index: 14;
+    width: var(--dj-wave-size, 160px);
+    height: var(--dj-wave-size, 160px);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0.2);
+    border: 3px solid rgba(155, 89, 182, 0.85);
+    box-shadow: 0 0 18px rgba(155, 89, 182, 0.55), inset 0 0 18px rgba(155, 89, 182, 0.35);
+    pointer-events: none;
+    animation: djSoundWave 0.65s ease-out forwards;
+}
+
+.dj-sound-wave-final {
+    border-color: rgba(142, 68, 173, 0.95);
+    border-width: 4px;
+    box-shadow: 0 0 26px rgba(142, 68, 173, 0.8), inset 0 0 22px rgba(142, 68, 173, 0.45);
+}
+
+@keyframes djSoundWave {
+    0%   { opacity: 0.9; transform: translate(-50%, -50%) scale(0.2); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Onda de regalos (skin Santa's Workshop): imágenes que vuelan hacia afuera */
+.dj-gift-wave {
+    position: absolute;
+    z-index: 15;
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    animation: djGiftWave 0.68s ease-out forwards;
+}
+
+.dj-gift-wave-final {
+    width: 32px;
+    height: 32px;
+}
+
+@keyframes djGiftWave {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+    }
+    25% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1) rotate(90deg);
+    }
+    100% {
+        opacity: 0;
+        transform:
+            translate(calc(-50% + var(--dj-gift-x, 0px)), calc(-50% + var(--dj-gift-y, 0px)))
+            scale(0.85) rotate(360deg);
+    }
+}
+
+/* ==========================================================================
+   BORDE "VENTISCA" / "FROSTY" — dedicado al mapa navideño
+   Blanco y azul (hielo/nieve) con pequeños toques rojo y verde como luces
+   de Navidad que parpadean suavemente alrededor del anillo.
+   ========================================================================== */
+.profile-avatar-frame.frosty,
+.profile-border-swatch.frosty,
+.profile-placeholder-sample.frosty,
+.multiplayer-profile-badge.frosty {
+    position: relative;
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #1a3a5c), var(--profile-border-end, #1a3a5c)) padding-box,
+        linear-gradient(160deg, #ffffff 0%, #d6ecff 40%, #7fb8ef 72%, #2b6cb0 100%) border-box;
+    box-shadow: 0 0 14px rgba(150, 210, 255, 0.6), inset 0 0 8px rgba(255, 255, 255, 0.5);
+    overflow: hidden;
+}
+
+/* Luces de Navidad (rojo/verde) alrededor del borde */
+.profile-avatar-frame.frosty::before,
+.profile-border-swatch.frosty::before,
+.profile-placeholder-sample.frosty::before,
+.multiplayer-profile-badge.frosty::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: 2;
+    border-radius: 50%;
+    pointer-events: none;
+    /* Puntos de luz distribuidos como un hilo de luces navideñas */
+    background-image:
+        radial-gradient(circle at 50% 4%, #e23b3b 0 2px, transparent 3px),
+        radial-gradient(circle at 85% 20%, #2fbf54 0 2px, transparent 3px),
+        radial-gradient(circle at 96% 55%, #e23b3b 0 2px, transparent 3px),
+        radial-gradient(circle at 80% 88%, #2fbf54 0 2px, transparent 3px),
+        radial-gradient(circle at 50% 97%, #e23b3b 0 2px, transparent 3px),
+        radial-gradient(circle at 18% 86%, #2fbf54 0 2px, transparent 3px),
+        radial-gradient(circle at 4% 52%, #e23b3b 0 2px, transparent 3px),
+        radial-gradient(circle at 14% 20%, #2fbf54 0 2px, transparent 3px);
+    animation: profile-frosty-lights 1.6s steps(1, end) infinite;
+}
+
+/* Copos de nieve suaves cayendo por encima */
+.profile-avatar-frame.frosty::after,
+.profile-border-swatch.frosty::after,
+.profile-placeholder-sample.frosty::after,
+.multiplayer-profile-badge.frosty::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 50%;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.9) 0 1.2px, transparent 1.6px);
+    background-size: 16px 16px;
+    animation: profile-ice-snow 2.8s linear infinite;
+}
+
+@keyframes profile-frosty-lights {
+    0%, 100% { filter: brightness(1); opacity: 0.95; }
+    50%      { filter: brightness(1.4) drop-shadow(0 0 4px rgba(255,255,255,0.6)); opacity: 1; }
 }

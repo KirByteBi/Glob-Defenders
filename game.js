@@ -2767,7 +2767,10 @@ function getLoginDecorationWeight(imagePath, month) {
   return 1;
 }
 
-function triggerHalloweenJumpscare(type, enemyElement, imagePathOverride = null) {
+function triggerHalloweenJumpscare(type, enemyElement, imagePathOverride = null, force = false) {
+  // 'force' permite el jumpscare de muerte aunque el enemigo ya se hubiera
+  // pulsado antes (el click marca jumpscareTriggered y, si no, bloquearía).
+  if (force && enemyElement) delete enemyElement.dataset.jumpscareTriggered;
   if (
     (imagePathOverride
       ? !isHalloweenLoginEnemy(imagePathOverride)
@@ -2961,6 +2964,9 @@ function spawnDecorations(containerId) {
           setTimeout(() => refillDecorations(imgPath), 850);
           return;
         }
+        // Default (Globs y enemigos normales): salen disparados al hacer click.
+        // Se reubica a <body> con z-index alto para que el disparo SE VEA por
+        // encima del login (el contenedor de decoración está detrás, z-index:-1).
         const rect = img.getBoundingClientRect();
         const angle = Math.random() * Math.PI * 2;
         const dx = Math.cos(angle);
@@ -2975,13 +2981,20 @@ function spawnDecorations(containerId) {
           : -centerY / dy;
         const distance = Math.min(distanceToHorizontalEdge, distanceToVerticalEdge) + rect.width;
         img.style.animation = 'none';
+        img.style.position = 'fixed';
+        img.style.zIndex = '15000';
+        img.style.margin = '0';
         img.style.left = `${rect.left}px`;
         img.style.top = `${rect.top}px`;
+        img.style.width = `${rect.width}px`;
+        img.style.height = `${rect.height}px`;
         img.style.transform = 'translate(0, 0)';
-        img.style.opacity = '0.8';
+        img.style.opacity = '1';
+        document.body.appendChild(img);
         void img.offsetWidth;
-        img.style.transition = 'transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1)';
+        img.style.transition = 'transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 700ms ease';
         img.style.transform = `translate(${dx * distance}px, ${dy * distance}px) rotate(${360 + Math.random() * 720}deg)`;
+        img.style.opacity = '0';
         const removeAndRefill = () => {
           if (!img.isConnected) return;
           img.remove();
@@ -3301,7 +3314,101 @@ async function startGameSession(username, offline, accountId = null, isNewAccoun
       loadingGlobGallery.replaceChildren(globImage);
     }
   }
-  setTimeout(showGame, 2000);
+
+  // Carga con barra de progreso real: se rellena de 0% a 100% durante
+  // la duración de carga, sincronizada con la aparición del juego.
+  // Duración aleatoria entre 3.637s y 7s (guiño al 637) para que cada
+  // arranque se sienta un poco distinto.
+  const LOADING_MIN_MS = 3637;
+  const LOADING_MAX_MS = 7000;
+  const LOADING_DURATION_MS = Math.round(LOADING_MIN_MS + Math.random() * (LOADING_MAX_MS - LOADING_MIN_MS));
+  const barFill = document.getElementById('loading-bar-fill');
+  const loadingTextEl = document.getElementById('loading-text');
+  const loadingTipEl = document.getElementById('loading-tip');
+  const loadingStart = performance.now();
+  let loadingRaf = null;
+
+  // Frases de carga con carácter según avanza el progreso (A: alma).
+  const loadingPhrases = currentLanguage === 'en'
+    ? [
+        'Waking up the Globs...',
+        'Summoning Pyces...',
+        'Loading the islands...',
+        'Polishing projectiles...',
+        'Warming up Work-Bombot...',
+        'Almost ready, Commander...'
+      ]
+    : [
+        'Despertando a los Globs...',
+        'Convocando a los Pyces...',
+        'Cargando las islas...',
+        'Puliendo proyectiles...',
+        'Calentando a Work-Bombot...',
+        'Casi listo, comandante...'
+      ];
+
+  // Tips rotativos de la pantalla de carga (lista propia y autocontenida).
+  let rotatingTips = currentLanguage === 'en'
+    ? [
+        'Tip: Basic Globs hold the early defense. Place them well.',
+        'Tip: The red family pushes direct damage on fast enemies.',
+        'Tip: Blue Globs slow enemies and buy you time.',
+        'Tip: Ducky Globs boost your economy over long runs.',
+        'Tip: Bombot shines when you anticipate the enemy lane.',
+        'Tip: Slow auras give you room to react before the clash.',
+        'Tip: Press U to upgrade every affordable tower at once.',
+        'Tip: Evolve a tower to its max to unlock its full power.',
+        'Tip: Bosses hit hard; focus your damage before they break through.'
+      ]
+    : [
+        'Tip: Los Globs básicos sostienen la defensa temprana. Colócalos bien.',
+        'Tip: La familia roja empuja daño directo a enemigos rápidos.',
+        'Tip: Los Globs azules ralentizan y te dan tiempo.',
+        'Tip: Los Ducky potencian tu economía en partidas largas.',
+        'Tip: Bombot brilla cuando anticipas por dónde entran los Pyces.',
+        'Tip: Las auras de ralentización te dan margen para reaccionar.',
+        'Tip: Pulsa U para mejorar todas las torres que puedas pagar.',
+        'Tip: Evoluciona una torre al máximo para su poder completo.',
+        'Tip: Los jefes pegan fuerte; concentra el daño antes de que pasen.'
+      ];
+  // Baraja para que no salgan siempre en el mismo orden.
+  for (let i = rotatingTips.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rotatingTips[i], rotatingTips[j]] = [rotatingTips[j], rotatingTips[i]];
+  }
+  let tipIndex = 0;
+  const showNextTip = () => {
+    if (!loadingTipEl || rotatingTips.length === 0) return;
+    loadingTipEl.classList.remove('loading-tip-swap');
+    void loadingTipEl.offsetWidth; // reinicia la animación
+    loadingTipEl.textContent = rotatingTips[tipIndex % rotatingTips.length];
+    loadingTipEl.classList.add('loading-tip-swap');
+    tipIndex++;
+  };
+  showNextTip();
+  const tipInterval = setInterval(showNextTip, 2200);
+
+  const stepLoading = (now) => {
+    const elapsed = now - loadingStart;
+    // Curva suave (ease-out) para que arranque rápido y afine al final
+    const linear = Math.min(1, elapsed / LOADING_DURATION_MS);
+    const eased = 1 - Math.pow(1 - linear, 2);
+    const pct = Math.round(eased * 100);
+    if (barFill) barFill.style.width = pct + '%';
+    if (loadingTextEl) {
+      const phrase = loadingPhrases[Math.min(loadingPhrases.length - 1, Math.floor(eased * loadingPhrases.length))];
+      loadingTextEl.textContent = `${phrase} ${pct}%`;
+    }
+    if (linear < 1) {
+      loadingRaf = requestAnimationFrame(stepLoading);
+    } else {
+      if (barFill) barFill.style.width = '100%';
+      if (loadingTextEl) loadingTextEl.textContent = `${loadingPhrases[loadingPhrases.length - 1]} 100%`;
+      clearInterval(tipInterval);
+      showGame();
+    }
+  };
+  loadingRaf = requestAnimationFrame(stepLoading);
 }
 
 function showLoginError(message) {
@@ -5188,6 +5295,10 @@ function createMap() {
     gameState.towerSpots.push({ occupied: false, x: s.x + 40, y: s.y + 40 });
   });
 
+  // Decoración ambiental (árboles, palmeras, cactus, etc.). Puramente visual:
+  // sin colisión ni interacción, no afecta a spots ni a enemigos.
+  renderMapDecorations(map, mapData, mapKey);
+
   // Cambiar la base visualmente
   const allyBase = document.getElementById('ally-base');
   const enemyBase = document.getElementById('forest-base');
@@ -5256,11 +5367,12 @@ function createMap() {
       enemyBase2.title = "Base enemiga: Balsa 2";
       enemyBase2.style.display = 'flex';
       
-      // Position base 1 and base 2 dynamically
-      enemyBase.style.top = '120px';
-      enemyBase.style.left = '20px';
-      enemyBase2.style.top = '420px';
-      enemyBase2.style.left = '20px';
+      // Posiciona las balsas enemigas un poco más centradas (como casitas),
+      // alineadas verticalmente con las entradas de los caminos (y≈148 y 448).
+      enemyBase.style.top = '108px';
+      enemyBase.style.left = '35px';
+      enemyBase2.style.top = '408px';
+      enemyBase2.style.left = '35px';
     }
   } else if (mapKey === 'spooktacular_ruins') {
     map.classList.add('spook-map');
@@ -5333,6 +5445,109 @@ function createMap() {
       enemyBase2.style.left = '';
     }
   }
+}
+
+// Coloca la decoración ambiental SOLO en zonas realmente libres: nunca sobre
+// un hueco de torre (edificios en UR, caramelos en FC...) ni sobre caminos.
+// Las posiciones se calculan a partir de los spots y caminos reales, así que
+// son seguras aunque el mapa cambie. Acepta mapData.decorationTypes (lista de
+// tipos) o, como respaldo, mapData.decorations (coordenadas fijas filtradas).
+function renderMapDecorations(map, mapData, mapKey) {
+  const types = Array.isArray(mapData.decorationTypes) ? mapData.decorationTypes : null;
+  const fixed = Array.isArray(mapData.decorations) ? mapData.decorations : null;
+  if (!types && !fixed) return;
+
+  // Caja visual de una decoración (se ancla por su base y crece hacia arriba).
+  const DECO_HALF_W = 20;
+  const DECO_TOP = 44;
+  const SPOT_MARGIN = 2;
+
+  const boxOverlapsSpot = (x, y) => {
+    const dL = x - DECO_HALF_W, dR = x + DECO_HALF_W, dT = y - DECO_TOP, dB = y + 4;
+    return (gameState.towerSpots || []).some(s => {
+      // towerSpots guarda el CENTRO (x,y); el hueco es 80x80 → esquina en x-40,y-40
+      const sL = s.x - 40 - SPOT_MARGIN, sR = s.x - 40 + 80 + SPOT_MARGIN;
+      const sT = s.y - 40 - SPOT_MARGIN, sB = s.y - 40 + 80 + SPOT_MARGIN;
+      return dR > sL && dL < sR && dB > sT && dT < sB;
+    });
+  };
+  const boxOverlapsBlocker = (x, y) => {
+    const dL = x - DECO_HALF_W, dR = x + DECO_HALF_W, dT = y - DECO_TOP, dB = y + 4;
+    const blockers = [...(mapData.riverZones || []), ...(mapData.pathSegments || [])];
+    if (blockers.some(z => dR > z.x && dL < z.x + z.w && dB > z.y && dT < z.y + z.h)) return true;
+    // Caminos procedurales (spook): distancia a los segmentos de ruta.
+    if (mapKey === 'spooktacular_ruins') {
+      const paths = mapData.enemyPaths || [];
+      for (const path of paths) {
+        for (let k = 1; k < path.length; k++) {
+          const start = path[k - 1], end = path[k];
+          const sx = end.x - start.x, sy = end.y - start.y;
+          const len = sx * sx + sy * sy || 1;
+          const pj = Math.max(0, Math.min(1, ((x - start.x) * sx + (y - start.y) * sy) / len));
+          if (Math.hypot(x - (start.x + pj * sx), y - (start.y + pj * sy)) < 64) return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  const placeDeco = (x, y, type, i) => {
+    const deco = document.createElement('div');
+    deco.className = `map-decor map-decor-${type}`;
+    deco.style.left = `${x}px`;
+    deco.style.top = `${y}px`;
+    deco.style.setProperty('--decor-delay', `${-(i * 0.37).toFixed(2)}s`);
+    deco.setAttribute('aria-hidden', 'true');
+    map.appendChild(deco);
+  };
+
+  if (fixed) {
+    // Respaldo: coordenadas fijas, filtrando las que pisen un hueco.
+    fixed.forEach((d, i) => {
+      if (boxOverlapsSpot(d.x, d.y) || boxOverlapsBlocker(d.x, d.y)) return;
+      if (d.scale) {
+        const deco = document.createElement('div');
+        deco.className = `map-decor map-decor-${d.type}`;
+        deco.style.left = `${d.x}px`;
+        deco.style.top = `${d.y}px`;
+        deco.style.setProperty('--decor-scale', d.scale);
+        deco.style.setProperty('--decor-delay', `${-(i * 0.37).toFixed(2)}s`);
+        deco.setAttribute('aria-hidden', 'true');
+        map.appendChild(deco);
+      } else {
+        placeDeco(d.x, d.y, d.type, i);
+      }
+    });
+    return;
+  }
+
+  // Auto-colocación: busca anclas libres y escoge las más separadas.
+  const anchors = [];
+  for (let x = 30; x <= 980; x += 15) {
+    for (let y = 60; y <= 590; y += 15) {
+      if (!boxOverlapsSpot(x, y) && !boxOverlapsBlocker(x, y)) anchors.push({ x, y });
+    }
+  }
+  // Baraja para variar la escena en cada partida, pero mantén buena separación.
+  for (let i = anchors.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [anchors[i], anchors[j]] = [anchors[j], anchors[i]];
+  }
+  const chosen = [];
+  const minDist = 110;
+  for (const a of anchors) {
+    if (chosen.length >= types.length) break;
+    if (chosen.every(c => Math.hypot(c.x - a.x, c.y - a.y) >= minDist)) chosen.push(a);
+  }
+  // Si no hubo sitio para todas, relaja la distancia y completa.
+  if (chosen.length < types.length) {
+    for (const a of anchors) {
+      if (chosen.length >= types.length) break;
+      if (chosen.includes(a)) continue;
+      if (chosen.every(c => Math.hypot(c.x - a.x, c.y - a.y) >= 70)) chosen.push(a);
+    }
+  }
+  chosen.forEach((pos, i) => placeDeco(pos.x, pos.y, types[i % types.length], i));
 }
 
 function showTooltip(t, el) {
@@ -6281,6 +6496,7 @@ function drawTowerShop() {
           gameState.selectedTowerType = type;
           btn.classList.add('selected');
         }
+        syncPlacingTowerClass();
       };
     }
 
@@ -7173,6 +7389,12 @@ function selectAlmanacItem(id, category) {
   }
 }
 
+// Sincroniza la clase visual del body según si hay una torre seleccionada
+// para colocar. Solo afecta al resaltado de los huecos (cosmético).
+function syncPlacingTowerClass() {
+  document.body.classList.toggle('placing-tower', !!gameState.selectedTowerType);
+}
+
 function bindEvents() {
   setupMultiplayerChat();
   const tutorialSkipModal = document.getElementById('tutorial-skip-modal');
@@ -7336,6 +7558,7 @@ function bindEvents() {
   document.getElementById('deselect-tower').onclick = () => {
     gameState.selectedTowerType = null;
     document.querySelectorAll('.tower-item').forEach(i => i.classList.remove('selected'));
+    syncPlacingTowerClass();
   };
 
   document.getElementById('tower-shop').onclick = (e) => {
@@ -7344,6 +7567,7 @@ function bindEvents() {
       gameState.selectedTowerType = item.dataset.type;
       document.querySelectorAll('.tower-item').forEach(i => i.classList.remove('selected'));
       item.classList.add('selected');
+      syncPlacingTowerClass();
     }
   };
 
@@ -8594,8 +8818,14 @@ function addXP(amount) {
 function updateMetaUI() {
   const pycoinsEl = document.getElementById('pycoins-value');
   const duckpassEl = document.getElementById('duckpass-currency');
-  if (pycoinsEl) pycoinsEl.textContent = Math.floor(gameState.pycoins);
-  if (duckpassEl) duckpassEl.textContent = gameState.duckPassCurrency;
+  if (pycoinsEl) {
+    if (typeof setStatValue === 'function') setStatValue('pycoins-value', Math.floor(gameState.pycoins));
+    else pycoinsEl.textContent = Math.floor(gameState.pycoins);
+  }
+  if (duckpassEl) {
+    if (typeof setStatValue === 'function') setStatValue('duckpass-currency', gameState.duckPassCurrency);
+    else duckpassEl.textContent = gameState.duckPassCurrency;
+  }
 
   if (gameState.pycoins >= 1500 && gameState.duckPassCurrency >= 1500) {
     unlockBadge('deepSavings');
@@ -8632,10 +8862,10 @@ function isTowerOwned(t) {
 
 const PROFILE_MAP_MODES = ['facil', 'normal', 'dificil', 'extremo', 'corrupto', 'antiNormal'];
 const PROFILE_MAP_BORDERS = [
-  { id: 'map:gelatin_lake', map: 'gelatin_lake', label: 'Gelatin Lake', colors: ['#b7d98b', '#75543b'] },
-  { id: 'map:urbanistic_road', map: 'urbanistic_road', label: 'Urbanistic Road', colors: ['#aeb5ba', '#17191d'] },
-  { id: 'map:sunlight_seaside', map: 'sunlight_seaside', label: 'Sunlight Seaside', colors: ['#eed28b', '#b8e2ac'] },
-  { id: 'map:spooktacular_ruins', map: 'spooktacular_ruins', label: 'Spooktacular Ruins', colors: ['#ed7d32', '#452817'] }
+  { id: 'map:gelatin_lake', map: 'gelatin_lake', label: 'Gelatin Lake', colors: ['#b7d98b', '#75543b'], style: 'map-gelatin' },
+  { id: 'map:urbanistic_road', map: 'urbanistic_road', label: 'Urbanistic Road', colors: ['#aeb5ba', '#17191d'], style: 'map-urban' },
+  { id: 'map:sunlight_seaside', map: 'sunlight_seaside', label: 'Sunlight Seaside', colors: ['#eed28b', '#b8e2ac'], style: 'map-seaside' },
+  { id: 'map:spooktacular_ruins', map: 'spooktacular_ruins', label: 'Spooktacular Ruins', colors: ['#ed7d32', '#452817'], style: 'map-spook' }
 ];
 const PROFILE_FREE_BORDERS = [
   { id: 'color:green', label: 'Verde', labelEn: 'Green', colors: ['#72e36b', '#202833'] }
@@ -8650,8 +8880,8 @@ const PROFILE_SHOP_BORDERS = [
   { id: 'color:red', label: 'Rojo', labelEn: 'Red', colors: ['#ff5555', '#202833'], cost: 250 },
   { id: 'color:purple', label: 'Morado', labelEn: 'Purple', colors: ['#c18aff', '#202833'], cost: 350 },
   { id: 'color:cyan', label: 'Cian', labelEn: 'Cyan', colors: ['#67e6e1', '#202833'], cost: 350 },
-  { id: 'spooky', label: 'Fantasmal', labelEn: 'Spooky', colors: ['#175b30', 'rgba(56, 190, 92, 0.35)'], cost: 500, currency: 'duckpass' },
-  { id: 'pumpkin', label: 'Calabaza', labelEn: 'Pumpkin', colors: ['#65c86e', '#d77b28'], cost: 500, currency: 'duckpass' },
+  { id: 'spooky', label: 'Fantasmal', labelEn: 'Spooky', colors: ['#175b30', 'rgba(56, 190, 92, 0.35)'], cost: 500, currency: 'duckpass', style: 'spooky' },
+  { id: 'pumpkin', label: 'Calabaza', labelEn: 'Pumpkin', colors: ['#65c86e', '#d77b28'], cost: 500, currency: 'duckpass', style: 'pumpkin' },
   { id: 'candy', label: 'Caramelo', labelEn: 'Candy', colors: ['#c62838', '#1e8b54'], cost: 500, currency: 'duckpass', style: 'candy' },
   { id: 'bomb', label: 'Bomba', labelEn: 'Bomb', colors: ['#d84934', '#8f241f'], cost: 350, currency: 'pycoins', style: 'bomb' },
   { id: 'ice', label: 'Hielo', labelEn: 'Ice', colors: ['#6bd9ff', '#d8f7ff'], cost: 150, currency: 'pycoins', style: 'ice' },
@@ -8663,7 +8893,9 @@ const PROFILE_EVENT_BORDERS = [
   { id: 'santa', label: 'Santa', labelEn: 'Santa', colors: ['#d52830', '#fff8e8'], style: 'santa' }
 ];
 const PROFILE_BORDER_STYLE_CLASSES = new Set([
-  'candy', 'bomb', 'ice', 'gift', 'festive', 'elf', 'santa', 'time-attack-a', 'time-attack-b'
+  'candy', 'bomb', 'ice', 'gift', 'festive', 'elf', 'santa', 'time-attack-a', 'time-attack-b',
+  'spooky', 'pumpkin', 'interstellar',
+  'map-gelatin', 'map-urban', 'map-seaside', 'map-spook', 'frosty'
 ]);
 const PROFILE_TIME_ATTACK_BORDERS = [
   { id: 'time-attack-a', label: 'TIME ATTACK A', colors: ['#2600FF', '#00FFFF'], style: 'time-attack-a' },
@@ -8891,7 +9123,7 @@ function getAvailableProfileBorders() {
     borders.push(...PROFILE_TIME_ATTACK_BORDERS);
   }
   if (BADGES.unmenaced?.unlocked || BADGES.paracristal_dimension?.unlocked) {
-    borders.push({ id: 'interstellar', label: 'Interstellar', colors: ['#ff68d1', '#174caa'] });
+    borders.push({ id: 'interstellar', label: 'Interstellar', colors: ['#ff68d1', '#174caa'], style: 'interstellar' });
   }
   if (gameState.debugState === 'unlocked' ||
       (localStorage.getItem('glob_username') || '').toLowerCase() === 'kirbytebi') {
@@ -8913,6 +9145,16 @@ function getAvailableProfileBorders() {
       borders.push({ ...border, label: border.label });
     }
   });
+  // Borde dedicado del mapa navideño: "Ventisca" / "Frosty".
+  // Se desbloquea al ganar Frosty Christmas en cualquier modo.
+  if ((gameState.profileMapModeWins?.frosty_christmas || []).length > 0) {
+    borders.push({
+      id: 'map:frosty_christmas',
+      label: currentLanguage === 'en' ? 'Frosty' : 'Ventisca',
+      colors: ['#eaf6ff', '#2b6cb0'],
+      style: 'frosty'
+    });
+  }
   if (hasUnlockedAllProfileBorders()) {
     borders.push({
       id: 'rainbow',
@@ -11509,7 +11751,14 @@ function activateGTack(t) {
     const wave = gameState.wave;
     const mode = gameState.mode;
     if (typeof updateUI === 'function') updateUI();
-    if (typeof showMessage === 'function') {
+
+    // Banner de oleada con personalidad: distingue normal / jefe / final.
+    const isFinalWave = mode !== 'infinito' && mode !== 'tutorial' && wave >= maxWaves;
+    const isBossCadence = mode !== 'tutorial' && wave > 0 && wave % 10 === 0;
+    const bannerKind = isFinalWave ? 'final' : (isBossCadence ? 'boss' : 'normal');
+    if (typeof showWaveBanner === 'function') {
+      showWaveBanner(wave, bannerKind, mode);
+    } else if (typeof showMessage === 'function') {
       showMessage(
         mode === 'tutorial'
           ? translate('tutorial_wave', { wave: gameState.wave })
@@ -11964,6 +12213,38 @@ function activateGTack(t) {
     // 4. Anteponer los jefes a la lista de spawn para que entren primero en combate
     if (isBossWave && bossesToSpawn.length > 0) {
       spawnList.unshift(...bossesToSpawn);
+    }
+
+    // Aviso de Mimics en la oleada. Dos tipos:
+    //  - Skin Mimic (Mimic_Pyce, Bushi_Brella): sueltan skins → aviso amarillo
+    //    + diálogo de Work-Bombot advirtiendo del impostor.
+    //  - Resources Mimic (Stupid_GoldPyce): solo da recursos → aviso amarillo,
+    //    sin diálogo (no se "delata" como mimic especial).
+    if (mode !== 'tutorial') {
+      const SKIN_MIMICS = ['Mimic_Pyce', 'Bushi_Brella'];
+      const RESOURCE_MIMICS = ['Stupid_GoldPyce'];
+      const fullWaveList = [...bossesToSpawn, ...spawnList];
+      const hasSkinMimic = fullWaveList.some(t => SKIN_MIMICS.includes(t));
+      const hasResourceMimic = fullWaveList.some(t => RESOURCE_MIMICS.includes(t));
+      if (hasSkinMimic || hasResourceMimic) {
+        const es = currentLanguage !== 'en';
+        showMessage(
+          es ? '🎁 ¡Enemigo especial en esta oleada!' : '🎁 Special enemy in this wave!',
+          'warning'
+        );
+        if (hasSkinMimic && typeof showNarratorMsg === 'function' && NARRATOR_DATA?.bombot) {
+          setTimeout(() => {
+            showNarratorMsg(
+              'bombot',
+              NARRATOR_DATA.bombot.img,
+              NARRATOR_DATA.bombot[currentLanguage].name,
+              es
+                ? '¡Alerta! Detecto un Mimic infiltrado entre los Pyces. ¡Derrótalo para llevarte su recompensa!'
+                : "Alert! I'm detecting a Mimic hiding among the Pyces. Take it down to claim its reward!"
+            );
+          }, 900);
+        }
+      }
     }
 
     // 5. Iniciar secuencia de generación con temporizador
@@ -13961,7 +14242,7 @@ function activateGTack(t) {
           if (dist < 10) {
             applyProjectileHit(p, p.target);
             if (p.bounceOnHit && p.target && p.bounces < p.bounceLimit) continue;
-            if (!p.isEnemy) spawnProjectileImpact(p.x, p.y);
+            if (!p.isEnemy) spawnProjectileImpact(p.x, p.y, p);
             p.el.remove(); gameState.projectiles.splice(i, 1); continue;
           } else {
             p.vx = (dx / dist) * p.speed;
@@ -14012,6 +14293,9 @@ function activateGTack(t) {
           // Onda periódica de ataque mientras la valla sigue en pie
           trap.waveCooldown -= dt;
           if (trap.waveCooldown <= 0) {
+            // Siempre lanza la onda visual (aunque no haya enemigos cerca),
+            // para que se vea que la trampa está "sonando" periódicamente.
+            spawnDJSoundWave(trap, false);
             if (inRange.length > 0) {
               inRange.forEach(e => {
                 e.health -= trap.damage * 0.4;
@@ -14051,6 +14335,7 @@ function activateGTack(t) {
                 }
               }
             });
+            spawnDJSoundWave(trap, true); // pulso final más grande
             showEffect(trap.x, trap.y, "♫ BOOM!", "#8e44ad");
             if (trap.el && trap.el.parentNode) trap.el.parentNode.removeChild(trap.el);
             gameState.traps.splice(j, 1);
@@ -14067,6 +14352,13 @@ function activateGTack(t) {
         gameState.waveSpawnIndex = 0;
         gameState.waveSpawnIsBoss = false;
         gameState.waveBossTypes = [];
+        // Aviso de oleada superada (no en el tutorial).
+        if (gameState.mode !== 'tutorial' && typeof showMessage === 'function') {
+          const clearedMsg = (typeof translate === 'function')
+            ? translate('waveCompleted', { wave: gameState.wave })
+            : `✓ ¡Oleada ${gameState.wave} superada!`;
+          showMessage(clearedMsg, 'success');
+        }
         if (roundCheckpointInterval !== null) {
           clearInterval(roundCheckpointInterval);
           roundCheckpointInterval = null;
@@ -14148,16 +14440,92 @@ function activateGTack(t) {
     requestAnimationFrame(gameLoop);
   }
 
-  // Pequeño destello al impactar un proyectil. Puramente visual: se autodestruye.
-  function spawnProjectileImpact(x, y) {
+  // Onda visible de la trampa DJ. Sin skin: anillo de "sonido" morado que
+  // se expande. Con la skin navideña (santa_workshop_set): una onda de
+  // regalos que salen disparados en todas direcciones (imagen custom).
+  function spawnDJSoundWave(trap, isFinal) {
     const layer = document.getElementById('map') || document.getElementById('game-area');
     if (!layer) return;
+    const radius = (trap.radius || 80) * (isFinal ? 1.5 : 1);
+    const christmasSkin = gameState.equippedSkins?.['Worker_Glob'] === 'santa_workshop_set';
+    const giftImg = christmasSkin ? IMAGE_PATHS.Santa_Workshop_Gift_Projectile : null;
+
+    if (christmasSkin && giftImg) {
+      // Onda de regalos: N imágenes repartidas en círculo que vuelan hacia afuera.
+      const count = isFinal ? 12 : 8;
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const gift = document.createElement('img');
+        gift.className = 'dj-gift-wave';
+        gift.src = encodeURI(giftImg);
+        gift.alt = '';
+        gift.setAttribute('aria-hidden', 'true');
+        gift.style.left = `${trap.x}px`;
+        gift.style.top = `${trap.y}px`;
+        gift.style.setProperty('--dj-gift-x', `${Math.cos(angle) * radius}px`);
+        gift.style.setProperty('--dj-gift-y', `${Math.sin(angle) * radius}px`);
+        if (isFinal) gift.classList.add('dj-gift-wave-final');
+        layer.appendChild(gift);
+        setTimeout(() => gift.remove(), 700);
+      }
+    } else {
+      // Anillo de sonido: un círculo que se expande y se desvanece.
+      const ring = document.createElement('div');
+      ring.className = 'dj-sound-wave' + (isFinal ? ' dj-sound-wave-final' : '');
+      ring.setAttribute('aria-hidden', 'true');
+      ring.style.left = `${trap.x}px`;
+      ring.style.top = `${trap.y}px`;
+      ring.style.setProperty('--dj-wave-size', `${radius * 2}px`);
+      layer.appendChild(ring);
+      setTimeout(() => ring.remove(), 700);
+    }
+  }
+
+  // Pequeño destello al impactar un proyectil. Puramente visual: se autodestruye.
+  // Paleta de impacto por familia y por tipo (misma lógica que el tintado
+  // de proyectiles) para que el golpe sea ACORDE al tipo de Glob.
+  const IMPACT_FAMILY_COLOR = {
+    'Glob': '#5fe07a', 'Red_Glob': '#ff6a4d', 'Soap_Glob': '#5bc6ff',
+    'Ducky_Glob': '#ffe066', 'Comet_Glob': '#b89bff', 'Grey': '#cfd6dd',
+    'Special': '#ffb24d', 'Worker_Glob': '#e6c34d', 'Brown': '#c8975a',
+    'White': '#ffffff', 'Pink': '#ff8ad1', 'IEx': '#ff8a3d'
+  };
+  const IMPACT_TYPE_COLOR = {
+    'Golden_Glob': '#ffd700', 'Molten_Glob': '#ff7a24', 'Robotic_Glob': '#ff4d4d',
+    'Demglob': '#c394fc', 'Void_Glob': '#7a4dff', 'Pyce_Glob': '#49ffb0',
+    'ElectroClean_Glob': '#6fe0ff'
+  };
+
+  // Destello al impactar un proyectil. Toma el color del Glob que disparó y
+  // su forma según el tipo de ataque (láser alargado, boomerang, bala). Las
+  // bombas/AOE tienen su propia explosión, así que aquí se omiten.
+  function spawnProjectileImpact(x, y, projectile) {
+    const layer = document.getElementById('map') || document.getElementById('game-area');
+    if (!layer) return;
+
+    const meta = projectile?.meta || {};
+    // No duplicar sobre explosiones de bomba/AOE: esas ya tienen su efecto.
+    if (meta.aoe || projectile?.aoe || meta.boatBomb) return;
+
+    const projClass = projectile?.projectile || '';
+    const isLaser = typeof projClass === 'string' && (projClass.includes('laser') || projClass === 'void');
+    const isBoomerang = typeof projClass === 'string' && projClass.includes('boomerang');
+
+    // Color acorde: color explícito del disparo > por tipo > por familia > blanco
+    let color = IMPACT_TYPE_COLOR[projectile?.type] ||
+                IMPACT_FAMILY_COLOR[projectile?.family] ||
+                '#ffffff';
+    if (typeof meta.color === 'string' && meta.color.startsWith('#')) color = meta.color;
+
     const burst = document.createElement('div');
     burst.className = 'projectile-impact';
+    if (isLaser) burst.classList.add('impact-laser');
+    else if (isBoomerang) burst.classList.add('impact-boomerang');
     burst.style.left = x + 'px';
     burst.style.top = y + 'px';
+    burst.style.setProperty('--impact-color', color);
     layer.appendChild(burst);
-    setTimeout(() => burst.remove(), 300);
+    setTimeout(() => burst.remove(), 320);
   }
 
   function shoot(shooter, target, opts = {}) {
@@ -14560,7 +14928,7 @@ function activateGTack(t) {
 
 
   function die(e, idx) {
-    triggerHalloweenJumpscare(e.type, e.el);
+    triggerHalloweenJumpscare(e.type, e.el, null, true);
     if (e.type === 'Sharowd') {
       finishBlockQuest();
     }
@@ -14726,9 +15094,27 @@ function activateGTack(t) {
     updateUI();
   }
 
+  // Actualiza un valor de stat y da un "pop" cuando sube y un tinte cuando
+  // baja (feedback económico/salud). Solo cosmético.
+  function setStatValue(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const prev = parseFloat(el.dataset.prevValue);
+    const next = Number(value);
+    el.textContent = value;
+    if (!Number.isNaN(prev) && next !== prev) {
+      const cls = next > prev ? 'stat-bump-up' : 'stat-bump-down';
+      el.classList.remove('stat-bump-up', 'stat-bump-down');
+      void el.offsetWidth; // reinicia la animación
+      el.classList.add(cls);
+      setTimeout(() => el.classList.remove(cls), 420);
+    }
+    el.dataset.prevValue = String(next);
+  }
+
   function updateUI() {
-    document.getElementById('health').textContent = Math.max(0, gameState.health);
-    document.getElementById('money').textContent = Math.floor(gameState.globetines);
+    setStatValue('health', Math.max(0, gameState.health));
+    setStatValue('money', Math.floor(gameState.globetines));
     document.getElementById('wave-count').textContent = gameState.wave;
     if (gameState.settings.showTotalDamage) document.getElementById('total-damage').textContent = Math.floor(gameState.totalDamage);
 
@@ -14927,6 +15313,43 @@ function activateGTack(t) {
     document.getElementById('game-messages').appendChild(el); setTimeout(() => el.remove(), 3000);
   }
 
+  // Banner de oleada con personalidad. kind: 'normal' | 'boss' | 'final'.
+  // Es puramente visual y accesible (role=status, aria-live). Se autodestruye.
+  function showWaveBanner(wave, kind, mode) {
+    const host = document.getElementById('game-area') || document.body;
+    if (!host) return;
+    // Evita banners solapados
+    host.querySelector('.wave-banner')?.remove();
+
+    const es = currentLanguage !== 'en';
+    let kicker, title;
+    if (kind === 'final') {
+      kicker = es ? 'OLEADA FINAL' : 'FINAL WAVE';
+      title = es ? '¡El último empuje!' : 'The last push!';
+    } else if (kind === 'boss') {
+      kicker = es ? '⚠ OLEADA DE JEFE ⚠' : '⚠ BOSS WAVE ⚠';
+      title = es ? `¡Empieza la oleada ${wave}!` : `Boss wave ${wave} begins!`;
+    } else if (mode === 'tutorial') {
+      kicker = es ? 'ENTRENAMIENTO' : 'TRAINING';
+      title = es ? `Empieza la oleada ${wave}` : `Wave ${wave} begins`;
+    } else {
+      kicker = es ? 'NUEVA OLEADA' : 'NEW WAVE';
+      title = es ? `¡Empieza la oleada ${wave}!` : `Wave ${wave} begins!`;
+    }
+
+    const banner = document.createElement('div');
+    banner.className = `wave-banner wave-banner-${kind}`;
+    banner.setAttribute('role', 'status');
+    banner.setAttribute('aria-live', 'polite');
+    banner.innerHTML =
+      `<span class="wave-banner-kicker"></span>` +
+      `<span class="wave-banner-title"></span>`;
+    banner.querySelector('.wave-banner-kicker').textContent = kicker;
+    banner.querySelector('.wave-banner-title').textContent = title;
+    host.appendChild(banner);
+    setTimeout(() => banner.remove(), 2600);
+  }
+
   function showEffect(x, y, text) {
     const el = document.createElement('div'); el.className = 'money-popup'; el.style.left = x + 'px'; el.style.top = y + 'px'; el.textContent = text;
     document.getElementById('map').appendChild(el); setTimeout(() => el.remove(), 1000);
@@ -15021,6 +15444,10 @@ function activateGTack(t) {
       if (data?.class) el.classList.add(data.class);
     }
     const family = cfg.family || type;
+    // Acento de color del Glob: usado por el fogonazo de disparo para que
+    // el destello sea acorde al tipo (verde, rojo, azul, lila...).
+    const accent = IMPACT_TYPE_COLOR[type] || IMPACT_FAMILY_COLOR[family] || '#ffd700';
+    el.style.setProperty('--tower-accent', accent);
     const equippedSkin = gameState.equippedSkins[family];
     const skinSet = SKINS_DATA[family]?.find(skin => skin.id === equippedSkin);
     if (globalSkin !== 'pyce_morph' &&
