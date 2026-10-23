@@ -1,3 +1,82 @@
+/* ==========================================================================
+   DESIGN TOKENS
+   Capa de variables que nombra los valores que ya usa el proyecto.
+   NO cambia la identidad visual: solo unifica radios, sombras, tiempos y
+   acentos para dar coherencia. Los colores e imágenes se conservan.
+   ========================================================================== */
+:root {
+    /* Acentos de marca (los mismos de siempre) */
+    --gd-gold: #ffd700;
+    --gd-gold-soft: #f1c40f;
+    --gd-pink: #ff69b4;
+    --gd-purple: #9b59b6;
+    --gd-purple-deep: #8e44ad;
+    --gd-green: #1db954;
+    --gd-green-soft: #2ecc71;
+    --gd-cyan: #00f2fe;
+    --gd-red: #eb3349;
+
+    /* Superficies y fondo */
+    --gd-bg-start: #1a1a2e;
+    --gd-bg-end: #16213e;
+    --gd-surface: rgba(22, 22, 38, 0.7);
+    --gd-surface-2: rgba(20, 20, 30, 0.95);
+    --gd-line: rgba(255, 255, 255, 0.1);
+    --gd-line-soft: rgba(255, 255, 255, 0.06);
+    --gd-ink: #e0e0e0;
+    --gd-ink-dim: #a0aec0;
+
+    /* Radios (escala unificada) */
+    --gd-r-xs: 6px;
+    --gd-r-sm: 8px;
+    --gd-r-md: 10px;
+    --gd-r-lg: 12px;
+    --gd-r-xl: 16px;
+    --gd-r-2xl: 20px;
+    --gd-r-pill: 999px;
+
+    /* Espaciado (escala base 4px) */
+    --gd-s-1: 4px;
+    --gd-s-2: 8px;
+    --gd-s-3: 12px;
+    --gd-s-4: 16px;
+    --gd-s-5: 20px;
+    --gd-s-6: 24px;
+
+    /* Sombras */
+    --gd-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --gd-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+    --gd-shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
+    --gd-glow-gold: 0 0 15px rgba(255, 215, 0, 0.35);
+
+    /* Movimiento (los easings que ya existían, con nombre) */
+    --gd-ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --gd-ease-smooth: cubic-bezier(0.25, 0.8, 0.25, 1);
+    --gd-t-fast: 0.16s;
+    --gd-t-base: 0.25s;
+    --gd-t-slow: 0.4s;
+
+    --gd-focus: 0 0 0 3px rgba(255, 215, 0, 0.55);
+}
+
+/* Accesibilidad: foco visible y coherente en todo lo interactivo.
+   Mantiene el look pero da el detalle "profesional" de navegación por teclado. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+    outline: none;
+    box-shadow: var(--gd-focus);
+    border-radius: inherit;
+}
+
+/* Respeta a quien prefiere menos movimiento (accesibilidad real). */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -6292,4 +6371,107 @@ body.tablet-landscape #light-mode-toggle {
     .advent-day-reward {
         font-size: 0.78rem;
     }
+}
+
+/* ==========================================================================
+   VIDA DE PERSONAJES — ampliación del sistema de animación existente
+   Añade los momentos que faltaban (aparición, muerte, quemadura, impacto,
+   fogonazo) reutilizando el estilo sutil ya presente. No altera colores ni
+   imágenes: solo movimiento. Todo es aditivo y se puede quitar sin romper nada.
+   ========================================================================== */
+
+/* --- Enemigos: entrada al aparecer -------------------------------------- */
+@keyframes enemySpawnIn {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.55); }
+    60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.enemy.spawning {
+    animation: enemySpawnIn 0.32s var(--gd-ease-bounce, cubic-bezier(0.175, 0.885, 0.32, 1.275)) both;
+}
+
+/* --- Enemigos: muerte (pop + fundido) ----------------------------------- */
+@keyframes enemyDie {
+    0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
+    35%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25); filter: brightness(1.8) saturate(1.3); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.35) rotate(8deg); filter: brightness(1.2); }
+}
+
+.enemy.dying {
+    animation: enemyDie 0.24s ease-out both !important;
+    pointer-events: none;
+}
+
+.enemy.dying .hp-bar-bg,
+.enemy.dying .enemy-hp-value,
+.enemy.dying .enemy-status-icons {
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+/* --- Enemigos: quemadura (arregla la clase .burning sin efecto) ---------- */
+@keyframes enemyBurn {
+    0%, 100% { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 5px rgba(255, 120, 20, 0.55)); }
+    50%      { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(255, 70, 0, 0.9)) brightness(1.12); }
+}
+
+.enemy.burning {
+    animation: enemyBurn 0.5s ease-in-out infinite;
+}
+
+.enemy.burning::before {
+    content: "🔥";
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    line-height: 1;
+    z-index: 22;
+    pointer-events: none;
+    animation: enemyBurn 0.45s ease-in-out infinite;
+    filter: none;
+}
+
+/* --- Torres: fogonazo al disparar (refuerza la clase .attacking) -------- */
+.tower.attacking::before {
+    content: '';
+    position: absolute;
+    inset: 18%;
+    z-index: 2;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 244, 190, 0.95) 0%, rgba(255, 210, 90, 0.55) 45%, transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+    animation: towerMuzzleFlash 0.22s ease-out;
+}
+
+@keyframes towerMuzzleFlash {
+    0%   { opacity: 0; transform: scale(0.4); }
+    30%  { opacity: 0.9; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.25); }
+}
+
+.tower.enemy-skin-flipped.attacking::before {
+    /* el contenedor está volteado; recentramos el fogonazo */
+    transform: none;
+}
+
+/* --- Proyectil: impacto ------------------------------------------------- */
+.projectile-impact {
+    position: absolute;
+    z-index: 16;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255, 220, 120, 0.6) 40%, transparent 72%);
+    animation: projectileImpact 0.28s ease-out forwards;
+}
+
+@keyframes projectileImpact {
+    0%   { opacity: 0.95; transform: translate(-50%, -50%) scale(0.3); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
 }

@@ -12080,9 +12080,11 @@ function activateGTack(t) {
     const tier = boss ? 'boss' : Object.keys(mapBalance || {}).find(key => mapBalance[key].includes(type)) || ((t.health || 0) >= 400 ? 'tank' : (t.health || 0) >= 150 ? 'medium' : 'basic');
     const chosenPath = forcedPath || ENEMY_PATHS[Math.floor(Math.random() * ENEMY_PATHS.length)];
     const enemyMotionClass = boss ? ' enemy-boss' : tier === 'tank' ? ' enemy-tank' : tier === 'medium' ? ' enemy-medium' : ' enemy-basic';
-    const el = document.createElement('div'); el.className = 'enemy' + enemyMotionClass + (t.isCrystallized ? ' enemy-crystal' : '');
+    const el = document.createElement('div'); el.className = 'enemy' + enemyMotionClass + (t.isCrystallized ? ' enemy-crystal' : '') + ' spawning';
     el.style.left = `${chosenPath[0].x}px`; el.style.top = `${chosenPath[0].y}px`;
     el.style.setProperty('--enemy-delay', `${-(Math.random() * 1.8).toFixed(2)}s`);
+    // La clase "spawning" reproduce la entrada; se retira para dejar paso al idle.
+    setTimeout(() => el.classList.remove('spawning'), 340);
     if (HALLOWEEN_ENEMY_TYPES.has(type)) {
       el.addEventListener('click', event => {
         event.stopPropagation();
@@ -13959,6 +13961,7 @@ function activateGTack(t) {
           if (dist < 10) {
             applyProjectileHit(p, p.target);
             if (p.bounceOnHit && p.target && p.bounces < p.bounceLimit) continue;
+            if (!p.isEnemy) spawnProjectileImpact(p.x, p.y);
             p.el.remove(); gameState.projectiles.splice(i, 1); continue;
           } else {
             p.vx = (dx / dist) * p.speed;
@@ -14143,6 +14146,18 @@ function activateGTack(t) {
       console.error("Error en gameLoop (el juego continúa):", err);
     }
     requestAnimationFrame(gameLoop);
+  }
+
+  // Pequeño destello al impactar un proyectil. Puramente visual: se autodestruye.
+  function spawnProjectileImpact(x, y) {
+    const layer = document.getElementById('map') || document.getElementById('game-area');
+    if (!layer) return;
+    const burst = document.createElement('div');
+    burst.className = 'projectile-impact';
+    burst.style.left = x + 'px';
+    burst.style.top = y + 'px';
+    layer.appendChild(burst);
+    setTimeout(() => burst.remove(), 300);
   }
 
   function shoot(shooter, target, opts = {}) {
@@ -14684,7 +14699,13 @@ function activateGTack(t) {
         if (currentShopTab === 'skins') drawShop();
       }
     }
-    e.el.remove();
+    // Retirada con animación de muerte: la lógica (splice) sigue siendo
+    // inmediata; solo el elemento del DOM se desvanece con un pequeño "pop".
+    if (e.el) {
+      const dyingEl = e.el;
+      dyingEl.classList.add('dying');
+      setTimeout(() => dyingEl.remove(), 240);
+    }
     if (e.boss) unlockBadge('bossKiller');
     gameState.enemies.splice(idx, 1);
     const previousKills = gameState.pycesKilled[e.type] || 0;
