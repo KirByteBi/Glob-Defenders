@@ -1,3 +1,82 @@
+/* ==========================================================================
+   DESIGN TOKENS
+   Capa de variables que nombra los valores que ya usa el proyecto.
+   NO cambia la identidad visual: solo unifica radios, sombras, tiempos y
+   acentos para dar coherencia. Los colores e imágenes se conservan.
+   ========================================================================== */
+:root {
+    /* Acentos de marca (los mismos de siempre) */
+    --gd-gold: #ffd700;
+    --gd-gold-soft: #f1c40f;
+    --gd-pink: #ff69b4;
+    --gd-purple: #9b59b6;
+    --gd-purple-deep: #8e44ad;
+    --gd-green: #1db954;
+    --gd-green-soft: #2ecc71;
+    --gd-cyan: #00f2fe;
+    --gd-red: #eb3349;
+
+    /* Superficies y fondo */
+    --gd-bg-start: #1a1a2e;
+    --gd-bg-end: #16213e;
+    --gd-surface: rgba(22, 22, 38, 0.7);
+    --gd-surface-2: rgba(20, 20, 30, 0.95);
+    --gd-line: rgba(255, 255, 255, 0.1);
+    --gd-line-soft: rgba(255, 255, 255, 0.06);
+    --gd-ink: #e0e0e0;
+    --gd-ink-dim: #a0aec0;
+
+    /* Radios (escala unificada) */
+    --gd-r-xs: 6px;
+    --gd-r-sm: 8px;
+    --gd-r-md: 10px;
+    --gd-r-lg: 12px;
+    --gd-r-xl: 16px;
+    --gd-r-2xl: 20px;
+    --gd-r-pill: 999px;
+
+    /* Espaciado (escala base 4px) */
+    --gd-s-1: 4px;
+    --gd-s-2: 8px;
+    --gd-s-3: 12px;
+    --gd-s-4: 16px;
+    --gd-s-5: 20px;
+    --gd-s-6: 24px;
+
+    /* Sombras */
+    --gd-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --gd-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+    --gd-shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
+    --gd-glow-gold: 0 0 15px rgba(255, 215, 0, 0.35);
+
+    /* Movimiento (los easings que ya existían, con nombre) */
+    --gd-ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --gd-ease-smooth: cubic-bezier(0.25, 0.8, 0.25, 1);
+    --gd-t-fast: 0.16s;
+    --gd-t-base: 0.25s;
+    --gd-t-slow: 0.4s;
+
+    --gd-focus: 0 0 0 3px rgba(255, 215, 0, 0.55);
+}
+
+/* Accesibilidad: foco visible y coherente en todo lo interactivo.
+   Mantiene el look pero da el detalle "profesional" de navegación por teclado. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+    outline: none;
+    box-shadow: var(--gd-focus);
+    border-radius: inherit;
+}
+
+/* Respeta a quien prefiere menos movimiento (accesibilidad real). */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -650,6 +729,156 @@ body.light-mode .loading-tip-btn {
             #e4bd70 27deg 30deg
         ) border-box;
     box-shadow: inset 0 0 0 2px #6e461e, 0 0 0 1px #edcf87, 0 0 12px rgba(180, 128, 49, 0.45);
+}
+
+.profile-avatar-frame.candy,
+.profile-border-swatch.candy,
+.multiplayer-profile-badge.candy {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #1e8b54), var(--profile-border-end, #1e8b54)) padding-box,
+        repeating-linear-gradient(135deg, #c62838 0 8px, #fff8e8 8px 16px, #1e8b54 16px 24px, #fff8e8 24px 32px) border-box;
+    box-shadow: 0 0 10px rgba(255, 248, 232, 0.45);
+}
+
+.profile-avatar-frame.festive,
+.profile-border-swatch.festive,
+.multiplayer-profile-badge.festive {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #16834a), var(--profile-border-end, #16834a)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 10px, #16834a 10px 20px) border-box;
+}
+
+.profile-avatar-frame.elf,
+.profile-border-swatch.elf,
+.multiplayer-profile-badge.elf {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #d52830), var(--profile-border-end, #d52830)) padding-box,
+        repeating-linear-gradient(135deg, #16834a 0 13px, #d52830 13px 17px, #16834a 17px 26px) border-box;
+}
+
+.profile-avatar-frame.santa,
+.profile-border-swatch.santa,
+.multiplayer-profile-badge.santa {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #fff8e8), var(--profile-border-end, #fff8e8)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 12px, #fff8e8 12px 20px) border-box;
+    box-shadow: 0 0 12px rgba(255, 248, 232, 0.5);
+}
+
+.profile-avatar-frame.gift,
+.profile-border-swatch.gift,
+.multiplayer-profile-badge.gift {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #ffd84a), var(--profile-border-end, #ffd84a)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 12px, #ffd84a 12px 16px, #d52830 16px 28px) border-box;
+}
+
+.profile-avatar-frame.ice,
+.profile-border-swatch.ice,
+.multiplayer-profile-badge.ice {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #d8f7ff), var(--profile-border-end, #d8f7ff)) padding-box,
+        repeating-conic-gradient(from 10deg, #55c9f3 0deg 24deg, #e7fbff 24deg 38deg, #91e2ff 38deg 60deg) border-box;
+    box-shadow: 0 0 12px rgba(107, 217, 255, 0.55);
+    animation: profile-ice-shimmer 4s linear infinite;
+}
+
+.profile-avatar-frame.bomb,
+.profile-border-swatch.bomb,
+.profile-placeholder-sample.bomb,
+.multiplayer-profile-badge.bomb {
+    position: relative;
+    animation: profile-bomb-flicker 1.8s steps(1, end) infinite;
+}
+
+.profile-avatar-frame.bomb::before,
+.profile-border-swatch.bomb::before,
+.profile-placeholder-sample.bomb::before,
+.multiplayer-profile-badge.bomb::before {
+    content: "";
+    position: absolute;
+    top: -13%;
+    right: 17%;
+    width: 7px;
+    height: 12px;
+    border-top: 2px solid #e4bd70;
+    border-right: 2px solid #e4bd70;
+    border-radius: 0 8px 0 0;
+    transform: rotate(18deg);
+    pointer-events: none;
+}
+
+.profile-avatar-frame.bomb::after,
+.profile-border-swatch.bomb::after,
+.profile-placeholder-sample.bomb::after,
+.multiplayer-profile-badge.bomb::after {
+    content: "";
+    position: absolute;
+    top: -22%;
+    right: 7%;
+    width: 11px;
+    height: 17px;
+    background: radial-gradient(ellipse at 50% 75%, #fff36b 0 15%, #ff9c24 38%, #ef3018 70%, transparent 72%);
+    clip-path: polygon(48% 100%, 8% 65%, 34% 50%, 20% 18%, 63% 38%, 77% 0, 94% 61%);
+    animation: profile-bomb-flame 1.8s steps(1, end) infinite;
+    pointer-events: none;
+}
+
+@keyframes profile-bomb-flicker {
+    0%, 67%, 100% { border-color: #d84934; outline-color: #8f241f; }
+    70%, 82% { border-color: #ff3020; outline-color: #ff3020; box-shadow: 0 0 14px rgba(255, 48, 32, 0.9); }
+}
+
+@keyframes profile-bomb-flame {
+    0%, 66%, 100% { opacity: 0.75; transform: scale(0.9); }
+    70%, 82% { opacity: 1; transform: scale(1.12); }
+}
+
+@keyframes profile-ice-shimmer {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.2); }
+}
+
+.profile-placeholder-sample.candy {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #1e8b54), var(--profile-border-end, #1e8b54)) padding-box,
+        repeating-linear-gradient(135deg, #c62838 0 8px, #fff8e8 8px 16px, #1e8b54 16px 24px, #fff8e8 24px 32px) border-box;
+}
+
+.profile-placeholder-sample.festive,
+.profile-placeholder-sample.elf {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #16834a), var(--profile-border-end, #16834a)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 10px, #16834a 10px 20px) border-box;
+}
+
+.profile-placeholder-sample.santa {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #fff8e8), var(--profile-border-end, #fff8e8)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 12px, #fff8e8 12px 20px) border-box;
+}
+
+.profile-placeholder-sample.gift {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #ffd84a), var(--profile-border-end, #ffd84a)) padding-box,
+        repeating-linear-gradient(45deg, #d52830 0 12px, #ffd84a 12px 16px, #d52830 16px 28px) border-box;
+}
+
+.profile-placeholder-sample.ice {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--profile-border-end, #d8f7ff), var(--profile-border-end, #d8f7ff)) padding-box,
+        repeating-conic-gradient(from 10deg, #55c9f3 0deg 24deg, #e7fbff 24deg 38deg, #91e2ff 38deg 60deg) border-box;
 }
 
 .profile-clock-hands {
@@ -1838,7 +2067,8 @@ button.active {
     border-color: #e040fb;
 }
 
-#forest-base {
+#forest-base,
+#forest-base-2 {
     position: absolute;
     left: 0;
     top: 150px;
@@ -1852,6 +2082,16 @@ button.active {
     justify-content: center;
     font-size: 2rem;
     box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+}
+
+#forest-base-2.christmas-base,
+#forest-base.christmas-base {
+    width: 80px;
+    height: 100px;
+    background: linear-gradient(145deg, #d93445, #8f1023);
+    border: 3px solid #f3d67a;
+    border-radius: 8px 24px 24px 8px;
+    box-shadow: 0 0 18px rgba(255, 224, 130, 0.55);
 }
 
 #ally-base {
@@ -2041,6 +2281,29 @@ button.active {
     box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
 }
 
+.frosty-map {
+    background-color: #d9f4ff;
+    background-image:
+        radial-gradient(circle at 20% 25%, rgba(255,255,255,0.9) 0 2px, transparent 3px),
+        radial-gradient(circle at 75% 65%, rgba(255,255,255,0.75) 0 2px, transparent 3px),
+        linear-gradient(135deg, #b8e8f7, #e8fbff 55%, #a8deef);
+    background-size: 90px 90px, 130px 130px, 100% 100%;
+    border-color: #75cce5 !important;
+    box-shadow: 0 0 32px rgba(104, 217, 244, 0.35);
+}
+
+.path-segment.christmas-path {
+    background: repeating-linear-gradient(
+        135deg,
+        #c62838 0 18px,
+        #fff8e8 18px 36px,
+        #1e8b54 36px 54px,
+        #fff8e8 54px 72px
+    );
+    border: 2px solid #f1d58a;
+    box-shadow: inset 0 0 12px rgba(105, 37, 32, 0.35), 0 0 8px rgba(255,255,255,0.55);
+}
+
 .tower-spot {
     position: absolute;
     background: transparent;
@@ -2049,6 +2312,42 @@ button.active {
     z-index: 3;
     cursor: pointer;
     transition: all 0.3s;
+}
+
+.tower-spot.christmas-spot {
+    border-style: solid;
+    border-width: 3px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 12px rgba(255,255,255,0.32), 0 0 10px rgba(255,255,255,0.25);
+}
+
+.tower-spot.christmas-spot-red {
+    background: rgba(196, 37, 52, 0.32);
+    border-color: rgba(165, 27, 43, 0.82);
+}
+
+.tower-spot.christmas-spot-green {
+    background: rgba(38, 144, 82, 0.32);
+    border-color: rgba(28, 111, 63, 0.82);
+}
+
+.christmas-gift-projectile {
+    position: fixed;
+    z-index: 10000;
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.85));
+    animation: christmas-gift-launch 1.1s ease-in forwards;
+}
+
+@keyframes christmas-gift-launch {
+    to {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--gift-flight-x)), calc(-50% + var(--gift-flight-y))) rotate(900deg) scale(0.55);
+    }
 }
 
 #map.show-hitboxes .tower-spot {
@@ -3350,6 +3649,45 @@ input:checked + .slider:before {
     text-shadow: 0 0 5px rgba(255, 105, 180, 0.5);
 }
 
+.skin-creator-tag.skin-creator-kirbyte {
+    color: #ff69b4 !important;
+    text-shadow: 0 0 5px rgba(255, 105, 180, 0.5);
+}
+
+.skin-creator-tag.skin-creator-credible {
+    color: #ff8c00 !important;
+    text-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
+}
+
+.skin-creator-tag.skin-creator-justauser {
+    color: #999 !important;
+    text-shadow: 0 0 5px rgba(153, 153, 153, 0.45);
+}
+
+.skin-creator-tag.skin-creator-luna1255 {
+    background: linear-gradient(90deg, #ffe45c, #c69bff);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent !important;
+    text-shadow: none;
+}
+
+.skin-creator-tag.skin-creator-victorillo {
+    color: #40c9c0 !important;
+    text-shadow: 0 0 5px rgba(64, 201, 192, 0.45);
+}
+
+.encyclopedia-secret-lore {
+    margin-top: 12px;
+    padding: 9px 11px;
+    border: 1px dashed rgba(255, 215, 0, 0.55);
+    border-radius: 8px;
+    background: rgba(255, 215, 0, 0.08);
+    color: #ffe69a;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
 .bombot-accessory-customizer {
     grid-column: 1 / -1;
     width: 100%;
@@ -3578,6 +3916,13 @@ input:checked + .slider:before {
     box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4) !important;
     white-space: nowrap !important;
     border: 1px solid #fff !important;
+}
+
+.shop-advent-limited-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
 }
 
 /* Estado de bloqueo de tarjeta (Duck Pass) */
@@ -5780,4 +6125,353 @@ body.tablet-landscape #light-mode-toggle {
     .narrator-bubble.speaker-kirb_clone .narrator-portrait {
         animation: none !important;
     }
+}
+
+.advent-calendar-content {
+    width: min(1100px, 94vw);
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 24px;
+    border: 2px solid #28b9df;
+    background: linear-gradient(145deg, rgba(5, 31, 68, 0.98), rgba(7, 63, 48, 0.97) 58%, rgba(78, 17, 31, 0.97));
+    box-shadow: 0 0 42px rgba(40, 185, 223, 0.24);
+    color: #f4fbff;
+}
+
+.advent-calendar-content .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.advent-calendar-content .modal-header h2 {
+    margin: 0;
+    color: #baf3ff;
+    text-shadow: 0 0 12px rgba(92, 220, 255, 0.45);
+}
+
+.advent-calendar-status,
+.advent-calendar-note,
+.advent-calendar-balance {
+    margin: 8px 0;
+    color: #e6f7ff;
+}
+
+.advent-calendar-note {
+    color: #c5d4e4;
+    font-size: 0.82rem;
+}
+
+.advent-calendar-balance {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: #a7f3ce;
+    font-weight: 700;
+}
+
+.advent-calendar-balance-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.advent-calendar-balance-item img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.advent-calendar-balance-separator {
+    color: rgba(230, 247, 255, 0.72);
+}
+
+.advent-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.advent-day {
+    display: flex;
+    min-height: 190px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 10px;
+    border: 1px solid rgba(112, 206, 255, 0.55);
+    border-radius: 14px;
+    background: linear-gradient(155deg, rgba(16, 74, 120, 0.88), rgba(14, 42, 77, 0.92));
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.24);
+    text-align: center;
+}
+
+.advent-day:nth-child(3n + 2) {
+    border-color: rgba(103, 227, 164, 0.58);
+    background: linear-gradient(155deg, rgba(21, 104, 74, 0.82), rgba(12, 56, 53, 0.94));
+}
+
+.advent-day:nth-child(3n) {
+    border-color: rgba(255, 119, 127, 0.62);
+    background: linear-gradient(155deg, rgba(130, 38, 53, 0.82), rgba(73, 22, 38, 0.94));
+}
+
+.advent-day.today {
+    outline: 2px solid #fff2a8;
+    box-shadow: 0 0 18px rgba(255, 227, 120, 0.35);
+}
+
+.advent-day.claimed {
+    opacity: 0.72;
+    filter: saturate(0.72);
+}
+
+.advent-day-number {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    background: rgba(3, 13, 30, 0.58);
+    color: #fff;
+    font-size: 1.15rem;
+}
+
+.advent-day-rewards {
+    display: flex;
+    width: 100%;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+}
+
+.advent-day-reward {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.advent-day-reward-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.advent-day-reward-note {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.68rem;
+    font-weight: 400;
+}
+
+.advent-limited-tag {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 2px 6px;
+    border: 1px solid #f97316;
+    border-radius: 999px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.advent-credit-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: linear-gradient(110deg, #ffe45e, #d9b8ff);
+    color: #30243d;
+    font-size: 0.92em;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.advent-day-reward img {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.advent-day button,
+.advent-entry-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 13px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 10px;
+    background: linear-gradient(100deg, #177eb5, #218e62);
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.advent-day button:not(:disabled):hover,
+.advent-entry-btn:hover {
+    filter: brightness(1.18);
+    transform: translateY(-1px);
+}
+
+.advent-day button:disabled {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(5, 14, 28, 0.5);
+    color: #c2cfda;
+    cursor: default;
+}
+
+.advent-entry-btn {
+    margin: 14px auto;
+    background: linear-gradient(100deg, #147db7, #16854f 55%, #b73747);
+}
+
+.advent-shop-entry-btn {
+    grid-column: 1 / -1;
+    width: fit-content;
+    justify-self: center;
+    margin: 18px auto;
+}
+
+@media (max-width: 760px) {
+    .advent-calendar-content {
+        width: 96vw;
+        max-height: 94vh;
+        padding: 16px;
+    }
+
+    .advent-calendar-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+    }
+
+    .advent-day {
+        min-height: 175px;
+        padding: 11px 7px;
+    }
+
+    .advent-day-reward {
+        font-size: 0.78rem;
+    }
+}
+
+/* ==========================================================================
+   VIDA DE PERSONAJES — ampliación del sistema de animación existente
+   Añade los momentos que faltaban (aparición, muerte, quemadura, impacto,
+   fogonazo) reutilizando el estilo sutil ya presente. No altera colores ni
+   imágenes: solo movimiento. Todo es aditivo y se puede quitar sin romper nada.
+   ========================================================================== */
+
+/* --- Enemigos: entrada al aparecer -------------------------------------- */
+@keyframes enemySpawnIn {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.55); }
+    60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.enemy.spawning {
+    animation: enemySpawnIn 0.32s var(--gd-ease-bounce, cubic-bezier(0.175, 0.885, 0.32, 1.275)) both;
+}
+
+/* --- Enemigos: muerte (pop + fundido) ----------------------------------- */
+@keyframes enemyDie {
+    0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
+    35%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25); filter: brightness(1.8) saturate(1.3); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.35) rotate(8deg); filter: brightness(1.2); }
+}
+
+.enemy.dying {
+    animation: enemyDie 0.24s ease-out both !important;
+    pointer-events: none;
+}
+
+.enemy.dying .hp-bar-bg,
+.enemy.dying .enemy-hp-value,
+.enemy.dying .enemy-status-icons {
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+/* --- Enemigos: quemadura (arregla la clase .burning sin efecto) ---------- */
+@keyframes enemyBurn {
+    0%, 100% { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 5px rgba(255, 120, 20, 0.55)); }
+    50%      { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(255, 70, 0, 0.9)) brightness(1.12); }
+}
+
+.enemy.burning {
+    animation: enemyBurn 0.5s ease-in-out infinite;
+}
+
+.enemy.burning::before {
+    content: "🔥";
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    line-height: 1;
+    z-index: 22;
+    pointer-events: none;
+    animation: enemyBurn 0.45s ease-in-out infinite;
+    filter: none;
+}
+
+/* --- Torres: fogonazo al disparar (refuerza la clase .attacking) -------- */
+.tower.attacking::before {
+    content: '';
+    position: absolute;
+    inset: 18%;
+    z-index: 2;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 244, 190, 0.95) 0%, rgba(255, 210, 90, 0.55) 45%, transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+    animation: towerMuzzleFlash 0.22s ease-out;
+}
+
+@keyframes towerMuzzleFlash {
+    0%   { opacity: 0; transform: scale(0.4); }
+    30%  { opacity: 0.9; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.25); }
+}
+
+.tower.enemy-skin-flipped.attacking::before {
+    /* el contenedor está volteado; recentramos el fogonazo */
+    transform: none;
+}
+
+/* --- Proyectil: impacto ------------------------------------------------- */
+.projectile-impact {
+    position: absolute;
+    z-index: 16;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255, 220, 120, 0.6) 40%, transparent 72%);
+    animation: projectileImpact 0.28s ease-out forwards;
+}
+
+@keyframes projectileImpact {
+    0%   { opacity: 0.95; transform: translate(-50%, -50%) scale(0.3); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
 }
