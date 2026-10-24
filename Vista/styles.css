@@ -562,6 +562,7 @@ body.light-mode .loading-tip-btn {
     flex: 0 0 auto;
     overflow: hidden;
     vertical-align: middle;
+    isolation: isolate;
 }
 
 .rgb-avatar-image > img {
@@ -569,6 +570,7 @@ body.light-mode .loading-tip-btn {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    filter: saturate(1.4);
 }
 
 .rgb-avatar-image::after {
@@ -576,12 +578,11 @@ body.light-mode .loading-tip-btn {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
-    background-size: 100% 100%;
-    opacity: 0.9;
+    background: linear-gradient(90deg, #ff0040, #ff8800, #ffe000, #22dd44, #00c3ff, #6a4bff, #ff0040);
+    background-size: 200% 100%;
     mix-blend-mode: color;
     pointer-events: none;
-    animation: rgb-rewamp-shift 1.5s linear infinite;
+    animation: rgb-rewamp-shift 3s linear infinite;
     mask-image: var(--rgb-avatar-mask-image);
     -webkit-mask-image: var(--rgb-avatar-mask-image);
     mask-size: 100% 100%;
@@ -965,17 +966,25 @@ body.light-mode .loading-tip-btn {
     height: 100%;
 }
 
+/* Efecto RGB (A+B potente): arcoiris recorriendo la imagen de izquierda a
+   derecha con blend "color" (respeta los contornos oscuros del dibujo), sobre
+   una base algo mas saturada. isolation:isolate hace que el arcoiris se funda
+   con la propia imagen y no con el fondo. */
+.tower.rgb-rewamp {
+    isolation: isolate;
+    filter: saturate(1.4) drop-shadow(0 5px 10px rgba(0,0,0,0.4));
+}
+
 .tower.rgb-rewamp::before {
     content: '';
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
-    background-size: 100% 100%;
-    opacity: 0.9;
+    background: linear-gradient(90deg, #ff0040, #ff8800, #ffe000, #22dd44, #00c3ff, #6a4bff, #ff0040);
+    background-size: 200% 100%;
     mix-blend-mode: color;
     pointer-events: none;
-    animation: rgb-rewamp-shift 1.5s linear infinite;
+    animation: rgb-rewamp-shift 3s linear infinite;
     mask-image: var(--rgb-rewamp-mask-image);
     -webkit-mask-image: var(--rgb-rewamp-mask-image);
     mask-size: contain;
@@ -988,6 +997,8 @@ body.light-mode .loading-tip-btn {
 
 .skin-preview.rgb-rewamp-preview {
     position: relative;
+    isolation: isolate;
+    filter: saturate(1.4);
 }
 
 .skin-preview.rgb-rewamp-preview::after {
@@ -995,12 +1006,11 @@ body.light-mode .loading-tip-btn {
     position: absolute;
     inset: 8px;
     z-index: 1;
-    background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
-    background-size: 100% 100%;
-    opacity: 0.9;
+    background: linear-gradient(90deg, #ff0040, #ff8800, #ffe000, #22dd44, #00c3ff, #6a4bff, #ff0040);
+    background-size: 200% 100%;
     mix-blend-mode: color;
     pointer-events: none;
-    animation: rgb-rewamp-shift 1.5s linear infinite;
+    animation: rgb-rewamp-shift 3s linear infinite;
     mask-image: var(--rgb-rewamp-mask-image);
     -webkit-mask-image: var(--rgb-rewamp-mask-image);
     mask-size: contain;
@@ -1012,7 +1022,62 @@ body.light-mode .loading-tip-btn {
 }
 
 @keyframes rgb-rewamp-shift {
-    to { filter: hue-rotate(360deg); }
+    from { background-position: 0% 0; }
+    to   { background-position: 200% 0; }
+}
+
+/* RAINBOW FUEL: toda la silueta pintada de arcoiris vivo recorriendola de
+   izquierda a derecha (mas intenso que el RGB; no oscurece la imagen). */
+.tower.rainbow-fuel {
+    isolation: isolate;
+}
+.tower.rainbow-fuel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(90deg, #ff0040, #ff8800, #ffe000, #22dd44, #00c3ff, #6a4bff, #ff0040);
+    background-size: 200% 100%;
+    filter: saturate(1.6) brightness(1.12);
+    animation: rgb-rewamp-shift 2.5s linear infinite;
+    mask-image: var(--rainbow-fuel-mask-image);
+    -webkit-mask-image: var(--rainbow-fuel-mask-image);
+    mask-size: contain;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
+    pointer-events: none;
+}
+
+.rainbow-fuel-avatar {
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    overflow: hidden;
+    vertical-align: middle;
+    isolation: isolate;
+}
+.rainbow-fuel-avatar > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.rainbow-fuel-avatar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(90deg, #ff0040, #ff8800, #ffe000, #22dd44, #00c3ff, #6a4bff, #ff0040);
+    background-size: 200% 100%;
+    filter: saturate(1.6) brightness(1.12);
+    animation: rgb-rewamp-shift 2.5s linear infinite;
+    mask-image: var(--rainbow-fuel-mask-image);
+    -webkit-mask-image: var(--rainbow-fuel-mask-image);
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
+    pointer-events: none;
 }
 
 @keyframes profile-glb-fever-color-cycle {
@@ -2436,7 +2501,7 @@ button.active {
     z-index: 1;
     opacity: 0;
     box-shadow: none;
-    background: #23152d;
+    background: #000;
     clip-path: polygon(0 8%, 100% 0, 100% 76%, 0 100%);
     mask-image: var(--gods-shadow-image);
     mask-size: contain;
@@ -2469,7 +2534,7 @@ button.active {
 }
 
 .gods-shadow-portrait {
-    filter: brightness(0) drop-shadow(1px 0 0 rgba(56, 20, 72, 0.8)) drop-shadow(-1px 0 0 rgba(0, 48, 58, 0.65));
+    filter: brightness(0);
     animation: gods-shadow-portrait-glitch 6s steps(1, end) infinite;
 }
 
@@ -4135,6 +4200,106 @@ input:checked + .slider:before {
     pointer-events: none;
 }
 
+/* ===== Diálogos custom por tipo de enemigo (Lote 2) ===== */
+
+/* Enemigos "oscuros": fondo negro, contorno lila y niebla negra animada.
+   Para enemigos que normalmente no hablan y reciben un custom dialog. */
+.narrator-bubble.narrator-dark {
+    background: radial-gradient(circle at 50% 120%, rgba(40, 10, 60, 0.95), rgba(5, 2, 10, 0.98));
+    border-color: #b06bff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 22px rgba(150, 70, 255, 0.55), inset 0 0 40px rgba(0, 0, 0, 0.85);
+    color: #c9a8ff;
+    animation: narrator-dark-fog 4s ease-in-out infinite;
+}
+.narrator-bubble.narrator-dark .narrator-name {
+    color: #d7b8ff;
+    text-shadow: 0 0 8px rgba(150, 70, 255, 0.9);
+}
+.narrator-bubble.narrator-dark .narrator-text,
+.narrator-bubble.narrator-dark .narrator-close {
+    color: #efe6ff;
+    text-shadow: 0 0 6px rgba(120, 50, 220, 0.7);
+}
+.narrator-bubble.narrator-dark .narrator-portrait {
+    filter: brightness(0.9) drop-shadow(0 0 10px rgba(150, 70, 255, 0.6));
+}
+
+@keyframes narrator-dark-fog {
+    0%, 100% { box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 18px rgba(150,70,255,0.45), inset 0 0 36px rgba(0,0,0,0.82); }
+    50%      { box-shadow: 0 10px 34px rgba(0,0,0,0.78), 0 0 28px rgba(150,70,255,0.65), inset 0 0 52px rgba(0,0,0,0.92); }
+}
+
+/* Navideños Pyce: fondo "candy" (dulce, rosa/menta). */
+.narrator-bubble.narrator-christmas-pyce {
+    background: linear-gradient(135deg, rgba(255, 120, 160, 0.95), rgba(120, 220, 170, 0.92));
+    border-color: #ff6f91;
+    box-shadow: 0 10px 30px rgba(255, 111, 145, 0.4), 0 0 18px rgba(120, 220, 170, 0.5);
+    color: #4a2338;
+}
+.narrator-bubble.narrator-christmas-pyce .narrator-name {
+    color: #c62f5a;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
+}
+.narrator-bubble.narrator-christmas-pyce .narrator-text,
+.narrator-bubble.narrator-christmas-pyce .narrator-close {
+    color: #3a1b2c;
+}
+
+/* Navideños no-Pyce (p. ej. GiftBox): fondo "nevado" (azul-blanco frío). */
+.narrator-bubble.narrator-christmas-other {
+    background: linear-gradient(135deg, rgba(225, 240, 255, 0.96), rgba(160, 200, 240, 0.92));
+    border-color: #8fd0ff;
+    box-shadow: 0 10px 30px rgba(140, 190, 240, 0.45), 0 0 18px rgba(200, 230, 255, 0.6);
+    color: #1f3a52;
+}
+.narrator-bubble.narrator-christmas-other .narrator-name {
+    color: #1f6fb0;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+.narrator-bubble.narrator-christmas-other .narrator-text,
+.narrator-bubble.narrator-christmas-other .narrator-close {
+    color: #16314a;
+}
+
+/* Jefes de Frosty Christmas: colores navideños retorcidos
+   (fondo rojo, borde verde, texto amarillo). NOsense (Corrupto) usa el tono
+   vivo; NOIRrupt (Anti-Normal) comparte el mismo esquema muy oscurecido. */
+.narrator-bubble.narrator-noel {
+    background: linear-gradient(135deg, rgba(150, 18, 24, 0.96), rgba(90, 8, 12, 0.97));
+    border-color: #2ecc71;
+    box-shadow: 0 10px 30px rgba(120, 10, 14, 0.6), 0 0 20px rgba(46, 204, 113, 0.55);
+    color: #ffe14d;
+}
+.narrator-bubble.narrator-noel .narrator-name {
+    color: #ffe14d;
+    text-shadow: 0 0 8px rgba(46, 204, 113, 0.9);
+}
+.narrator-bubble.narrator-noel .narrator-text,
+.narrator-bubble.narrator-noel .narrator-close {
+    color: #fff07a;
+    text-shadow: 0 0 6px rgba(120, 10, 14, 0.8);
+}
+
+/* NOIRrupt: mismo esquema, mucho más oscuro y apagado. */
+.narrator-bubble.narrator-noir {
+    background: linear-gradient(135deg, rgba(60, 6, 10, 0.98), rgba(14, 2, 4, 0.99));
+    border-color: #1e6b3f;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.8), 0 0 18px rgba(30, 107, 63, 0.5), inset 0 0 44px rgba(0, 0, 0, 0.9);
+    color: #c9b73a;
+}
+.narrator-bubble.narrator-noir .narrator-name {
+    color: #cdbb3e;
+    text-shadow: 0 0 8px rgba(30, 107, 63, 0.85);
+}
+.narrator-bubble.narrator-noir .narrator-text,
+.narrator-bubble.narrator-noir .narrator-close {
+    color: #ded06a;
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+}
+.narrator-bubble.narrator-noir .narrator-portrait {
+    filter: brightness(0.8) saturate(0.7);
+}
+
 .narrator-enter {
     animation: narrator-enter 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
@@ -4689,6 +4854,19 @@ body.light-mode-glitch #game-container {
     border: 1px solid rgba(255,255,255,0.2);
     text-align: center;
     backdrop-filter: blur(5px);
+}
+
+.game-message.game-message-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.game-message-token {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex: 0 0 auto;
 }
 
 .game-message.success {

@@ -1610,6 +1610,11 @@ let gameState = {
   waveSpawnIntervalMs: 0,
   collectionMasterDialogueShown: false,
   wallGardenSoapMessageShown: false,
+  rainbowFuelClicks: {},     // {familia: nº de Globs de esa familia clicados en el login}
+  rainbowFuelUnlocked: [],   // familias con Rainbow Fuel desbloqueado
+  winterPassXP: 0,           // XP del pase de invierno (nivel sube cada 100)
+  winterPassLevel: 1,
+  winterPassClaimed: [],     // niveles de recompensa del pase de invierno ya reclamados
   uniquesBossSpawned: {}  // Tracks NOeye_Pyce, MoonStar_Pyce (only 1 per game)
 };
 
@@ -1622,7 +1627,7 @@ const TUTORIAL_BOSSES_BY_MAP = {
   spooktacular_ruins: ['Blood_Taker', 'SkeleBone_Pyce'],
 };
 const PERSONALIZABLE_BOMBOT_SKIN_ID = 'personalizable_bombot';
-const ADVENT_CALENDAR_ACCESSORY_ROOT = 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/PersonalizbleBot/';
+const ADVENT_CALENDAR_ACCESSORY_ROOT = 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/PersonalizbleBot/';
 const ADVENT_CALENDAR_REWARDS = [
   { reward: { type: 'duckpass', amount: 250 } },
   { reward: { type: 'xp', amount: 500 } },
@@ -1662,6 +1667,71 @@ const CHRISTMAS_LOGIN_ENEMY_IMAGES = new Set(
     return enemy?.imageVariants || [enemy?.image];
   }).filter(Boolean)
 );
+
+// --- Clasificación de enemigos para los fondos de diálogo custom (Lote 2) ---
+// Enemigos cuyo nombre contiene "Pyce" pero que NO son Pyces en el lore
+// (p. ej. GiftBox, que lo parece pero no lo es).
+const NON_PYCE_ENEMY_EXCEPTIONS = new Set(['Giftbox_Pyce']);
+
+// Respaldo de traducciones para los jefes de Frosty Christmas. Inyecta las
+// claves en TRANSLATIONS solo si faltan, para que funcionen aunque no estén
+// en traducciones.js (sin pisar las existentes ni editar ese archivo).
+function ensureChristmasBossTranslations() {
+  if (typeof TRANSLATIONS === 'undefined' || !TRANSLATIONS) return;
+  const fallback = {
+    es: {
+      enemy_NOsense_Pyce_name: 'NOsense Pyce',
+      enemy_NOsense_Pyce_desc: 'Un Pyce hecho a partir de esencia navideña y materia negra procedente de NOeye. Es un ser realmente aterrador, ya que flota como si nada y quiere acabar con la navidad que lo creó. NOeye tuvo que enfrentarse a él una vez para apartarlo de Techspawn, donde fue creado... Pero su alma ha vuelto y se ha rehecho como un auténtico fantasma aterrador.<br><br><strong>Recompensa:</strong> 3 bajas para enmarcarlo.',
+      enemy_NOIRrupt_Pyce_name: 'NOIRrupt Pyce',
+      enemy_NOIRrupt_Pyce_desc: 'Esas pruebas locas del Pyce Científico Loco de Techspawn dieron sus frutos, pero no contaba con que acabaría destruyendo la navidad y raptando a Santa Pyce en el proceso. Aún peor es que se haya oscurecido del odio y rencor de NOeye, ahora pareciendo una copia fantasmal suya, lleno de lo que NOeye quiso ser y terminó aprendiendo. «El odio no es la respuesta, sino el paso para acabar con quien siempre fuiste.»<br><br><strong>Recompensa:</strong> 3 bajas para enmarcarlo.'
+    },
+    en: {
+      enemy_NOsense_Pyce_name: 'NOsense Pyce',
+      enemy_NOsense_Pyce_desc: 'A Pyce made from Christmas essence and dark matter taken from NOeye. A truly terrifying being that floats effortlessly and wants to destroy the very Christmas that created it. NOeye once had to face it to drive it away from Techspawn, where it was created... But its soul has returned, reforged into a genuinely horrifying ghost.<br><br><strong>Reward:</strong> 3 kills to frame.',
+      enemy_NOIRrupt_Pyce_name: 'NOIRrupt Pyce',
+      enemy_NOIRrupt_Pyce_desc: 'Those wild experiments by Techspawn\'s Mad Scientist Pyce paid off, but it never expected to end up destroying Christmas and kidnapping Santa Pyce in the process. Worse still, it has darkened with NOeye\'s hatred and resentment, now resembling a ghostly copy of him, full of everything NOeye wished to be and ultimately learned. "Hatred is not the answer, only the step toward ending who you always were."<br><br><strong>Reward:</strong> 3 kills to frame.'
+    }
+  };
+  ['es', 'en'].forEach(lang => {
+    if (!TRANSLATIONS[lang]) return;
+    Object.entries(fallback[lang]).forEach(([key, value]) => {
+      if (!(key in TRANSLATIONS[lang])) TRANSLATIONS[lang][key] = value;
+    });
+  });
+}
+
+// Mismo criterio que usa la enciclopedia para separar Pyces de "otros enemigos".
+function isPyceEnemy(type) {
+  if (!type) return false;
+  if (NON_PYCE_ENEMY_EXCEPTIONS.has(type)) return false;
+  return type.includes('Pyce') || type.includes('Pysh') || type === 'SO_Pyce';
+}
+
+// Enemigos "oscuros": normalmente no hablan, pero con custom dialog usan el
+// fondo negro/lila/niebla. Lista explícita y ampliable.
+const DARK_DIALOGUE_SPEAKERS = new Set([
+  'noeye', 'darkspirit', 'GODs_Shadow', 'kirb_clone', 'error_entity'
+]);
+
+// Devuelve la clase de tema para el bubble del narrador según el hablante.
+function getNarratorThemeClass(speakerId, imgSrc = '', variant = '') {
+  // Jefes de Frosty Christmas (prioridad sobre el tema navideño genérico).
+  if (speakerId === 'nosense') return 'narrator-noel';
+  if (speakerId === 'noirrupt') return 'narrator-noir';
+  // Navideños: candy para Pyces, nevado para "otros enemigos" (GiftBox).
+  const christmasType = [...CHRISTMAS_ENEMY_TYPES].find(type =>
+    type === speakerId ||
+    (ENEMY_TYPES[type]?.image && imgSrc && imgSrc.includes(ENEMY_TYPES[type].image))
+  );
+  if (christmasType) {
+    return isPyceEnemy(christmasType) ? 'narrator-christmas-pyce' : 'narrator-christmas-other';
+  }
+  // Oscuros: por lista explícita o por el variant de voz enemiga.
+  if (DARK_DIALOGUE_SPEAKERS.has(speakerId) || variant === 'enemy-voice') {
+    return 'narrator-dark';
+  }
+  return '';
+}
 const ADVENT_CALENDAR_SHOP_PRICES = {
   noob_bombot_reskin: 250,
   guest_bombot_reskin: 250,
@@ -1732,7 +1802,7 @@ const BOMBOT_ACCESSORIES = [
   { id: 'darkness_emissary', name: { es: 'Emisario Oscuro', en: 'Darkness Emissary' }, slot: 'suit', image: 'Darkness Emisary.png', unlock: 'spooktacular_anti_normal' },
   { id: 'insanely_cristalized', name: { es: 'Increíblemente Cristalizado', en: 'Insanely Cristalized' }, slot: 'suit', image: 'Inanely Cristalized.png', unlock: 'interstellar' }
 ];
-const BOMBOT_ACCESSORY_ASSET_ROOT = 'Spooks in the Desert (UPD4)/Skins/Personalizable Bombot (SKIN + ACCESORIES)/';
+const BOMBOT_ACCESSORY_ASSET_ROOT = 'Recursos/Spooks in the Desert (UPD4)/Skins/Personalizable Bombot (SKIN + ACCESORIES)/';
 
 const BOMBOT_ACCESSORY_PREVIEWS = {
   girly_eyelashes: { scale: 3.5, x: 6.3, y: 13.9 },
@@ -2359,6 +2429,7 @@ installInspectionNotice();
 
 function init() {
   console.log("Iniciando Glob Defenders...");
+  ensureChristmasBossTranslations();
   window.addEventListener('beforeunload', event => {
     if (!window._checkpointActiveRound?.()) return;
     event.preventDefault();
@@ -2379,12 +2450,12 @@ function init() {
     if (logoRoll < 0.15) {
       document.querySelectorAll('.game-logo').forEach(img => {
         img.classList.add('is-square-logo');
-        img.src = 'img/GlobDefendersImage.png';
+        img.src = 'Recursos/img/GlobDefendersImage.png';
       });
     } else if (logoRoll < 0.30) {
       document.querySelectorAll('.game-logo').forEach(img => {
         img.classList.add('is-square-logo');
-        img.src = 'img/Urban Road_Reborn Logo.png';
+        img.src = 'Recursos/img/Urban Road_Reborn Logo.png';
       });
     }
     initializeLightMode();
@@ -2514,7 +2585,12 @@ function saveProgress() {
     savedRoundSnapshot: gameState.savedRoundSnapshot || null,
     hypermutatedUnlocked: gameState.hypermutatedUnlocked,
     glitchUnlocked: gameState.glitchUnlocked,
-    collectionMasterDialogueShown: gameState.collectionMasterDialogueShown
+    collectionMasterDialogueShown: gameState.collectionMasterDialogueShown,
+    rainbowFuelClicks: gameState.rainbowFuelClicks,
+    rainbowFuelUnlocked: gameState.rainbowFuelUnlocked,
+    winterPassXP: gameState.winterPassXP,
+    winterPassLevel: gameState.winterPassLevel,
+    winterPassClaimed: gameState.winterPassClaimed
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
   saveProgressToDatabase(user, progress);
@@ -2684,6 +2760,8 @@ function loadProgress(username, allowLocalProgress = true) {
       syncBombotAccessoryUnlocksFromProgress();
       gameState.savedRoundSnapshot = progress.savedRoundSnapshot || null;
       gameState.collectionMasterDialogueShown = !!progress.collectionMasterDialogueShown;
+      gameState.rainbowFuelClicks = (progress.rainbowFuelClicks && typeof progress.rainbowFuelClicks === 'object') ? progress.rainbowFuelClicks : {};
+      gameState.rainbowFuelUnlocked = Array.isArray(progress.rainbowFuelUnlocked) ? progress.rainbowFuelUnlocked : [];
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
 
@@ -2717,11 +2795,11 @@ const HALLOWEEN_LOGIN_ENEMIES = new Set([
 ]);
 const HALLOWEEN_ENEMY_TYPES = new Set([...HALLOWEEN_LOGIN_ENEMIES, 'Curse_Boneker']);
 const HALLOWEEN_LOGIN_SKIN_IMAGES = new Set([
-  'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Calcium Glob (SK-EVO1).png',
-  'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Toxic Waste Glob (SK-EVO2).png',
-  'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Witch Glob (SK-EVO1).png',
-  'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/CrowWitcher (SK-EVO2).png',
-  'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob (SK-EVO1).png'
+  'Recursos/Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Calcium Glob (SK-EVO1).png',
+  'Recursos/Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Toxic Waste Glob (SK-EVO2).png',
+  'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Witch Glob (SK-EVO1).png',
+  'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/CrowWitcher (SK-EVO2).png',
+  'Recursos/Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob (SK-EVO1).png'
 ]);
 
 function getGlobDecorationType(imagePath) {
@@ -2761,7 +2839,7 @@ function isHalloweenLoginEnemy(imagePath) {
 
 function getLoginDecorationWeight(imagePath, month) {
   if (CHRISTMAS_LOGIN_ENEMY_IMAGES.has(imagePath)) {
-    return month === 11 ? 5 : 1;
+    return (typeof isWinterEventActive === 'function' && isWinterEventActive()) ? 5 : 1;
   }
   if (isHalloweenLoginEnemy(imagePath) && month === 9) return 5;
   return 1;
@@ -2799,6 +2877,37 @@ function unlockHypermutatedEffect() {
   if (section) section.style.display = '';
   const message = translate('hypermutated_unlocked');
   showMessage(message, 'success');
+}
+
+// --- Rainbow Fuel: 100 clics de Globs de una familia en el login desbloquean
+// el efecto arcoiris pleno para esa familia (skin + perfil). Elegibles: las
+// familias Rewamp + Worker_Glob + IEx (Bomb). ---
+const RAINBOW_FUEL_FAMILIES = new Set([
+  'Glob', 'Red_Glob', 'Soap_Glob', 'Comet_Glob', 'Ducky_Glob', 'Worker_Glob', 'IEx'
+]);
+const RAINBOW_FUEL_TARGET = 100;
+
+function recordRainbowFuelClick(imagePath) {
+  const type = getGlobDecorationType(imagePath);
+  if (!type) return;
+  const family = getTowerFamily(type);
+  if (!RAINBOW_FUEL_FAMILIES.has(family)) return;
+  if (!gameState.rainbowFuelClicks || typeof gameState.rainbowFuelClicks !== 'object') gameState.rainbowFuelClicks = {};
+  if (!Array.isArray(gameState.rainbowFuelUnlocked)) gameState.rainbowFuelUnlocked = [];
+  if (gameState.rainbowFuelUnlocked.includes(family)) return;
+
+  gameState.rainbowFuelClicks[family] = (gameState.rainbowFuelClicks[family] || 0) + 1;
+  if (gameState.rainbowFuelClicks[family] >= RAINBOW_FUEL_TARGET) {
+    gameState.rainbowFuelUnlocked.push(family);
+    const familyName = translate(TOWER_TYPES[type]?.name || family);
+    showMessage(
+      currentLanguage === 'es'
+        ? `🌈 ¡RAINBOW FUEL desbloqueado para la familia ${familyName}!`
+        : `🌈 RAINBOW FUEL unlocked for the ${familyName} family!`,
+      'success'
+    );
+    saveProgress();
+  }
 }
 
 function recordHypermutatedDecorationClick(imagePath, availableGlobPaths) {
@@ -2843,7 +2952,7 @@ function spawnDecorations(containerId) {
       const loginGlobTypes = getLoginGlobDecorationTypes();
       images = allImages.filter(p => {
         if (p === IMAGE_PATHS.Omnipresent_Glob || p === IMAGE_PATHS.Kirb_Glob) return false;
-        if (CHRISTMAS_LOGIN_ENEMY_IMAGES.has(p)) return loginMonth === 9 || loginMonth === 11;
+        if (CHRISTMAS_LOGIN_ENEMY_IMAGES.has(p)) return loginMonth === 9 || (typeof isWinterEventActive === 'function' && isWinterEventActive());
         const key = Object.keys(IMAGE_PATHS).find(k => IMAGE_PATHS[k] === p);
         if (!key) return true;
 
@@ -2945,9 +3054,10 @@ function spawnDecorations(containerId) {
         if (img.dataset.launched) return;
         img.dataset.launched = 'true';
         recordHypermutatedDecorationClick(imgPath, availableGlobPaths);
+        recordRainbowFuelClick(imgPath);
         if (availableGlobPaths.includes(imgPath)) clickedGlobPaths.add(imgPath);
         const isGlob = imgPath.toLowerCase().includes('glob');
-        playSound(isGlob ? 'sounds/Slurp.mp3' : 'sounds/Bipbip.mp3');
+        playSound(isGlob ? 'Recursos/sounds/Slurp.mp3' : 'Recursos/sounds/Bipbip.mp3');
         if (isHalloweenLoginEnemy(imgPath)) {
           const enemyType = Object.keys(IMAGE_PATHS).find(type => IMAGE_PATHS[type] === imgPath);
           triggerHalloweenJumpscare(enemyType, null, imgPath);
@@ -4898,7 +5008,7 @@ function selectMode(mode) {
         const storyText = currentLanguage === 'es'
           ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!"
           : "Welcome to Gelatin Lake... or what is left of it. You have entered my region, where the Pyces do not act of their own free will, but obey my sacred stellar design. Prepare to be assimilated!";
-        showNarratorMsg('moonstar', 'img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
+        showNarratorMsg('moonstar', 'Recursos/img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
       }
     } else if (gameState.mode === 'antiNormal') {
       if (isUrban) {
@@ -4910,7 +5020,7 @@ function selectMode(mode) {
         const storyText = currentLanguage === 'es'
           ? "¡S1S73M4 D3F1N171V0 D373C74D0! NOeye y MoonStar Pyce han unido sus fuerzas para crear la versión definitiva de este entorno. Los Globs serán borrados del sistema. ¡La purga comienza ya!"
           : "DEFINITIVE SYSTEM DETECTED! NOeye and MoonStar Pyce have joined forces to create the ultimate version of this environment. The Globs will be deleted from the system. The purge begins now!";
-        showNarratorMsg('noeye', 'img/NOeye_Pyce.png', 'NOeye & MoonStar', storyText, 'enemy-voice');
+        showNarratorMsg('noeye', 'Recursos/img/NOeye_Pyce.png', 'NOeye & MoonStar', storyText, 'enemy-voice');
       }
     } else if (isUrban) {
       // Modos normales en Urbanistic Road → Arky da la bienvenida
@@ -5083,7 +5193,7 @@ function triggerCorrupt() {
         const storyText = currentLanguage === 'es'
           ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!"
           : "Welcome to Gelatin Lake... or what is left of it. You have entered my region, where the Pyces do not act of their own free will, but obey my sacred stellar design. Prepare to be assimilated!";
-        showNarratorMsg('moonstar', 'img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
+        showNarratorMsg('moonstar', 'Recursos/img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
       }
     }, 1000);
   }
@@ -5656,6 +5766,10 @@ function isOwnerDebugUser() {
 
 function ownerUnlockEverything() {
   Object.keys(TOWER_TYPES).forEach(type => { TOWER_TYPES[type].unlocked = true; });
+  gameState.rainbowFuelUnlocked = [...new Set([
+    ...(Array.isArray(gameState.rainbowFuelUnlocked) ? gameState.rainbowFuelUnlocked : []),
+    ...RAINBOW_FUEL_FAMILIES
+  ])];
   gameState.unlockedBombotAccessories = [...new Set([
     ...(gameState.unlockedBombotAccessories || []),
     ...BOMBOT_ACCESSORIES.map(accessory => accessory.id)
@@ -5873,12 +5987,12 @@ function setupOwnerDebugTools() {
   const savedMysteryBugImage = localStorage.getItem('glob_mysterybug_image');
   if (mysteryBugName && savedMysteryBugName) mysteryBugName.value = savedMysteryBugName;
   const mysteryBugImageOptions = [
-    'img/Sellos/MysteryBug.png|blacked-out',
-    'img/Sellos/MysteryBug.png',
-    'img/Sellos/AstralExclamation.png|blacked-out',
-    'img/Sellos/AstralExclamation.png',
-    'Misiones (2026)/Elementos/ZONESUBJECT.gif|blacked-out',
-    'Misiones (2026)/Elementos/ZONESUBJECT.gif'
+    'Recursos/img/Sellos/MysteryBug.png|blacked-out',
+    'Recursos/img/Sellos/MysteryBug.png',
+    'Recursos/img/Sellos/AstralExclamation.png|blacked-out',
+    'Recursos/img/Sellos/AstralExclamation.png',
+    'Recursos/Misiones (2026)/Elementos/ZONESUBJECT.gif|blacked-out',
+    'Recursos/Misiones (2026)/Elementos/ZONESUBJECT.gif'
   ];
   if (mysteryBugImage && mysteryBugImageOptions.includes(savedMysteryBugImage)) {
     mysteryBugImage.value = savedMysteryBugImage;
@@ -6336,8 +6450,8 @@ function drawBadges() {
       const desc = translate(`badge_${b.key}_desc`);
   
       let rewardText = "";
-      if (b.reward.pycoins) rewardText += `<img src="img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins} `;
-      if (b.reward.duckpass) rewardText += `<img src="img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass} `;
+      if (b.reward.pycoins) rewardText += `<img src="Recursos/img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins} `;
+      if (b.reward.duckpass) rewardText += `<img src="Recursos/img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass} `;
       if (b.reward.xp) rewardText += ` ✨+${b.reward.xp}xp`;
   
       el.innerHTML = `
@@ -6725,11 +6839,11 @@ function switchEncyclopediaTab(tab) {
       if (!term && mapVal === 'all' && typeVal === 'all' && themeVal === 'all' && groupVal === 'all') {
         enemyGrid.innerHTML = `
           <div class="enemy-category-card" onclick="triggerFilterGroup('pyces')" style="width:100%; max-width:200px; padding:20px; background:#e74c3c; border:3px solid #c0392b; border-radius:15px; text-align:center; cursor:pointer; transition:transform 0.2s; margin:auto;">
-            <img src="${IMAGE_PATHS.Stupid_Pyce || 'img/Sellos/CuboPyceIcon.png'}" style="width:80px; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5));" onerror="this.src='img/Sellos/CuboPyceIcon.png'">
+            <img src="${IMAGE_PATHS.Stupid_Pyce || 'Recursos/img/Sellos/CuboPyceIcon.png'}" style="width:80px; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5));" onerror="this.src='Recursos/img/Sellos/CuboPyceIcon.png'">
             <h3 style="margin-top:10px; font-size:1.5rem; text-shadow:0 2px 4px rgba(0,0,0,0.5);">Pyces</h3>
           </div>
           <div class="enemy-category-card" onclick="triggerFilterGroup('otros')" style="width:100%; max-width:200px; padding:20px; background:#8e44ad; border:3px solid #732d91; border-radius:15px; text-align:center; cursor:pointer; transition:transform 0.2s; margin:auto;">
-            <img src="${IMAGE_PATHS.Monster || 'img/Sellos/Monster.png'}" style="width:80px; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5));" onerror="this.src='img/Sellos/Monster.png'">
+            <img src="${IMAGE_PATHS.Monster || 'Recursos/img/Sellos/Monster.png'}" style="width:80px; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5));" onerror="this.src='Recursos/img/Sellos/Monster.png'">
             <h3 style="margin-top:10px; font-size:1.5rem; text-shadow:0 2px 4px rgba(0,0,0,0.5);">Otros Enemigos</h3>
           </div>
         `;
@@ -6819,7 +6933,7 @@ function switchEncyclopediaTab(tab) {
 
         let imageToShow = e.image;
         if (killed === 0) {
-          imageToShow = e.isCrystallized ? 'img/Sellos/AstralExclamation.png' : 'img/Sellos/MysteryBug.png';
+          imageToShow = e.isCrystallized ? 'Recursos/img/Sellos/AstralExclamation.png' : 'Recursos/img/Sellos/MysteryBug.png';
         }
 
         if (typeof getPyceKillTarget === 'function' && killed >= getPyceKillTarget(type)) {
@@ -6983,7 +7097,7 @@ function selectAlmanacItem(id, category) {
     let displayReward = e.reward;
 
     if (isUndiscovered) {
-      displayImage = e.isCrystallized ? 'img/Sellos/AstralExclamation.png' : 'img/Sellos/MysteryBug.png';
+      displayImage = e.isCrystallized ? 'Recursos/img/Sellos/AstralExclamation.png' : 'Recursos/img/Sellos/MysteryBug.png';
       
       const isImportant = e.boss || e.isCrystallized || id === 'Mimic_Pyce' || id === 'Leni_the_big_Hammer' || id === 'Monster' || id === 'AstrorbOrbe';
       
@@ -7014,7 +7128,7 @@ function selectAlmanacItem(id, category) {
           let vKilled = gameState.pycesKilled[v] || 0;
           let vImage = vi.image;
           if (vKilled === 0) {
-             vImage = vi.isCrystallized ? 'img/Sellos/AstralExclamation.png' : 'img/Sellos/MysteryBug.png';
+             vImage = vi.isCrystallized ? 'Recursos/img/Sellos/AstralExclamation.png' : 'Recursos/img/Sellos/MysteryBug.png';
           }
           variantsHTML += `
             <div class="evo-item" onclick="selectAlmanacItem('${v}', 'enemies')" style="cursor:pointer; ${v === id || (id === 'Spyware' && v === 'Spyware1') ? 'border: 2px solid #fff;' : 'opacity: 0.7;'} border-radius: 10px; margin: 0 5px;">
@@ -7028,7 +7142,7 @@ function selectAlmanacItem(id, category) {
       const cryst = ENEMY_TYPES['NO_CrystEye_CB'];
       if (cryst) {
         let vKilled = gameState.pycesKilled['NO_CrystEye_CB'] || 0;
-        let vImage = vKilled === 0 ? 'img/Sellos/AstralExclamation.png' : cryst.image;
+        let vImage = vKilled === 0 ? 'Recursos/img/Sellos/AstralExclamation.png' : cryst.image;
         let vName = vKilled === 0 ? "???" : translate(cryst.name || 'NO_CrystEye_CB');
         variantsHTML = `
           <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
@@ -7051,7 +7165,7 @@ function selectAlmanacItem(id, category) {
         const fi = ENEMY_TYPES[f];
         if (fi) {
           let vKilled = gameState.pycesKilled[f] || 0;
-          let vImage = vKilled === 0 ? 'img/Sellos/MysteryBug.png' : fi.image;
+          let vImage = vKilled === 0 ? 'Recursos/img/Sellos/MysteryBug.png' : fi.image;
           let vName = vKilled === 0 ? "???" : translate(fi.name || f);
           variantsHTML += `
             <div class="evo-item" onclick="selectAlmanacItem('${f}', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; ${f === id ? 'border:2px solid #ff00ff; box-shadow: 0 0 10px #ff00ff;' : 'opacity:0.7; border:1px solid rgba(255,0,255,0.3);'}">
@@ -7072,7 +7186,7 @@ function selectAlmanacItem(id, category) {
       const cryst = ENEMY_TYPES[crystType];
       if (cryst) {
         let vKilled = gameState.pycesKilled[crystType] || 0;
-        let vImage = vKilled === 0 ? 'img/Sellos/AstralExclamation.png' : cryst.image;
+        let vImage = vKilled === 0 ? 'Recursos/img/Sellos/AstralExclamation.png' : cryst.image;
         let vName = vKilled === 0 ? "???" : translate(cryst.name || crystType);
         variantsHTML = `
           <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
@@ -7089,7 +7203,7 @@ function selectAlmanacItem(id, category) {
       const cryst = ENEMY_TYPES['Cristalized_Monster'];
       if (cryst) {
         let vKilled = gameState.pycesKilled['Cristalized_Monster'] || 0;
-        let vImage = vKilled === 0 ? 'img/Sellos/AstralExclamation.png' : cryst.image;
+        let vImage = vKilled === 0 ? 'Recursos/img/Sellos/AstralExclamation.png' : cryst.image;
         let vName = vKilled === 0 ? "???" : translate(cryst.name || 'Cristalized_Monster');
         variantsHTML = `
           <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
@@ -7150,8 +7264,8 @@ function selectAlmanacItem(id, category) {
     const name = translate(`badge_${b.key}_name`);
     const desc = translate(`badge_${b.key}_desc`);
     let rewardText = "";
-    if (b.reward.pycoins) rewardText += `<img src="img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins} `;
-    if (b.reward.duckpass) rewardText += `<img src="img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass} `;
+    if (b.reward.pycoins) rewardText += `<img src="Recursos/img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins} `;
+    if (b.reward.duckpass) rewardText += `<img src="Recursos/img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass} `;
     if (b.reward.xp) rewardText += `✨+${b.reward.xp}xp`;
 
     details.innerHTML = `
@@ -8048,7 +8162,10 @@ function unlockSantaWorkshopForCompletedCalendar(year) {
 }
 
 function isChristmasEventActive(date = new Date()) {
-  return getAdventCalendarDate(date).month === 11;
+  // El contenido navideño (avatares, recompensas de evento) sigue el evento de
+  // invierno completo (1 nov -> 8 ene), no solo diciembre, para dar margen a
+  // reclamar. El Calendario de Adviento mantiene su propia ventana (diciembre).
+  return isWinterEventActive(date);
 }
 
 function unlockProfileBorderReward(borderId) {
@@ -8067,6 +8184,22 @@ function unlockSantaProfileBorderForCalendar(year) {
 
 function isChristmasEnemyType(type) {
   return CHRISTMAS_ENEMY_TYPES.has(type);
+}
+
+// Evento de invierno (Parte 1): 1 de noviembre -> 8 de enero (cruza el año).
+// Es mas amplio que el Calendario de Adviento (que abre solo en diciembre) y
+// lo contiene. Pensado para extenderse con mas partes/eventos en el futuro.
+function isWinterEventActive(date = new Date()) {
+  const { month, day } = getAdventCalendarDate(date);
+  if (month === 10 || month === 11) return true;   // noviembre y diciembre
+  if (month === 0 && day <= 8) return true;         // hasta el 8 de enero
+  return false;
+}
+
+// Antes de que arranque el evento (antes del 1 de noviembre) el pase se muestra
+// como "ABRE PRÓXIMAMENTE".
+function isWinterPassOpen(date = new Date()) {
+  return isWinterEventActive(date);
 }
 
 function isAdventRewardLimited(reward) {
@@ -8166,8 +8299,8 @@ function renderAdventCalendar() {
           : `Hoy es el día ${day} del calendario. Supera cualquier mapa hoy para reclamar su premio.`);
   balance.replaceChildren();
   [
-    { image: 'img/Tokens/DuckPass.png', amount: gameState.duckPassCurrency, label: 'Duckpasses' },
-    { image: 'img/Tokens/PyCoin.png', amount: Math.floor(gameState.pycoins), label: 'PyCoins' }
+    { image: 'Recursos/img/Tokens/DuckPass.png', amount: gameState.duckPassCurrency, label: 'Duckpasses' },
+    { image: 'Recursos/img/Tokens/PyCoin.png', amount: Math.floor(gameState.pycoins), label: 'PyCoins' }
   ].forEach((currency, index) => {
     if (index > 0) {
       const separator = document.createElement('span');
@@ -8216,9 +8349,9 @@ function renderAdventCalendar() {
     const line = document.createElement('div');
     line.className = 'advent-day-reward';
     const imagePath = reward.type === 'pycoins'
-      ? 'img/Tokens/PyCoin.png'
+      ? 'Recursos/img/Tokens/PyCoin.png'
       : reward.type === 'duckpass'
-        ? 'img/Tokens/DuckPass.png'
+        ? 'Recursos/img/Tokens/DuckPass.png'
         : reward.type === 'accessory'
           ? getBombotAccessoryImage(reward.id)
           : reward.type === 'skin'
@@ -8566,6 +8699,25 @@ function getDuckpassMultiplier() {
   return 1.0;
 }
 
+// Icono del token de XP. CandyLove durante el evento de invierno (1 nov -> 8 ene),
+// XPgiver el resto del año.
+function getXPTokenIcon() {
+  if (typeof isWinterEventActive === 'function' && isWinterEventActive()) {
+    return 'Recursos/img/Tokens/CandyLove.png';
+  }
+  return 'Recursos/img/Tokens/XPgiver.png';
+}
+
+// Popup (toast) que muestra el XP ganado con el icono del token actual.
+function showXPPopup(amount) {
+  if (!amount || amount <= 0) return;
+  if (typeof showIconMessage === 'function') {
+    showIconMessage(getXPTokenIcon(), `+${amount} XP`, 'success');
+  } else if (typeof showMessage === 'function') {
+    showMessage(`+${amount} XP`, 'success');
+  }
+}
+
 function addXP(amount) {
   if (multiplayerSpectator) return;
   const previousLevel = gameState.duckPassLevel;
@@ -8576,7 +8728,11 @@ function addXP(amount) {
     updateBuffs();
     if (gameState.duckPassLevel <= 200) {
       gameState.duckPassCurrency++;
-      showMessage(translate('level_duckpass', { level: gameState.duckPassLevel }), 'success');
+      if (typeof showIconMessage === 'function') {
+        showIconMessage(getXPTokenIcon(), translate('level_duckpass', { level: gameState.duckPassLevel }), 'success');
+      } else {
+        showMessage(translate('level_duckpass', { level: gameState.duckPassLevel }), 'success');
+      }
     } else if (gameState.duckPassLevel % 5 === 0) {
       gameState.duckPassCurrency += 2;
       showMessage(translate('prestige_duckpass'), 'success');
@@ -9116,7 +9272,7 @@ function renderProfileShop(container) {
         <p>${rewamp
           ? (currentLanguage === 'en' ? 'Requires the Rewamp skin and maxing this family at least once.' : 'Requiere la skin Rewamp y haber maxeado esta familia al menos una vez.')
           : (currentLanguage === 'en' ? 'Unlocked after maxing this family at least once.' : 'Disponible tras maxear esta familia al menos una vez.')}</p>
-        <div class="cost">${owned ? '✅' : '<img src="img/Tokens/PyCoin.png" width="18"> 300 + <img src="img/Tokens/DuckPass.png" width="18"> 150'}</div>
+        <div class="cost">${owned ? '✅' : '<img src="Recursos/img/Tokens/PyCoin.png" width="18"> 300 + <img src="Recursos/img/Tokens/DuckPass.png" width="18"> 150'}</div>
         <button class="meta-buy-btn" ${owned || gameState.pycoins < 300 || gameState.duckPassCurrency < 150 ? 'disabled' : ''}
           onclick="buyProfileMaxAvatar('${family}', ${rewamp})">${owned ? (currentLanguage === 'en' ? 'Owned' : 'Comprado') : translate('buy')}</button>`;
       container.appendChild(card);
@@ -9130,7 +9286,7 @@ function renderProfileShop(container) {
     <div class="profile-placeholder-sample" aria-hidden="true"></div>
     <h3>Placeholder</h3>
     <p>${currentLanguage === 'en' ? 'Black background with a grey frame.' : 'Fondo negro con borde gris.'}</p>
-    <div class="cost">${placeholderOwned ? '✅' : '<img src="img/Tokens/DuckPass.png" width="18"> 250'}</div>
+    <div class="cost">${placeholderOwned ? '✅' : '<img src="Recursos/img/Tokens/DuckPass.png" width="18"> 250'}</div>
     <button class="meta-buy-btn" ${placeholderOwned || gameState.duckPassCurrency < 250 ? 'disabled' : ''}
       onclick="buyProfileBorder('placeholder')">${placeholderOwned ? (currentLanguage === 'en' ? 'Owned' : 'Comprado') : translate('buy')}</button>`;
   container.appendChild(placeholderCard);
@@ -9139,7 +9295,7 @@ function renderProfileShop(container) {
     const owned = gameState.profilePurchasedBorders.includes(border.id);
     const currency = border.currency || 'duckpass';
     const balance = currency === 'pycoins' ? gameState.pycoins : gameState.duckPassCurrency;
-    const icon = currency === 'pycoins' ? 'img/Tokens/PyCoin.png' : 'img/Tokens/DuckPass.png';
+    const icon = currency === 'pycoins' ? 'Recursos/img/Tokens/PyCoin.png' : 'Recursos/img/Tokens/DuckPass.png';
     const description = {
       candy: currentLanguage === 'en' ? 'Candy stripes match Frosty Christmas paths.' : 'Rayas de caramelo con los colores de los caminos de Frosty Christmas.',
       bomb: currentLanguage === 'en' ? 'A bomb fuse flickers red before returning to its original color.' : 'Una mecha de bomba parpadea en rojo y vuelve a su color original.',
@@ -9785,8 +9941,8 @@ function drawShop() {
       <button class="shop-tab-btn ${currentShopTab === 'profile' ? 'active' : ''}" onclick="switchShopTab('profile')">${currentLanguage === 'en' ? 'Profile' : 'Perfil'}</button>
     </div>
     <div class="shop-balance">
-      <div class="balance-item"><img src="img/Tokens/PyCoin.png" width="20"> <span>${Math.floor(gameState.pycoins)} PyCoins</span></div>
-      <div class="balance-item"><img src="img/Tokens/DuckPass.png" width="20"> <span>${gameState.duckPassCurrency} Duck Pass</span></div>
+      <div class="balance-item"><img src="Recursos/img/Tokens/PyCoin.png" width="20"> <span>${Math.floor(gameState.pycoins)} PyCoins</span></div>
+      <div class="balance-item"><img src="Recursos/img/Tokens/DuckPass.png" width="20"> <span>${gameState.duckPassCurrency} Duck Pass</span></div>
     </div>
   `;
 
@@ -9835,7 +9991,7 @@ function drawShop() {
       const el = document.createElement('div');
       const isMax = u.max && u.level >= u.max;
       el.className = `meta-item ${isMax ? 'unlocked' : ''}`;
-      const costIcon = u.type === 'pycoin' ? 'img/Tokens/PyCoin.png' : 'img/Tokens/DuckPass.png';
+      const costIcon = u.type === 'pycoin' ? 'Recursos/img/Tokens/PyCoin.png' : 'Recursos/img/Tokens/DuckPass.png';
 
       const levelText = u.max ? ` [${u.level}/${u.max}]` : '';
       el.innerHTML = `<h3>${translate(u.name, u.params)}${levelText}</h3><p>${translate(u.desc, u.params)}</p>
@@ -9891,7 +10047,7 @@ function drawShop() {
       }
 
       el.innerHTML = `<h3>${translate(u.name)}</h3><p>${translate(u.desc)}</p>
-        <div class="cost">${isUnlocked ? '✅' : `<img src="img/Tokens/DuckPass.png" width="18"> ${u.cost}`}</div>
+        <div class="cost">${isUnlocked ? '✅' : `<img src="Recursos/img/Tokens/DuckPass.png" width="18"> ${u.cost}`}</div>
         ${buttonHTML}`;
       container.appendChild(el);
     });
@@ -9928,7 +10084,7 @@ function drawShop() {
       }
 
       el.innerHTML = `<h3>${u.name}</h3><p>${u.desc}</p>
-        <div class="cost">${isUnlocked ? '✅' : `<img src="img/Tokens/PyCoin.png" width="16"> ${u.pyCost} + <img src="img/Tokens/DuckPass.png" width="16"> ${u.dpCost}`}</div>
+        <div class="cost">${isUnlocked ? '✅' : `<img src="Recursos/img/Tokens/PyCoin.png" width="16"> ${u.pyCost} + <img src="Recursos/img/Tokens/DuckPass.png" width="16"> ${u.dpCost}`}</div>
         ${buttonHTML}`;
       container.appendChild(el);
     });
@@ -10062,15 +10218,15 @@ function drawShop() {
           costDisplay = `<div class="cost" style="color:#ffd700">🎁 Gratis (drop)</div>`;
         } else if (skin.duckpass_cost) {
           canBuy = gameState.pycoins >= skin.cost && gameState.duckPassCurrency >= skin.duckpass_cost;
-          costDisplay = `<div class="cost"><img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}</div>`;
+          costDisplay = `<div class="cost"><img src="Recursos/img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="Recursos/img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}</div>`;
           btnText = translate('buy');
         } else {
           canBuy = gameState.pycoins >= skin.cost;
-          costDisplay = `<div class="cost"><img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost}</div>`;
+          costDisplay = `<div class="cost"><img src="Recursos/img/Tokens/PyCoin.png" width="16"> ${skin.cost}</div>`;
           btnText = translate('buy');
         }
 
-        const previewImg = skin.skins ? (skin.skins[family] || Object.values(skin.skins)[0]) : 'img/Glob_DEF.png';
+        const previewImg = skin.skins ? (skin.skins[family] || Object.values(skin.skins)[0]) : 'Recursos/img/Glob_DEF.png';
         const limitedBadge = isAdventCosmeticLimited(skin.id)
           ? `<div class="advent-limited-tag shop-advent-limited-tag">${currentLanguage === 'en' ? 'LIMITED' : 'LIMITADA'}</div>`
           : '';
@@ -10213,9 +10369,9 @@ function drawShop() {
             }
           } else if (skin.pyce_morph) {
             // All-Stars Randomizer: show Pyce2 as preview
-            previewImg = IMAGE_PATHS['Pyce2'] || 'img/All-Stars Randomizer (ENEMY SKIN).png';
+            previewImg = IMAGE_PATHS['Pyce2'] || 'Recursos/img/All-Stars Randomizer (ENEMY SKIN).png';
           } else {
-            previewImg = 'img/Glob_DEF.png';
+            previewImg = 'Recursos/img/Glob_DEF.png';
           }
           const conditionText = getUnlockConditionText(skin.id, skin.unlockCondition);
           const rgbPreviewClass = skin.rgbTypes ? 'rgb-rewamp-preview' : '';
@@ -10233,8 +10389,8 @@ function drawShop() {
               ? gameState.pycoins >= skin.cost && gameState.duckPassCurrency >= skin.duckpass_cost
               : gameState.pycoins >= skin.cost;
             const price = skin.duckpass_cost
-              ? `<img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}`
-              : `<img src="img/Tokens/PyCoin.png" width="16"> ${skin.cost}`;
+              ? `<img src="Recursos/img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="Recursos/img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}`
+              : `<img src="Recursos/img/Tokens/PyCoin.png" width="16"> ${skin.cost}`;
             el.innerHTML = `
               ${limitedBadge}
               <div class="special-badge" style="background:${skinColor}; color:#000;">🌟 ${currentLanguage === 'es' ? 'NUEVA' : 'NEW'}</div>
@@ -11039,7 +11195,7 @@ function activateGTack(t) {
         const cost = Math.floor(next.cost * (1 - (t.pinkDiscount || 0)));
         if (gameState.globetines < cost) btn.disabled = true;
         const nextName = getTowerName({ ...next, type: t.evolution, family: t.family });
-        btn.innerHTML = `${translate('evolve_to', { name: nextName })} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
+        btn.innerHTML = `${translate('evolve_to', { name: nextName })} <div class="cost-tag"><img src="Recursos/img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
         btn.onclick = () => evolveTower(t, t.evolution, cost);
         container.appendChild(btn);
       } else {
@@ -11060,7 +11216,7 @@ function activateGTack(t) {
           if (onCd) {
             label += ` (${Math.ceil(t.gTackCooldown)}s)`;
           }
-          btn.innerHTML = `${label} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
+          btn.innerHTML = `${label} <div class="cost-tag"><img src="Recursos/img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
           btn.onclick = () => activateGTack(t);
           container.appendChild(btn);
         } else {
@@ -11077,7 +11233,7 @@ function activateGTack(t) {
     const sellBtn = document.getElementById('sell-tower-btn');
     if (sellBtn) {
       const cost = Math.floor(t.cost * 0.7);
-      sellBtn.innerHTML = `${translate('sell_tower')} <div class="cost-tag"><img src="img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
+      sellBtn.innerHTML = `${translate('sell_tower')} <div class="cost-tag"><img src="Recursos/img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
       sellBtn.onclick = () => sellTower(t);
     }
 
@@ -11473,7 +11629,29 @@ function activateGTack(t) {
     }
 
     if (gameState.wave === 1) {
-      if (gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') {
+      if ((gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') && (gameState.map || mapKey) === 'frosty_christmas') {
+        // Frosty Christmas: NOeye es el guía aliado (en vez de Work-Bombot), y
+        // el jefe fantasma (NOsense/NOIRrupt) lanza su amenaza inicial.
+        setTimeout(() => {
+          const guide = currentLanguage === 'es'
+            ? 'No somos amigos. Pero este ser desprecia la navidad tanto como yo lo desprecio a él. Ayúdame a acabar con él de una vez.'
+            : "We are not friends. But this creature despises Christmas as much as I despise it. Help me end it once and for all.";
+          showNarratorMsg('noeye', NARRATOR_DATA.noeye.img, NARRATOR_DATA.noeye[currentLanguage].name, guide, 'enemy-voice');
+        }, 7000);
+        setTimeout(() => {
+          if (gameState.mode === 'corrupto') {
+            const txt = currentLanguage === 'es'
+              ? 'La navidad que me creó... arderá. Y tú con ella.'
+              : 'The Christmas that created me... will burn. And you with it.';
+            showNarratorMsg('nosense', NARRATOR_DATA.nosense.img, NARRATOR_DATA.nosense[currentLanguage].name, txt);
+          } else if (gameState.mode === 'antiNormal') {
+            const txt = currentLanguage === 'es'
+              ? 'El odio no es la respuesta... es el final. NOeye lo entenderá cuando acabe con él.'
+              : 'Hatred is not the answer... it is the end. NOeye will understand when I finish him.';
+            showNarratorMsg('noirrupt', NARRATOR_DATA.noirrupt.img, NARRATOR_DATA.noirrupt[currentLanguage].name, txt);
+          }
+        }, 14000);
+      } else if (gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') {
         setTimeout(() => {
           const d = NARRATOR_DATA.bombot[currentLanguage].modes[gameState.mode];
           if (d) showNarratorMsg('bombot', NARRATOR_DATA.bombot.img, NARRATOR_DATA.bombot[currentLanguage].name, d);
@@ -11571,21 +11749,21 @@ function activateGTack(t) {
       if (wave >= 1 && wave <= 11) {
         pool = ['BitY1', 'Pyce2'];
         count = 3 + Math.floor(Math.random() * 2); // 3-4
-        if (wave === 1) triggerDialog('intro', 'Work-Bombot', 'img/Towers/Evolutions/Work_Bombot.png', {
+        if (wave === 1) triggerDialog('intro', 'Work-Bombot', 'Recursos/img/Towers/Evolutions/Work_Bombot.png', {
           es: "Algo está alterando Gelatin Lake... Defiende la zona mientras averiguamos qué ocurre.",
           en: "Something is altering Gelatin Lake... Defend the area while we find out what's happening."
         });
       } else if (wave >= 12 && wave <= 19) {
         pool = ['BitY1', 'ByteGB1', 'Leni_the_big_Hammer', 'Monster'];
         count = 5 + Math.floor(Math.random() * 2); // 5-6
-        if (wave === 12) triggerDialog('nuevos', 'Work-Bombot', 'img/Towers/Evolutions/Work_Bombot.png', {
+        if (wave === 12) triggerDialog('nuevos', 'Work-Bombot', 'Recursos/img/Towers/Evolutions/Work_Bombot.png', {
           es: "Han aparecido nuevos enemigos... No pertenecen a este lugar. Mantente alerta.",
           en: "New enemies have appeared... They don't belong here. Stay alert."
         });
       } else if (wave >= 20 && wave <= 22) {
         pool = ['Lenistal', 'Cristalized_Monster', 'ByteGB1'];
         count = 5 + Math.floor(Math.random() * 2); // 5-6
-        if (wave === 20) triggerDialog('cristales_int', 'Work-Bombot', 'img/Towers/Evolutions/Work_Bombot.png', {
+        if (wave === 20) triggerDialog('cristales_int', 'Work-Bombot', 'Recursos/img/Towers/Evolutions/Work_Bombot.png', {
           es: "Esa energía cristalina... Cada vez es más intensa...",
           en: "That crystal energy... It's getting more intense..."
         });
@@ -11593,7 +11771,7 @@ function activateGTack(t) {
         isBossWave = true;
         bossesToSpawn.push('Crystal_Bombot');
         for (let i = 0; i < 4; i++) spawnList.push(Math.random() > 0.5 ? 'Lenistal' : 'Cristalized_Monster');
-        triggerDialog('wb_corrupted', 'Work-Bombot', 'img/Towers/Evolutions/Work_Bombot.png', {
+        triggerDialog('wb_corrupted', 'Work-Bombot', 'Recursos/img/Towers/Evolutions/Work_Bombot.png', {
           es: "¿Qué...? N-no... puedo... controlarlo...",
           en: "What...? I-I can't... control it..."
         });
@@ -11603,7 +11781,7 @@ function activateGTack(t) {
       } else if (wave === 25) {
         isBossWave = true;
         bossesToSpawn.push('AstrorbOrbe');
-        triggerDialog('astrorb_intro', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+        triggerDialog('astrorb_intro', 'Astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
           es: "La cristalización... apenas ha comenzado.",
           en: "The crystallization... has barely begun."
         });
@@ -11611,14 +11789,14 @@ function activateGTack(t) {
         // ── OLEADA 26: NOeye aparece ───────────────────────────────────
         pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
         count = 5 + Math.floor(Math.random() * 2);
-        triggerDialog('noeye_w26', 'NOeye', 'img/NOeye_Pyce.png', {
+        triggerDialog('noeye_w26', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
           es: "Escúchame.", en: "Listen to me."
         });
       } else if (wave === 27) {
         // ── OLEADA 27: NOeye da órdenes ───────────────────────────────
         pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
         count = 5 + Math.floor(Math.random() * 2);
-        triggerDialog('noeye_w27', 'NOeye', 'img/NOeye_Pyce.png', {
+        triggerDialog('noeye_w27', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
           es: "Defiende ese frente.", en: "Defend that front."
         });
       } else if (wave === 28) {
@@ -11629,21 +11807,21 @@ function activateGTack(t) {
         // ── OLEADA 29: NOeye avisa de recursos ───────────────────────
         pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
         count = 5 + Math.floor(Math.random() * 2);
-        triggerDialog('noeye_w29', 'NOeye', 'img/NOeye_Pyce.png', {
+        triggerDialog('noeye_w29', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
           es: "No desperdicies recursos.", en: "Don't waste resources."
         });
       } else if (wave === 30) {
         // ── OLEADA 30: Jefe CrystArky / NOeye reacciona ──────────────
         isBossWave = true;
         bossesToSpawn.push('CrystArky');
-        triggerDialog('noeye_w30', 'NOeye', 'img/NOeye_Pyce.png', {
+        triggerDialog('noeye_w30', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
           es: "Ese... ya no es él.", en: "That... is no longer him."
         });
       } else if (wave >= 31 && wave <= 34) {
         // ── OLEADAS 31-34: Tensión / Oleada 32 tiene diálogo ─────────
         pool = ['Spyware', 'Lenistal', 'Cristalized_Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
         count = 5 + Math.floor(Math.random() * 2);
-        if (wave === 32) triggerDialog('noeye_w32', 'NOeye', 'img/NOeye_Pyce.png', {
+        if (wave === 32) triggerDialog('noeye_w32', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
           es: "Ese no es el verdadero peligro.", en: "That is not the real danger."
         });
       } else if (wave === 35) {
@@ -11651,21 +11829,21 @@ function activateGTack(t) {
         isBossWave = true;
         bossesToSpawn.push('NO_CrystEye_CB');
         for (let i = 0; i < 3; i++) spawnList.push(Math.random() > 0.5 ? 'Lenistal' : 'Cristalized_Monster');
-        triggerDialog('noeye_w35', 'NOeye', 'img/NOeye_Pyce.png', {
+        triggerDialog('noeye_w35', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
           es: "...No.", en: "...No."
         });
       } else if (wave === 36) {
         // ── OLEADA 36: Astrorb toma la palabra ───────────────────────
         pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
         count = 6 + Math.floor(Math.random() * 2);
-        triggerDialog('astrorb_w36', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+        triggerDialog('astrorb_w36', 'Astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
           es: "Todo acabará cristalizado.", en: "Everything will end up crystallized."
         });
       } else if (wave === 37) {
         // ── OLEADA 37: Astrorb amenaza ───────────────────────────────
         pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
         count = 6 + Math.floor(Math.random() * 2);
-        triggerDialog('astrorb_w37', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+        triggerDialog('astrorb_w37', 'Astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
           es: "La resistencia es inútil.", en: "Resistance is futile."
         });
       } else if (wave === 38) {
@@ -11676,14 +11854,14 @@ function activateGTack(t) {
         // ── OLEADA 39: Astrorb reclama el cielo ──────────────────────
         pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
         count = 6 + Math.floor(Math.random() * 2);
-        triggerDialog('astrorb_w39', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+        triggerDialog('astrorb_w39', 'Astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
           es: "El cielo me pertenece.", en: "The sky belongs to me."
         });
       } else if (wave === 40) {
         // ── OLEADA 40: Combate final — Astrorb True Form ─────────────
         isBossWave = true;
         bossesToSpawn.push('AstrorbOrbe');
-        triggerDialog('astrorb_w40', 'Astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+        triggerDialog('astrorb_w40', 'Astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
           es: "Ya no queda nadie capaz de detenerme.", en: "There is no one left capable of stopping me."
         });
       }
@@ -11872,6 +12050,12 @@ function activateGTack(t) {
          } else if (mapKey === 'spooktacular_ruins') {
              if (mode === 'antiNormal') bossesToSpawn.push('Curse_Boneker');
              else isBossWave = false;
+         } else if (mapKey === 'frosty_christmas') {
+             // NOeye gobierna los modos base; NOsense (Corrupto) y NOIRrupt (Anti-Normal).
+             if (mode === 'facil') isBossWave = false;
+             else if (mode === 'corrupto') bossesToSpawn.push('NOsense_Pyce');
+             else if (mode === 'antiNormal') bossesToSpawn.push('NOIRrupt_Pyce');
+             else bossesToSpawn.push('NOeye_Pyce');
          }
       }
       
@@ -12774,7 +12958,10 @@ function activateGTack(t) {
     const renderedImgSrc = isBlackedOut ? imgSrc.replace(/\|blacked-out$/, '') : imgSrc;
     const bubble = document.createElement('div');
     bubble.id = 'narrator-bubble';
-    bubble.className = `narrator-bubble narrator-enter speaker-${speakerId}${isBlackedOut ? ' image-blacked-out' : ''}${variant ? ` ${variant}` : ''}`;
+    const themeClass = typeof getNarratorThemeClass === 'function'
+      ? getNarratorThemeClass(speakerId, renderedImgSrc, variant)
+      : '';
+    bubble.className = `narrator-bubble narrator-enter speaker-${speakerId}${isBlackedOut ? ' image-blacked-out' : ''}${variant ? ` ${variant}` : ''}${themeClass ? ` ${themeClass}` : ''}`;
     bubble.innerHTML = `
     <img src="${renderedImgSrc}" class="narrator-portrait" onerror="this.style.display='none'">
     <div class="narrator-text-box">
@@ -12941,6 +13128,46 @@ function activateGTack(t) {
                 count: 3 - gameState.acrossTimeBossReturns
               }), 'warning');
             }
+            continue;
+          }
+          if (e.tripleLap) {
+            // NOIRrupt: da 3 vueltas. En las dos primeras no ataca la base y
+            // vuelve al spawn; en la tercera ataca segun la vida que le quede
+            // (mucha vida = destruye la base; poca vida = solo la debilita).
+            e.lapCount = (e.lapCount || 0) + 1;
+            if (e.lapCount < 3) {
+              e.pathIndex = 0;
+              showMessage(
+                currentLanguage === 'es'
+                  ? `¡${e.name} regresa! Vuelta ${e.lapCount} de 3...`
+                  : `${e.name} returns! Lap ${e.lapCount} of 3...`,
+                'warning'
+              );
+              continue;
+            }
+            // Tercera vuelta: impacto final proporcional a su vida restante.
+            gameState.baseTookDamage = true;
+            const vitality = Math.max(0, (e.health || 0) + (e.shield || 0));
+            const maxVitality = Math.max(1, (e.maxHealth || 1) + (e.shieldMax || 0));
+            const ratio = Math.min(1, vitality / maxVitality);
+            e.el.remove();
+            gameState.enemies.splice(i, 1);
+            if (ratio >= 0.6) {
+              // Llega con fuerza: destruye la base.
+              gameState.health = 0;
+              endGame();
+              return;
+            }
+            // Llega debilitado: deja la base tocada pero con vida.
+            const damage = Math.max(1, Math.ceil(gameState.health * (0.4 + ratio)));
+            gameState.health = Math.max(1, gameState.health - damage);
+            showMessage(
+              currentLanguage === 'es'
+                ? `${e.name} golpea la base, pero llegó demasiado débil para destruirla.`
+                : `${e.name} strikes the base, but arrived too weak to destroy it.`,
+              'error'
+            );
+            updateUI();
             continue;
           }
           if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
@@ -13183,7 +13410,7 @@ function activateGTack(t) {
             e.attackTimer1 = 0;
             if (gameState.towers.length > 0) {
               const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
-              shoot(e, targetTower, { isEnemy: true, image: 'img/Proyectiles/Crystal Metor.png', speed: 3, stun: 3 });
+              shoot(e, targetTower, { isEnemy: true, image: 'Recursos/img/Proyectiles/Crystal Metor.png', speed: 3, stun: 3 });
             }
           }
         }
@@ -13193,7 +13420,7 @@ function activateGTack(t) {
             e.attackTimer1 = 0;
             if (gameState.towers.length > 0) {
               const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
-              shoot(e, targetTower, { isEnemy: true, image: 'img/Proyectiles/Crystal Metor.png', speed: 4, stun: 4 });
+              shoot(e, targetTower, { isEnemy: true, image: 'Recursos/img/Proyectiles/Crystal Metor.png', speed: 4, stun: 4 });
             }
             if (Math.random() < 0.3 && gameState.mode === 'interstellar') {
               const msgs = [
@@ -13201,7 +13428,7 @@ function activateGTack(t) {
                 { es: "Todo será eterno.", en: "Everything will be eternal." }
               ];
               const r = msgs[Math.floor(Math.random() * msgs.length)];
-              showNarratorMsg('astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? r.es : r.en);
+              showNarratorMsg('astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? r.es : r.en);
             }
           }
         }
@@ -13215,7 +13442,7 @@ function activateGTack(t) {
               const isFinalAstrorb = e.type === 'Crystalic_Orb';
               shoot(e, targetTower, {
                 isEnemy: true,
-                image: 'img/Proyectiles/Crystal Metor.png',
+                image: 'Recursos/img/Proyectiles/Crystal Metor.png',
                 speed: isFinalAstrorb ? 4 : e.type === 'NO_CrystEye_CB' ? 3.5 : 3,
                 stun: isFinalAstrorb ? 4 : e.type === 'NO_CrystEye_CB' ? 2.5 : 3
               });
@@ -13460,11 +13687,11 @@ function activateGTack(t) {
               unlockBadge('chain_reaction');
             }
             
-            let expImg = 'img/Proyectiles/Explosion Effect.png';
+            let expImg = 'Recursos/img/Proyectiles/Explosion Effect.png';
             if (gameState.equippedSkins['IEx'] === 'fracstal_set') {
-              if (t.type === 'Bomb_Glob') expImg = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystal Explosion (1).png';
-              else if (t.type === 'TNT_Glob') expImg = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystor Kaboom (2).png';
-              else if (t.type === 'Nuclear_Glob') expImg = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Nuclear Crystal (3).png';
+              if (t.type === 'Bomb_Glob') expImg = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystal Explosion (1).png';
+              else if (t.type === 'TNT_Glob') expImg = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystor Kaboom (2).png';
+              else if (t.type === 'Nuclear_Glob') expImg = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Nuclear Crystal (3).png';
             }
             
             const expEl = document.createElement('div');
@@ -13649,7 +13876,7 @@ function activateGTack(t) {
                 shoot(bombShooter, attackTarget, {
                   damage: dmg * (useIexGlob ? 2 : 1.25),
                   projectile: 'tumble_bomb',
-                  image: 'img/Proyectiles/Proyectil_Bomba.png',
+                  image: 'Recursos/img/Proyectiles/Proyectil_Bomba.png',
                   boatBomb: true,
                   bombType: specialType
                 });
@@ -13884,7 +14111,7 @@ function activateGTack(t) {
 
                 if (isSpecial) {
                   b.normalShotsCount = 0;
-                  const bombProjectileImage = 'img/Proyectiles/Proyectil_Bomba.png';
+                  const bombProjectileImage = 'Recursos/img/Proyectiles/Proyectil_Bomba.png';
                   let pOpts = { image: bombProjectileImage, boatBomb: true, bombType: specialType };
                   if (gameState.equippedSkins['Pirate_Glob'] === 'froggy_set') {
                     pOpts.filter = 'hue-rotate(120deg) saturate(1.5)';
@@ -14082,7 +14309,10 @@ function activateGTack(t) {
         else if (gameState.mode === 'extremo') xpAmount = 30;
         else if (gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') xpAmount = 40;
         else if (gameState.mode === 'pesadilla') xpAmount = 50;
-        if (earnsNormalRewards) addXP(xpAmount);
+        if (earnsNormalRewards) {
+          addXP(xpAmount);
+          showXPPopup(xpAmount);
+        }
         if (gameState.mode === 'acrossTheTime') {
           handleAcrossTimeWaveCleared();
         }
@@ -14240,17 +14470,17 @@ function activateGTack(t) {
     const isSpecialProj = projClass === 'binary_code' || projClass === 'stone_red' || projClass === 'star_yellow' || projClass === 'star_celeste' || projClass === 'slash' || projClass === 'none';
 
     // Determine projectile image and size
-    let projImg = 'img/Proyectiles/Proyectil_Base.png';
+    let projImg = 'Recursos/img/Proyectiles/Proyectil_Base.png';
     let projSize = 16;
 
     if (isBomb) {
-      projImg = 'img/Proyectiles/Proyectil_Bomba.png';
+      projImg = 'Recursos/img/Proyectiles/Proyectil_Bomba.png';
       projSize = 24;
     } else if (isLaser) {
-      projImg = 'img/Proyectiles/Proyectil_Laser.png';
+      projImg = 'Recursos/img/Proyectiles/Proyectil_Laser.png';
       projSize = 20;
     } else if (isBoomerang) {
-      projImg = 'img/Proyectiles/Proyectil_Base.png';
+      projImg = 'Recursos/img/Proyectiles/Proyectil_Base.png';
       projSize = 18;
     }
 
@@ -14271,9 +14501,9 @@ function activateGTack(t) {
     // Specific tower type overrides
     const TYPE_COLORS = {
       'Glob': '#4CAF50',
-      'Dark_Glob': 'img/Dark_Glob.png',
-      'Demglob': 'img/Demglob.png',
-      'Void_Glob': 'img/Void Glob.png',
+      'Dark_Glob': 'Recursos/img/Dark_Glob.png',
+      'Demglob': 'Recursos/img/Demglob.png',
+      'Void_Glob': 'Recursos/img/Void Glob.png',
       'Pyce_Glob': '#00ff88',
       'Poop_Glob': '#8B4513',
       'Golden_Glob': '#ffd700',
@@ -14412,7 +14642,8 @@ function activateGTack(t) {
       'Curse_Boneker': 5, 'Blood_Taker': 325, 'Sneekmy': 350, 'Ghost_Pyce': 375, 'ZomPyce': 475,
       'Piz': 500, 'Followishers': 250, 'Creamplet': 150,
       'Festive_Pyce': 550, 'ToyBomb_Pyce': 350, 'SnowCapsule_Pyce': 350,
-      'Elf_Pyce': 250, 'Giftbox_Pyce': 250
+      'Elf_Pyce': 250, 'Giftbox_Pyce': 250,
+      'NOsense_Pyce': 3, 'NOIRrupt_Pyce': 3
     };
     return targets[type] || 9999;
   }
@@ -14602,7 +14833,7 @@ function activateGTack(t) {
       if (gameState.wave === 40) {
         // Oleada 40: Transformación a True Form
         showEffect(e.x, e.y, "TRUE FORM AWAKENED!", "#ff00ff");
-        showNarratorMsg('astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? "Contemplad... la perfección celestial." : "Behold... celestial perfection.");
+        showNarratorMsg('astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? "Contemplad... la perfección celestial." : "Behold... celestial perfection.");
         spawnEnemy('AstrorbTF', true, e.currentPath);
         const tf = gameState.enemies[gameState.enemies.length - 1];
         if (tf) {
@@ -14612,7 +14843,7 @@ function activateGTack(t) {
         }
       } else if (gameState.mode === 'interstellar' && gameState.wave === 25) {
         // Oleada 25: Astrorb es derrotado por primera vez
-        showNarratorMsg('astrorb', 'Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? "...Interesante... Aún no es mi momento." : "...Interesting... It is not my time yet.");
+        showNarratorMsg('astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? "...Interesante... Aún no es mi momento." : "...Interesting... It is not my time yet.");
       }
     }
 
@@ -14640,7 +14871,7 @@ function activateGTack(t) {
       if (gameState.towers && gameState.towers.length > 0) {
         const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
         if (typeof shoot === 'function') {
-           shoot(e, targetTower, { isEnemy: true, image: 'img/Proyectiles/Crystal Metor.png', speed: 3, stun: 3 });
+           shoot(e, targetTower, { isEnemy: true, image: 'Recursos/img/Proyectiles/Crystal Metor.png', speed: 3, stun: 3 });
         }
       }
     }
@@ -14927,23 +15158,41 @@ function activateGTack(t) {
     document.getElementById('game-messages').appendChild(el); setTimeout(() => el.remove(), 3000);
   }
 
+  // Toast con icono (imagen real). Usado por los popups de XP para poder
+  // mostrar el token XPgiver/CandyLove en vez de un emoji.
+  function showIconMessage(iconSrc, text, type = 'success') {
+    const container = document.getElementById('game-messages');
+    if (!container) return;
+    const el = document.createElement('div');
+    el.className = `game-message ${type} game-message-icon`;
+    const icon = document.createElement('img');
+    icon.src = encodeURI(iconSrc);
+    icon.alt = '';
+    icon.className = 'game-message-token';
+    const label = document.createElement('span');
+    label.textContent = text;
+    el.append(icon, label);
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
   function showEffect(x, y, text) {
     const el = document.createElement('div'); el.className = 'money-popup'; el.style.left = x + 'px'; el.style.top = y + 'px'; el.textContent = text;
     document.getElementById('map').appendChild(el); setTimeout(() => el.remove(), 1000);
   }
 
   function showBoatBombExplosion(x, y, bombType) {
-    let image = 'img/Proyectiles/Explosion Effect.png';
+    let image = 'Recursos/img/Proyectiles/Explosion Effect.png';
     let size = 110;
     if (gameState.equippedSkins['IEx'] === 'fracstal_set') {
       if (bombType === 'Bomb_Glob') {
-        image = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystal Explosion (1).png';
+        image = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystal Explosion (1).png';
         size = 110;
       } else if (bombType === 'TNT_Glob') {
-        image = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystor Kaboom (2).png';
+        image = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystor Kaboom (2).png';
         size = 140;
       } else if (bombType === 'Nuclear_Glob') {
-        image = 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Nuclear Crystal (3).png';
+        image = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Nuclear Crystal (3).png';
         size = 190;
       }
     } else if (bombType === 'TNT_Glob') {
@@ -15023,13 +15272,39 @@ function activateGTack(t) {
     const family = cfg.family || type;
     const equippedSkin = gameState.equippedSkins[family];
     const skinSet = SKINS_DATA[family]?.find(skin => skin.id === equippedSkin);
-    if (globalSkin !== 'pyce_morph' &&
-        skinSet?.rgbTypes?.includes(type) &&
-        RGB_REWAMP_SKIN_IDS.includes(equippedSkin)) {
+    const rainbowFuelUnlocked = Array.isArray(gameState.rainbowFuelUnlocked) &&
+      gameState.rainbowFuelUnlocked.includes(family);
+    // Familias Rewamp: el efecto se activa al equipar su skin RGB.
+    const hasRewampRgbSkin = skinSet?.rgbTypes?.includes(type) &&
+      RGB_REWAMP_SKIN_IDS.includes(equippedSkin);
+    // Familias sin skin Rewamp (Worker naranja / IEx): el efecto cubre toda la
+    // familia y se controla por la skin especial equipada ('rgb'/'rainbow_fuel').
+    const noRewampFamily = family === 'Worker_Glob' || family === 'IEx';
+    const noRewampEffect = noRewampFamily
+      ? (equippedSkin === 'rainbow_fuel' ? 'rainbow-fuel'
+        : equippedSkin === 'rgb' ? 'rgb-rewamp'
+        : '')
+      : '';
+
+    let rgbEffect = '';
+    if (globalSkin !== 'pyce_morph' && hasRewampRgbSkin) {
+      rgbEffect = rainbowFuelUnlocked ? 'rainbow-fuel' : 'rgb-rewamp';
+    } else if (noRewampEffect) {
+      // No permitir rainbow-fuel si la familia no lo tiene desbloqueado.
+      rgbEffect = (noRewampEffect === 'rainbow-fuel' && !rainbowFuelUnlocked) ? 'rgb-rewamp' : noRewampEffect;
+    }
+
+    if (rgbEffect === 'rainbow-fuel') {
+      el.classList.add('rainbow-fuel');
+      el.style.setProperty('--rainbow-fuel-mask-image', `url("${encodeURI(getTowerImage(type))}")`);
+      el.style.removeProperty('--rgb-rewamp-mask-image');
+    } else if (rgbEffect === 'rgb-rewamp') {
       el.classList.add('rgb-rewamp');
       el.style.setProperty('--rgb-rewamp-mask-image', `url("${encodeURI(getTowerImage(type))}")`);
+      el.style.removeProperty('--rainbow-fuel-mask-image');
     } else {
       el.style.removeProperty('--rgb-rewamp-mask-image');
+      el.style.removeProperty('--rainbow-fuel-mask-image');
     }
     const enemyBasedSkins = ['pyce_morph', 'mimic_set', 'astrorb_set', 'crystal_bombot'];
     if (enemyBasedSkins.includes(globalSkin) || enemyBasedSkins.includes(equippedSkin)) {
@@ -15711,17 +15986,17 @@ function activateGTack(t) {
     }
 
     if (skinSet.id === 'astrorb_set' || skinSet.id === 'crystal_bombot') {
-      shoot(t, target, { damage: dmg, image: 'img/Proyectiles/Crystal Metor.png' });
+      shoot(t, target, { damage: dmg, image: 'Recursos/img/Proyectiles/Crystal Metor.png' });
       return true;
     }
 
     if (skinSet.id === 'wicked_set') {
       if (t.type === 'Comet_Glob' || t.type === 'Dark_Glob') {
-        shoot(t, target, { damage: dmg, image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' });
+        shoot(t, target, { damage: dmg, image: 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' });
         return true;
       }
       if (t.type === 'Demglob' || t.type === 'Void_Glob') {
-        shoot(t, target, { damage: dmg, image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' });
+        shoot(t, target, { damage: dmg, image: 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' });
         return true;
       }
     }
@@ -15811,9 +16086,9 @@ function activateGTack(t) {
 
         <h4>💰 Economía y recursos</h4>
         <ul>
-          <li><img src="img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globetines</strong>: moneda de partida para comprar y mejorar torres durante la defensa.</li>
-          <li><img src="img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: moneda permanente usada en la tienda meta para mejoras de base, límites y skins.</li>
-          <li><img src="img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: moneda especial para Duckgrades, mejoras pasivas y objetos exclusivos.</li>
+          <li><img src="Recursos/img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globetines</strong>: moneda de partida para comprar y mejorar torres durante la defensa.</li>
+          <li><img src="Recursos/img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: moneda permanente usada en la tienda meta para mejoras de base, límites y skins.</li>
+          <li><img src="Recursos/img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: moneda especial para Duckgrades, mejoras pasivas y objetos exclusivos.</li>
         </ul>
 
         <h4>🛡️ Cómo se juega</h4>
@@ -15858,9 +16133,9 @@ function activateGTack(t) {
 
         <h4>💰 Economy and resources</h4>
         <ul>
-          <li><img src="img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globets</strong>: in-match currency used to buy and upgrade towers during the defense.</li>
-          <li><img src="img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: permanent currency used in the meta shop for base upgrades, limits, and skins.</li>
-          <li><img src="img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: special currency for Duckgrades, passive upgrades, and exclusive items.</li>
+          <li><img src="Recursos/img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globets</strong>: in-match currency used to buy and upgrade towers during the defense.</li>
+          <li><img src="Recursos/img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: permanent currency used in the meta shop for base upgrades, limits, and skins.</li>
+          <li><img src="Recursos/img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: special currency for Duckgrades, passive upgrades, and exclusive items.</li>
         </ul>
 
         <h4>🛡️ How to play</h4>
@@ -16022,7 +16297,7 @@ function activateGTack(t) {
 
         <h3>📋 Historial de Actualizaciones (GlD v2.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
         <div style="text-align:center; margin: 10px 0;">
-          <img src="img/Urban Road_Reborn Logo.png" alt="Urban Road Reborn Logo" style="max-width:100%; max-height:220px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+          <img src="Recursos/img/Urban Road_Reborn Logo.png" alt="Urban Road Reborn Logo" style="max-width:100%; max-height:220px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
         </div>
         <p>¡Urbanistic Road, la nueva ciudad ha llegado!! Trayendo consigo varios Pyces, enemigos y Globs nuevos!!</p>
         <h4>Novedades del Parche:</h4>
@@ -16195,7 +16470,7 @@ function activateGTack(t) {
 
         <h3>📋 Update Logs (GlD v2.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
         <div style="text-align:center; margin: 10px 0;">
-          <img src="img/Urban Road_Reborn Logo.png" alt="Urban Road Reborn Logo" style="max-width:100%; max-height:220px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+          <img src="Recursos/img/Urban Road_Reborn Logo.png" alt="Urban Road Reborn Logo" style="max-width:100%; max-height:220px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
         </div>
         <p>Urbanistic Road, the new city has arrived!! Bringing with it several new Pyces, enemies, and Globs!!</p>
         <h4>What's New in this Patch:</h4>
@@ -16253,7 +16528,7 @@ function activateGTack(t) {
   function initMusic() {
     if (backgroundMusic) return;
     try {
-      backgroundMusic = new Audio('sounds/DefendersTheme.mp3');
+      backgroundMusic = new Audio('Recursos/sounds/DefendersTheme.mp3');
       backgroundMusic.loop = true;
       backgroundMusic.volume = 0.4;
 

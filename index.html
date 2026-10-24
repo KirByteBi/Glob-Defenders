@@ -20,11 +20,11 @@
     <meta name="twitter:title" content="Glob Defenders - VS. Pyces">
     <meta name="twitter:description" content="ES: Defiende las islas con tus Globs en este tower defense. EN: Defend the islands with your Globs in this tower defense.">
     <meta name="twitter:image" content="https://kirbytebi.github.io/Glob-Defenders/img/GlobDefendersLogoRewampedCropped.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="Vista/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="img/GlobDefendersLogoRewamped.png">
+    <link rel="icon" type="image/png" href="Recursos/img/GlobDefendersLogoRewamped.png">
 </head>
 
 <body>
@@ -95,7 +95,7 @@
     <div id="tutorial-skip-modal" class="modal tutorial-skip-modal" role="dialog" aria-modal="true" aria-labelledby="tutorial-skip-title" aria-describedby="tutorial-skip-description" hidden>
         <div class="modal-content tutorial-skip-content">
             <div class="tutorial-skip-bombot">
-                <img src="img/Work-Bombot.png" alt="Work-Bombot">
+                <img src="Recursos/img/Work-Bombot.png" alt="Work-Bombot">
                 <span aria-hidden="true">?</span>
             </div>
             <div class="tutorial-skip-kicker" data-i18n="tutorial_skip_kicker">WORK-BOMBOT · ENTRENAMIENTO</div>
@@ -132,7 +132,7 @@
     <div id="login-screen">
         <div id="login-decorations"></div>
         <div class="login-box">
-            <img src="img/GlobDefendersLogoRewampedCropped.png" alt="Glob Defenders Logo" class="login-logo" tabindex="0" role="button" aria-label="Pulsa / Click para una sorpresa" title="Pulsa / Click para una sorpresa">
+            <img src="Recursos/img/GlobDefendersLogoRewampedCropped.png" alt="Glob Defenders Logo" class="login-logo" tabindex="0" role="button" aria-label="Pulsa / Click para una sorpresa" title="Pulsa / Click para una sorpresa">
             <div class="login-inputs">
                 <input type="text" id="username-input" data-i18n="login_user" data-i18n-attr="placeholder" placeholder="Nombre de usuario" autocomplete="username">
                 <input type="password" id="password-input" data-i18n="login_pass" data-i18n-attr="placeholder" placeholder="Contraseña">
@@ -145,7 +145,7 @@
             <div class="collab-footer">
                 <span class="collab-label">✦ Crossover Event ✦</span>
                 <a href="https://kirbytebi.github.io/Star-Jump/" target="_blank">
-                    <img src="img/Collabs%20(SJ)/IconoStarJump.png" alt="StarJump" class="collab-logo">
+                    <img src="Recursos/img/Collabs%20(SJ)/IconoStarJump.png" alt="StarJump" class="collab-logo">
                 </a>
             </div>
             <div class="dev-credit">
@@ -157,7 +157,7 @@
     <!-- Loading Screen -->
     <div id="loading-screen" style="display: none;">
         <div class="loading-content">
-            <img src="img/GlobDefendersLogoRewampedCropped.png" alt="Glob Defenders" class="loading-logo">
+            <img src="Recursos/img/GlobDefendersLogoRewampedCropped.png" alt="Glob Defenders" class="loading-logo">
             <div id="loading-glob-wrap" class="loading-glob-gallery" role="img" aria-label="Familias de Globs"></div>
             <div class="loading-progress" aria-label="Progreso de carga">
                 <div id="loading-bar-fill" class="loading-bar-fill"></div>
@@ -211,7 +211,7 @@
     <!-- GAME CONTAINER -->
     <div id="game-container">
         <div id="game-header">
-            <img src="img/GlobDefendersLogoRewampedCropped.png" alt="Glob Defenders" class="game-logo" tabindex="0" role="button" aria-label="Pulsa / Click para una sorpresa" title="Pulsa / Click para una sorpresa">
+            <img src="Recursos/img/GlobDefendersLogoRewampedCropped.png" alt="Glob Defenders" class="game-logo" tabindex="0" role="button" aria-label="Pulsa / Click para una sorpresa" title="Pulsa / Click para una sorpresa">
             <div id="admin-indicator" class="admin-indicator" style="display: none;" data-role="">👑 ADMIN MODE</div>
             <div id="offline-indicator" data-i18n="offline_mode_notice" style="display: none;"></div>
             <div id="account-save-status" role="status" aria-live="polite" style="display: none;"></div>
@@ -224,17 +224,17 @@
                     <span class="stat-label" data-i18n="health">Salud</span>
                 </div>
                 <div class="stat" id="money-stat" data-i18n-attr="title" data-i18n="money" title="Globetines">
-                    <img src="img/Tokens/Globetin.png" width="20">
+                    <img src="Recursos/img/Tokens/Globetin.png" width="20">
                     <span class="stat-value" id="money">500</span>
                     <span class="stat-label" data-i18n="money">Globetines</span>
                 </div>
                 <div class="stat" id="pycoins-stat" title="PyCoins">
-                    <img src="img/Tokens/PyCoin.png" width="20">
+                    <img src="Recursos/img/Tokens/PyCoin.png" width="20">
                     <span class="stat-value" id="pycoins-value">0</span>
                     <span class="stat-label" data-i18n="pycoins_title">PyCoins</span>
                 </div>
                 <div class="stat" id="duckpass-stat" title="Ducky Pass">
-                    <img src="img/Tokens/DuckPass.png" width="20">
+                    <img src="Recursos/img/Tokens/DuckPass.png" width="20">
                     <span class="stat-value" id="duckpass-currency">0</span>
                     <span class="stat-label" data-i18n="duckpass_title">Duck Pass</span>
                 </div>
@@ -346,12 +346,12 @@
                 <label><span data-i18n="debug_mysterybug_name">Nombre de MysteryBug</span> <input id="debug-mysterybug-name" type="text" maxlength="32" value="MysteryBug"></label>
                 <label><span data-i18n="debug_mysterybug_icon">Icono</span>
                     <select id="debug-mysterybug-image">
-                        <option value="img/Sellos/MysteryBug.png|blacked-out" data-i18n="debug_mysterybug_blacked">MysteryBug (BLACKED OUT)</option>
-                        <option value="img/Sellos/MysteryBug.png" data-i18n="debug_mysterybug_original">MysteryBug (ORIGINAL)</option>
-                        <option value="img/Sellos/AstralExclamation.png|blacked-out" data-i18n="debug_astral_blacked">Astral Exclamation (BLACKED OUT)</option>
-                        <option value="img/Sellos/AstralExclamation.png" data-i18n="debug_astral_original">Astral Exclamation (ORIGINAL)</option>
-                        <option value="Misiones (2026)/Elementos/ZONESUBJECT.gif|blacked-out" data-i18n="debug_zone_blacked">ZONE SUBJECT (BLACKED OUT)</option>
-                        <option value="Misiones (2026)/Elementos/ZONESUBJECT.gif" data-i18n="debug_zone_original">ZONE SUBJECT (ORIGINAL)</option>
+                        <option value="Recursos/img/Sellos/MysteryBug.png|blacked-out" data-i18n="debug_mysterybug_blacked">MysteryBug (BLACKED OUT)</option>
+                        <option value="Recursos/img/Sellos/MysteryBug.png" data-i18n="debug_mysterybug_original">MysteryBug (ORIGINAL)</option>
+                        <option value="Recursos/img/Sellos/AstralExclamation.png|blacked-out" data-i18n="debug_astral_blacked">Astral Exclamation (BLACKED OUT)</option>
+                        <option value="Recursos/img/Sellos/AstralExclamation.png" data-i18n="debug_astral_original">Astral Exclamation (ORIGINAL)</option>
+                        <option value="Recursos/Misiones (2026)/Elementos/ZONESUBJECT.gif|blacked-out" data-i18n="debug_zone_blacked">ZONE SUBJECT (BLACKED OUT)</option>
+                        <option value="Recursos/Misiones (2026)/Elementos/ZONESUBJECT.gif" data-i18n="debug_zone_original">ZONE SUBJECT (ORIGINAL)</option>
                     </select>
                 </label>
             </div>
@@ -706,11 +706,11 @@
     <div id="tooltip" class="tooltip" style="display: none;"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
-    <script src="supabase-config.js"></script>
-    <script src="traducciones.js"></script>
-    <script src="datos-del-juego.js"></script>
-    <script src="config.js"></script>
-    <script src="game.js"></script>
+    <script src="Modelo/supabase-config.js"></script>
+    <script src="Vista/traducciones.js"></script>
+    <script src="Modelo/datos-del-juego.js"></script>
+    <script src="Modelo/config.js"></script>
+    <script src="Controlador/game.js"></script>
 </body>
 
 </html>

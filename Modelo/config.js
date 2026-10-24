@@ -112,6 +112,9 @@ const ENEMY_TYPES = {
   'SnowCapsule_Pyce': { name: 'enemy_SnowCapsule_Pyce_name', desc: 'enemy_SnowCapsule_Pyce_desc', health: 260, speed: 0.85, reward: 55, image: IMAGE_PATHS.SnowCapsule_Pyce, mapSource: 'frosty_christmas', coldAura: true, coldAuraRange: 125, coldAuraSlow: 0.65 },
   'Elf_Pyce': { name: 'enemy_Elf_Pyce_name', desc: 'enemy_Elf_Pyce_desc', health: 210, speed: 0.95, reward: 50, image: IMAGE_PATHS.Elf_Pyce, mapSource: 'frosty_christmas' },
   'Giftbox_Pyce': { name: 'enemy_Giftbox_Pyce_name', desc: 'enemy_Giftbox_Pyce_desc', health: 750, speed: 0.55, reward: 80, image: IMAGE_PATHS.Giftbox1, imageVariants: [IMAGE_PATHS.Giftbox1, IMAGE_PATHS.Giftbox2, IMAGE_PATHS.Giftbox3, IMAGE_PATHS.Giftbox4], mapSource: 'frosty_christmas' },
+  // Jefes fantasma de Frosty Christmas. NOsense (Corrupto) y NOIRrupt (Anti-Normal).
+  'NOsense_Pyce': { name: 'enemy_NOsense_Pyce_name', desc: 'enemy_NOsense_Pyce_desc', health: 4500, speed: 0.4, reward: 3000, image: IMAGE_PATHS.NOsense_Pyce, boss: true, mapSource: 'frosty_christmas', enemyClass: 'boss', ghost: true, paralyzeLaser: true, stunCooldown: 12, shieldRatio: 0.2 },
+  'NOIRrupt_Pyce': { name: 'enemy_NOIRrupt_Pyce_name', desc: 'enemy_NOIRrupt_Pyce_desc', health: 6500, speed: 1.8, reward: 4000, image: IMAGE_PATHS.NOIRrupt_Pyce, boss: true, mapSource: 'frosty_christmas', enemyClass: 'boss', ghost: true, tripleLap: true, paralyzeLaser: true, stunCooldown: 12, shieldRatio: 0.4 },
   
   // Gambling Enemies
   'BitY1': { name: 'enemy_BitY1_name', desc: 'enemy_BitY1_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitY1, category: 'gambling' },
@@ -228,7 +231,7 @@ const ENEMY_BALANCE = {
 const ENEMY_TIER_DAMAGE = { basic: 1, medium: 2, tank: 3 };
 
 const BADGES = {
-  tutorial: { key: 'tutorial', icon: '<img src="img/Work-Bombot.png" alt="Work-Bombot">', unlocked: false, reward: { pycoins: 50, duckpass: 1, xp: 25 }, category: 'misiones', colorGroup: 'mission' },
+  tutorial: { key: 'tutorial', icon: '<img src="Recursos/img/Work-Bombot.png" alt="Work-Bombot">', unlocked: false, reward: { pycoins: 50, duckpass: 1, xp: 25 }, category: 'misiones', colorGroup: 'mission' },
   survivor: { key: 'survivor', icon: '🛡️', unlocked: false, reward: { pycoins: 100, xp: 50 }, category: 'modos' },
   millionaire: { key: 'millionaire', icon: '💰', unlocked: false, reward: { pycoins: 500, xp: 100 }, category: 'economia' },
   evolution: { key: 'evolution', icon: '🧬', unlocked: false, reward: { pycoins: 200, xp: 80 }, category: 'interacciones' },
@@ -278,7 +281,7 @@ const BADGES = {
   crystalizing_break: { key: 'crystalizing_break', icon: '💎', unlocked: false, reward: { pycoins: 200, xp: 500 }, category: 'interacciones', colorGroup: 'collab' },
   extended_marc: { key: 'extended_marc', icon: '🖼️', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'misiones', colorGroup: 'collab' },
 
-  fracstral_victory: { key: 'fracstral_victory', icon: '<img src="Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png" width="35" height="35" style="border-radius:6px; object-fit:contain;">', unlocked: false, reward: { pycoins: 500, xp: 500 }, category: 'misiones', colorGroup: 'collab' },
+  fracstral_victory: { key: 'fracstral_victory', icon: '<img src="Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png" width="35" height="35" style="border-radius:6px; object-fit:contain;">', unlocked: false, reward: { pycoins: 500, xp: 500 }, category: 'misiones', colorGroup: 'collab' },
   chain_reaction: { key: 'chain_reaction', icon: '💥', unlocked: false, reward: { pycoins: 400, duckpass: 200 }, category: 'interacciones' },
   fenced_kaboom: { key: 'fenced_kaboom', icon: '🚧', unlocked: false, reward: { pycoins: 350, duckpass: 150 }, category: 'interacciones' },
   wall_garden: { key: 'wall_garden', icon: '🧱', unlocked: false, reward: { pycoins: 300, xp: 400 }, category: 'interacciones' },
@@ -483,10 +486,10 @@ const SKINS_DATA = {
     {
       id: 'santa_workshop_set', name: 'skin_santa_workshop_name', desc: 'skin_santa_workshop_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'advent_calendar_complete',
       skins: {
-        'Worker_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Elf-Glob_SKEVO1.png',
-        'Police_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/GiftedElf-Glob_SKEVO2.png',
-        'Planked_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Sleeping-Santa-Glob_SKEVO3.png',
-        'DJ_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Sleigh-Santa-Glob_SKEVO4.png'
+        'Worker_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Elf-Glob_SKEVO1.png',
+        'Police_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/GiftedElf-Glob_SKEVO2.png',
+        'Planked_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Sleeping-Santa-Glob_SKEVO3.png',
+        'DJ_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/Santa_s Workshop (NARANJA)/Sleigh-Santa-Glob_SKEVO4.png'
       },
       traps: {
         'Worker_Trap': IMAGE_PATHS.Santa_Workshop_Trap1,
@@ -503,10 +506,10 @@ const SKINS_DATA = {
     {
       id: 'snowglob_set', name: 'skin_snowglob_name', desc: 'skin_snowglob_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'advent_calendar',
       skins: {
-        'Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/SnowGlob-Body_SKEVO1.png',
-        'Poop_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/Loaded-SnowGlob_SKEVO2.png',
-        'Golden_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/Snowfall-Glob_SKEVO3.png',
-        'Rainbow_Glob': 'FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/LIGHTEDSnowGlob_SKEVO4.png'
+        'Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/SnowGlob-Body_SKEVO1.png',
+        'Poop_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/Loaded-SnowGlob_SKEVO2.png',
+        'Golden_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/Snowfall-Glob_SKEVO3.png',
+        'Rainbow_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Advent Calendar/SnowGlob Set (VERDE)/LIGHTEDSnowGlob_SKEVO4.png'
       },
       names: {
         'Glob': 'SnowGlob',
@@ -518,19 +521,19 @@ const SKINS_DATA = {
     {
       id: 'rewamped_green_set', name: 'skin_rewamped_green_name', desc: 'skin_rewamped_green_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
-        'Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
-        'Poop_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO2.png',
-        'Golden_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO3.png',
-        'Rainbow_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO4.png'
+        'Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
+        'Poop_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO2.png',
+        'Golden_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO3.png',
+        'Rainbow_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO4.png'
       }
     },
     {
       id: 'green_rgb_sr', name: 'skin_green_rgb_sr_name', desc: 'skin_green_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
       skins: {
-        'Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
-        'Poop_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO2.png',
-        'Golden_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO3.png',
-        'Rainbow_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO4.png'
+        'Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
+        'Poop_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO2.png',
+        'Golden_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO3.png',
+        'Rainbow_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO4.png'
       },
       rgbTypes: ['Glob', 'Poop_Glob', 'Golden_Glob', 'Rainbow_Glob'],
       names: {
@@ -541,19 +544,19 @@ const SKINS_DATA = {
     {
       id: 'military_set', name: 'skin_military_name', desc: 'skin_military_desc', cost: 350, type: 'pycoin',
       skins: {
-        'Glob': 'img/Skins/Verde Base/Untrained Glob (SK-EVO1).png',
-        'Poop_Glob': 'img/Skins/Verde Base/Militar Glob (SK-EVO2).png',
-        'Golden_Glob': 'img/Skins/Verde Base/Armed Glob (SK-EVO3).png',
-        'Rainbow_Glob': 'img/Skins/Verde Base/Impostor Glob (SK-EVO4).png'
+        'Glob': 'Recursos/img/Skins/Verde Base/Untrained Glob (SK-EVO1).png',
+        'Poop_Glob': 'Recursos/img/Skins/Verde Base/Militar Glob (SK-EVO2).png',
+        'Golden_Glob': 'Recursos/img/Skins/Verde Base/Armed Glob (SK-EVO3).png',
+        'Rainbow_Glob': 'Recursos/img/Skins/Verde Base/Impostor Glob (SK-EVO4).png'
       }
     },
     {
       id: 'corrupt_swords_set', name: 'skin_corrupt_swords_name', desc: 'skin_corrupt_swords_desc', cost: 637, type: 'pycoin', duckpass_cost: 207, isSpecial: true,
       skins: {
-        'Glob': 'img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO1).png',
-        'Poop_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Brad Glob (SK-EVO2).png',
-        'Golden_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Emotional Glob (SK-EVO3).png',
-        'Rainbow_Glob': 'img/Skins/Verde Base/Block Tales (SP)/Ancigon Glob (SK-EVO4).png'
+        'Glob': 'Recursos/img/Skins/Verde Base/Block Tales (SP)/Blackrock Glob (SK-EVO1).png',
+        'Poop_Glob': 'Recursos/img/Skins/Verde Base/Block Tales (SP)/Brad Glob (SK-EVO2).png',
+        'Golden_Glob': 'Recursos/img/Skins/Verde Base/Block Tales (SP)/Emotional Glob (SK-EVO3).png',
+        'Rainbow_Glob': 'Recursos/img/Skins/Verde Base/Block Tales (SP)/Ancigon Glob (SK-EVO4).png'
       },
       names: {
         'Glob': 'Blackrock Glob',
@@ -567,9 +570,9 @@ const SKINS_DATA = {
     {
       id: 'skelebones_set', name: 'skin_skelebones_name', desc: 'skin_skelebones_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_anti_normal',
       skins: {
-        'Red_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Calcium Glob (SK-EVO1).png',
-        'Molten_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Toxic Waste Glob (SK-EVO2).png',
-        'Robotic_Glob': 'Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/SkeleBone Glob (SK-EVO3).png'
+        'Red_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Calcium Glob (SK-EVO1).png',
+        'Molten_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/Toxic Waste Glob (SK-EVO2).png',
+        'Robotic_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/SkeleBones Set (ROJO)/SkeleBone Glob (SK-EVO3).png'
       },
       names: {
         'Red_Glob': 'Calcium Glob',
@@ -580,17 +583,17 @@ const SKINS_DATA = {
     {
       id: 'rewamped_red_set', name: 'skin_rewamped_red_name', desc: 'skin_rewamped_red_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
-        'Red_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO1.png',
-        'Molten_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO2.png',
-        'Robotic_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO3.png'
+        'Red_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO1.png',
+        'Molten_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO2.png',
+        'Robotic_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO3.png'
       }
     },
     {
       id: 'red_rgb_sr', name: 'skin_red_rgb_sr_name', desc: 'skin_red_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
       skins: {
-        'Red_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO1.png',
-        'Molten_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO2.png',
-        'Robotic_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO3.png'
+        'Red_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO1.png',
+        'Molten_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO2.png',
+        'Robotic_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO3.png'
       },
       rgbTypes: ['Red_Glob', 'Molten_Glob', 'Robotic_Glob'],
       names: {
@@ -601,17 +604,17 @@ const SKINS_DATA = {
     {
       id: 'music_set', name: 'skin_music_name', desc: 'skin_music_desc', cost: 300, type: 'pycoin',
       skins: {
-        'Red_Glob': 'img/Skins/Rojo Melee/Music Glob (SK-EVO1).png',
-        'Molten_Glob': 'img/Skins/Rojo Melee/Funky Glob (SK-EVO2).png',
-        'Robotic_Glob': 'img/Skins/Rojo Melee/Party Glob (SK-EVO3).png'
+        'Red_Glob': 'Recursos/img/Skins/Rojo Melee/Music Glob (SK-EVO1).png',
+        'Molten_Glob': 'Recursos/img/Skins/Rojo Melee/Funky Glob (SK-EVO2).png',
+        'Robotic_Glob': 'Recursos/img/Skins/Rojo Melee/Party Glob (SK-EVO3).png'
       }
     },
     {
       id: 'judicial_set', name: 'skin_judicial_name', desc: 'skin_judicial_desc', category: 'Colaboracion', subtitle: 'Glob Smash', isSpecial: true, isCommunity: true, cost: 400, duckpass_cost: 150, type: 'pycoin', unlockCondition: 'win_extremo',
       skins: {
-        'Red_Glob': 'img/Skins/Rojo Melee/Comunidad/Glob Smash/Juez Glob (SK-EVO1).png',
-        'Molten_Glob': 'img/Skins/Rojo Melee/Comunidad/Glob Smash/GatGlob (SK-EVO2).png',
-        'Robotic_Glob': 'img/Skins/Rojo Melee/Comunidad/Glob Smash/Tigrob (SK-EVO3).png'
+        'Red_Glob': 'Recursos/img/Skins/Rojo Melee/Comunidad/Glob Smash/Juez Glob (SK-EVO1).png',
+        'Molten_Glob': 'Recursos/img/Skins/Rojo Melee/Comunidad/Glob Smash/GatGlob (SK-EVO2).png',
+        'Robotic_Glob': 'Recursos/img/Skins/Rojo Melee/Comunidad/Glob Smash/Tigrob (SK-EVO3).png'
       },
       names: {
         'Red_Glob': 'Juez Glob',
@@ -624,25 +627,25 @@ const SKINS_DATA = {
     {
       id: 'abyssal_set', name: 'skin_abyssal_name', desc: 'skin_abyssal_desc', cost: 400, type: 'pycoin',
       skins: {
-        'Soap_Glob': 'img/Skins/Azul Ralentizador/Beachy Glob (SK-EVO1).png',
-        'Cotton_Glob': 'img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png',
-        'ElectroClean_Glob': 'img/Skins/Azul Ralentizador/LightSea Glob (SK-EVO3).png'
+        'Soap_Glob': 'Recursos/img/Skins/Azul Ralentizador/Beachy Glob (SK-EVO1).png',
+        'Cotton_Glob': 'Recursos/img/Skins/Azul Ralentizador/Shark Glob (SK-EVO2).png',
+        'ElectroClean_Glob': 'Recursos/img/Skins/Azul Ralentizador/LightSea Glob (SK-EVO3).png'
       }
     },
     {
       id: 'rewamped_blue_set', name: 'skin_rewamped_blue_name', desc: 'skin_rewamped_blue_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_facil_urban',
       skins: {
-        'Soap_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
-        'Cotton_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
-        'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
+        'Soap_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
+        'Cotton_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
+        'ElectroClean_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
       }
     },
     {
       id: 'blue_rgb_sr', name: 'skin_blue_rgb_sr_name', desc: 'skin_blue_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
       skins: {
-        'Soap_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
-        'Cotton_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
-        'ElectroClean_Glob': 'Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
+        'Soap_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/SoapRewamp (SK-EVO1).png',
+        'Cotton_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
+        'ElectroClean_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
       },
       rgbTypes: ['Soap_Glob', 'Cotton_Glob', 'ElectroClean_Glob'],
       names: {
@@ -655,25 +658,25 @@ const SKINS_DATA = {
     {
       id: 'business_duck_set', name: 'skin_business_name', desc: 'skin_business_desc', cost: 150, type: 'pycoin',
       skins: {
-        'Ducky_Glob': 'img/Skins/Amarillo Farmer/Jelly Post (SK-EVO1).png',
-        'Golden_Ducky_Glob': 'img/Skins/Amarillo Farmer/Factory Glob (SK-EVO2).png',
-        'Rick_Duck_Glob': 'img/Skins/Amarillo Farmer/Highlight Glob (SK-EVO3).png'
+        'Ducky_Glob': 'Recursos/img/Skins/Amarillo Farmer/Jelly Post (SK-EVO1).png',
+        'Golden_Ducky_Glob': 'Recursos/img/Skins/Amarillo Farmer/Factory Glob (SK-EVO2).png',
+        'Rick_Duck_Glob': 'Recursos/img/Skins/Amarillo Farmer/Highlight Glob (SK-EVO3).png'
       }
     },
     {
       id: 'ducky_rewamp_set', name: 'skin_ducky_rewamp_name', desc: 'skin_ducky_rewamp_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_gelatin_lake_base',
       skins: {
-        'Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp1.png',
-        'Golden_Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp2.png',
-        'Rick_Duck_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp3.png'
+        'Ducky_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp1.png',
+        'Golden_Ducky_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp2.png',
+        'Rick_Duck_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp3.png'
       }
     },
     {
       id: 'ducky_rgb_sr', name: 'skin_ducky_rgb_name', desc: 'skin_ducky_rgb_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
       skins: {
-        'Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp1.png',
-        'Golden_Ducky_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp2.png',
-        'Rick_Duck_Glob': 'Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp3.png'
+        'Ducky_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp1.png',
+        'Golden_Ducky_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp2.png',
+        'Rick_Duck_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp3.png'
       },
       rgbTypes: ['Ducky_Glob', 'Golden_Ducky_Glob', 'Rick_Duck_Glob'],
       names: {
@@ -686,17 +689,17 @@ const SKINS_DATA = {
     {
       id: 'turret_set', name: 'skin_turret_name', desc: 'skin_turret_desc', cost: 250, type: 'pycoin',
       skins: {
-        'Old_Glob': 'img/Skins/Gris Disperso/Turret Glob (SK-EVO1).png',
-        'Pyce_Glob': 'img/Skins/Gris Disperso/Spaceship Glob (SK-EVO2).png',
-        'SpyGlob': 'img/Skins/Gris Disperso/Laserbeam Glob (SK-EVO3).png'
+        'Old_Glob': 'Recursos/img/Skins/Gris Disperso/Turret Glob (SK-EVO1).png',
+        'Pyce_Glob': 'Recursos/img/Skins/Gris Disperso/Spaceship Glob (SK-EVO2).png',
+        'SpyGlob': 'Recursos/img/Skins/Gris Disperso/Laserbeam Glob (SK-EVO3).png'
       }
     },
     {
       id: 'starjump_set', name: 'skin_starry_name', desc: 'skin_starry_desc', cost: 777, duckpass_cost: 666, type: 'pycoin', isSpecial: true,
       skins: {
-        'Old_Glob': 'img/Collabs (SJ)/Skin/Starry (SK-EVO1).png',
-        'Pyce_Glob': 'img/Collabs (SJ)/Skin/Astral_Starry (SK_EVO2).png',
-        'SpyGlob': 'img/Collabs (SJ)/Skin/Posessed_Starry (SK_EVO3).png'
+        'Old_Glob': 'Recursos/img/Collabs (SJ)/Skin/Starry (SK-EVO1).png',
+        'Pyce_Glob': 'Recursos/img/Collabs (SJ)/Skin/Astral_Starry (SK_EVO2).png',
+        'SpyGlob': 'Recursos/img/Collabs (SJ)/Skin/Posessed_Starry (SK_EVO3).png'
       },
       names: {
         'Old_Glob': { es: 'Destellito', en: 'Starry' },
@@ -707,9 +710,9 @@ const SKINS_DATA = {
     {
       id: 'astrorb_set', name: 'skin_astrorb_name', desc: 'skin_astrorb_desc', cost: 400, duckpass_cost: 350, type: 'pycoin', isSpecial: true, unlockCondition: 'astrorb_frame',
       skins: {
-        'Old_Glob': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbOrbe.png',
-        'Pyce_Glob': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbContenido.png',
-        'SpyGlob': 'Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbTF.png'
+        'Old_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbOrbe.png',
+        'Pyce_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbContenido.png',
+        'SpyGlob': 'Recursos/Interestelar Menace (COLLAB UPD)/Jefe (Artrorb)/AstrorbTF.png'
       },
       names: {
         'Old_Glob': { es: 'Astrorb (Orbe)', en: 'Astrorb (Orb)' },
@@ -720,9 +723,9 @@ const SKINS_DATA = {
     {
       id: 'virtuallity_set', name: 'skin_virtuallity_name', desc: 'skin_virtuallity_desc', cost: 0, type: 'free', isSpecial: true,
       skins: {
-        'Old_Glob': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Discord Glob (SK-EVO1).png',
-        'Pyce_Glob': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Roblox Glob (SK-EVO2).png',
-        'SpyGlob': 'Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Big-Champion Globs (SK-EVO3).png'
+        'Old_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Discord Glob (SK-EVO1).png',
+        'Pyce_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Roblox Glob (SK-EVO2).png',
+        'SpyGlob': 'Recursos/Spooks in the Desert (UPD4)/Skins/Virtuallity Set (Gray)/Big-Champion Globs (SK-EVO3).png'
       },
       names: {
         'Old_Glob': 'Discord Glob',
@@ -735,10 +738,10 @@ const SKINS_DATA = {
     {
       id: 'wicked_set', name: 'skin_wicked_name', desc: 'skin_wicked_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_corrupto',
       skins: {
-        'Comet_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Witch Glob (SK-EVO1).png',
-        'Dark_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/CrowWitcher (SK-EVO2).png',
-        'Demglob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Glitchy Wizard (SK-EVO3).png',
-        'Void_Glob': 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Losed-In Wizard (SK-EVO4).png'
+        'Comet_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Witch Glob (SK-EVO1).png',
+        'Dark_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/CrowWitcher (SK-EVO2).png',
+        'Demglob': 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Glitchy Wizard (SK-EVO3).png',
+        'Void_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Losed-In Wizard (SK-EVO4).png'
       },
       names: {
         'Comet_Glob': 'Witch Glob',
@@ -750,19 +753,19 @@ const SKINS_DATA = {
     {
       id: 'universolar_comet_set', name: 'skin_universolar_name', desc: 'skin_universolar_desc', cost: 450, type: 'pycoin',
       skins: {
-        'Comet_Glob': 'img/Skins/Negro Supremo/Sunny Glob (SK-EVO1).png',
-        'Dark_Glob': 'img/Skins/Negro Supremo/Sunlight Glob (SK-EVO2).png',
-        'Demglob': 'img/Skins/Negro Supremo/Nova Glob (SK-EVO3).png',
-        'Void_Glob': 'img/Skins/Negro Supremo/Supernova Glob (SK-EVO4).png'
+        'Comet_Glob': 'Recursos/img/Skins/Negro Supremo/Sunny Glob (SK-EVO1).png',
+        'Dark_Glob': 'Recursos/img/Skins/Negro Supremo/Sunlight Glob (SK-EVO2).png',
+        'Demglob': 'Recursos/img/Skins/Negro Supremo/Nova Glob (SK-EVO3).png',
+        'Void_Glob': 'Recursos/img/Skins/Negro Supremo/Supernova Glob (SK-EVO4).png'
       }
     },
     {
       id: 'mimic_set', name: 'skin_mimic_name', desc: 'skin_mimic_desc', cost: 0, type: 'free', isSpecial: true,
       skins: {
-        'Comet_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png',
-        'Dark_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Didic Pyce (SK-EVO2).png',
-        'Demglob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/NOmic Pyce (SK-EVO3).png',
-        'Void_Glob': 'img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Golden MimicPyce (SK-EVO4).png'
+        'Comet_Glob': 'Recursos/img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Mimic Pyce.png',
+        'Dark_Glob': 'Recursos/img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Didic Pyce (SK-EVO2).png',
+        'Demglob': 'Recursos/img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/NOmic Pyce (SK-EVO3).png',
+        'Void_Glob': 'Recursos/img/Skins/Negro Supremo/Mimic Pyce (ENEMY-SKIN)/Golden MimicPyce (SK-EVO4).png'
       },
       names: {
         'Comet_Glob': 'Mimic Pyce',
@@ -774,10 +777,10 @@ const SKINS_DATA = {
     {
       id: 'dreams_set', name: 'skin_dreams_name', desc: 'skin_dreams_desc', isSpecial: true, cost: 777, duckpass_cost: 555, type: 'pycoin',
       skins: {
-        'Comet_Glob': 'img/Skins/Negro Supremo/Dreams (SP)/Gummy Glob (SK-EVO1).png',
-        'Dark_Glob': 'img/Skins/Negro Supremo/Dreams (SP)/Loyal Glob (SK-EVO2).png',
-        'Demglob': 'img/Skins/Negro Supremo/Dreams (SP)/MetaGlob (SK-EVO3).png',
-        'Void_Glob': 'img/Skins/Negro Supremo/Dreams (SP)/Hammer Glob (SK-EVO4).png'
+        'Comet_Glob': 'Recursos/img/Skins/Negro Supremo/Dreams (SP)/Gummy Glob (SK-EVO1).png',
+        'Dark_Glob': 'Recursos/img/Skins/Negro Supremo/Dreams (SP)/Loyal Glob (SK-EVO2).png',
+        'Demglob': 'Recursos/img/Skins/Negro Supremo/Dreams (SP)/MetaGlob (SK-EVO3).png',
+        'Void_Glob': 'Recursos/img/Skins/Negro Supremo/Dreams (SP)/Hammer Glob (SK-EVO4).png'
       },
       names: {
         'Comet_Glob': 'Gummy Glob',
@@ -789,10 +792,10 @@ const SKINS_DATA = {
     {
       id: 'rewamped_black_set', name: 'skin_rewamped_black_name', desc: 'skin_rewamped_black_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_hard_or_extreme',
       skins: {
-        'Comet_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp1.png',
-        'Dark_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp2.png',
-        'Demglob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp3.png',
-        'Void_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp4.png'
+        'Comet_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp1.png',
+        'Dark_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp2.png',
+        'Demglob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp3.png',
+        'Void_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp4.png'
       },
       names: {
         'Comet_Glob': 'Black Rewamp 1',
@@ -804,10 +807,10 @@ const SKINS_DATA = {
     {
       id: 'black_rgb_sr', name: 'skin_black_rgb_sr_name', desc: 'skin_black_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
       skins: {
-        'Comet_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp1.png',
-        'Dark_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp2.png',
-        'Demglob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp3.png',
-        'Void_Glob': 'Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp4.png'
+        'Comet_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp1.png',
+        'Dark_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp2.png',
+        'Demglob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp3.png',
+        'Void_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp4.png'
       },
       rgbTypes: ['Comet_Glob', 'Dark_Glob', 'Demglob', 'Void_Glob'],
       names: {
@@ -820,9 +823,9 @@ const SKINS_DATA = {
     {
       id: 'fracstal_set', name: 'skin_fracstal_name', desc: 'skin_fracstal_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_interstellar_no_damage',
       skins: {
-        'Bomb_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png',
-        'TNT_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Diamore Glob (SK-EVO2).png',
-        'Nuclear_Glob': 'Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Fracstral Glob (SK-EVO3).png'
+        'Bomb_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Cryscarrier Glob (SK-EVO1).png',
+        'TNT_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Diamore Glob (SK-EVO2).png',
+        'Nuclear_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Fracstral Glob (SK-EVO3).png'
       },
       names: {
         'Bomb_Glob': 'Cryscarrier Glob',
@@ -835,25 +838,25 @@ const SKINS_DATA = {
     {
       id: 'personalizable_bombot', name: 'skin_personalizable_bombot_name', desc: 'skin_personalizable_bombot_desc', cost: 0, type: 'free', isSpecial: true,
       skins: {
-        'Work_Bombot': 'Spooks in the Desert (UPD4)/Skins/Personalizable Bombot (SKIN + ACCESORIES)/Personalizable Bombot.png'
+        'Work_Bombot': 'Recursos/Spooks in the Desert (UPD4)/Skins/Personalizable Bombot (SKIN + ACCESORIES)/Personalizable Bombot.png'
       }
     },
     {
       id: 'sharkbot_bombot', name: 'skin_sharkbot_name', desc: 'skin_sharkbot_desc', cost: 50, type: 'pycoin',
       skins: {
-        'Work_Bombot': 'img/Skins/Work-Bombot/SharkBot (SK-EVO).png'
+        'Work_Bombot': 'Recursos/img/Skins/Work-Bombot/SharkBot (SK-EVO).png'
       }
     },
     {
       id: 'globsus_bombot', name: 'skin_globsus_name', desc: 'skin_globsus_desc', cost: 50, type: 'pycoin',
       skins: {
-        'Work_Bombot': 'img/Skins/Work-Bombot/GlobSus (SK-EVO).png'
+        'Work_Bombot': 'Recursos/img/Skins/Work-Bombot/GlobSus (SK-EVO).png'
       }
     },
     {
       id: 'cuby_bombot', name: 'skin_cuby_name', desc: 'skin_cuby_desc', cost: 0, type: 'free', isSpecial: true, isCommunity: true,
       skins: {
-        'Work_Bombot': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA1).png'
+        'Work_Bombot': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Cuby (BombotA1).png'
       },
       names: {
         'Work_Bombot': 'Cuby'
@@ -862,7 +865,7 @@ const SKINS_DATA = {
     {
       id: 'spanish_bombot', name: 'skin_spanish_bombot_name', desc: 'skin_spanish_bombot_desc', cost: 260, duckpass_cost: 450, type: 'pycoin', isSpecial: true, unlockCondition: 'win_normal',
       skins: {
-        'Work_Bombot': 'Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Spanish-Bombot/Spanish-Bombot.png'
+        'Work_Bombot': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Work-Bombot/Spanish-Bombot/Spanish-Bombot.png'
       },
       names: {
         'Work_Bombot': 'Spanish-Bombot'
@@ -871,7 +874,7 @@ const SKINS_DATA = {
     {
       id: 'crystal_bombot', name: 'skin_crystal_bombot_name', desc: 'skin_crystal_bombot_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_boss_frames',
       skins: {
-        'Work_Bombot': 'Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Crystal-Bombot.png'
+        'Work_Bombot': 'Recursos/Interestelar Menace (COLLAB UPD)/Enemigos Cristalizados/Crystal-Bombot.png'
       }
     }
   ],
@@ -880,9 +883,9 @@ const SKINS_DATA = {
     {
       id: 'heights_set', name: 'skin_heights_name', desc: 'skin_heights_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest',
       skins: {
-        'Balloon_Glob': 'Misiones (2026)/Skins/Blanca/House & Bombot (SK-EVO1).png',
-        'Heliglob': 'Misiones (2026)/Skins/Blanca/Castle & Bombot (SK-EVO2).png',
-        'Alien_Glob': 'Misiones (2026)/Skins/Blanca/Earth & KirByte (SK-EVO3).png'
+        'Balloon_Glob': 'Recursos/Misiones (2026)/Skins/Blanca/House & Bombot (SK-EVO1).png',
+        'Heliglob': 'Recursos/Misiones (2026)/Skins/Blanca/Castle & Bombot (SK-EVO2).png',
+        'Alien_Glob': 'Recursos/Misiones (2026)/Skins/Blanca/Earth & KirByte (SK-EVO3).png'
       }
     }
   ],
@@ -890,9 +893,9 @@ const SKINS_DATA = {
     {
       id: 'old_tycoon_set', name: 'skin_old_tycoon_name', desc: 'skin_old_tycoon_desc', cost: 637, duckpass_cost: 207, type: 'pycoin', isSpecial: true, unlockCondition: 'block_quest_shop',
       skins: {
-        'Streamer_Glob': 'Misiones (2026)/Skins/Rosa/Noob Tycoon (SK-EVO1).png',
-        'Gamer_Glob': 'Misiones (2026)/Skins/Rosa/Guest Retrohouse (SK-S2).png',
-        'Youtuber_Glob': 'Misiones (2026)/Skins/Rosa/Heights Sword Battle (SK-EVO3).png'
+        'Streamer_Glob': 'Recursos/Misiones (2026)/Skins/Rosa/Noob Tycoon (SK-EVO1).png',
+        'Gamer_Glob': 'Recursos/Misiones (2026)/Skins/Rosa/Guest Retrohouse (SK-S2).png',
+        'Youtuber_Glob': 'Recursos/Misiones (2026)/Skins/Rosa/Heights Sword Battle (SK-EVO3).png'
       }
     }
   ],
@@ -900,17 +903,17 @@ const SKINS_DATA = {
     {
       id: 'jonk_set', name: 'skin_jonk_name', desc: 'skin_jonk_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'block_quest',
       skins: {
-        'Sprout_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO1).png',
-        'Garden_Glob': 'Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO2).png',
-        'Flower_Glob': 'Misiones (2026)/Skins/Marron/Jonk the big piranha (SK-EVO3).png'
+        'Sprout_Glob': 'Recursos/Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO1).png',
+        'Garden_Glob': 'Recursos/Misiones (2026)/Skins/Marron/Jonk the piranha (SK-EVO2).png',
+        'Flower_Glob': 'Recursos/Misiones (2026)/Skins/Marron/Jonk the big piranha (SK-EVO3).png'
       }
     },
     {
       id: 'pumpking_set', name: 'skin_pumpking_name', desc: 'skin_pumpking_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'win_spooktacular_base',
       skins: {
-        'Sprout_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob (SK-EVO1).png',
-        'Garden_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Overgrown PumpGlob (SK-EVO2).png',
-        'Flower_Glob': 'Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Mutant PumpGlob (SK-EVO3).png'
+        'Sprout_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/PumpGlob (SK-EVO1).png',
+        'Garden_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Overgrown PumpGlob (SK-EVO2).png',
+        'Flower_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/Pumpkin Set (MARRON)/Mutant PumpGlob (SK-EVO3).png'
       },
       names: {
         'Sprout_Glob': 'PumpGlob',
@@ -924,14 +927,14 @@ const SKINS_DATA = {
     {
       id: 'froggy_set', name: 'skin_froggy_name', desc: 'skin_froggy_desc', cost: 1500, type: 'pycoin', isSpecial: true, unlockCondition: 'win_sunlight_summer_anti_normal',
       skins: {
-        'Pirate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Tadpole Glob (SK-EVO1).png',
-        'PMate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Froggy Glob (SK-EVO2).png',
-        'BreathKing_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Frogold Glob (SK-EVO3).png',
-        'Haunted_Pirate_Glob': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/King Frog Glob (SK-EVO4).png',
-        'Boat_S1': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lillypad (SK-S1).png',
-        'Boat_S2': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Raft Lillypad (SK-S2).png',
-        'Boat_S3': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Flowered Lillypad (SK-S3).png',
-        'Boat_S4': 'Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lotus Lillypads (SK-S4).png'
+        'Pirate_Glob': 'Recursos/Leafy Beach Party/Skins/Frog Skin (Pirate)/Tadpole Glob (SK-EVO1).png',
+        'PMate_Glob': 'Recursos/Leafy Beach Party/Skins/Frog Skin (Pirate)/Froggy Glob (SK-EVO2).png',
+        'BreathKing_Glob': 'Recursos/Leafy Beach Party/Skins/Frog Skin (Pirate)/Frogold Glob (SK-EVO3).png',
+        'Haunted_Pirate_Glob': 'Recursos/Leafy Beach Party/Skins/Frog Skin (Pirate)/King Frog Glob (SK-EVO4).png',
+        'Boat_S1': 'Recursos/Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lillypad (SK-S1).png',
+        'Boat_S2': 'Recursos/Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Raft Lillypad (SK-S2).png',
+        'Boat_S3': 'Recursos/Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Flowered Lillypad (SK-S3).png',
+        'Boat_S4': 'Recursos/Leafy Beach Party/Skins/Frog Skin (Pirate)/Summons/Lotus Lillypads (SK-S4).png'
       },
       names: {
         'Pirate_Glob': 'Tadpole Glob',
@@ -1219,22 +1222,22 @@ Object.assign(window.SKIN_META, {
   },
   "astrorb_set": {
     attacks: {
-      1: { type: 'projectile', image: 'img/Proyectiles/Crystal Metor.png' },
-      2: { type: 'projectile', image: 'img/Proyectiles/Crystal Metor.png' },
-      3: { type: 'projectile', image: 'img/Proyectiles/Crystal Metor.png' }
+      1: { type: 'projectile', image: 'Recursos/img/Proyectiles/Crystal Metor.png' },
+      2: { type: 'projectile', image: 'Recursos/img/Proyectiles/Crystal Metor.png' },
+      3: { type: 'projectile', image: 'Recursos/img/Proyectiles/Crystal Metor.png' }
     }
   },
   "crystal_bombot": {
     attacks: {
-      1: { type: 'projectile', image: 'img/Proyectiles/Crystal Metor.png' }
+      1: { type: 'projectile', image: 'Recursos/img/Proyectiles/Crystal Metor.png' }
     }
   },
   "wicked_set": {
     attacks: {
-      1: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' },
-      2: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' },
-      3: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' },
-      4: { type: 'projectile', image: 'Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' }
+      1: { type: 'projectile', image: 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' },
+      2: { type: 'projectile', image: 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' },
+      3: { type: 'projectile', image: 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' },
+      4: { type: 'projectile', image: 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' }
     }
   }
 });

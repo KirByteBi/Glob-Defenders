@@ -70,17 +70,17 @@ $isLoggedIn = isset($_SESSION['user']) && $_SESSION['user'] === DEMO_USERNAME;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#16213e">
     <title>Glob Defenders - VS. Pyces</title>
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../../Vista/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="../img/GlobDefendersLogoRewamped.png">
+    <link rel="icon" type="image/png" href="../../Recursos/img/GlobDefendersLogoRewamped.png">
 </head>
 <body>
     <div id="login-screen">
         <div id="login-decorations"></div>
         <main class="login-box">
-            <img src="../img/GlobDefendersLogoRewamped.png" alt="Glob Defenders Logo" class="login-logo">
+            <img src="../../Recursos/img/GlobDefendersLogoRewamped.png" alt="Glob Defenders Logo" class="login-logo">
         <?php if ($isLoggedIn): ?>
             <div class="login-inputs">
                 <p>¡Bienvenido, <?= htmlspecialchars(DEMO_USERNAME, ENT_QUOTES, 'UTF-8') ?>!</p>
@@ -109,7 +109,7 @@ $isLoggedIn = isset($_SESSION['user']) && $_SESSION['user'] === DEMO_USERNAME;
             <div class="collab-footer">
                 <span class="collab-label">✦ Crossover Event ✦</span>
                 <a href="https://kirbytebi.github.io/Star-Jump/" target="_blank" rel="noopener noreferrer">
-                    <img src="../img/Collabs%20(SJ)/IconoStarJump.png" alt="StarJump" class="collab-logo">
+                    <img src="../../Recursos/img/Collabs%20(SJ)/IconoStarJump.png" alt="StarJump" class="collab-logo">
                 </a>
             </div>
             <div class="dev-credit">
