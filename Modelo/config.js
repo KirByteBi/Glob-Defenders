@@ -115,6 +115,12 @@ const ENEMY_TYPES = {
   // Jefes fantasma de Frosty Christmas. NOsense (Corrupto) y NOIRrupt (Anti-Normal).
   'NOsense_Pyce': { name: 'enemy_NOsense_Pyce_name', desc: 'enemy_NOsense_Pyce_desc', health: 4500, speed: 0.4, reward: 3000, image: IMAGE_PATHS.NOsense_Pyce, boss: true, mapSource: 'frosty_christmas', enemyClass: 'boss', ghost: true, paralyzeLaser: true, stunCooldown: 12, shieldRatio: 0.2 },
   'NOIRrupt_Pyce': { name: 'enemy_NOIRrupt_Pyce_name', desc: 'enemy_NOIRrupt_Pyce_desc', health: 6500, speed: 1.8, reward: 4000, image: IMAGE_PATHS.NOIRrupt_Pyce, boss: true, mapSource: 'frosty_christmas', enemyClass: 'boss', ghost: true, tripleLap: true, paralyzeLaser: true, stunCooldown: 12, shieldRatio: 0.4 },
+  // Puz & Zle (de I.D., NO son Pyces): al ser derrotados se separan en Puz y Zle.
+  'Puz_Zle': { name: 'enemy_Puz_Zle_name', desc: 'enemy_Puz_Zle_desc', health: 320, speed: 1.1, reward: 60, image: IMAGE_PATHS.Puz_Zle, mapSource: 'frosty_christmas', splitInto: ['Puz', 'Zle'] },
+  'Puz': { name: 'enemy_Puz_name', desc: 'enemy_Puz_desc', health: 120, speed: 1.4, reward: 30, image: IMAGE_PATHS.Puz, mapSource: 'frosty_christmas' },
+  'Zle': { name: 'enemy_Zle_name', desc: 'enemy_Zle_desc', health: 120, speed: 1.4, reward: 30, image: IMAGE_PATHS.Zle, mapSource: 'frosty_christmas' },
+  // Wingel Pyce: Pyce con alas; su aleteo da "suerte y felicidad" (cura) a enemigos cercanos poco tiempo.
+  'Wingel_Pyce': { name: 'enemy_Wingel_Pyce_name', desc: 'enemy_Wingel_Pyce_desc', health: 170, speed: 1.3, reward: 45, image: IMAGE_PATHS.Wingel_Pyce, mapSource: 'frosty_christmas', healer: true, healRange: 120, healAmount: 8, healCooldown: 3 },
   
   // Gambling Enemies
   'BitY1': { name: 'enemy_BitY1_name', desc: 'enemy_BitY1_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitY1, category: 'gambling' },

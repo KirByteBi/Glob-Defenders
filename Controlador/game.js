@@ -1683,13 +1683,29 @@ function ensureChristmasBossTranslations() {
       enemy_NOsense_Pyce_name: 'NOsense Pyce',
       enemy_NOsense_Pyce_desc: 'Un Pyce hecho a partir de esencia navideña y materia negra procedente de NOeye. Es un ser realmente aterrador, ya que flota como si nada y quiere acabar con la navidad que lo creó. NOeye tuvo que enfrentarse a él una vez para apartarlo de Techspawn, donde fue creado... Pero su alma ha vuelto y se ha rehecho como un auténtico fantasma aterrador.<br><br><strong>Recompensa:</strong> 3 bajas para enmarcarlo.',
       enemy_NOIRrupt_Pyce_name: 'NOIRrupt Pyce',
-      enemy_NOIRrupt_Pyce_desc: 'Esas pruebas locas del Pyce Científico Loco de Techspawn dieron sus frutos, pero no contaba con que acabaría destruyendo la navidad y raptando a Santa Pyce en el proceso. Aún peor es que se haya oscurecido del odio y rencor de NOeye, ahora pareciendo una copia fantasmal suya, lleno de lo que NOeye quiso ser y terminó aprendiendo. «El odio no es la respuesta, sino el paso para acabar con quien siempre fuiste.»<br><br><strong>Recompensa:</strong> 3 bajas para enmarcarlo.'
+      enemy_NOIRrupt_Pyce_desc: 'Esas pruebas locas del Pyce Científico Loco de Techspawn dieron sus frutos, pero no contaba con que acabaría destruyendo la navidad y raptando a Santa Pyce en el proceso. Aún peor es que se haya oscurecido del odio y rencor de NOeye, ahora pareciendo una copia fantasmal suya, lleno de lo que NOeye quiso ser y terminó aprendiendo. «El odio no es la respuesta, sino el paso para acabar con quien siempre fuiste.»<br><br><strong>Recompensa:</strong> 3 bajas para enmarcarlo.',
+      enemy_Puz_Zle_name: 'Puz & Zle',
+      enemy_Puz_Zle_desc: 'Dos hermanos venidos de I.D. que viven obsesionados con los acertijos. Puz, el mayor, es el lúdico y juguetón; Zle, el pequeño, es el matemático y calculador. Forman un dúo inseparable... pero no por mucho: al ser derrotados se separan en Puz y Zle, que siguen avanzando cada uno por su cuenta. Nada les hace más felices que dejarte un buen rompecabezas por resolver.',
+      enemy_Puz_name: 'Puz',
+      enemy_Puz_desc: 'El hermano mayor del dúo de I.D., el lúdico y juguetón. Tras separarse de Zle sigue adelante por su cuenta, convencido de que la diversión es el mejor acertijo de todos.',
+      enemy_Zle_name: 'Zle',
+      enemy_Zle_desc: 'El hermano menor del dúo de I.D., el matemático y calculador. Separado de Puz, avanza en solitario resolviendo en su cabeza cada número que se cruza en su camino.',
+      enemy_Wingel_Pyce_name: 'Wingel Pyce',
+      enemy_Wingel_Pyce_desc: 'Un Pyce con alas que ha alcanzado la forma de un ángel, aunque todavía sin halo. Los Pyces siempre soñaron con volar, y este por fin lo ha conseguido. Su aleteo reparte suerte y felicidad a su alrededor durante un breve instante.<br><br><strong>Mecánica:</strong> cura a los enemigos cercanos.'
     },
     en: {
       enemy_NOsense_Pyce_name: 'NOsense Pyce',
       enemy_NOsense_Pyce_desc: 'A Pyce made from Christmas essence and dark matter taken from NOeye. A truly terrifying being that floats effortlessly and wants to destroy the very Christmas that created it. NOeye once had to face it to drive it away from Techspawn, where it was created... But its soul has returned, reforged into a genuinely horrifying ghost.<br><br><strong>Reward:</strong> 3 kills to frame.',
       enemy_NOIRrupt_Pyce_name: 'NOIRrupt Pyce',
-      enemy_NOIRrupt_Pyce_desc: 'Those wild experiments by Techspawn\'s Mad Scientist Pyce paid off, but it never expected to end up destroying Christmas and kidnapping Santa Pyce in the process. Worse still, it has darkened with NOeye\'s hatred and resentment, now resembling a ghostly copy of him, full of everything NOeye wished to be and ultimately learned. "Hatred is not the answer, only the step toward ending who you always were."<br><br><strong>Reward:</strong> 3 kills to frame.'
+      enemy_NOIRrupt_Pyce_desc: 'Those wild experiments by Techspawn\'s Mad Scientist Pyce paid off, but it never expected to end up destroying Christmas and kidnapping Santa Pyce in the process. Worse still, it has darkened with NOeye\'s hatred and resentment, now resembling a ghostly copy of him, full of everything NOeye wished to be and ultimately learned. "Hatred is not the answer, only the step toward ending who you always were."<br><br><strong>Reward:</strong> 3 kills to frame.',
+      enemy_Puz_Zle_name: 'Puz & Zle',
+      enemy_Puz_Zle_desc: 'Two brothers from I.D. obsessed with riddles. Puz, the elder, is the playful, game-loving one; Zle, the younger, is the mathematical, calculating one. They form an inseparable duo... but not for long: when defeated they split into Puz and Zle, who each keep advancing on their own. Nothing makes them happier than leaving you a good puzzle to solve.',
+      enemy_Puz_name: 'Puz',
+      enemy_Puz_desc: 'The elder brother of the I.D. duo, the playful, game-loving one. After splitting from Zle he carries on by himself, certain that fun is the greatest puzzle of all.',
+      enemy_Zle_name: 'Zle',
+      enemy_Zle_desc: 'The younger brother of the I.D. duo, the mathematical, calculating one. Split from Puz, he advances alone, solving in his head every number that crosses his path.',
+      enemy_Wingel_Pyce_name: 'Wingel Pyce',
+      enemy_Wingel_Pyce_desc: 'A winged Pyce that has taken the form of an angel, though still without a halo. Pyces have always dreamed of flying, and this one finally can. Its wingbeat spreads luck and happiness around it for a brief moment.<br><br><strong>Mechanic:</strong> heals nearby enemies.'
     }
   };
   ['es', 'en'].forEach(lang => {
@@ -15011,7 +15027,8 @@ function activateGTack(t) {
       'Piz': 500, 'Followishers': 250, 'Creamplet': 150,
       'Festive_Pyce': 550, 'ToyBomb_Pyce': 350, 'SnowCapsule_Pyce': 350,
       'Elf_Pyce': 250, 'Giftbox_Pyce': 250,
-      'NOsense_Pyce': 3, 'NOIRrupt_Pyce': 3
+      'NOsense_Pyce': 3, 'NOIRrupt_Pyce': 3,
+      'Puz_Zle': 200, 'Puz': 250, 'Zle': 250, 'Wingel_Pyce': 250
     };
     return targets[type] || 9999;
   }
