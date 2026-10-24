@@ -373,6 +373,32 @@ body.light-mode .loading-tip-btn {
     opacity: 0.8;
 }
 
+/* Micro-reacción al hover (sin sonido): destello de brillo y opacidad.
+   Usa filter/opacity para no chocar con la animación floatAround (transform). */
+.floating-char.floating-char-nudge {
+    animation: floatingCharNudge 0.5s ease-out;
+}
+@keyframes floatingCharNudge {
+    0%   { filter: brightness(1); opacity: 0.3; }
+    40%  { filter: brightness(1.6) drop-shadow(0 0 8px rgba(255,255,255,0.7)); opacity: 0.9; }
+    100% { filter: brightness(1); opacity: 0.3; }
+}
+
+/* Partícula de reacción por familia al tocar un Glob en el login. */
+.login-family-burst {
+    position: fixed;
+    transform: translate(-50%, -50%);
+    font-size: 28px;
+    pointer-events: none;
+    z-index: 11000;
+    animation: loginFamilyBurst 0.9s ease-out forwards;
+}
+@keyframes loginFamilyBurst {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+    30%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -90%) scale(1); }
+}
+
 .halloween-jumpscare-overlay {
     position: fixed;
     inset: 0;
@@ -6308,6 +6334,59 @@ body.tablet-landscape #light-mode-toggle {
     animation: idleWobble 2.4s ease-in-out infinite;
     animation-delay: var(--idle-delay, 0s);
 }
+
+/* ===== Idles con personalidad por familia (Lote 5) =====
+   Todos conservan translate(-50%,-50%) para no descolocar la torre. */
+
+/* Voladores (familia Blanca/Rosa aerea): flotan, sin tocar el suelo. */
+@keyframes idleFloat {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0) rotate(0deg); }
+    50%      { transform: translate(-50%, -50%) translateY(-6px) rotate(1.5deg); }
+}
+.tower.idle-float { animation: idleFloat 3.2s ease-in-out infinite; animation-delay: var(--idle-delay, 0s); }
+
+/* Familia Cometa (negra): brillo lila pulsante con leve flotacion. */
+@keyframes idleGlowPurple {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0); filter: drop-shadow(0 5px 10px rgba(0,0,0,0.4)); }
+    50%      { transform: translate(-50%, -50%) translateY(-2px); filter: drop-shadow(0 0 12px rgba(155, 89, 182, 0.85)); }
+}
+.tower.idle-glow-purple { animation: idleGlowPurple 2.6s ease-in-out infinite; animation-delay: var(--idle-delay, 0s); }
+
+/* Familia Ducky (dorada): destello dorado. */
+@keyframes idleShimmer {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0); filter: drop-shadow(0 5px 10px rgba(0,0,0,0.4)); }
+    50%      { transform: translate(-50%, -50%) translateY(-3px); filter: drop-shadow(0 0 10px rgba(241, 196, 15, 0.9)); }
+}
+.tower.idle-shimmer { animation: idleShimmer 2.8s ease-in-out infinite; animation-delay: var(--idle-delay, 0s); }
+
+/* Familia Marron (plantas): se mecen de lado a lado. */
+@keyframes idleSway {
+    0%, 100% { transform: translate(-50%, -50%) rotate(-2.5deg); }
+    50%      { transform: translate(-50%, -50%) rotate(2.5deg); }
+}
+.tower.idle-sway { animation: idleSway 3s ease-in-out infinite; animation-delay: var(--idle-delay, 0s); }
+
+/* Familia Soap (azul, ralentizadora): pulso azul frio. */
+@keyframes idlePulseBlue {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 5px 10px rgba(0,0,0,0.4)); }
+    50%      { transform: translate(-50%, -50%) scale(1.04); filter: drop-shadow(0 0 10px rgba(52, 152, 219, 0.8)); }
+}
+.tower.idle-pulse-blue { animation: idlePulseBlue 2.4s ease-in-out infinite; animation-delay: var(--idle-delay, 0s); }
+
+/* Torres con base/decoracion fija (IEx, DJ/Planked): respiran sin saltar para
+   no despegarse de su decoracion. */
+@keyframes idleBobStatic {
+    0%, 100% { transform: translate(-50%, -50%) scaleX(1) scaleY(1); }
+    50%      { transform: translate(-50%, -50%) scaleX(1.02) scaleY(0.98); }
+}
+.tower.idle-bob-static { animation: idleBobStatic 2.6s ease-in-out infinite; animation-delay: var(--idle-delay, 0s); }
+
+/* Familia Gris (Old/Pyce/Spy): leve vaiven tecnologico. */
+@keyframes idleSpinSoft {
+    0%, 100% { transform: translate(-50%, -50%) rotate(0deg) translateY(0); }
+    50%      { transform: translate(-50%, -50%) rotate(-1.5deg) translateY(-2px); }
+}
+.tower.idle-spin-soft { animation: idleSpinSoft 2.9s ease-in-out infinite; animation-delay: var(--idle-delay, 0s); }
 
 .tower.attacking {
     animation: attackPulse 0.25s ease forwards !important;

@@ -113,6 +113,7 @@
         <button id="open-profile" class="meta-btn" type="button" onclick="openUserProfile()">👤 <span class="meta-btn-text">Perfil</span></button>
         <button id="open-shop" class="meta-btn">🛒 <span class="meta-btn-text">Tienda de Kirb</span></button>
         <button id="open-pass" class="meta-btn">🦆 <span class="meta-btn-text">Pass</span></button>
+        <button id="open-winter-pass" class="meta-btn" type="button" style="display:none;">❄️ <span class="meta-btn-text">Pase de Invierno</span></button>
         <button id="open-story-logs" class="meta-btn">📖 <span class="meta-btn-text">Historia y Logs</span></button>
         <button id="badges-toggle-btn" class="meta-btn" title="Logros">🏆 <span class="meta-btn-text">Logros</span></button>
     </div>
@@ -632,6 +633,31 @@
                 </div>
             </div>
             <div id="pass-rewards" class="meta-grid"></div>
+        </div>
+    </div>
+
+    <div id="winter-pass-modal" class="modal">
+        <div class="modal-content pass-content">
+            <div class="modal-header">
+                <h2 id="winter-pass-title">❄️ Pase de Invierno</h2>
+                <div class="header-btns">
+                    <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a Modos</span></button>
+                    <button class="close-btn" onclick="smartClose('winter-pass-modal')">✖</button>
+                </div>
+            </div>
+            <div id="winter-pass-closed-notice" class="pass-info" style="display:none; text-align:center;">
+                <h3 style="color:#8fd0ff;">🔒 ABRE PRÓXIMAMENTE / OPENS SOON</h3>
+            </div>
+            <div id="winter-pass-info" class="pass-info">
+                <div class="pass-level-container">
+                    <span>Nivel <span id="winter-pass-level">1</span></span>
+                    <div class="xp-bar-bg" style="width: 100%; max-width: 300px; height: 15px; background: rgba(0,0,0,0.5); border-radius: 8px; overflow: hidden; margin: 10px 0;">
+                        <div id="winter-xp-fill" class="xp-bar-fill" style="height: 100%; background: linear-gradient(90deg,#ff6f91,#8fd0ff); width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; color: #ccc;"><img src="Recursos/img/Tokens/CandyLove.png" width="16" style="vertical-align:middle;"> <span id="winter-pass-xp">0</span> / 100 XP</span>
+                </div>
+            </div>
+            <div id="winter-pass-rewards" class="meta-grid"></div>
         </div>
     </div>
 

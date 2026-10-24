@@ -120,7 +120,7 @@ const ENEMY_TYPES = {
   'Puz': { name: 'enemy_Puz_name', desc: 'enemy_Puz_desc', health: 120, speed: 1.4, reward: 30, image: IMAGE_PATHS.Puz, mapSource: 'frosty_christmas' },
   'Zle': { name: 'enemy_Zle_name', desc: 'enemy_Zle_desc', health: 120, speed: 1.4, reward: 30, image: IMAGE_PATHS.Zle, mapSource: 'frosty_christmas' },
   // Wingel Pyce: Pyce con alas; su aleteo da "suerte y felicidad" (cura) a enemigos cercanos poco tiempo.
-  'Wingel_Pyce': { name: 'enemy_Wingel_Pyce_name', desc: 'enemy_Wingel_Pyce_desc', health: 170, speed: 1.3, reward: 45, image: IMAGE_PATHS.Wingel_Pyce, mapSource: 'frosty_christmas', healer: true, healRange: 120, healAmount: 8, healCooldown: 3 },
+  'Wingel_Pyce': { name: 'enemy_Wingel_Pyce_name', desc: 'enemy_Wingel_Pyce_desc', health: 170, speed: 2.2, reward: 45, image: IMAGE_PATHS.Wingel_Pyce, mapSource: 'frosty_christmas', healer: true, healRange: 120, healAmount: 8, healCooldown: 3, stunImmune: true, poisonImmune: true, acidImmune: true, fireWeakMultiplier: 2, ghost: true, ghostMinEvolution: 2 },
   
   // Gambling Enemies
   'BitY1': { name: 'enemy_BitY1_name', desc: 'enemy_BitY1_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitY1, category: 'gambling' },
@@ -516,6 +516,18 @@ const SKINS_DATA = {
       projectiles: {
         'DJ_Glob': IMAGE_PATHS.Santa_Workshop_Gift_Projectile
       }
+    },
+    {
+      // Skin RGB de la familia Worker (naranja): usa las imagenes base
+      // (Urbanistic Road) con el efecto RGB (y Rainbow Fuel si está desbloqueado).
+      id: 'worker_rgb', name: 'skin_worker_rgb_name', desc: 'skin_worker_rgb_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Worker_Glob': IMAGE_PATHS.Worker_Glob,
+        'Police_Glob': IMAGE_PATHS.Police_Glob,
+        'Planked_Glob': IMAGE_PATHS.Planked_Glob,
+        'DJ_Glob': IMAGE_PATHS.DJ_Glob
+      },
+      rgbTypes: ['Worker_Glob', 'Police_Glob', 'Planked_Glob', 'DJ_Glob']
     }
   ],
   'Glob': [

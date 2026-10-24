@@ -73,7 +73,7 @@ const SAFE_MULTIPLAYER_CHAT_MESSAGES = {
   ]
 };
 const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set'];
-const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr', 'black_rgb_sr', 'ducky_rgb_sr'];
+const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr', 'black_rgb_sr', 'ducky_rgb_sr', 'worker_rgb', 'iex_rgb'];
 const PROFILE_ENEMY_VARIANT_GROUPS = [
   { canonical: 'BitY1', types: ['BitY1', 'BitB4', 'BitG2', 'BitP3'] },
   { canonical: 'ByteGB1', types: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'] },
@@ -1708,6 +1708,28 @@ function ensureChristmasBossTranslations() {
       enemy_Wingel_Pyce_desc: 'A winged Pyce that has taken the form of an angel, though still without a halo. Pyces have always dreamed of flying, and this one finally can. Its wingbeat spreads luck and happiness around it for a brief moment.<br><br><strong>Mechanic:</strong> heals nearby enemies.'
     }
   };
+  // Skins RGB de Worker (naranja) e IEx, y textos del Pase de Invierno.
+  const extra = {
+    es: {
+      skin_worker_rgb_name: 'RGB Naranja Secreto',
+      skin_worker_rgb_desc: 'La familia naranja (Worker) con un efecto RGB animado sobre su diseño original. Se desbloquea al reunir todas las imágenes de perfil.<br><br><span style="color:#ff69b4">Creado por KirByte_Bi</span>',
+      skin_iex_rgb_name: 'RGB Explosivo Secreto',
+      skin_iex_rgb_desc: 'La familia Instantánea Explosiva (Bomb) con un efecto RGB animado sobre su diseño original. Se desbloquea al reunir todas las imágenes de perfil.<br><br><span style="color:#ff69b4">Creado por KirByte_Bi</span>',
+      winter_pass_title: '❄️ Pase de Invierno',
+      winter_pass_opens_soon: '🔒 ABRE PRÓXIMAMENTE'
+    },
+    en: {
+      skin_worker_rgb_name: 'Orange RGB Secret',
+      skin_worker_rgb_desc: 'The orange (Worker) family with an animated RGB effect over its original design. Unlock it by collecting every profile image.<br><br><span style="color:#ff69b4">Created by KirByte_Bi</span>',
+      skin_iex_rgb_name: 'Explosive RGB Secret',
+      skin_iex_rgb_desc: 'The Instant Explosive (Bomb) family with an animated RGB effect over its original design. Unlock it by collecting every profile image.<br><br><span style="color:#ff69b4">Created by KirByte_Bi</span>',
+      winter_pass_title: '❄️ Winter Pass',
+      winter_pass_opens_soon: '🔒 OPENS SOON'
+    }
+  };
+  Object.keys(extra).forEach(lang => {
+    Object.assign(fallback[lang], extra[lang]);
+  });
   ['es', 'en'].forEach(lang => {
     if (!TRANSLATIONS[lang]) return;
     Object.entries(fallback[lang]).forEach(([key, value]) => {
@@ -2042,6 +2064,25 @@ function getFamilyCount(baseType) {
   if (!cfg) return 0;
   const family = cfg.family || baseType;
   return gameState.towers.filter(t => (t.family || t.type) === family).length;
+}
+
+// Clase de animacion idle (reposo) segun la familia/características del Glob.
+// Las torres con base o decoración fija no saltan para no despegarse de ella.
+function getTowerIdleClass(type) {
+  const family = getTowerFamily(type);
+  // Tipos con decoración/base fija: respiran sin saltar.
+  const staticTypes = new Set(['DJ_Glob', 'Planked_Glob', 'Bomb_Glob', 'TNT_Glob', 'Nuclear_Glob']);
+  if (staticTypes.has(type) || family === 'IEx') return 'idle-bob-static';
+  switch (family) {
+    case 'White':      return 'idle-float';        // voladores (globo/heli/alien)
+    case 'Pink':       return 'idle-float';         // familia rosa (flotan)
+    case 'Comet_Glob': return 'idle-glow-purple';   // familia negra/cometa
+    case 'Ducky_Glob': return 'idle-shimmer';       // familia dorada
+    case 'Brown':      return 'idle-sway';          // plantas
+    case 'Soap_Glob':  return 'idle-pulse-blue';    // azul ralentizadora
+    case 'Grey':       return 'idle-spin-soft';     // old/pyce/spy
+    default:           return 'idle-jump';          // Glob, Red y el resto
+  }
 }
 
 function getTowerFamily(type) {
@@ -2778,6 +2819,9 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.collectionMasterDialogueShown = !!progress.collectionMasterDialogueShown;
       gameState.rainbowFuelClicks = (progress.rainbowFuelClicks && typeof progress.rainbowFuelClicks === 'object') ? progress.rainbowFuelClicks : {};
       gameState.rainbowFuelUnlocked = Array.isArray(progress.rainbowFuelUnlocked) ? progress.rainbowFuelUnlocked : [];
+      gameState.winterPassXP = Number(progress.winterPassXP) || 0;
+      gameState.winterPassLevel = Number(progress.winterPassLevel) || 1;
+      gameState.winterPassClaimed = Array.isArray(progress.winterPassClaimed) ? progress.winterPassClaimed : [];
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
 
@@ -2821,6 +2865,28 @@ const HALLOWEEN_LOGIN_SKIN_IMAGES = new Set([
 function getGlobDecorationType(imagePath) {
   const type = Object.keys(IMAGE_PATHS).find(key => IMAGE_PATHS[key] === imagePath && TOWER_TYPES[key]);
   return type && getTowerFamily(type) !== 'Special' ? type : null;
+}
+
+// Reacción visual por familia al tocar un Glob en el login (tipo Angry Birds).
+// Crea un pequeño efecto (emoji flotante) en la posición del Glob según su familia.
+function spawnLoginFamilyReaction(imagePath, rect) {
+  const type = getGlobDecorationType(imagePath);
+  if (!type || !rect) return;
+  const family = getTowerFamily(type);
+  const burstByFamily = {
+    'Glob': '💚', 'Red_Glob': '🔥', 'Soap_Glob': '🫧', 'Ducky_Glob': '💰',
+    'Comet_Glob': '🟣', 'Grey': '📡', 'White': '🎈', 'Pink': '🌸',
+    'IEx': '💥', 'Worker_Glob': '🚧', 'Brown': '🌱', 'Pirate_Glob': '⚓'
+  };
+  const emoji = burstByFamily[family];
+  if (!emoji) return;
+  const particle = document.createElement('div');
+  particle.className = 'login-family-burst';
+  particle.textContent = emoji;
+  particle.style.left = `${rect.left + rect.width / 2}px`;
+  particle.style.top = `${rect.top + rect.height / 2}px`;
+  document.body.appendChild(particle);
+  setTimeout(() => particle.remove(), 900);
 }
 
 function getLoginGlobDecorationTypes() {
@@ -3069,6 +3135,17 @@ function spawnDecorations(containerId) {
       img.style.setProperty('--ty', `${ty}px`);
       img.style.animationDelay = `${Math.random() * 10}s`;
 
+      // Micro-reacción al pasar el ratón (sin sonido): el personaje "nota" el cursor.
+      img.addEventListener('mouseenter', () => {
+        if (img.dataset.launched) return;
+        img.classList.remove('floating-char-nudge');
+        void img.offsetWidth;
+        img.classList.add('floating-char-nudge');
+      });
+      img.addEventListener('animationend', event => {
+        if (event.animationName === 'floatingCharNudge') img.classList.remove('floating-char-nudge');
+      });
+
       img.onclick = () => {
         if (img.dataset.launched) return;
         img.dataset.launched = 'true';
@@ -3077,6 +3154,8 @@ function spawnDecorations(containerId) {
         if (availableGlobPaths.includes(imgPath)) clickedGlobPaths.add(imgPath);
         const isGlob = imgPath.toLowerCase().includes('glob');
         playSound(isGlob ? 'Recursos/sounds/Slurp.mp3' : 'Recursos/sounds/Bipbip.mp3');
+        // Reacción visual por familia al tocar un Glob (además del lanzamiento).
+        spawnLoginFamilyReaction(imgPath, img.getBoundingClientRect());
         if (isHalloweenLoginEnemy(imgPath)) {
           const enemyType = Object.keys(IMAGE_PATHS).find(type => IMAGE_PATHS[type] === imgPath);
           triggerHalloweenJumpscare(enemyType, null, imgPath);
@@ -8199,6 +8278,14 @@ function bindEvents() {
   const passBtn = document.getElementById('open-pass');
   if (passBtn) passBtn.onclick = () => { if (typeof openPass === 'function') openPass(); };
 
+  const winterPassBtn = document.getElementById('open-winter-pass');
+  if (winterPassBtn) {
+    // Visible durante el evento de invierno, o antes como "ABRE PRÓXIMAMENTE".
+    const showWinter = (typeof isWinterEventActive === 'function' && isWinterEventActive());
+    winterPassBtn.style.display = showWinter ? '' : 'none';
+    winterPassBtn.onclick = () => { if (typeof openWinterPass === 'function') openWinterPass(); };
+  }
+
   const storyBtn = document.getElementById('open-story-logs');
   if (storyBtn) storyBtn.onclick = () => { openStoryLogs(); };
 
@@ -8440,6 +8527,65 @@ function isWinterEventActive(date = new Date()) {
 // como "ABRE PRÓXIMAMENTE".
 function isWinterPassOpen(date = new Date()) {
   return isWinterEventActive(date);
+}
+
+// Recompensas del pase de invierno. NO está terminado: de momento solo filtros y
+// DuckPasses; estos recursos se cambiarán por skins/accesorios en el futuro.
+// Tipos: { type:'duckpass', amount } | { type:'filter', id } | (futuros: skin/accessory)
+const WINTER_PASS_REWARDS = [
+  { level: 1, reward: { type: 'duckpass', amount: 50 } },
+  { level: 2, reward: { type: 'filter', id: 'christmas' } },
+  { level: 3, reward: { type: 'duckpass', amount: 75 } },
+  { level: 4, reward: { type: 'duckpass', amount: 100 } },
+  { level: 5, reward: { type: 'filter', id: 'events' } },
+  { level: 6, reward: { type: 'duckpass', amount: 125 } },
+  { level: 7, reward: { type: 'duckpass', amount: 150 } },
+  { level: 8, reward: { type: 'duckpass', amount: 175 } },
+  { level: 9, reward: { type: 'duckpass', amount: 200 } },
+  { level: 10, reward: { type: 'duckpass', amount: 300 } }
+];
+
+// XP del pase de invierno que otorga un enemigo al morir.
+// - Enemigos navideños: bastante. - Otros Pyces/enemigos: poco.
+// - "Globs de color" (rojo/verde/amarillo/azul) no navideños: muy poco CandyLove.
+// - Jugar en el mapa navideño renta mucho más (x2).
+function getWinterPassXPForEnemy(e) {
+  if (!e || !e.type) return 0;
+  let xp = 0;
+  if (isChristmasEnemyType(e.type)) {
+    xp = e.boss ? 25 : 5;
+  } else if (isPyceEnemy(e.type)) {
+    xp = 1;
+  } else {
+    // enemigos no-Pyce: solo los "de color" dan algo, y muy poco
+    xp = 0.5;
+  }
+  if (gameState.map === 'frosty_christmas') xp *= 2;
+  return xp;
+}
+
+// Añade XP al pase de invierno y gestiona la subida de nivel (cada 100 XP).
+function addWinterPassXP(amount) {
+  if (multiplayerSpectator || !amount || amount <= 0) return;
+  if (!isWinterEventActive()) return; // solo durante el evento
+  gameState.winterPassXP = (gameState.winterPassXP || 0) + amount;
+  let leveled = false;
+  while (gameState.winterPassXP >= 100) {
+    gameState.winterPassLevel = (gameState.winterPassLevel || 1) + 1;
+    gameState.winterPassXP -= 100;
+    leveled = true;
+  }
+  if (leveled) {
+    const msg = currentLanguage === 'es'
+      ? `¡Nivel ${gameState.winterPassLevel} del Pase de Invierno!`
+      : `Winter Pass Level ${gameState.winterPassLevel}!`;
+    if (typeof showIconMessage === 'function') {
+      showIconMessage('Recursos/img/Tokens/CandyLove.png', msg, 'success');
+    } else if (typeof showMessage === 'function') {
+      showMessage(msg, 'success');
+    }
+    saveProgress();
+  }
 }
 
 function isAdventRewardLimited(reward) {
@@ -8757,6 +8903,84 @@ function openPass() {
   drawPass();
   updateMetaUI();
 }
+
+function openWinterPass() {
+  closeModal('shop-modal');
+  closeModal('pass-modal');
+  document.getElementById('winter-pass-modal').style.display = 'flex';
+  drawWinterPass();
+}
+
+function drawWinterPass() {
+  const open = isWinterPassOpen();
+  const closedNotice = document.getElementById('winter-pass-closed-notice');
+  const info = document.getElementById('winter-pass-info');
+  const container = document.getElementById('winter-pass-rewards');
+  if (closedNotice) closedNotice.style.display = open ? 'none' : 'block';
+  if (info) info.style.display = open ? 'block' : 'none';
+  if (!container) return;
+  container.innerHTML = '';
+  if (!open) return;
+
+  const level = gameState.winterPassLevel || 1;
+  const xp = gameState.winterPassXP || 0;
+  const levelEl = document.getElementById('winter-pass-level');
+  const xpEl = document.getElementById('winter-pass-xp');
+  const fillEl = document.getElementById('winter-xp-fill');
+  if (levelEl) levelEl.textContent = level;
+  if (xpEl) xpEl.textContent = xp;
+  if (fillEl) fillEl.style.width = `${Math.min(100, xp)}%`;
+
+  const claimed = Array.isArray(gameState.winterPassClaimed) ? gameState.winterPassClaimed : [];
+  WINTER_PASS_REWARDS.forEach(entry => {
+    const reached = level >= entry.level;
+    const isClaimed = claimed.includes(entry.level);
+    const el = document.createElement('div');
+    el.className = `pass-node ${reached ? 'unlocked' : 'locked'}`;
+    const r = entry.reward;
+    let rewardLabel = '';
+    if (r.type === 'duckpass') rewardLabel = `<img src="Recursos/img/Tokens/DuckPass.png" width="20"> +${r.amount}`;
+    else if (r.type === 'filter') rewardLabel = currentLanguage === 'es' ? `🔎 Filtro: ${r.id}` : `🔎 Filter: ${r.id}`;
+    let btnHTML;
+    if (isClaimed) {
+      btnHTML = `<button class="meta-buy-btn" disabled>${currentLanguage === 'es' ? 'Reclamado' : 'Claimed'}</button>`;
+    } else if (reached) {
+      btnHTML = `<button class="meta-buy-btn" onclick="claimWinterPassReward(${entry.level})">${currentLanguage === 'es' ? 'Reclamar' : 'Claim'}</button>`;
+    } else {
+      btnHTML = `<button class="meta-buy-btn" disabled>${currentLanguage === 'es' ? 'Bloqueado' : 'Locked'}</button>`;
+    }
+    el.innerHTML = `
+      <div class="pass-level-badge">LVL ${entry.level}</div>
+      <div class="pass-node-content">
+        <div style="margin:10px 0; font-weight:bold;">${rewardLabel}</div>
+        ${btnHTML}
+      </div>`;
+    container.appendChild(el);
+  });
+}
+
+function claimWinterPassReward(level) {
+  if (!isWinterPassOpen()) return;
+  if ((gameState.winterPassLevel || 1) < level) return;
+  if (!Array.isArray(gameState.winterPassClaimed)) gameState.winterPassClaimed = [];
+  if (gameState.winterPassClaimed.includes(level)) return;
+  const entry = WINTER_PASS_REWARDS.find(e => e.level === level);
+  if (!entry) return;
+  const r = entry.reward;
+  if (r.type === 'duckpass') {
+    gameState.duckPassCurrency += r.amount;
+    updateMetaUI();
+  } else if (r.type === 'filter') {
+    // Placeholder: las recompensas de filtro se registran como reclamadas.
+    // En el futuro otorgarán skins/accesorios.
+  }
+  gameState.winterPassClaimed.push(level);
+  saveProgress();
+  drawWinterPass();
+  showMessage(currentLanguage === 'es' ? 'Recompensa reclamada.' : 'Reward claimed.', 'success');
+}
+window.openWinterPass = openWinterPass;
+window.claimWinterPassReward = claimWinterPassReward;
 
 function closeModal(id) {
   const el = document.getElementById(id);
@@ -11244,7 +11468,7 @@ function placeTower(spotId, type) {
 
   const el = document.createElement('div');
   const towerFamily = tCfg.family || type;
-  const idleClass = 'idle-jump';
+  const idleClass = getTowerIdleClass(type);
   el.className = `tower ${idleClass}`; el.style.left = `${spot.x}px`; el.style.top = `${spot.y}px`;
   el.style.setProperty('--idle-delay', `${-(Math.random() * 1.5).toFixed(2)}s`);
   el.style.backgroundImage = `url('${encodeURI(getTowerImage(type))}')`;
@@ -12785,7 +13009,7 @@ function activateGTack(t) {
       let tower = gameState.towers.find(item => Number(item.spotId) === spotId);
       if (!tower) {
         const el = document.createElement('div');
-        el.className = 'tower idle-jump';
+        el.className = `tower ${getTowerIdleClass(towerState.type)}`;
         el.style.setProperty('--idle-delay', '0s');
         el.onerror = function () {
           el.style.backgroundColor = '#9b59b6';
@@ -14145,15 +14369,17 @@ function activateGTack(t) {
             // Trigger attack animation on the tower element
             const performsAttack = !t.isSummoner || !t.summonCooldown || t.summonCooldown <= 0;
             if (t.el && performsAttack) {
-              const wasJump = t.el.classList.contains('idle-jump');
-              const wasWobble = t.el.classList.contains('idle-wobble');
-              t.el.classList.remove('idle-jump', 'idle-wobble');
+              // Guardar el idle actual (cualquiera de los nuevos) para restaurarlo
+              // tras la animación de ataque.
+              const idleClasses = ['idle-jump', 'idle-wobble', 'idle-float', 'idle-glow-purple',
+                'idle-shimmer', 'idle-sway', 'idle-pulse-blue', 'idle-bob-static', 'idle-spin-soft'];
+              const prevIdle = idleClasses.find(cls => t.el.classList.contains(cls));
+              t.el.classList.remove(...idleClasses);
               t.el.classList.add('attacking');
               setTimeout(() => {
                 if (t.el) {
                   t.el.classList.remove('attacking');
-                  if (wasJump) t.el.classList.add('idle-jump');
-                  else if (wasWobble) t.el.classList.add('idle-wobble');
+                  if (prevIdle) t.el.classList.add(prevIdle);
                 }
               }, 260);
             }
@@ -15326,6 +15552,10 @@ function activateGTack(t) {
     gameState.enemies.splice(idx, 1);
     const previousKills = gameState.pycesKilled[e.type] || 0;
     gameState.pycesKilled[e.type] = previousKills + 1;
+    // Pase de invierno: ganar XP al derrotar enemigos (solo durante el evento).
+    if (typeof addWinterPassXP === 'function') {
+      addWinterPassXP(getWinterPassXPForEnemy(e));
+    }
     const frameTarget = getPyceKillTarget(e.type);
     if (previousKills < frameTarget && gameState.pycesKilled[e.type] >= frameTarget) {
       showEncyclopediaPopup({ ...e, key: e.type });
@@ -15704,6 +15934,8 @@ function activateGTack(t) {
     const cfg = TOWER_TYPES[type];
     el.style.backgroundImage = getTowerBackgroundImage(type);
     el.className = 'tower';
+    // Conservar el idle de reposo correspondiente al tipo tras resetear clases.
+    el.classList.add(getTowerIdleClass(type));
     const globalSkin = gameState.equippedSkins['Global'];
     if (globalSkin !== 'default') {
       const data = SKINS_DATA['Global'].find(s => s.id === globalSkin);
@@ -15718,24 +15950,16 @@ function activateGTack(t) {
     const skinSet = SKINS_DATA[family]?.find(skin => skin.id === equippedSkin);
     const rainbowFuelUnlocked = Array.isArray(gameState.rainbowFuelUnlocked) &&
       gameState.rainbowFuelUnlocked.includes(family);
-    // Familias Rewamp: el efecto se activa al equipar su skin RGB.
-    const hasRewampRgbSkin = skinSet?.rgbTypes?.includes(type) &&
+    // El efecto se activa al equipar la skin RGB de la familia. Si la familia
+    // tiene Rainbow Fuel desbloqueado, se muestra el arcoiris pleno en su lugar.
+    // Cubre tanto las familias Rewamp como Worker (naranja) e IEx (sus skins RGB
+    // usan las imagenes base de Urbanistic Road).
+    const hasRgbSkin = skinSet?.rgbTypes?.includes(type) &&
       RGB_REWAMP_SKIN_IDS.includes(equippedSkin);
-    // Familias sin skin Rewamp (Worker naranja / IEx): el efecto cubre toda la
-    // familia y se controla por la skin especial equipada ('rgb'/'rainbow_fuel').
-    const noRewampFamily = family === 'Worker_Glob' || family === 'IEx';
-    const noRewampEffect = noRewampFamily
-      ? (equippedSkin === 'rainbow_fuel' ? 'rainbow-fuel'
-        : equippedSkin === 'rgb' ? 'rgb-rewamp'
-        : '')
-      : '';
 
     let rgbEffect = '';
-    if (globalSkin !== 'pyce_morph' && hasRewampRgbSkin) {
+    if (globalSkin !== 'pyce_morph' && hasRgbSkin) {
       rgbEffect = rainbowFuelUnlocked ? 'rainbow-fuel' : 'rgb-rewamp';
-    } else if (noRewampEffect) {
-      // No permitir rainbow-fuel si la familia no lo tiene desbloqueado.
-      rgbEffect = (noRewampEffect === 'rainbow-fuel' && !rainbowFuelUnlocked) ? 'rgb-rewamp' : noRewampEffect;
     }
 
     if (rgbEffect === 'rainbow-fuel') {
