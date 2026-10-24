@@ -265,7 +265,7 @@ const TRANSLATIONS = {
     enemy_Sneekmy_name: "Sneekmy",
     enemy_Sneekmy_desc: "Un fantasma oscuro con vendas que lo hacen parecer una momia. Está constantemente huyendo de algo, como si no supiera dónde está su casa... Puede ser que su hogar se haya perdido en el pasado.",
     enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
-    enemy_SkeleBone_Pyce_desc: "Una mejora de la mejora Pyce de Noob Pyce, siguiendo la línea de las versiones mejoradas de Noob y Guest Pyce vistas en Urbanistic Road. Está hecho de huesos encontrados en el desierto y parece simpático con esa mirada y esos zapatos, pero no te confíes: puede lanzarte uno de sus huesos en un visto y no visto. Como los demás Pyces, es feliz de existir y leal, aunque no sea un ordenador convencional... ¿Verdad?",
+    enemy_SkeleBone_Pyce_desc: "Está hecho de huesos encontrados en el desierto y parece simpático con esa mirada y esos zapatos, pero no te confíes: puede lanzarte uno de sus huesos en un visto y no visto. Como los demás Pyces, es feliz de existir y leal, aunque no sea un ordenador convencional... ¿Verdad?",
     enemy_Curse_Boneker_name: "Curse Boneker",
     enemy_Curse_Boneker_desc: "Entre el cielo y el infierno hay almas que no pertenecen a ninguno de los dos. Curse Boneker las encuentra, las elige y las encierra en la pirámide a la que sirve, convencido de que así les ahorra el tormento de vagar sin destino. Lo sabe porque él también fue una de ellas: murió desorientado en el desierto, caminando en círculos hasta olvidar qué era el horizonte. Ahora la pirámide es su brújula y su prisión. Cuando lanza sus huesos malditos, no apunta a destruir tus torres, sino a silenciarlas el tiempo suficiente para que ninguna pueda guiar a esas almas de vuelta a casa.",
     enemy_Ghost_Pyce_name: "Ghost Pyce",
@@ -1072,7 +1072,7 @@ const TRANSLATIONS = {
     enemy_RIPslide_name: "RIPslide",
     enemy_RIPslide_desc: "A zombie tomb that slides like a penguin on ice. It loves scaring people with its fake \"RIP\", which is actually its eyes and nose. It is not very useful in battle, though it is fast, Kirb assures us.",
     enemy_SkeleBone_Pyce_name: "SkeleBone Pyce",
-    enemy_SkeleBone_Pyce_desc: "An upgrade of Noob Pyce's upgraded Pyce form, following the same line as the improved Noob and Guest Pyces seen in Urbanistic Road. Made from bones found in the desert, it looks friendly with that gaze and those shoes, but do not be fooled: it can throw a bone in the blink of an eye. Like the other Pyces, it is happy to exist and loyal, even if it is not a conventional computer... right?",
+    enemy_SkeleBone_Pyce_desc: "Made from bones found in the desert, it looks friendly with that gaze and those shoes, but do not be fooled: it can throw a bone in the blink of an eye. Like the other Pyces, it is happy to exist and loyal, even if it is not a conventional computer... right?",
     enemy_Curse_Boneker_name: "Curse Boneker",
     enemy_Curse_Boneker_desc: "Between Heaven and Hell, some souls belong to neither. Curse Boneker finds them, chooses them, and seals them inside the pyramid he serves, certain that he is sparing them an eternity of aimless wandering. He knows that limbo well: he was one of those lost souls himself. He died disoriented in the desert, walking in circles until he could no longer tell the horizon from the sand beneath his feet. Now the pyramid is both his compass and his prison. When he hurls his cursed bones, he is not trying to destroy your towers—only to silence them long enough to keep them from guiding those souls home.",
 

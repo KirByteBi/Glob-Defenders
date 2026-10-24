@@ -8892,6 +8892,8 @@ function openAdventCalendar() {
   const modal = document.getElementById('advent-calendar-modal');
   if (!modal) return;
   modal.style.display = 'flex';
+  const winterBtn = document.getElementById('advent-to-winter-pass');
+  if (winterBtn) winterBtn.style.display = (typeof isWinterEventActive === 'function' && isWinterEventActive()) ? '' : 'none';
   renderAdventCalendar();
 }
 
@@ -8900,6 +8902,8 @@ window.openAdventCalendar = openAdventCalendar;
 function openPass() {
   closeModal('shop-modal');
   document.getElementById('pass-modal').style.display = 'flex';
+  const winterBtn = document.getElementById('duckpass-to-winter');
+  if (winterBtn) winterBtn.style.display = (typeof isWinterEventActive === 'function' && isWinterEventActive()) ? '' : 'none';
   drawPass();
   updateMetaUI();
 }
@@ -12411,14 +12415,14 @@ function activateGTack(t) {
         spooktacular_ruins: {
           regular: ['Broksp', 'RIPslide', 'ZomPyce'],
           medium: ['Blood_Taker', 'Pumpitch', 'Sneekmy', 'Ghost_Pyce', 'SkeleBone_Pyce'],
-          hard: ['Pumpitch', 'Blood_Taker', 'Ghost_Pyce', 'SkeleBone_Pyce'],
+          hard: ['Pumpitch', 'Ghost_Pyce'],
           special: ['SkeleBone_Pyce', 'Ghost_Pyce']
         },
         frosty_christmas: {
           regular: ['Festive_Pyce'],
-          medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce'],
-          hard: ['Giftbox_Pyce'],
-          special: ['ToyBomb_Pyce', 'Giftbox_Pyce']
+          medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Wingel_Pyce', 'Puz', 'Zle'],
+          hard: ['Giftbox_Pyce', 'Puz_Zle'],
+          special: ['ToyBomb_Pyce', 'Giftbox_Pyce', 'Puz_Zle', 'Wingel_Pyce']
         }
       };
 
@@ -16846,6 +16850,20 @@ function activateGTack(t) {
     } else if (currentStoryTab === 'logs') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
+        <h3 style="color:#ff6f91;">📋 Historial de Actualizaciones (GlD V6.1-0 — Frosty Calendar · GlD Christmas PART 1)</h3>
+        <p style="color:#8fd0ff;">¡Comienza la primera parte del evento de invierno! Del 1 de noviembre al 8 de enero, el frío trae nuevos jefes, enemigos, efectos y un Pase de Invierno con sus propias recompensas.</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>❄️ <strong style="color:#8fd0ff;">Pase de Invierno</strong>: Un pase nuevo con su propia XP (CandyLove). Gánala derrotando Pyces y enemigos navideños; el mapa <strong>Frosty Christmas</strong> renta el doble. Recompensas de momento: filtros y Duckpasses (se ampliarán con skins y accesorios). Acceso desde el botón <strong>Pase de Invierno</strong>, desde el <strong>Duck Pass</strong> y desde el <strong>Calendario de Adviento</strong>. Antes de noviembre se muestra como "ABRE PRÓXIMAMENTE".</li>
+          <li>👻 <strong style="color:#ff6f91;">Jefes fantasma</strong>: <strong>NOsense Pyce</strong> (jefe de Corrupto) y <strong>NOIRrupt Pyce</strong> (jefe de Anti-Normal), creados a partir del odio de NOeye. NOIRrupt es velocísimo y da 3 vueltas al mapa antes de atacar la base. En estos modos, NOeye actúa como guía aliado. 3 bajas para enmarcarlos.</li>
+          <li>🎁 <strong>Nuevos enemigos</strong>: <strong>Wingel Pyce</strong> (Pyce alado veloz, inmune a parálisis, veneno y ácido, pero débil al fuego, y difícil de alcanzar al volar) y <strong>Puz & Zle</strong> (dúo de I.D. que se separa al ser derrotado).</li>
+          <li>🌈 <strong>Efecto RGB renovado + RAINBOW FUEL</strong>: El RGB ahora recorre la imagen de izquierda a derecha. Consigue el <strong>Rainbow Fuel</strong> (arcoíris pleno) tocando 100 Globs de una familia en el login. Disponible también para las familias Naranja (Worker) e IEx (Bomb), que estrenan su skin RGB.</li>
+          <li>💬 <strong>Diálogos con personalidad</strong>: Fondos de diálogo propios para enemigos navideños (candy/nevado) y para hablantes oscuros (negro, lila y niebla).</li>
+          <li>✨ <strong>Vida en reposo</strong>: Los Globs ahora tienen animaciones idle según su familia (flotar, brillar, mecerse...), y en el login reaccionan al pasar el ratón y al tocarlos.</li>
+          <li>🖼️ <strong>Experiencia navideña</strong>: Nuevo icono de XP <strong>CandyLove</strong> durante el evento. El contenido navideño permanece disponible hasta el 8 de enero.</li>
+        </ul>
+        <button type="button" class="advent-entry-btn" onclick="openWinterPass()">❄️ Abrir Pase de Invierno</button>
+
         <h3 style="color:#69e5ff;">📋 Historial de Actualizaciones (GlD v6.0.0 — Frozen Calendar Christmas)</h3>
         <p style="color:#80edb0;">¡Llega el Calendario de Adviento! Del 1 al 25 de diciembre, supera cualquier mapa para reclamar el premio de ese día: PyCoins, Duckpasses, XP, accesorios y el set SnowGlob. Los días omitidos se recuperan con Duckpasses; el primero cuesta 637 y cada recuperación posterior añade 100. Si el reloj retrocede, los premios pendientes pasan a ser de pago. Esta comprobación local es disuasoria, no una validación segura del servidor.</p>
         <button type="button" class="advent-entry-btn" onclick="openAdventCalendar()">🎄 Abrir Calendario de Adviento</button>

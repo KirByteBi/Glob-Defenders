@@ -115,12 +115,12 @@ const ENEMY_TYPES = {
   // Jefes fantasma de Frosty Christmas. NOsense (Corrupto) y NOIRrupt (Anti-Normal).
   'NOsense_Pyce': { name: 'enemy_NOsense_Pyce_name', desc: 'enemy_NOsense_Pyce_desc', health: 4500, speed: 0.4, reward: 3000, image: IMAGE_PATHS.NOsense_Pyce, boss: true, mapSource: 'frosty_christmas', enemyClass: 'boss', ghost: true, paralyzeLaser: true, stunCooldown: 12, shieldRatio: 0.2 },
   'NOIRrupt_Pyce': { name: 'enemy_NOIRrupt_Pyce_name', desc: 'enemy_NOIRrupt_Pyce_desc', health: 6500, speed: 1.8, reward: 4000, image: IMAGE_PATHS.NOIRrupt_Pyce, boss: true, mapSource: 'frosty_christmas', enemyClass: 'boss', ghost: true, tripleLap: true, paralyzeLaser: true, stunCooldown: 12, shieldRatio: 0.4 },
-  // Puz & Zle (de I.D., NO son Pyces): al ser derrotados se separan en Puz y Zle.
-  'Puz_Zle': { name: 'enemy_Puz_Zle_name', desc: 'enemy_Puz_Zle_desc', health: 320, speed: 1.1, reward: 60, image: IMAGE_PATHS.Puz_Zle, mapSource: 'frosty_christmas', splitInto: ['Puz', 'Zle'] },
-  'Puz': { name: 'enemy_Puz_name', desc: 'enemy_Puz_desc', health: 120, speed: 1.4, reward: 30, image: IMAGE_PATHS.Puz, mapSource: 'frosty_christmas' },
-  'Zle': { name: 'enemy_Zle_name', desc: 'enemy_Zle_desc', health: 120, speed: 1.4, reward: 30, image: IMAGE_PATHS.Zle, mapSource: 'frosty_christmas' },
-  // Wingel Pyce: Pyce con alas; su aleteo da "suerte y felicidad" (cura) a enemigos cercanos poco tiempo.
-  'Wingel_Pyce': { name: 'enemy_Wingel_Pyce_name', desc: 'enemy_Wingel_Pyce_desc', health: 170, speed: 2.2, reward: 45, image: IMAGE_PATHS.Wingel_Pyce, mapSource: 'frosty_christmas', healer: true, healRange: 120, healAmount: 8, healCooldown: 3, stunImmune: true, poisonImmune: true, acidImmune: true, fireWeakMultiplier: 2, ghost: true, ghostMinEvolution: 2 },
+  // Puz & Zle (de I.D., NO son Pyces): TANQUE que al ser derrotado se separa en Puz y Zle (medios).
+  'Puz_Zle': { name: 'enemy_Puz_Zle_name', desc: 'enemy_Puz_Zle_desc', health: 600, speed: 0.85, reward: 70, image: IMAGE_PATHS.Puz_Zle, mapSource: 'frosty_christmas', enemyClass: 'tank', splitInto: ['Puz', 'Zle'] },
+  'Puz': { name: 'enemy_Puz_name', desc: 'enemy_Puz_desc', health: 150, speed: 1.4, reward: 30, image: IMAGE_PATHS.Puz, mapSource: 'frosty_christmas', enemyClass: 'medium' },
+  'Zle': { name: 'enemy_Zle_name', desc: 'enemy_Zle_desc', health: 150, speed: 1.4, reward: 30, image: IMAGE_PATHS.Zle, mapSource: 'frosty_christmas', enemyClass: 'medium' },
+  // Wingel Pyce: Pyce alado (enemigo MEDIO); su aleteo da "suerte y felicidad" (cura) a enemigos cercanos poco tiempo.
+  'Wingel_Pyce': { name: 'enemy_Wingel_Pyce_name', desc: 'enemy_Wingel_Pyce_desc', health: 170, speed: 2.2, reward: 45, image: IMAGE_PATHS.Wingel_Pyce, mapSource: 'frosty_christmas', enemyClass: 'medium', healer: true, healRange: 120, healAmount: 8, healCooldown: 3, stunImmune: true, poisonImmune: true, acidImmune: true, fireWeakMultiplier: 2, ghost: true, ghostMinEvolution: 2 },
   
   // Gambling Enemies
   'BitY1': { name: 'enemy_BitY1_name', desc: 'enemy_BitY1_desc', health: 3, speed: 1.5, reward: 5, image: IMAGE_PATHS.BitY1, category: 'gambling' },
@@ -186,11 +186,11 @@ const ENEMY_TYPES = {
   'Bushi_Brella': { name: 'enemy_Bushi_Brella_name', desc: 'enemy_Bushi_Brella_desc', health: 400, speed: 1.8, reward: 500, image: IMAGE_PATHS.Bushi_Brella, mimic: true, mapSource: 'sunlight_seaside' },
 
   'Broksp': { name: 'enemy_Broksp_name', desc: 'enemy_Broksp_desc', health: 90, speed: 1.2, reward: 20, image: IMAGE_PATHS.Broksp, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
-  'Blood_Taker': { name: 'enemy_Blood_Taker_name', desc: 'enemy_Blood_Taker_desc', health: 220, speed: 1.0, reward: 45, image: IMAGE_PATHS.Blood_Taker, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
+  'Blood_Taker': { name: 'enemy_Blood_Taker_name', desc: 'enemy_Blood_Taker_desc', health: 220, speed: 1.0, reward: 45, image: IMAGE_PATHS.Blood_Taker, mapSource: 'spooktacular_ruins', enemyClass: 'medium' },
   'Pumpitch': { name: 'enemy_Pumpitch_name', desc: 'enemy_Pumpitch_desc', health: 150, speed: 1.0, reward: 35, image: IMAGE_PATHS.Pumpitch, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
   'RIPslide': { name: 'enemy_RIPslide_name', desc: 'enemy_RIPslide_desc', health: 70, speed: 3.0, reward: 25, image: IMAGE_PATHS.RIPslide, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
   'Sneekmy': { name: 'enemy_Sneekmy_name', desc: 'enemy_Sneekmy_desc', health: 120, speed: 2.5, reward: 35, image: IMAGE_PATHS.Sneekmy, mapSource: 'spooktacular_ruins', enemyClass: 'melee', ghost: true, ghostMinEvolution: 3 },
-  'SkeleBone_Pyce': { name: 'enemy_SkeleBone_Pyce_name', desc: 'enemy_SkeleBone_Pyce_desc', health: 110, speed: 1.4, reward: 30, image: IMAGE_PATHS.SkeleBone_Pyce, projectile: 'bone', shooter: true, mapSource: 'spooktacular_ruins', enemyClass: 'shooter' },
+  'SkeleBone_Pyce': { name: 'enemy_SkeleBone_Pyce_name', desc: 'enemy_SkeleBone_Pyce_desc', health: 110, speed: 1.4, reward: 30, image: IMAGE_PATHS.SkeleBone_Pyce, projectile: 'bone', shooter: true, mapSource: 'spooktacular_ruins', enemyClass: 'medium' },
   'Curse_Boneker': { name: 'enemy_Curse_Boneker_name', desc: 'enemy_Curse_Boneker_desc', health: 7000, speed: 0.3, reward: 5000, image: IMAGE_PATHS.Curse_Boneker, boss: true, mapSource: 'spooktacular_ruins', enemyClass: 'boss' },
   'Ghost_Pyce': { name: 'enemy_Ghost_Pyce_name', desc: 'enemy_Ghost_Pyce_desc', health: 260, speed: 2.6, reward: 60, image: IMAGE_PATHS.Ghost_Pyce, mapSource: 'spooktacular_ruins', enemyClass: 'melee', ghost: true, ghostMinEvolution: 3 },
   'ZomPyce': { name: 'enemy_ZomPyce_name', desc: 'enemy_ZomPyce_desc', health: 55, speed: 1.1, reward: 18, image: IMAGE_PATHS.ZomPyce, mapSource: 'spooktacular_ruins', enemyClass: 'melee' },
@@ -225,12 +225,12 @@ const ENEMY_BALANCE = {
   spooktacular_ruins: {
     basic: ['Broksp', 'RIPslide', 'ZomPyce'],
     medium: ['Pumpitch', 'Blood_Taker', 'Sneekmy', 'Ghost_Pyce', 'SkeleBone_Pyce'],
-    tank: ['Pumpitch', 'Blood_Taker', 'Ghost_Pyce', 'SkeleBone_Pyce']
+    tank: ['Pumpitch', 'Ghost_Pyce']
   },
   frosty_christmas: {
     basic: ['Festive_Pyce'],
-    medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce'],
-    tank: ['Giftbox_Pyce']
+    medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Wingel_Pyce', 'Puz', 'Zle'],
+    tank: ['Giftbox_Pyce', 'Puz_Zle']
   }
 };
 
@@ -860,6 +860,17 @@ const SKINS_DATA = {
         'TNT_Glob': 'Diamore Glob',
         'Nuclear_Glob': 'Fracstral Glob'
       }
+    },
+    {
+      // Skin RGB de la familia IEx: usa las imagenes base (Urbanistic Road) con
+      // el efecto RGB (y Rainbow Fuel si la familia lo tiene desbloqueado).
+      id: 'iex_rgb', name: 'skin_iex_rgb_name', desc: 'skin_iex_rgb_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Bomb_Glob': IMAGE_PATHS.Bomb_Glob,
+        'TNT_Glob': IMAGE_PATHS.TNT_Glob,
+        'Nuclear_Glob': IMAGE_PATHS.Nuclear_Glob
+      },
+      rgbTypes: ['Bomb_Glob', 'TNT_Glob', 'Nuclear_Glob']
     }
   ],
   'Special': [
