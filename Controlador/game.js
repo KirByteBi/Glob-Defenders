@@ -1691,7 +1691,7 @@ function ensureChristmasBossTranslations() {
       enemy_Zle_name: 'Zle',
       enemy_Zle_desc: 'El hermano menor del dúo de I.D., el matemático y calculador. Separado de Puz, avanza en solitario resolviendo en su cabeza cada número que se cruza en su camino.',
       enemy_Wingel_Pyce_name: 'Wingel Pyce',
-      enemy_Wingel_Pyce_desc: 'Un Pyce con alas que ha alcanzado la forma de un ángel, aunque todavía sin halo. Los Pyces siempre soñaron con volar, y este por fin lo ha conseguido. Su aleteo reparte suerte y felicidad a su alrededor durante un breve instante.<br><br><strong>Mecánica:</strong> cura a los enemigos cercanos.'
+      enemy_Wingel_Pyce_desc: 'Un Pyce con alas que ha alcanzado la forma de un ángel, aunque todavía sin halo. Los Pyces siempre soñaron con volar, y este por fin lo ha conseguido. Es veloz y, al surcar los cielos, algunas torres ni siquiera llegan a alcanzarlo. Su aleteo reparte suerte y felicidad a su alrededor durante un breve instante.<br><br><strong>Mecánica:</strong> cura a los enemigos cercanos. Inmune a parálisis, veneno y ácido, pero débil ante el fuego.'
     },
     en: {
       enemy_NOsense_Pyce_name: 'NOsense Pyce',
@@ -1705,7 +1705,7 @@ function ensureChristmasBossTranslations() {
       enemy_Zle_name: 'Zle',
       enemy_Zle_desc: 'The younger brother of the I.D. duo, the mathematical, calculating one. Split from Puz, he advances alone, solving in his head every number that crosses his path.',
       enemy_Wingel_Pyce_name: 'Wingel Pyce',
-      enemy_Wingel_Pyce_desc: 'A winged Pyce that has taken the form of an angel, though still without a halo. Pyces have always dreamed of flying, and this one finally can. Its wingbeat spreads luck and happiness around it for a brief moment.<br><br><strong>Mechanic:</strong> heals nearby enemies.'
+      enemy_Wingel_Pyce_desc: 'A winged Pyce that has taken the form of an angel, though still without a halo. Pyces have always dreamed of flying, and this one finally can. It is fast, and as it soars some towers cannot even reach it. Its wingbeat spreads luck and happiness around it for a brief moment.<br><br><strong>Mechanic:</strong> heals nearby enemies. Immune to stun, poison and acid, but weak to fire.'
     }
   };
   // Skins RGB de Worker (naranja) e IEx, y textos del Pase de Invierno.
@@ -13808,6 +13808,7 @@ function activateGTack(t) {
           unlockBadge('epicEffects');
         }
 
+        if (e.acidImmune) e.toxicTimer = 0;
         if (e.toxicTimer && e.toxicTimer > 0) {
           e.toxicTimer -= dt;
           const dmg = 25 * dt;
