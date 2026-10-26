@@ -11969,7 +11969,7 @@ function activateGTack(t) {
         bosses: ['Curse_Boneker']
       },
       frosty_christmas: {
-        enemies: ['Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
+        enemies: ['Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce', 'Creamplet', 'Bomb_Pyce', 'Cannon_Pycer'],
         bosses: []
       }
     };
@@ -12435,9 +12435,9 @@ function activateGTack(t) {
         },
         frosty_christmas: {
           regular: ['Festive_Pyce'],
-          medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Wingel_Pyce', 'Puz', 'Zle'],
-          hard: ['Giftbox_Pyce', 'Puz_Zle'],
-          special: ['ToyBomb_Pyce', 'Giftbox_Pyce', 'Puz_Zle', 'Wingel_Pyce']
+          medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Wingel_Pyce', 'Puz', 'Zle', 'Bomb_Pyce'],
+          hard: ['Giftbox_Pyce', 'Puz_Zle', 'Cannon_Pycer', 'Creamplet'],
+          special: ['ToyBomb_Pyce', 'Giftbox_Pyce', 'Puz_Zle', 'Wingel_Pyce', 'Creamplet']
         }
       };
 
@@ -12776,8 +12776,9 @@ function activateGTack(t) {
       } else if (gameState.map === 'frosty_christmas') {
         if (wave >= 1) pool.push('Festive_Pyce');
         if (wave >= 3) pool.push('Elf_Pyce', 'SnowCapsule_Pyce');
-        if (wave >= 5) pool.push('ToyBomb_Pyce');
-        if (wave >= 7) pool.push('Giftbox_Pyce');
+        if (wave >= 5) pool.push('ToyBomb_Pyce', 'Bomb_Pyce');
+        if (wave >= 7) pool.push('Giftbox_Pyce', 'Creamplet');
+        if (wave >= 9) pool.push('Cannon_Pycer');
       }
       type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
     }

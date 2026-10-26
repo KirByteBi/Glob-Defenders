@@ -177,7 +177,7 @@ const ENEMY_TYPES = {
   // Nuevos enemigos de Sunlight Seaside
   'Piz': { name: 'enemy_Piz_name', desc: 'enemy_Piz_desc', health: 180, speed: 2.0, reward: 40, image: IMAGE_PATHS.Piz, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
   'Followishers': { name: 'enemy_Followishers_name', desc: 'enemy_Followishers_desc', health: 350, speed: 1.3, reward: 80, image: IMAGE_PATHS.Followishers, mapSource: 'sunlight_seaside', enemyClass: 'tank' },
-  'Creamplet': { name: 'enemy_Creamplet_name', desc: 'enemy_Creamplet_desc', health: 90, speed: 1.4, reward: 25, image: IMAGE_PATHS.Creamplet, mapSource: 'sunlight_seaside', enemyClass: 'melee' },
+  'Creamplet': { name: 'enemy_Creamplet_name', desc: 'enemy_Creamplet_desc', health: 90, speed: 1.4, reward: 25, image: IMAGE_PATHS.Creamplet, mapSource: 'sunlight_seaside', enemyClass: 'tank', fireWeakMultiplier: 2, stunImmune: true, ghost: true },
 
   // Leafy Beach Party Bosses & Enemies
   'PhantKeeper': { name: 'enemy_PhantKeeper_name', desc: 'enemy_PhantKeeper_desc', health: 3000, speed: 0.3, reward: 2000, image: IMAGE_PATHS.PhantKeeper, boss: true, mechanic_key: 'mechanic_boss', honeySlow: true, mapSource: 'sunlight_seaside' },
@@ -219,8 +219,8 @@ const ENEMY_BALANCE = {
   },
   sunlight_seaside: {
     basic: ['Piz', 'Baby_Shrum', 'Ren', 'Pysh'],
-    medium: ['Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Umbrella_Pyce', 'Creamplet'],
-    tank: ['Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers']
+    medium: ['Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Umbrella_Pyce'],
+    tank: ['Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers', 'Creamplet']
   },
   spooktacular_ruins: {
     basic: ['Broksp', 'RIPslide', 'ZomPyce'],
@@ -229,8 +229,8 @@ const ENEMY_BALANCE = {
   },
   frosty_christmas: {
     basic: ['Festive_Pyce'],
-    medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Wingel_Pyce', 'Puz', 'Zle'],
-    tank: ['Giftbox_Pyce', 'Puz_Zle']
+    medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Wingel_Pyce', 'Puz', 'Zle', 'Bomb_Pyce'],
+    tank: ['Giftbox_Pyce', 'Puz_Zle', 'Cannon_Pycer', 'Creamplet']
   }
 };
 
