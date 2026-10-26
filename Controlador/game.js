@@ -72,8 +72,8 @@ const SAFE_MULTIPLAYER_CHAT_MESSAGES = {
     'GG, that was a great match!'
   ]
 };
-const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set'];
-const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr', 'black_rgb_sr', 'ducky_rgb_sr', 'worker_rgb', 'iex_rgb'];
+const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set', 'rewamped_gray_set'];
+const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr', 'black_rgb_sr', 'ducky_rgb_sr', 'worker_rgb', 'iex_rgb', 'gray_rgb_sr'];
 const PROFILE_ENEMY_VARIANT_GROUPS = [
   { canonical: 'BitY1', types: ['BitY1', 'BitB4', 'BitG2', 'BitP3'] },
   { canonical: 'ByteGB1', types: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'] },
@@ -8538,10 +8538,10 @@ const WINTER_PASS_REWARDS = [
   { level: 3, reward: { type: 'duckpass', amount: 75 } },
   { level: 4, reward: { type: 'duckpass', amount: 100 } },
   { level: 5, reward: { type: 'filter', id: 'events' } },
-  { level: 6, reward: { type: 'duckpass', amount: 125 } },
+  { level: 6, reward: { type: 'skin', id: 'rewamped_gray_set' } },
   { level: 7, reward: { type: 'duckpass', amount: 150 } },
   { level: 8, reward: { type: 'duckpass', amount: 175 } },
-  { level: 9, reward: { type: 'duckpass', amount: 200 } },
+  { level: 9, reward: { type: 'skin', id: 'toy_glomb_set' } },
   { level: 10, reward: { type: 'duckpass', amount: 300 } }
 ];
 
@@ -8945,6 +8945,14 @@ function drawWinterPass() {
     let rewardLabel = '';
     if (r.type === 'duckpass') rewardLabel = `<img src="Recursos/img/Tokens/DuckPass.png" width="20"> +${r.amount}`;
     else if (r.type === 'filter') rewardLabel = currentLanguage === 'es' ? `🔎 Filtro: ${r.id}` : `🔎 Filter: ${r.id}`;
+    else if (r.type === 'skin') {
+      const skin = Object.values(SKINS_DATA).flat().find(s => s.id === r.id);
+      const skinImg = skin ? Object.values(skin.skins)[0] : null;
+      const skinName = skin ? translate(skin.name) : r.id;
+      rewardLabel = skinImg
+        ? `<img src="${encodeURI(skinImg)}" width="42" style="object-fit:contain;"><div style="font-size:0.72rem; margin-top:4px;">${skinName}</div>`
+        : `🎨 ${skinName}`;
+    }
     let btnHTML;
     if (isClaimed) {
       btnHTML = `<button class="meta-buy-btn" disabled>${currentLanguage === 'es' ? 'Reclamado' : 'Claimed'}</button>`;
@@ -8976,7 +8984,9 @@ function claimWinterPassReward(level) {
     updateMetaUI();
   } else if (r.type === 'filter') {
     // Placeholder: las recompensas de filtro se registran como reclamadas.
-    // En el futuro otorgarán skins/accesorios.
+  } else if (r.type === 'skin') {
+    if (!Array.isArray(gameState.unlockedSkins)) gameState.unlockedSkins = ['default'];
+    gameState.unlockedSkins = [...new Set([...gameState.unlockedSkins, r.id])];
   }
   gameState.winterPassClaimed.push(level);
   saveProgress();
@@ -10820,6 +10830,7 @@ function drawShop() {
         if (condition === 'win_extremo') return currentLanguage === 'es' ? '💀 Gana en modo Extremo o superior' : '💀 Win in Extreme mode or higher';
         if (condition === 'astrorb_frame') return currentLanguage === 'es' ? '📖 Enmarca todos los Astrorb en la Enciclopedia' : '📖 Frame all Astrorb variants in the Encyclopedia';
         if (condition === 'all_boss_frames') return currentLanguage === 'es' ? '💎 Enmarca todos los enemigos cristalizados' : '💎 Frame all crystallized enemies';
+        if (condition === 'winter_pass') return currentLanguage === 'es' ? '❄️ Recompensa del Pase de Invierno' : '❄️ Winter Pass reward';
         
         return currentLanguage === 'es' ? '🔒 Condición especial' : '🔒 Special condition';
       }

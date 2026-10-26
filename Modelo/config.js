@@ -715,6 +715,32 @@ const SKINS_DATA = {
   ],
   'Grey': [
     {
+      // Gray Rewamp: rehace la familia gris con el modelo actual de Glob,
+      // totalmente gris. Base del Winter Pass (y futuro desbloqueo en mapa).
+      id: 'rewamped_gray_set', name: 'skin_rewamped_gray_name', desc: 'skin_rewamped_gray_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'winter_pass',
+      skins: {
+        'Old_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Gray Rewamp/RewampedGray1.png',
+        'Pyce_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Gray Rewamp/RewampedGray2.png',
+        'SpyGlob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Gray Rewamp/RewampedGray3.png'
+      }
+    },
+    {
+      // Versión RGB secreta del Gray Rewamp (como los demás rewamp RGB):
+      // mismas imágenes con efecto RGB, desbloqueable al reunir todas las
+      // imágenes de perfil.
+      id: 'gray_rgb_sr', name: 'skin_gray_rgb_sr_name', desc: 'skin_gray_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
+      skins: {
+        'Old_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Gray Rewamp/RewampedGray1.png',
+        'Pyce_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Gray Rewamp/RewampedGray2.png',
+        'SpyGlob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Gray Rewamp/RewampedGray3.png'
+      },
+      rgbTypes: ['Old_Glob', 'Pyce_Glob', 'SpyGlob'],
+      names: {
+        'Old_Glob': 'RGrayB1',
+        'SpyGlob': 'RGrayB3'
+      }
+    },
+    {
       id: 'turret_set', name: 'skin_turret_name', desc: 'skin_turret_desc', cost: 250, type: 'pycoin',
       skins: {
         'Old_Glob': 'Recursos/img/Skins/Gris Disperso/Turret Glob (SK-EVO1).png',
@@ -871,6 +897,26 @@ const SKINS_DATA = {
         'Nuclear_Glob': IMAGE_PATHS.Nuclear_Glob
       },
       rgbTypes: ['Bomb_Glob', 'TNT_Glob', 'Nuclear_Glob']
+    },
+    {
+      // Toy Glomb: bomba de juguete (Winter Pass). Un Glob que va creciendo.
+      // Lleva efectos de explosión personalizados por evolución.
+      id: 'toy_glomb_set', name: 'skin_toy_glomb_name', desc: 'skin_toy_glomb_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'winter_pass',
+      skins: {
+        'Bomb_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Toy Glomb (IEx.)/Toy Glomb (SK-EVO1).png',
+        'TNT_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Toy Glomb (IEx.)/TNT Glomb (SK-EVO2).png',
+        'Nuclear_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Toy Glomb (IEx.)/Nuclear Glorm (SK-EVO3).png'
+      },
+      explosions: {
+        'Bomb_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Toy Glomb (IEx.)/CustomBoom/Kartboom (EFFECT1).png',
+        'TNT_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Toy Glomb (IEx.)/CustomBoom/Epik Kartboom (EFFECT2).png',
+        'Nuclear_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Toy Glomb (IEx.)/CustomBoom/Glomb Kartboom (EFFECT3).png'
+      },
+      names: {
+        'Bomb_Glob': 'Toy Glomb',
+        'TNT_Glob': 'TNT Glomb',
+        'Nuclear_Glob': 'Nuclear Glorm'
+      }
     }
   ],
   'Special': [
@@ -1129,6 +1175,12 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "skin_red_rgb_sr_desc": "La primera y última evolución del Rewamp rojo con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RedGB.",
   "skin_blue_rgb_sr_name": "RGB Azul Secreto",
   "skin_blue_rgb_sr_desc": "La primera y última evolución del Rewamp azul con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RGBlue.",
+  "skin_rewamped_gray_name": "Rewamp Gris",
+  "skin_rewamped_gray_desc": "Una versión mejorada visualmente de la familia gris original, rehecha por completo con el modelo actual de Glob.",
+  "skin_gray_rgb_sr_name": "RGB Gris Secreto",
+  "skin_gray_rgb_sr_desc": "El Rewamp gris con un efecto RGB animado. Se desbloquea al reunir todas las imágenes de perfil. Nombre honorífico: RGrayB.",
+  "skin_toy_glomb_name": "Toy Glomb",
+  "skin_toy_glomb_desc": "Bomba de juguete pensada como concepto de skin cuando se hizo Urbanistic Road, y que a su vez representa cómo iba a ser esta familia antes de ser pedida y tomada por <span style='color:#9aa0a6; font-weight:bold;'>JustAUser</span>: unas bombas de juguete que no se tienen que tomar a la ligera.",
   "encyclopedia_rgb_lore_green": "Durante la beta de Glob para I.D., el verde y el rojo eran los Globs principales y más originales. El rojo fue el segundo creado y el recolor oficial del verde. La beta también tuvo los recolores azul y lila oscuro.",
   "encyclopedia_rgb_lore_red": "El rojo fue el segundo Glob creado y el recolor oficial del verde. Ambos eran los Globs principales y más originales. En la beta para I.D. también existieron los recolores azul y lila oscuro.",
   "encyclopedia_rgb_lore_blue": "El Glob azul fue uno de los cuatro colores del Glob original en su beta para I.D., junto al verde, rojo y lila oscuro.",
@@ -1234,6 +1286,12 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "skin_red_rgb_sr_desc": "The first and final levels of the red Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RedGB.",
   "skin_blue_rgb_sr_name": "Blue RGB Secret Rewamp",
   "skin_blue_rgb_sr_desc": "The first and final levels of the blue Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RGBlue.",
+  "skin_rewamped_gray_name": "Gray Rewamp",
+  "skin_rewamped_gray_desc": "A visually improved version of the original gray family, fully remade with the current Glob model.",
+  "skin_gray_rgb_sr_name": "Gray RGB Secret Rewamp",
+  "skin_gray_rgb_sr_desc": "The gray Rewamp with an animated RGB effect. Unlock by collecting every profile image. Honorific name: RGrayB.",
+  "skin_toy_glomb_name": "Toy Glomb",
+  "skin_toy_glomb_desc": "A toy bomb conceived as a skin idea back when Urbanistic Road was made, and which also represents how this family was going to be before it was requested and taken over by <span style='color:#9aa0a6; font-weight:bold;'>JustAUser</span>: toy bombs that should not be taken lightly.",
   "encyclopedia_rgb_lore_green": "During Glob's beta for I.D., Green and Red were the main and most original Globs. Red was created second as Green's official recolor. The beta also had the blue and dark purple recolors.",
   "encyclopedia_rgb_lore_red": "Red was the second Glob created and Green's official recolor. Both were the main and most original Globs. The I.D. beta also had the blue and dark purple recolors.",
   "encyclopedia_rgb_lore_blue": "The blue Glob was one of the original Glob's four colors in its I.D. beta, alongside green, red, and dark purple.",
