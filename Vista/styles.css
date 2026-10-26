@@ -7933,3 +7933,90 @@ body.placing-tower .tower-spot {
     0%, 100% { filter: brightness(1); opacity: 0.95; }
     50%      { filter: brightness(1.4) drop-shadow(0 0 4px rgba(255,255,255,0.6)); opacity: 1; }
 }
+
+/* ==========================================================================
+   BOTONES DE PARTIDA — fundido de entrada + tacto más "humano"
+   Aditivo: no reemplaza las reglas de color de arriba, solo añade vida.
+   Pensado para sentirse físico (se hunden, se elevan, brillan al pasar),
+   no genérico. Respeta prefers-reduced-motion (regla global).
+   ========================================================================== */
+
+/* --- Fundido de entrada escalonado al aparecer la barra de controles ---- */
+@keyframes gdControlIn {
+    0%   { opacity: 0; transform: translateY(12px) scale(0.96); }
+    60%  { opacity: 1; transform: translateY(-2px) scale(1.01); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.controls button {
+    animation: gdControlIn 0.4s var(--gd-ease-bounce, cubic-bezier(0.175, 0.885, 0.32, 1.275)) both;
+    position: relative;
+    overflow: hidden;              /* para recortar el brillo que recorre */
+    isolation: isolate;
+    transition:
+        transform 0.14s var(--gd-ease-smooth, cubic-bezier(0.25, 0.8, 0.25, 1)),
+        box-shadow 0.18s ease,
+        filter 0.18s ease;
+    will-change: transform;
+}
+
+/* Entran una tras otra, de izquierda a derecha */
+.controls button:nth-child(1) { animation-delay: 0.02s; }
+.controls button:nth-child(2) { animation-delay: 0.09s; }
+.controls button:nth-child(3) { animation-delay: 0.16s; }
+.controls button:nth-child(4) { animation-delay: 0.23s; }
+
+/* --- Hover: elevación física con sombra proyectada ---------------------- */
+.controls button:not(:disabled):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Brillo que recorre el botón al pasar el cursor (detalle de marca) --- */
+.controls button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    z-index: 1;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+    transform: translateX(-180%) skewX(-18deg);
+    transition: transform 0.55s ease;
+    pointer-events: none;
+}
+.controls button:not(:disabled):hover::before {
+    transform: translateX(320%) skewX(-18deg);
+}
+/* Mantiene el texto/emoji por encima del brillo */
+.controls button > * { position: relative; z-index: 2; }
+
+/* --- Press: se hunde de verdad, como un botón físico -------------------- */
+.controls button:not(:disabled):active {
+    transform: translateY(1px) scale(0.97);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    filter: brightness(0.96);
+    transition-duration: 0.05s;   /* respuesta inmediata al pulsar */
+}
+
+/* Onda de pulsación que nace del botón al hacer click (clase vía JS) */
+.controls button.gd-pressed::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.5), transparent 60%);
+    opacity: 0;
+    pointer-events: none;
+    animation: gdPressRipple 0.45s ease-out;
+}
+
+@keyframes gdPressRipple {
+    0%   { opacity: 0.55; transform: scale(0.4); }
+    100% { opacity: 0; transform: scale(1.1); }
+}
+
+/* Los deshabilitados no reaccionan (sin brillo, sin elevación) */
+.controls button:disabled::before { display: none; }

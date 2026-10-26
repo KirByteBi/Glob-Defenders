@@ -3324,8 +3324,16 @@ function restartAcrossTimeEvent() {
 }
 
 function updateMuteButton() {
-  const btn = document.getElementById('mute-toggle');
-  if (btn) btn.textContent = gameState.muted ? '🔇' : '🔊';
+  // El botón real es #effects-toggle-btn (no 'mute-toggle', que no existía).
+  // muted = true  → efectos APAGADOS (OFF). muted = false → ON.
+  const btn = document.getElementById('effects-toggle-btn');
+  if (btn) {
+    const on = !gameState.muted;
+    btn.textContent = on
+      ? (currentLanguage === 'es' ? '🔊 Efectos ON' : '🔊 Effects ON')
+      : (currentLanguage === 'es' ? '🔇 Efectos OFF' : '🔇 Effects OFF');
+    btn.classList.toggle('active', on);
+  }
 }
 
 function playSound(file) {
@@ -7761,6 +7769,22 @@ function bindEvents() {
 
   document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => btn.onclick = () => selectMode(btn.dataset.mode));
   document.getElementById('health-stat').onclick = triggerCorrupt;
+
+  // Onda de pulsación "física" en los botones de partida (solo visual).
+  const controlsBar = document.querySelector('.controls');
+  if (controlsBar) {
+    controlsBar.addEventListener('pointerdown', event => {
+      const btn = event.target.closest('button');
+      if (!btn || btn.disabled) return;
+      btn.classList.remove('gd-pressed');
+      void btn.offsetWidth; // reinicia la animación
+      btn.classList.add('gd-pressed');
+      btn.addEventListener('animationend', e => {
+        if (e.animationName === 'gdPressRipple') btn.classList.remove('gd-pressed');
+      }, { once: true });
+    });
+  }
+
   document.getElementById('start-wave').onclick = () => startWave();
   document.getElementById('auto-wave').onclick = () => {
     gameState.autoWave = !gameState.autoWave;
@@ -12060,6 +12084,43 @@ function activateGTack(t) {
     }, spawnInterval);
   }
 
+  // Devuelve el narrador que amenaza en Corrupto según el MAPA (cada mapa
+  // tiene su propio jefe corrupto; MoonStar solo gobierna Gelatin Lake).
+  // phase: 'wave1' (amenaza inicial) | 'intercept' (corte 10 oleadas antes).
+  function getCorruptBossTaunt(map, phase = 'wave1') {
+    const es = currentLanguage === 'es';
+    const T = {
+      gelatin_lake: {
+        speaker: 'moonstar', img: NARRATOR_DATA.moonstar.img, name: NARRATOR_DATA.moonstar[currentLanguage].name,
+        wave1: es ? 'Aún estás a tiempo de huir...' : 'You still have time to flee...',
+        intercept: NARRATOR_DATA.moonstar[currentLanguage].intercept
+      },
+      urbanistic_road: {
+        speaker: 'crystarky', img: NARRATOR_DATA.crystarky?.img || IMAGE_PATHS.ArkyVoid, name: NARRATOR_DATA.crystarky?.[currentLanguage]?.name || 'ArkyVoid',
+        wave1: es ? 'La red ya es mía. Tu derrota está calculada.' : 'The network is already mine. Your defeat is calculated.',
+        intercept: es ? 'Conexión interceptada. No hay salida del sistema.' : 'Connection intercepted. There is no way out of the system.'
+      },
+      sunlight_seaside: {
+        speaker: 'glitchkeeper', img: IMAGE_PATHS.GlitchKeeper, name: 'GlitchKeeper',
+        wave1: es ? 'Estas aguas se tragarán a tus Globs, uno a uno.' : 'These waters will swallow your Globs, one by one.',
+        intercept: es ? 'La marea corrupta ya no se detiene. Ríndete.' : 'The corrupt tide no longer stops. Surrender.'
+      },
+      spooktacular_ruins: {
+        speaker: 'boneker', img: IMAGE_PATHS.Curse_Boneker, name: 'Curse Boneker',
+        wave1: es ? 'La arena esconde huesos... pronto los tuyos.' : 'The sand hides bones... soon yours.',
+        intercept: es ? 'El desierto maldito reclama lo que es suyo.' : 'The cursed desert claims what is its own.'
+      }
+    };
+    const entry = T[map] || T.gelatin_lake;
+    return {
+      speaker: entry.speaker,
+      img: entry.img,
+      name: entry.name,
+      text: entry[phase] || entry.wave1,
+      variant: ''
+    };
+  }
+
   function startWave() {
     console.log("🔥 startWave() iniciada");
     console.log("waveActive:", gameState.waveActive);
@@ -12158,12 +12219,13 @@ function activateGTack(t) {
           if (d) showNarratorMsg('bombot', NARRATOR_DATA.bombot.img, NARRATOR_DATA.bombot[currentLanguage].name, d);
         }, 7000);
 
-        // Boss taunt at wave 1, but doesn't cut connection yet
+        // Boss taunt at wave 1, but doesn't cut connection yet.
+        // El que amenaza depende del JEFE CORRUPTO de ESTE mapa (antes salía
+        // MoonStar en todos, pero MoonStar solo gobierna Gelatin Lake).
         setTimeout(() => {
           if (gameState.mode === 'corrupto') {
-            const data = NARRATOR_DATA.moonstar;
-            const txt = currentLanguage === 'es' ? "Aún estás a tiempo de huir..." : "You still have time to flee...";
-            showNarratorMsg('moonstar', data.img, data[currentLanguage].name, txt);
+            const taunt = getCorruptBossTaunt(gameState.map || mapKey);
+            showNarratorMsg(taunt.speaker, taunt.img, taunt.name, taunt.text, taunt.variant);
           } else if (gameState.mode === 'antiNormal') {
             const data = NARRATOR_DATA.noeye;
             const txt = currentLanguage === 'es' ? "N0 S0BR3V1V1R4S 4 L4 0SCUR1D4D..." : "Y0U W0N'7 SURV1V3 7H3 D4RKN3SS...";
@@ -12174,8 +12236,8 @@ function activateGTack(t) {
     } else if (gameState.wave === maxWaves - 10) {
       // Cut off connection 10 waves before the end
       if (gameState.mode === 'corrupto') {
-        const data = NARRATOR_DATA.moonstar;
-        showNarratorMsg('moonstar', data.img, data[currentLanguage].name, data[currentLanguage].intercept);
+        const taunt = getCorruptBossTaunt(gameState.map || mapKey, 'intercept');
+        showNarratorMsg(taunt.speaker, taunt.img, taunt.name, taunt.text, taunt.variant);
       } else if (gameState.mode === 'antiNormal') {
         const data = NARRATOR_DATA.noeye;
         showNarratorMsg('noeye', data.img, data[currentLanguage].name, data[currentLanguage].intercept, 'enemy-voice');
