@@ -3077,16 +3077,20 @@ function spawnDecorations(containerId) {
       console.error('No se pudo leer la lista de Globs secretos ya descubiertos:', error);
       clickedGlobPaths = new Set();
     }
+    // Topes de decoración del login. Subidos para que aparezcan TODOS los
+    // Globs y enemigos comunes disponibles, no solo un puñado.
+    const MAX_LOGIN_GLOBS = 24;
+    const MAX_LOGIN_TOTAL = 40;
     const globImagesToShow = uniqueShuffledPool.filter(path =>
       availableGlobPaths.includes(path) && !clickedGlobPaths.has(path)
     );
-    const selectedGlobImages = globImagesToShow.slice(0, 8);
+    const selectedGlobImages = globImagesToShow.slice(0, MAX_LOGIN_GLOBS);
     const selectedImages = [...selectedGlobImages];
     for (const imagePath of uniqueShuffledPool) {
-      if (selectedImages.length >= 15) break;
+      if (selectedImages.length >= MAX_LOGIN_TOTAL) break;
       if (
         !selectedImages.includes(imagePath) &&
-        (!availableGlobPaths.includes(imagePath) || globImagesToShow.length <= 8)
+        (!availableGlobPaths.includes(imagePath) || globImagesToShow.length <= MAX_LOGIN_GLOBS)
       ) {
         selectedImages.push(imagePath);
       }
