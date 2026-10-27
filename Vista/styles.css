@@ -653,20 +653,18 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
    luminancia del PNG). El PNG aporta la forma y los contornos negros; el
    arcoíris aporta el color. El mask recorta a la silueta. La <img> real se
    oculta (opacity:0) y solo sirve para dar tamaño al contenedor. */
-/* RGB: arcoíris pleno recortado a la silueta (::after, mismo patrón fiable que
-   Rainbow Fuel pero más suave) + la <img> ENCIMA en mix-blend-mode: multiply.
-   La imagen se blanquea con un filtro (grayscale + brightness + contrast) para
-   que el relleno quede casi blanco (white × arcoíris = arcoíris) y SOLO los
-   contornos negros se multipliquen a negro. Así se respeta todo lo negro. */
-.rgb-avatar-image > img {
-    position: relative;
-    z-index: 2;
-    opacity: 1;
-    filter: grayscale(1) brightness(1.9) contrast(1.5);
-    mix-blend-mode: multiply;
+/* RGB (técnica fiable para el frame grande):
+   - ::before -> arcoíris pleno recortado a la silueta (como Rainbow Fuel).
+   - <img>    -> el Glob blanqueado, en mix-blend-mode: multiply sobre el
+                 arcoíris, respetando los contornos negros.
+   El fondo del span se fuerza transparente para no ensuciar el multiply. */
+.profile-avatar-frame > .rgb-avatar-image,
+.profile-choice > .rgb-avatar-image,
+.multiplayer-profile-badge .rgb-avatar-image {
+    background: transparent !important;
 }
 
-.rgb-avatar-image::after {
+.rgb-avatar-image::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -688,14 +686,37 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
     -webkit-mask-position: center;
 }
 
+/* La <img> real, visible y blanqueada, multiplicada SOBRE el arcoíris del
+   ::before: blanco × arcoíris = arcoíris; negro × arcoíris = negro (contornos).
+   Va en el propio <img> (no en ::after) porque así blendea de forma fiable en
+   el frame grande del perfil. */
+.rgb-avatar-image > img {
+    opacity: 1;
+    position: relative;
+    z-index: 2;
+    filter: grayscale(1) brightness(1.9) contrast(1.5);
+    mix-blend-mode: multiply;
+}
+
 /* Modo Monochrome (efecto de perfil): el Glob se ve en gris, sin arcoíris. */
 .rgb-avatar-image.monochrome > img {
-    opacity: 1;
     filter: grayscale(1) contrast(1.05);
     mix-blend-mode: normal;
 }
 
-.rgb-avatar-image.monochrome::after {
+.rgb-avatar-image.monochrome::before {
+    display: none;
+}
+
+/* Efecto Snowy (Winter Pass): el Glob se ve blanco/nevado (sin arcoíris). Es
+   la imagen blanqueada sin multiply, así que queda clara sobre el marco. */
+.rgb-avatar-image.snowy > img {
+    opacity: 1;
+    filter: grayscale(1) brightness(1.9) contrast(1.5);
+    mix-blend-mode: normal;
+}
+
+.rgb-avatar-image.snowy::before {
     display: none;
 }
 

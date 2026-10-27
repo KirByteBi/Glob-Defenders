@@ -8380,9 +8380,9 @@ function bindEvents() {
 
   const winterPassBtn = document.getElementById('open-winter-pass');
   if (winterPassBtn) {
-    // Visible durante el evento de invierno, o antes como "ABRE PRÓXIMAMENTE".
-    const showWinter = (typeof isWinterEventActive === 'function' && isWinterEventActive());
-    winterPassBtn.style.display = showWinter ? '' : 'none';
+    // Siempre visible: durante el evento abre el pase; antes del evento abre el
+    // modal con "ABRE PRÓXIMAMENTE" (así el botón y el aviso tienen sentido).
+    winterPassBtn.style.display = '';
     winterPassBtn.onclick = () => { if (typeof openWinterPass === 'function') openWinterPass(); };
   }
 
@@ -8624,8 +8624,10 @@ function isWinterEventActive(date = new Date()) {
 }
 
 // Antes de que arranque el evento (antes del 1 de noviembre) el pase se muestra
-// como "ABRE PRÓXIMAMENTE".
+// como "ABRE PRÓXIMAMENTE". En modo debug (panel de Kirb) se considera abierto
+// siempre, para poder probar niveles y recompensas fuera de temporada.
 function isWinterPassOpen(date = new Date()) {
+  if (gameState && gameState.debugState === 'unlocked') return true;
   return isWinterEventActive(date);
 }
 
@@ -8669,7 +8671,7 @@ const WINTER_PASS_REWARDS = [
   { level: 32, reward: { type: 'duckpass', amount: 120 } },
   { level: 33, reward: { type: 'duckpass', amount: 120 } },
   { level: 34, reward: { type: 'duckpass', amount: 120 } },
-  { level: 35, reward: { type: 'duckpass', amount: 130 } },
+  { level: 35, reward: { type: 'recolor', id: 'snowy' } },
   { level: 36, reward: { type: 'duckpass', amount: 130 } },
   { level: 37, reward: { type: 'duckpass', amount: 130 } },
   { level: 38, reward: { type: 'duckpass', amount: 140 } },
@@ -8709,7 +8711,8 @@ function getWinterPassXPForEnemy(e) {
 // Añade XP al pase de invierno y gestiona la subida de nivel (cada 100 XP).
 function addWinterPassXP(amount) {
   if (multiplayerSpectator || !amount || amount <= 0) return;
-  if (!isWinterEventActive()) return; // solo durante el evento
+  // Durante el evento, o siempre en modo debug (para poder probar el pase).
+  if (!isWinterPassOpen()) return;
   const WINTER_PASS_MAX_LEVEL = WINTER_PASS_REWARDS.length; // 50
   gameState.winterPassXP = (gameState.winterPassXP || 0) + amount;
   let leveled = false;
@@ -9040,7 +9043,7 @@ function openAdventCalendar() {
   if (!modal) return;
   modal.style.display = 'flex';
   const winterBtn = document.getElementById('advent-to-winter-pass');
-  if (winterBtn) winterBtn.style.display = (typeof isWinterEventActive === 'function' && isWinterEventActive()) ? '' : 'none';
+  if (winterBtn) winterBtn.style.display = '';
   renderAdventCalendar();
 }
 
@@ -9050,7 +9053,7 @@ function openPass() {
   closeModal('shop-modal');
   document.getElementById('pass-modal').style.display = 'flex';
   const winterBtn = document.getElementById('duckpass-to-winter');
-  if (winterBtn) winterBtn.style.display = (typeof isWinterEventActive === 'function' && isWinterEventActive()) ? '' : 'none';
+  if (winterBtn) winterBtn.style.display = '';
   drawPass();
   updateMetaUI();
 }
@@ -9094,10 +9097,18 @@ function drawWinterPass() {
     if (r.type === 'duckpass') rewardLabel = `<img src="Recursos/img/Tokens/DuckPass.png" width="20"> +${r.amount}`;
     else if (r.type === 'filter') rewardLabel = currentLanguage === 'es' ? `🔎 Filtro: ${r.id}` : `🔎 Filter: ${r.id}`;
     else if (r.type === 'recolor') {
-      const recolorName = r.id === 'monochrome'
-        ? (currentLanguage === 'es' ? 'Monochrome (recolor RGB)' : 'Monochrome (RGB recolor)')
-        : r.id;
-      rewardLabel = `<span style="display:inline-block;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#c9c9c9,#6f6f6f);"></span><div style="font-size:0.72rem; margin-top:4px;">${recolorName}</div>`;
+      const recolorNames = {
+        monochrome: currentLanguage === 'es' ? 'Efecto Monochrome' : 'Monochrome effect',
+        negative: currentLanguage === 'es' ? 'Efecto Negativo' : 'Negative effect',
+        snowy: currentLanguage === 'es' ? 'Efecto Nevado' : 'Snowy effect'
+      };
+      const recolorName = recolorNames[r.id] || r.id;
+      const recolorSwatch = r.id === 'negative'
+        ? 'background:linear-gradient(135deg,#00e5ff,#ff00aa);filter:invert(0.15);'
+        : r.id === 'snowy'
+          ? 'background:linear-gradient(135deg,#ffffff,#d8ecff);'
+          : 'background:linear-gradient(135deg,#c9c9c9,#6f6f6f);';
+      rewardLabel = `<span style="display:inline-block;width:42px;height:42px;border-radius:50%;${recolorSwatch}"></span><div style="font-size:0.72rem; margin-top:4px;">${recolorName}</div>`;
     }
     else if (r.type === 'skin') {
       const skin = Object.values(SKINS_DATA).flat().find(s => s.id === r.id);
@@ -10274,12 +10285,12 @@ function getProfileAvatarImageMarkup(avatar, applyRgbEffect = false) {
 }
 
 // Variante de efecto de perfil equipada sobre los Globs RGB. Devuelve la clase
-// CSS correspondiente ('monochrome' | 'negative') o '' para el RGB por defecto.
+// CSS ('monochrome' | 'negative' | 'snowy') o '' para el RGB por defecto.
 // Son efectos del Winter Pass (mutuamente excluyentes con el arcoíris).
 function getActiveProfileEffectVariant() {
   if (!gameState) return '';
   const effect = gameState.profileRgbEffect;
-  if (effect === 'monochrome' || effect === 'negative') return effect;
+  if (effect === 'monochrome' || effect === 'negative' || effect === 'snowy') return effect;
   // Compatibilidad con el flag antiguo de Monochrome.
   if (gameState.monochromeRecolorEquipped) return 'monochrome';
   return '';
@@ -10294,7 +10305,8 @@ function getProfileEffectSelectorMarkup() {
   const options = [
     { id: 'rgb', label: 'RGB', always: true },
     { id: 'monochrome', label: 'Monochrome' },
-    { id: 'negative', label: currentLanguage === 'en' ? 'Negative' : 'Negativo' }
+    { id: 'negative', label: currentLanguage === 'en' ? 'Negative' : 'Negativo' },
+    { id: 'snowy', label: currentLanguage === 'en' ? 'Snowy' : 'Nevado' }
   ].filter(opt => opt.always || unlocked.includes(opt.id));
   const title = currentLanguage === 'en' ? 'RGB Glob effect' : 'Efecto de Globs RGB';
   return `
@@ -10307,7 +10319,7 @@ function getProfileEffectSelectorMarkup() {
 }
 
 window.setProfileRgbEffect = function(effectId) {
-  const valid = ['rgb', 'monochrome', 'negative'];
+  const valid = ['rgb', 'monochrome', 'negative', 'snowy'];
   if (!valid.includes(effectId)) return;
   if (effectId !== 'rgb' &&
       !(gameState.unlockedRecolors || []).includes(effectId)) return;
