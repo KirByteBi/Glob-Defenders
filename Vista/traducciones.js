@@ -393,6 +393,7 @@ const TRANSLATIONS = {
     tower_Youtuber_Glob_desc: "Finalmente alcanzó el éxito como un famoso Youtuber y tiene dinero para aventar... Aunque ya es hora de que deje el internet y busque un trabajo de verdad.",
 
     login_user: "Nombre de usuario", login_pass: "Contraseña", login_btn: "Unirse a la batalla", create_account: "Crear cuenta", skip_login: "Saltar login",
+    remember_me: "Recuérdame", remember_me_warning: "⚠️ Guardará tu usuario y contraseña en este dispositivo. Otra persona podría iniciar sesión con tu cuenta.",
     select_map: "Seleccionar Isla",
     select_mode: "Seleccionar Modo",
     backToModes: "Selección de Modo",
@@ -1114,6 +1115,7 @@ const TRANSLATIONS = {
     tower_DJ_Glob_desc: "Generates a radio fence that's very powerful offensively and defensively, and has an attack radius that slows and can stop the Pyce in front of it for a few seconds.<br><br>Far from being someone dedicated to music, he uses speakers as defense, but he is friends with both the pink and white families, cheering them up and making the city an urban disco.<br><br><span style=\"color: #ff4500\">Designed by Credible. Planned by KirByte_Bi.</span>",
 
     login_user: "Username", login_pass: "Password", login_btn: "Join the battle", create_account: "Create account", skip_login: "Skip login",
+    remember_me: "Remember me", remember_me_warning: "⚠️ This will store your username and password on this device. Someone else could sign in with your account.",
     select_map: "Select Island",
     select_mode: "Select Mode",
     backToModes: "Mode Selection",

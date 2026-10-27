@@ -451,9 +451,24 @@ If the base runs out of health, the match ends.
 
 **Glob Creators:** JustAUser and Credible
 
-**Skin Creators:** KirByte_Bi, Nitrogen and Credible
+**Pyce Creators:** Luna1255 (Axolotl Pyce and Shark Pyce)
+
+**Skin Creators:** KirByte_Bi, Nitrogen and Credible — including Fracstral Glob (IEx. skin), made by Credible and supervised by KirByte_Bi.
 
 **Collaborators:** Eithancrea
+
+### Origin & history
+
+Glob Defenders was created in May 2026, but the Pyces and Globs have existed
+since roughly 2023, continuously redrawn and remodeled up to their current form.
+Resources from the ROBLOX games **Find the Pyces** (2) and **Find Those Pyces**
+(1) are reused frequently.
+
+Most of the game's resources (Globs, Monsters, Bits/Bytes and more) come from
+**Iniciation Defenses** (I.D.). Any I.D. resource is property of the group that
+developed it; POPLIO_30 granted KirByte_Bi the freedom to use them for Glob
+Defenders, so any I.D. resources without their own credits are also property of
+KirByte_Bi. The Monsters remain attributed to POP (POPLIO_30).
 
 Thanks to everyone who plays, tests and supports Glob Defenders.
 

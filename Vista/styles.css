@@ -286,6 +286,39 @@ body.light-mode .loading-tip-btn {
     font-weight: 500;
 }
 
+/* "Recuérdame": casilla + aviso de seguridad */
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin: 2px 0 8px;
+    font-size: 0.9rem;
+    color: #d8e0ec;
+    cursor: pointer;
+    user-select: none;
+}
+.remember-me input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #38e64b;
+    cursor: pointer;
+}
+.remember-me-warning {
+    display: none;
+    max-width: 320px;
+    margin: 0 auto 12px;
+    font-size: 0.74rem;
+    line-height: 1.3;
+    color: #ffcf6b;
+    background: rgba(120, 80, 0, 0.18);
+    border: 1px solid rgba(255, 193, 74, 0.35);
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+body.light-mode .remember-me { color: #333; }
+body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220, 150, 0.4); }
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -610,20 +643,27 @@ body.light-mode .loading-tip-btn {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    /* El arcoíris lo pinta el ::after; esta <img> se oculta en modo RGB y se
+       muestra (en gris) en modo Monochrome. */
 }
 
-/* ===== EFECTO RGB SOBRE LA IMAGEN: arcoíris recortado a la silueta =======
-   El arcoíris se pinta ENCIMA de la imagen pero recortado por el canal alfa
-   de la propia imagen (mask-image), así solo cubre al Glob. El degradado gira
-   de forma continua. No depende de mix-blend-mode (que antes no se veía). */
-@property --rgb-angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-}
-
-.rgb-avatar-image {
+/* ===== EFECTO RGB SOBRE LA IMAGEN (auto-contenido) =========================
+   El ::after combina, DENTRO del propio pseudo-elemento, el arcoíris y el PNG
+   del Glob mediante background-blend-mode: color (color del arcoíris +
+   luminancia del PNG). El PNG aporta la forma y los contornos negros; el
+   arcoíris aporta el color. El mask recorta a la silueta. La <img> real se
+   oculta (opacity:0) y solo sirve para dar tamaño al contenedor. */
+/* RGB: arcoíris pleno recortado a la silueta (::after, mismo patrón fiable que
+   Rainbow Fuel pero más suave) + la <img> ENCIMA en mix-blend-mode: multiply.
+   La imagen se blanquea con un filtro (grayscale + brightness + contrast) para
+   que el relleno quede casi blanco (white × arcoíris = arcoíris) y SOLO los
+   contornos negros se multipliquen a negro. Así se respeta todo lo negro. */
+.rgb-avatar-image > img {
     position: relative;
+    z-index: 2;
+    opacity: 1;
+    filter: grayscale(1) brightness(1.9) contrast(1.5);
+    mix-blend-mode: multiply;
 }
 
 .rgb-avatar-image::after {
@@ -631,12 +671,13 @@ body.light-mode .loading-tip-btn {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
-    background-size: 100% 100%;
-    opacity: 0.9;
-    mix-blend-mode: color;
     pointer-events: none;
-    animation: rgb-rewamp-shift 3s linear infinite;
+    background: linear-gradient(90deg,
+        #ff0040, #ff8c00, #ffee00, #28e04b, #00c2ff, #6a5cff, #d138ff, #ff0040);
+    background-size: 200% 100%;
+    /* RGB más claro/pastel para distinguirlo del Rainbow Fuel (vivo e intenso). */
+    filter: saturate(0.8) brightness(1.3);
+    animation: rgb-avatar-slide 2.6s linear infinite;
     mask-image: var(--rgb-avatar-mask-image);
     -webkit-mask-image: var(--rgb-avatar-mask-image);
     mask-size: 100% 100%;
@@ -645,24 +686,34 @@ body.light-mode .loading-tip-btn {
     -webkit-mask-repeat: no-repeat;
     mask-position: center;
     -webkit-mask-position: center;
-    animation: rgb-angle-spin 2.6s linear infinite;
 }
 
-@keyframes rgb-angle-spin {
-    to { --rgb-angle: 360deg; }
+/* Modo Monochrome (efecto de perfil): el Glob se ve en gris, sin arcoíris. */
+.rgb-avatar-image.monochrome > img {
+    opacity: 1;
+    filter: grayscale(1) contrast(1.05);
+    mix-blend-mode: normal;
 }
 
-/* Respaldo sin @property: el arcoíris lineal se desplaza en bucle. */
-@supports not (background: conic-gradient(from var(--rgb-angle))) {
-    .rgb-avatar-image::after {
-        background: linear-gradient(90deg,
-            #ff0040, #ff8c00, #ffee00, #28e04b, #00c2ff, #6a5cff, #d138ff, #ff0040);
-        background-size: 200% 100%;
-        animation: rgb-linear-slide 1.6s linear infinite;
-    }
-    @keyframes rgb-linear-slide {
-        to { background-position: 200% 0; }
-    }
+.rgb-avatar-image.monochrome::after {
+    display: none;
+}
+
+/* Modo Negativo (efecto de perfil): los colores de la imagen se invierten.
+   Lo negro pasa a blanco y viceversa, dando un aspecto "negativo" llamativo. */
+.rgb-avatar-image.negative > img {
+    opacity: 1;
+    filter: invert(1);
+    mix-blend-mode: normal;
+}
+
+.rgb-avatar-image.negative::after {
+    display: none;
+}
+
+@keyframes rgb-avatar-slide {
+    from { background-position: 0% 0; }
+    to   { background-position: 200% 0; }
 }
 
 .profile-choice-grid,
@@ -2153,19 +2204,48 @@ button {
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     font-size: 1rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
+    /* Relieve "técnico": brillo superior interno + sombra interior inferior +
+       borde biselado inferior (3D) + sombra proyectada. No cambia el color
+       base de cada botón (sus gradientes se mantienen). */
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.28),
+        0 3px 0 rgba(0, 0, 0, 0.32),
+        0 6px 14px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+/* Gloss superior sutil para dar sensación de material pulido */
+button::before {
+    content: '';
+    position: absolute;
+    inset: 1px 1px auto 1px;
+    height: 42%;
+    border-radius: 9px 9px 60% 60% / 9px 9px 18px 18px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.28), rgba(255,255,255,0));
+    pointer-events: none;
 }
 
 button:hover:not(:disabled) {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.25),
+        0 4px 0 rgba(0, 0, 0, 0.32),
+        0 10px 22px rgba(0, 0, 0, 0.38);
 }
 
 button:active {
-    transform: translateY(1px);
+    transform: translateY(2px);
+    box-shadow:
+        inset 0 2px 5px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 1px 0 rgba(0, 0, 0, 0.3),
+        0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 button:disabled {
@@ -2673,7 +2753,12 @@ button.active {
 }
 
 .gods-shadow-portrait {
-    filter: brightness(0);
+    /* GODs Shadow = la SOMBRA de la imagen original de Kirb (GOD): la silueta
+       oscurecida, ligeramente translúcida y difusa, proyectada sobre una
+       superficie tenue para que se lea como sombra y no como un recorte negro. */
+    filter: brightness(0) blur(0.6px);
+    opacity: 0.85;
+    background: radial-gradient(circle at 50% 45%, rgba(150,140,180,0.45), rgba(90,85,120,0.25) 70%, transparent 100%);
     animation: gods-shadow-portrait-glitch 6s steps(1, end) infinite;
 }
 
@@ -3281,6 +3366,12 @@ button.active {
     z-index: 13000;
     align-items: center;
     justify-content: center;
+}
+
+/* El Pase de Invierno se abre desde el Duck Pass y el Calendario de Adviento,
+   así que debe quedar por encima de cualquier otro modal (no detrás). */
+#winter-pass-modal {
+    z-index: 13500;
 }
 
 .tutorial-skip-modal[hidden] {
@@ -7775,20 +7866,22 @@ body.placing-tower .tower-spot {
     box-shadow: inset 0 0 0 2px #0d0f12, 0 0 10px rgba(255, 211, 79, 0.35);
 }
 
-/* Sunlight Seaside — oleaje dorado/turquesa en movimiento */
+/* Sunlight Seaside — "soleado": aro dorado cálido con un brillo de sol que
+   late suavemente. Sin ciclos de color ni azules. */
 .profile-avatar-frame.map-seaside,
 .profile-border-swatch.map-seaside,
 .profile-placeholder-sample.map-seaside,
 .multiplayer-profile-badge.map-seaside {
     border-color: transparent;
     background:
-        linear-gradient(var(--profile-border-end, #1e6b7a), var(--profile-border-end, #1e6b7a)) padding-box,
-        conic-gradient(from 0deg, #eed28b, #26c6da, #b8e2ac, #29b6cf, #eed28b) border-box;
-    box-shadow: 0 0 12px rgba(38, 198, 218, 0.5);
-    animation: profile-seaside-tide 5s linear infinite;
+        linear-gradient(var(--profile-border-end, #4a3410), var(--profile-border-end, #4a3410)) padding-box,
+        conic-gradient(from 0deg, #ffe27a, #ffb347, #ffd24a, #fff0a8, #ffb347, #ffe27a) border-box;
+    box-shadow: 0 0 12px rgba(255, 196, 74, 0.5);
+    animation: profile-seaside-sun 3.2s ease-in-out infinite;
 }
-@keyframes profile-seaside-tide {
-    to { filter: hue-rotate(40deg) brightness(1.05); }
+@keyframes profile-seaside-sun {
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 196, 74, 0.45); }
+    50%      { box-shadow: 0 0 22px rgba(255, 224, 130, 0.85); }
 }
 
 /* Spooktacular Ruins — arena agrietada con brasas naranjas */

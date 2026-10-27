@@ -1615,6 +1615,9 @@ let gameState = {
   winterPassXP: 0,           // XP del pase de invierno (nivel sube cada 100)
   winterPassLevel: 1,
   winterPassClaimed: [],     // niveles de recompensa del pase de invierno ya reclamados
+  unlockedRecolors: [],      // efectos de perfil desbloqueados: 'monochrome', 'negative'
+  profileRgbEffect: '',      // efecto equipado sobre los Globs RGB: '' (arcoíris), 'monochrome', 'negative'
+  monochromeRecolorEquipped: false, // (legacy) compat con el flag antiguo de Monochrome
   uniquesBossSpawned: {}  // Tracks NOeye_Pyce, MoonStar_Pyce (only 1 per game)
 };
 
@@ -1782,6 +1785,7 @@ const ADVENT_CALENDAR_SHOP_PRICES = {
   monobear_bombot_reskin: 250,
   bunnity_bombot_reskin: 250
 };
+const WINTER_PASS_ACCESSORY_ROOT = 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/P.Bombot AccesoriesReskins/';
 const BOMBOT_ACCESSORIES = [
   // --- ASPECTOS BASE (RESKINS) ---
   { id: 'cuby_reskin', name: { es: 'Aspecto Cuby', en: 'Cuby Reskin' }, slot: 'reskin', image: 'Cuby (RESKIN).png', unlock: 'duckpass_cuby' },
@@ -1838,7 +1842,17 @@ const BOMBOT_ACCESSORIES = [
   { id: 'pumpkin', name: { es: 'Traje de Calabaza', en: 'Pumpkin' }, slot: 'suit', image: 'Pumpkin.png', unlock: 'spooktacular_ruins' },
   { id: 'portlalic_suit', name: { es: 'Traje Portálico', en: 'Portalic Suit' }, slot: 'suit', image: 'Portlalic Suit.png', unlock: 'urban_corrupt' },
   { id: 'darkness_emissary', name: { es: 'Emisario Oscuro', en: 'Darkness Emissary' }, slot: 'suit', image: 'Darkness Emisary.png', unlock: 'spooktacular_anti_normal' },
-  { id: 'insanely_cristalized', name: { es: 'Increíblemente Cristalizado', en: 'Insanely Cristalized' }, slot: 'suit', image: 'Inanely Cristalized.png', unlock: 'interstellar' }
+  { id: 'insanely_cristalized', name: { es: 'Increíblemente Cristalizado', en: 'Insanely Cristalized' }, slot: 'suit', image: 'Inanely Cristalized.png', unlock: 'interstellar' },
+
+  // --- WINTER PASS: reskins y accesorios ---
+  // Furnace y Clockwork no admiten gorros (se inclinan sobre el Bombot). Sí
+  // admiten accesorios frontales. Furnace además admite su gorro de chef (Bakhef).
+  { id: 'furnace_bombot_reskin', name: { es: 'Bombot Horno', en: 'Furnace Bombot' }, slot: 'reskin', image: 'Furnace Bombot.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass', noHats: true, allowedHats: ['bakhef'] },
+  { id: 'clockwork_bombot_reskin', name: { es: 'Bombot Reloj', en: 'Clockwork Bombot' }, slot: 'reskin', image: 'Clockwork Bombot.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass', noHats: true },
+  { id: 'red_breath_bombot_reskin', name: { es: 'Bombot Barba Roja', en: 'Red Beard Bombot' }, slot: 'reskin', image: 'Red Breath Bombot.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass' },
+  { id: 'bakhef', name: { es: 'Pastecinero', en: 'Bakhef' }, slot: 'head', image: 'Bakhef.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass' },
+  { id: 'golderous_spoon', name: { es: 'Cuchara Dorada', en: 'Golderous Spoon' }, slot: 'front', frontType: 'hand', image: 'Golderous Spoon.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass' },
+  { id: 'dingdong_ticktock', name: { es: 'Dingdong Tictac', en: 'Ding-a-Ling Ticktock' }, slot: 'front', frontType: 'hand', image: 'Ding-a-Ling Ticktock.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass' }
 ];
 const BOMBOT_ACCESSORY_ASSET_ROOT = 'Recursos/Spooks in the Desert (UPD4)/Skins/Personalizable Bombot (SKIN + ACCESORIES)/';
 
@@ -2647,7 +2661,10 @@ function saveProgress() {
     rainbowFuelUnlocked: gameState.rainbowFuelUnlocked,
     winterPassXP: gameState.winterPassXP,
     winterPassLevel: gameState.winterPassLevel,
-    winterPassClaimed: gameState.winterPassClaimed
+    winterPassClaimed: gameState.winterPassClaimed,
+    unlockedRecolors: gameState.unlockedRecolors,
+    profileRgbEffect: gameState.profileRgbEffect,
+    monochromeRecolorEquipped: gameState.monochromeRecolorEquipped
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
   saveProgressToDatabase(user, progress);
@@ -2822,6 +2839,9 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.winterPassXP = Number(progress.winterPassXP) || 0;
       gameState.winterPassLevel = Number(progress.winterPassLevel) || 1;
       gameState.winterPassClaimed = Array.isArray(progress.winterPassClaimed) ? progress.winterPassClaimed : [];
+      gameState.unlockedRecolors = Array.isArray(progress.unlockedRecolors) ? progress.unlockedRecolors : [];
+      gameState.profileRgbEffect = typeof progress.profileRgbEffect === 'string' ? progress.profileRgbEffect : '';
+      gameState.monochromeRecolorEquipped = Boolean(progress.monochromeRecolorEquipped);
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
 
@@ -3349,7 +3369,43 @@ function checkLogin() {
     offlineModeActive = localStorage.getItem('glob_offline_mode') === 'true';
     if (savedLoginName) document.getElementById('username-input').value = savedLoginName;
     else if (savedName) document.getElementById('username-input').value = savedName;
+    restoreRememberedCredentials();
   } catch (e) { console.warn("LocalStorage no disponible"); }
+}
+
+// "Recuérdame": guarda/recupera usuario y contraseña en este dispositivo.
+// Nota: la contraseña queda en localStorage (texto plano), de ahí el aviso.
+function persistRememberedCredentials(username, password) {
+  try {
+    const checkbox = document.getElementById('remember-me-checkbox');
+    if (checkbox && checkbox.checked) {
+      localStorage.setItem('glob_remember_me', 'true');
+      localStorage.setItem('glob_remember_user', username);
+      localStorage.setItem('glob_remember_pass', password);
+    } else {
+      localStorage.removeItem('glob_remember_me');
+      localStorage.removeItem('glob_remember_user');
+      localStorage.removeItem('glob_remember_pass');
+    }
+  } catch (e) { /* localStorage no disponible */ }
+}
+
+function restoreRememberedCredentials() {
+  try {
+    const remembered = localStorage.getItem('glob_remember_me') === 'true';
+    const checkbox = document.getElementById('remember-me-checkbox');
+    const warning = document.getElementById('remember-me-warning');
+    if (checkbox) checkbox.checked = remembered;
+    if (warning) warning.style.display = remembered ? 'block' : 'none';
+    if (remembered) {
+      const user = localStorage.getItem('glob_remember_user') || '';
+      const pass = localStorage.getItem('glob_remember_pass') || '';
+      const userInput = document.getElementById('username-input');
+      const passInput = document.getElementById('password-input');
+      if (userInput && user) userInput.value = user;
+      if (passInput && pass) passInput.value = pass;
+    }
+  } catch (e) { /* localStorage no disponible */ }
 }
 
 function scheduleSkipLoginButton() { /* desactivado */ }
@@ -4015,6 +4071,8 @@ async function handleLogin() {
         : 'El inicio de sesión no se completó. Revisa tu correo para confirmar la cuenta.');
       return;
     }
+
+    persistRememberedCredentials(username, password);
 
     const pendingTutorialKey = `glob_tutorial_pending_${username.toLowerCase()}`;
     const isNewAccount = localStorage.getItem(pendingTutorialKey) === 'true';
@@ -7641,6 +7699,20 @@ function bindEvents() {
   document.getElementById('offline-play-btn').onclick = handleSkipLogin;
   const createAccountButton = document.getElementById('create-account-btn');
   if (createAccountButton) createAccountButton.onclick = handleCreateAccount;
+  const rememberCheckbox = document.getElementById('remember-me-checkbox');
+  if (rememberCheckbox) {
+    rememberCheckbox.addEventListener('change', () => {
+      const warning = document.getElementById('remember-me-warning');
+      if (warning) warning.style.display = rememberCheckbox.checked ? 'block' : 'none';
+      if (!rememberCheckbox.checked) {
+        try {
+          localStorage.removeItem('glob_remember_me');
+          localStorage.removeItem('glob_remember_user');
+          localStorage.removeItem('glob_remember_pass');
+        } catch (e) { /* ignore */ }
+      }
+    });
+  }
   ['username-input', 'password-input'].forEach(id => {
     const input = document.getElementById(id);
     input?.addEventListener('keydown', event => {
@@ -8557,20 +8629,62 @@ function isWinterPassOpen(date = new Date()) {
   return isWinterEventActive(date);
 }
 
-// Recompensas del pase de invierno. NO está terminado: de momento solo filtros y
-// DuckPasses; estos recursos se cambiarán por skins/accesorios en el futuro.
-// Tipos: { type:'duckpass', amount } | { type:'filter', id } | (futuros: skin/accessory)
+// Pase de invierno de 50 niveles. Tipos de recompensa:
+//   { type:'duckpass', amount } | { type:'accessory', id } |
+//   { type:'recolor', id:'monochrome'|'negative' } | { type:'skin', id } | { type:'filter', id }
+// Los items importantes (reskins, efectos, skins, accesorios) van en hitos; el
+// resto son DuckPasses de relleno crecientes. El nivel sube cada 100 CandyLove.
 const WINTER_PASS_REWARDS = [
-  { level: 1, reward: { type: 'duckpass', amount: 50 } },
-  { level: 2, reward: { type: 'filter', id: 'christmas' } },
-  { level: 3, reward: { type: 'duckpass', amount: 75 } },
-  { level: 4, reward: { type: 'duckpass', amount: 100 } },
-  { level: 5, reward: { type: 'filter', id: 'events' } },
-  { level: 6, reward: { type: 'skin', id: 'rewamped_gray_set' } },
-  { level: 7, reward: { type: 'duckpass', amount: 150 } },
-  { level: 8, reward: { type: 'duckpass', amount: 175 } },
-  { level: 9, reward: { type: 'skin', id: 'toy_glomb_set' } },
-  { level: 10, reward: { type: 'duckpass', amount: 300 } }
+  { level: 1, reward: { type: 'duckpass', amount: 40 } },
+  { level: 2, reward: { type: 'accessory', id: 'dingdong_ticktock' } },
+  { level: 3, reward: { type: 'duckpass', amount: 40 } },
+  { level: 4, reward: { type: 'duckpass', amount: 50 } },
+  { level: 5, reward: { type: 'recolor', id: 'monochrome' } },
+  { level: 6, reward: { type: 'duckpass', amount: 50 } },
+  { level: 7, reward: { type: 'duckpass', amount: 50 } },
+  { level: 8, reward: { type: 'accessory', id: 'clockwork_bombot_reskin' } },
+  { level: 9, reward: { type: 'duckpass', amount: 60 } },
+  { level: 10, reward: { type: 'accessory', id: 'bakhef' } },
+  { level: 11, reward: { type: 'duckpass', amount: 60 } },
+  { level: 12, reward: { type: 'duckpass', amount: 60 } },
+  { level: 13, reward: { type: 'duckpass', amount: 70 } },
+  { level: 14, reward: { type: 'duckpass', amount: 70 } },
+  { level: 15, reward: { type: 'skin', id: 'rewamped_gray_set' } },
+  { level: 16, reward: { type: 'duckpass', amount: 70 } },
+  { level: 17, reward: { type: 'duckpass', amount: 80 } },
+  { level: 18, reward: { type: 'duckpass', amount: 80 } },
+  { level: 19, reward: { type: 'duckpass', amount: 80 } },
+  { level: 20, reward: { type: 'accessory', id: 'furnace_bombot_reskin' } },
+  { level: 21, reward: { type: 'duckpass', amount: 90 } },
+  { level: 22, reward: { type: 'duckpass', amount: 90 } },
+  { level: 23, reward: { type: 'duckpass', amount: 90 } },
+  { level: 24, reward: { type: 'duckpass', amount: 100 } },
+  { level: 25, reward: { type: 'recolor', id: 'negative' } },
+  { level: 26, reward: { type: 'duckpass', amount: 100 } },
+  { level: 27, reward: { type: 'duckpass', amount: 100 } },
+  { level: 28, reward: { type: 'duckpass', amount: 110 } },
+  { level: 29, reward: { type: 'duckpass', amount: 110 } },
+  { level: 30, reward: { type: 'accessory', id: 'golderous_spoon' } },
+  { level: 31, reward: { type: 'duckpass', amount: 110 } },
+  { level: 32, reward: { type: 'duckpass', amount: 120 } },
+  { level: 33, reward: { type: 'duckpass', amount: 120 } },
+  { level: 34, reward: { type: 'duckpass', amount: 120 } },
+  { level: 35, reward: { type: 'duckpass', amount: 130 } },
+  { level: 36, reward: { type: 'duckpass', amount: 130 } },
+  { level: 37, reward: { type: 'duckpass', amount: 130 } },
+  { level: 38, reward: { type: 'duckpass', amount: 140 } },
+  { level: 39, reward: { type: 'duckpass', amount: 140 } },
+  { level: 40, reward: { type: 'accessory', id: 'red_breath_bombot_reskin' } },
+  { level: 41, reward: { type: 'duckpass', amount: 150 } },
+  { level: 42, reward: { type: 'duckpass', amount: 150 } },
+  { level: 43, reward: { type: 'duckpass', amount: 160 } },
+  { level: 44, reward: { type: 'duckpass', amount: 160 } },
+  { level: 45, reward: { type: 'duckpass', amount: 180 } },
+  { level: 46, reward: { type: 'duckpass', amount: 180 } },
+  { level: 47, reward: { type: 'duckpass', amount: 200 } },
+  { level: 48, reward: { type: 'duckpass', amount: 220 } },
+  { level: 49, reward: { type: 'duckpass', amount: 250 } },
+  { level: 50, reward: { type: 'skin', id: 'toy_glomb_set' } }
 ];
 
 // XP del pase de invierno que otorga un enemigo al morir.
@@ -8596,12 +8710,17 @@ function getWinterPassXPForEnemy(e) {
 function addWinterPassXP(amount) {
   if (multiplayerSpectator || !amount || amount <= 0) return;
   if (!isWinterEventActive()) return; // solo durante el evento
+  const WINTER_PASS_MAX_LEVEL = WINTER_PASS_REWARDS.length; // 50
   gameState.winterPassXP = (gameState.winterPassXP || 0) + amount;
   let leveled = false;
-  while (gameState.winterPassXP >= 100) {
+  while (gameState.winterPassXP >= 100 && (gameState.winterPassLevel || 1) < WINTER_PASS_MAX_LEVEL) {
     gameState.winterPassLevel = (gameState.winterPassLevel || 1) + 1;
     gameState.winterPassXP -= 100;
     leveled = true;
+  }
+  // Al llegar al nivel máximo, la barra de XP se queda llena.
+  if ((gameState.winterPassLevel || 1) >= WINTER_PASS_MAX_LEVEL) {
+    gameState.winterPassXP = Math.min(gameState.winterPassXP, 100);
   }
   if (leveled) {
     const msg = currentLanguage === 'es'
@@ -8939,6 +9058,7 @@ function openPass() {
 function openWinterPass() {
   closeModal('shop-modal');
   closeModal('pass-modal');
+  closeModal('advent-calendar-modal');
   document.getElementById('winter-pass-modal').style.display = 'flex';
   drawWinterPass();
 }
@@ -8973,6 +9093,12 @@ function drawWinterPass() {
     let rewardLabel = '';
     if (r.type === 'duckpass') rewardLabel = `<img src="Recursos/img/Tokens/DuckPass.png" width="20"> +${r.amount}`;
     else if (r.type === 'filter') rewardLabel = currentLanguage === 'es' ? `🔎 Filtro: ${r.id}` : `🔎 Filter: ${r.id}`;
+    else if (r.type === 'recolor') {
+      const recolorName = r.id === 'monochrome'
+        ? (currentLanguage === 'es' ? 'Monochrome (recolor RGB)' : 'Monochrome (RGB recolor)')
+        : r.id;
+      rewardLabel = `<span style="display:inline-block;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#c9c9c9,#6f6f6f);"></span><div style="font-size:0.72rem; margin-top:4px;">${recolorName}</div>`;
+    }
     else if (r.type === 'skin') {
       const skin = Object.values(SKINS_DATA).flat().find(s => s.id === r.id);
       const skinImg = skin ? Object.values(skin.skins)[0] : null;
@@ -9012,6 +9138,17 @@ function claimWinterPassReward(level) {
     updateMetaUI();
   } else if (r.type === 'filter') {
     // Placeholder: las recompensas de filtro se registran como reclamadas.
+  } else if (r.type === 'recolor') {
+    // Efecto de perfil para los Globs RGB ('monochrome' | 'negative'). Se
+    // desbloquea y se equipa automáticamente; se puede alternar desde el perfil.
+    if (!Array.isArray(gameState.unlockedRecolors)) gameState.unlockedRecolors = [];
+    gameState.unlockedRecolors = [...new Set([...gameState.unlockedRecolors, r.id])];
+    gameState.profileRgbEffect = r.id;
+    if (r.id === 'monochrome') gameState.monochromeRecolorEquipped = true;
+  } else if (r.type === 'accessory') {
+    if (!Array.isArray(gameState.unlockedBombotAccessories)) gameState.unlockedBombotAccessories = [];
+    ensurePersonalizableBombotUnlocked();
+    gameState.unlockedBombotAccessories = [...new Set([...gameState.unlockedBombotAccessories, r.id])];
   } else if (r.type === 'skin') {
     if (!Array.isArray(gameState.unlockedSkins)) gameState.unlockedSkins = ['default'];
     gameState.unlockedSkins = [...new Set([...gameState.unlockedSkins, r.id])];
@@ -10094,6 +10231,7 @@ function drawUserProfile() {
           ${getProfileAvatarImageMarkup(choice)}<span>${choice.label}</span>
         </button>`).join('')}
     </div>
+    ${getProfileEffectSelectorMarkup()}
     <h3>${currentLanguage === 'en' ? 'Choose a frame' : 'Elige un borde'}</h3>
     <div class="profile-border-grid">
       ${getAvailableProfileBorders().map(choice => `
@@ -10116,18 +10254,69 @@ function getProfileAvatarImageMarkup(avatar, applyRgbEffect = false) {
   const imageUrl = encodeURI(avatar.image);
   const isGodsShadow = avatar.id === 'enemy:GODs_Shadow';
   const rgb = (avatar.rgb || applyRgbEffect) && !isGodsShadow;
+  // Variante de efecto del Winter Pass equipada (monochrome/negative) que
+  // reemplaza visualmente al arcoíris RGB. Solo se aplica cuando el avatar es
+  // RGB (o GLB Fever está activo).
+  const effectVariant = rgb ? getActiveProfileEffectVariant() : '';
+  const variantClass = effectVariant ? ` ${effectVariant}` : '';
+  const rgbClass = rgb ? ` rgb-avatar-image${variantClass}` : '';
   if (Array.isArray(avatar.layers) && avatar.layers.length > 0) {
     const layers = avatar.layers
       .map(layer => `<img src="${encodeURI(layer)}" alt="">`)
       .join('');
-    return `<span class="profile-avatar-layers${rgb ? ' rgb-avatar-image' : ''}"${rgb ? ` style="--rgb-avatar-mask-image:url('${imageUrl}')"` : ''}><img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">${layers}</span>`;
+    return `<span class="profile-avatar-layers${rgbClass}"${rgb ? ` style="--rgb-avatar-mask-image:url('${imageUrl}')"` : ''}><img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">${layers}</span>`;
   }
   const shadowClass = isGodsShadow ? ' class="gods-shadow-portrait"' : '';
   const image = `<img${shadowClass} src="${imageUrl}" alt="${rgb ? '' : avatar.label}">`;
   return rgb
-    ? `<span class="rgb-avatar-image" style="--rgb-avatar-mask-image:url('${imageUrl}')">${image}</span>`
+    ? `<span class="rgb-avatar-image${variantClass}" style="--rgb-avatar-mask-image:url('${imageUrl}')">${image}</span>`
     : image;
 }
+
+// Variante de efecto de perfil equipada sobre los Globs RGB. Devuelve la clase
+// CSS correspondiente ('monochrome' | 'negative') o '' para el RGB por defecto.
+// Son efectos del Winter Pass (mutuamente excluyentes con el arcoíris).
+function getActiveProfileEffectVariant() {
+  if (!gameState) return '';
+  const effect = gameState.profileRgbEffect;
+  if (effect === 'monochrome' || effect === 'negative') return effect;
+  // Compatibilidad con el flag antiguo de Monochrome.
+  if (gameState.monochromeRecolorEquipped) return 'monochrome';
+  return '';
+}
+
+// Selector de efecto para los Globs RGB (solo si hay efectos desbloqueados).
+// Permite alternar entre RGB (arcoíris), Monochrome y Negativo.
+function getProfileEffectSelectorMarkup() {
+  const unlocked = Array.isArray(gameState.unlockedRecolors) ? gameState.unlockedRecolors : [];
+  if (!unlocked.length) return '';
+  const current = getActiveProfileEffectVariant() || 'rgb';
+  const options = [
+    { id: 'rgb', label: 'RGB', always: true },
+    { id: 'monochrome', label: 'Monochrome' },
+    { id: 'negative', label: currentLanguage === 'en' ? 'Negative' : 'Negativo' }
+  ].filter(opt => opt.always || unlocked.includes(opt.id));
+  const title = currentLanguage === 'en' ? 'RGB Glob effect' : 'Efecto de Globs RGB';
+  return `
+    <h3>${title}</h3>
+    <div class="profile-choice-grid">
+      ${options.map(opt => `
+        <button class="profile-choice ${current === opt.id ? 'selected' : ''}" type="button"
+          onclick="setProfileRgbEffect('${opt.id}')"><span>${opt.label}</span></button>`).join('')}
+    </div>`;
+}
+
+window.setProfileRgbEffect = function(effectId) {
+  const valid = ['rgb', 'monochrome', 'negative'];
+  if (!valid.includes(effectId)) return;
+  if (effectId !== 'rgb' &&
+      !(gameState.unlockedRecolors || []).includes(effectId)) return;
+  gameState.profileRgbEffect = effectId === 'rgb' ? '' : effectId;
+  gameState.monochromeRecolorEquipped = effectId === 'monochrome';
+  saveProgress();
+  drawUserProfile();
+  publishMultiplayerProfile();
+};
 
 function getShopSkinDescription(skin) {
   const description = translate(skin.desc);
@@ -10232,6 +10421,20 @@ function equipBombotAccessory(id) {
   }
   if (!gameState.unlockedBombotAccessories.includes(id) && gameState.debugState !== 'unlocked') return;
 
+  // Regla de reskins que no admiten gorros (se inclinarían sobre el Bombot).
+  // Permiten accesorios frontales, pero no gorros salvo los de su lista blanca.
+  if (accessory.slot === 'head') {
+    const reskinId = gameState.equippedBombotAccessories.reskin;
+    const reskin = reskinId && BOMBOT_ACCESSORIES.find(item => item.id === reskinId);
+    if (reskin?.noHats && !(reskin.allowedHats || []).includes(id)) {
+      const reskinName = getBombotAccessoryName(reskin) || reskinId;
+      showMessage(currentLanguage === 'en'
+        ? `${reskinName} can't wear tilted hats.`
+        : `${reskinName} no puede llevar gorros inclinados.`, 'warning');
+      return;
+    }
+  }
+
   if (accessory.slot === 'front') {
     const fronts = getEquippedBombotFronts();
     if (fronts.includes(id)) {
@@ -10263,6 +10466,14 @@ function equipBombotAccessory(id) {
   } else if (accessory.slot === 'reskin') {
     const nextReskin = gameState.equippedBombotAccessories.reskin === id ? null : id;
     gameState.equippedBombotAccessories.reskin = nextReskin;
+    // Si el nuevo reskin no admite gorros, quitar el gorro equipado salvo que
+    // esté en su lista blanca (p. ej. Furnace conserva su Bakhef).
+    if (nextReskin && accessory.noHats) {
+      const head = gameState.equippedBombotAccessories.head;
+      if (head && !(accessory.allowedHats || []).includes(head)) {
+        gameState.equippedBombotAccessories.head = null;
+      }
+    }
   } else {
     gameState.equippedBombotAccessories[accessory.slot] =
       gameState.equippedBombotAccessories[accessory.slot] === id ? null : id;
