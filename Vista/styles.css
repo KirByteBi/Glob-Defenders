@@ -643,91 +643,56 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* El arcoíris lo pinta el ::after; esta <img> se oculta en modo RGB y se
-       muestra (en gris) en modo Monochrome. */
+    /* La imagen va DEBAJO intacta; el arcoíris lo pinta el ::after encima. */
 }
 
-/* ===== EFECTO RGB SOBRE LA IMAGEN (auto-contenido) =========================
-   El ::after combina, DENTRO del propio pseudo-elemento, el arcoíris y el PNG
-   del Glob mediante background-blend-mode: color (color del arcoíris +
-   luminancia del PNG). El PNG aporta la forma y los contornos negros; el
-   arcoíris aporta el color. El mask recorta a la silueta. La <img> real se
-   oculta (opacity:0) y solo sirve para dar tamaño al contenedor. */
-/* RGB (técnica fiable para el frame grande):
-   - ::before -> arcoíris pleno recortado a la silueta (como Rainbow Fuel).
-   - <img>    -> el Glob blanqueado, en mix-blend-mode: multiply sobre el
-                 arcoíris, respetando los contornos negros.
-   El fondo del span se fuerza transparente para no ensuciar el multiply. */
-.profile-avatar-frame > .rgb-avatar-image,
-.profile-choice > .rgb-avatar-image,
-.multiplayer-profile-badge .rgb-avatar-image {
-    background: transparent !important;
-}
-
-.rgb-avatar-image::before {
+/* ===== EFECTO RGB (técnica screen + máscara, fiable) =======================
+   La imagen del Glob queda DEBAJO sin tocar. Encima, el ::after pinta un
+   arcoíris que se desliza, recortado a la silueta del Glob con mask, y
+   fundido con mix-blend-mode: screen. En screen: negro no cambia (los
+   contornos negros se conservan) y el color se ilumina en arcoíris. */
+.rgb-avatar-image::after {
     content: '';
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 2;
     pointer-events: none;
     background: linear-gradient(90deg,
-        #ff0040, #ff8c00, #ffee00, #28e04b, #00c2ff, #6a5cff, #d138ff, #ff0040);
+        red, orange, yellow, lime, cyan, blue, violet, red);
     background-size: 200% 100%;
-    /* RGB más claro/pastel para distinguirlo del Rainbow Fuel (vivo e intenso). */
-    filter: saturate(0.8) brightness(1.3);
-    animation: rgb-avatar-slide 2.6s linear infinite;
+    mix-blend-mode: screen;
+    animation: rgb-avatar-slide 3s linear infinite;
+    /* Solo se ve donde la imagen tiene silueta (la máscara es el propio PNG). */
     mask-image: var(--rgb-avatar-mask-image);
     -webkit-mask-image: var(--rgb-avatar-mask-image);
-    mask-size: 100% 100%;
-    -webkit-mask-size: 100% 100%;
+    mask-size: contain;
+    -webkit-mask-size: contain;
     mask-repeat: no-repeat;
     -webkit-mask-repeat: no-repeat;
     mask-position: center;
     -webkit-mask-position: center;
 }
 
-/* La <img> real, visible y blanqueada, multiplicada SOBRE el arcoíris del
-   ::before: blanco × arcoíris = arcoíris; negro × arcoíris = negro (contornos).
-   Va en el propio <img> (no en ::after) porque así blendea de forma fiable en
-   el frame grande del perfil. */
-.rgb-avatar-image > img {
-    opacity: 1;
-    position: relative;
-    z-index: 2;
-    filter: grayscale(1) brightness(1.9) contrast(1.5);
-    mix-blend-mode: multiply;
-}
-
 /* Modo Monochrome (efecto de perfil): el Glob se ve en gris, sin arcoíris. */
 .rgb-avatar-image.monochrome > img {
     filter: grayscale(1) contrast(1.05);
-    mix-blend-mode: normal;
 }
-
-.rgb-avatar-image.monochrome::before {
+.rgb-avatar-image.monochrome::after {
     display: none;
 }
 
-/* Efecto Snowy (Winter Pass): el Glob se ve blanco/nevado (sin arcoíris). Es
-   la imagen blanqueada sin multiply, así que queda clara sobre el marco. */
+/* Efecto Snowy (Winter Pass): el Glob se ve blanco/nevado (sin arcoíris). */
 .rgb-avatar-image.snowy > img {
-    opacity: 1;
     filter: grayscale(1) brightness(1.9) contrast(1.5);
-    mix-blend-mode: normal;
 }
-
-.rgb-avatar-image.snowy::before {
+.rgb-avatar-image.snowy::after {
     display: none;
 }
 
-/* Modo Negativo (efecto de perfil): los colores de la imagen se invierten.
-   Lo negro pasa a blanco y viceversa, dando un aspecto "negativo" llamativo. */
+/* Modo Negativo (efecto de perfil): los colores de la imagen se invierten. */
 .rgb-avatar-image.negative > img {
-    opacity: 1;
     filter: invert(1);
-    mix-blend-mode: normal;
 }
-
 .rgb-avatar-image.negative::after {
     display: none;
 }

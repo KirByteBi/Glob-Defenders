@@ -527,7 +527,7 @@ const SKINS_DATA = {
         'Planked_Glob': IMAGE_PATHS.Planked_Glob,
         'DJ_Glob': IMAGE_PATHS.DJ_Glob
       },
-      rgbTypes: ['Worker_Glob', 'Police_Glob', 'Planked_Glob', 'DJ_Glob']
+      rgbTypes: ['Worker_Glob', 'Police_Glob', 'Planked_Glob', 'DJ_Glob'], rgbRewamp: true
     }
   ],
   'Glob': [
@@ -563,7 +563,7 @@ const SKINS_DATA = {
         'Golden_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO3.png',
         'Rainbow_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO4.png'
       },
-      rgbTypes: ['Glob', 'Poop_Glob', 'Golden_Glob', 'Rainbow_Glob'],
+      rgbTypes: ['Glob', 'Poop_Glob', 'Golden_Glob', 'Rainbow_Glob'], rgbRewamp: true,
       names: {
         'Glob': 'RGreenB1',
         'Rainbow_Glob': 'RGreenB4'
@@ -623,7 +623,7 @@ const SKINS_DATA = {
         'Molten_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO2.png',
         'Robotic_Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Red/Rewmped_Red_SK-EVO3.png'
       },
-      rgbTypes: ['Red_Glob', 'Molten_Glob', 'Robotic_Glob'],
+      rgbTypes: ['Red_Glob', 'Molten_Glob', 'Robotic_Glob'], rgbRewamp: true,
       names: {
         'Red_Glob': 'RedGB1',
         'Robotic_Glob': 'RedGB3'
@@ -675,7 +675,7 @@ const SKINS_DATA = {
         'Cotton_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/CottonRewamp (SK-EVO2).png',
         'ElectroClean_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlueRewamp_SKIN/ElectroCleanRewamp (SK-EVO3).png'
       },
-      rgbTypes: ['Soap_Glob', 'Cotton_Glob', 'ElectroClean_Glob'],
+      rgbTypes: ['Soap_Glob', 'Cotton_Glob', 'ElectroClean_Glob'], rgbRewamp: true,
       names: {
         'Soap_Glob': 'RGBlue1',
         'ElectroClean_Glob': 'RGBlue3'
@@ -706,7 +706,7 @@ const SKINS_DATA = {
         'Golden_Ducky_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp2.png',
         'Rick_Duck_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/DuckyRewamp-SKIN/Ducky-Rewamp3.png'
       },
-      rgbTypes: ['Ducky_Glob', 'Golden_Ducky_Glob', 'Rick_Duck_Glob'],
+      rgbTypes: ['Ducky_Glob', 'Golden_Ducky_Glob', 'Rick_Duck_Glob'], rgbRewamp: true,
       names: {
         'Ducky_Glob': 'Ducky RGB 1',
         'Rick_Duck_Glob': 'Ducky RGB 3'
@@ -734,7 +734,7 @@ const SKINS_DATA = {
         'Pyce_Glob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Gray Rewamp/RewampedGray2.png',
         'SpyGlob': 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/Winter Pass/Gray Rewamp/RewampedGray3.png'
       },
-      rgbTypes: ['Old_Glob', 'Pyce_Glob', 'SpyGlob'],
+      rgbTypes: ['Old_Glob', 'Pyce_Glob', 'SpyGlob'], rgbRewamp: true,
       names: {
         'Old_Glob': 'RGrayB1',
         'SpyGlob': 'RGrayB3'
@@ -866,7 +866,7 @@ const SKINS_DATA = {
         'Demglob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp3.png',
         'Void_Glob': 'Recursos/Spooks in the Desert (UPD4)/Skins/BlackRewamp _SKIN/BlackRewamp4.png'
       },
-      rgbTypes: ['Comet_Glob', 'Dark_Glob', 'Demglob', 'Void_Glob'],
+      rgbTypes: ['Comet_Glob', 'Dark_Glob', 'Demglob', 'Void_Glob'], rgbRewamp: true,
       names: {
         'Comet_Glob': 'Black RGB 1',
         'Void_Glob': 'Black RGB 4'
@@ -896,7 +896,7 @@ const SKINS_DATA = {
         'TNT_Glob': IMAGE_PATHS.TNT_Glob,
         'Nuclear_Glob': IMAGE_PATHS.Nuclear_Glob
       },
-      rgbTypes: ['Bomb_Glob', 'TNT_Glob', 'Nuclear_Glob']
+      rgbTypes: ['Bomb_Glob', 'TNT_Glob', 'Nuclear_Glob'], rgbRewamp: true
     },
     {
       // Toy Glomb: bomba de juguete (Winter Pass). Un Glob que va creciendo.

@@ -73,7 +73,27 @@ const SAFE_MULTIPLAYER_CHAT_MESSAGES = {
   ]
 };
 const REWAMPED_SKIN_IDS = ['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set', 'rewamped_gray_set'];
+// Lista historica de skins Rewamp con efecto RGB. Se mantiene por
+// retrocompatibilidad, pero MEC-01 ya no la exige: cualquier skin nueva que
+// defina rgbTypes y se marque con `rgbRewamp: true` en SKINS_DATA recibe el
+// efecto RGB automaticamente, sin necesidad de anadirla aqui.
 const RGB_REWAMP_SKIN_IDS = ['green_rgb_sr', 'red_rgb_sr', 'blue_rgb_sr', 'black_rgb_sr', 'ducky_rgb_sr', 'worker_rgb', 'iex_rgb', 'gray_rgb_sr'];
+
+// Determina si una skin es un Rewamp RGB (recibe el arcoiris animado). Una skin
+// cuenta como RGB Rewamp si declara rgbTypes y, o bien esta en la lista
+// historica, o bien se marca explicitamente con rgbRewamp: true. Esto permite
+// que todos los nuevos Globs Rewamp hereden el efecto sin editar listas.
+function isRgbRewampSkin(skin) {
+  if (!skin || !Array.isArray(skin.rgbTypes)) return false;
+  return skin.rgbRewamp === true || RGB_REWAMP_SKIN_IDS.includes(skin.id);
+}
+
+// Variante por id: busca la skin por su id dentro de una familia y delega en
+// isRgbRewampSkin. Devuelve false si no la encuentra.
+function isRgbRewampSkinId(family, skinId) {
+  const skin = SKINS_DATA[family]?.find(item => item.id === skinId);
+  return isRgbRewampSkin(skin);
+}
 const PROFILE_ENEMY_VARIANT_GROUPS = [
   { canonical: 'BitY1', types: ['BitY1', 'BitB4', 'BitG2', 'BitP3'] },
   { canonical: 'ByteGB1', types: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'] },
@@ -9567,7 +9587,7 @@ function getUniqueProfileEnemies() {
 
 function getProfileRgbRewampSkin(family, type) {
   return SKINS_DATA[family]?.find(item =>
-    RGB_REWAMP_SKIN_IDS.includes(item.id) && item.rgbTypes?.includes(type) && item.skins?.[type]
+    isRgbRewampSkin(item) && item.rgbTypes?.includes(type) && item.skins?.[type]
   ) || null;
 }
 
@@ -10873,7 +10893,7 @@ function drawShop() {
     function skinMatchesEvent(skin, event) {
       const assetPaths = Object.values(skin.skins || {}).join(' ').toLowerCase();
       const condition = String(skin.unlockCondition || '').toLowerCase();
-      const isRewamp = REWAMPED_SKIN_IDS.includes(skin.id) || RGB_REWAMP_SKIN_IDS.includes(skin.id);
+      const isRewamp = REWAMPED_SKIN_IDS.includes(skin.id) || isRgbRewampSkin(skin);
       const isHalloween = halloweenSkinIds.has(skin.id) || condition.includes('spooktacular');
       const isChristmas = christmasSkinIds.has(skin.id) ||
         assetPaths.includes('frozen calendar christmas') ||
@@ -13848,8 +13868,27 @@ function activateGTack(t) {
   let frameCount = 0;
   const MAX_PROJECTILES = 120; // Límite de proyectiles activos en pantalla
 
+  // Vida maxima de la base segun el modo/mejoras, usada para calcular los topes
+  // de dano por impacto. Debe reflejar el mismo valor con el que arranca la base.
+  function getBaseMaxHealth() {
+    if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace >= 3) return 300;
+    if (gameState.mode === 'tutorial') return 100;
+    return 100 + ((gameState.baseHealthLevel || 0) * 20);
+  }
+
+  // MEC-02: el dano a la base es la vida restante del enemigo (vida + escudo),
+  // no un valor fijo por tier. Ej.: Pyce con 50 de vida -> la base pierde 50.
+  // Los cristalizados reutilizan su antiguo "golpe reforzado": aplican un
+  // recargo del 50% sobre su vida restante. Para que un solo enemigo filtrado
+  // nunca borre la base de golpe, el dano se limita a una fraccion de la vida
+  // maxima de la base por impacto (mas alta para los cristalizados).
   function damageBaseFromEnemy(enemy) {
-    const damage = Math.max(1, Number(enemy.baseDamage) || 2);
+    const vitality = Math.max(0, (Number(enemy.health) || 0) + (Number(enemy.shield) || 0));
+    const crystallized = Boolean(enemy.isCrystallized);
+    const rawDamage = crystallized ? vitality * 1.5 : vitality;
+    const baseMax = Math.max(1, getBaseMaxHealth());
+    const cap = Math.ceil(baseMax * (crystallized ? 0.75 : 0.5));
+    const damage = Math.max(1, Math.min(cap, Math.ceil(rawDamage)));
     gameState.health = Math.max(0, gameState.health - damage);
     gameState.baseTookDamage = true;
     showEffect(enemy.x, enemy.y, `-${damage}`);
@@ -16261,7 +16300,7 @@ function activateGTack(t) {
     // Cubre tanto las familias Rewamp como Worker (naranja) e IEx (sus skins RGB
     // usan las imagenes base de Urbanistic Road).
     const hasRgbSkin = skinSet?.rgbTypes?.includes(type) &&
-      RGB_REWAMP_SKIN_IDS.includes(equippedSkin);
+      isRgbRewampSkin(skinSet);
 
     let rgbEffect = '';
     if (globalSkin !== 'pyce_morph' && hasRgbSkin) {
