@@ -5738,4 +5738,12468 @@ function selectMode(mode) {
   // Anti-Normal glitch blocks ALL mode selection except normal
   if (gameState.antiNormalActive && mode !== 'normal') {
     showMessage(translate('system_corrupt_error'), 'error');
-    const btn = docume
+    const btn = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+    if (btn) {
+      btn.classList.remove('glitch-rejected');
+      void btn.offsetWidth;
+      btn.classList.add('glitch-rejected');
+    }
+
+    return;
+  }
+
+  if (mode === 'tutorial') {
+    setTutorialSkinsEnabled(true);
+    setTutorialProgressionEnabled(true);
+  } else if (tutorialEquippedSkinsBackup) {
+    setTutorialSkinsEnabled(false);
+    setTutorialProgressionEnabled(false);
+  } else if (tutorialProgressionBackup) {
+    setTutorialProgressionEnabled(false);
+  }
+
+  gameState.mode = mode;
+  updateBuffs();
+  gameState.modeConfirmed = true;
+  const limits = { tutorial: 5, facil: 10, normal: 15, dificil: 25, extremo: 40, infinito: 999, corrupto: 40, antiNormal: 35, interstellar: 40 };
+  gameState.maxWaves = limits[mode] || 15;
+
+  if (gameState.blockQuestActive && gameState.map === 'urbanistic_road' && ['dificil', 'extremo', 'corrupto', 'antiNormal'].includes(mode)) {
+    gameState.blockQuestPending = true;
+  }
+
+  if (gameState.antiNormalActive && mode === 'normal') {
+    // Require confirmation before triggering Anti-Normal via the glitch path
+    const msg = currentLanguage === 'en'
+      ? '⚠️ WARNING: The system is unstable.\nSelecting NORMAL may trigger Anti-Normal mode — a hidden, extremely difficult mode with no health recovery.\n\nDo you wish to continue?'
+      : '⚠️ ADVERTENCIA: El sistema está inestable.\nSeleccionar NORMAL podría activar el modo Anti-Normal — un modo oculto, extremadamente difícil y sin recuperación de vida.\n\n¿Deseas continuar?';
+    if (!window.confirm(msg)) return;
+    gameState.mode = 'antiNormal';
+    gameState.maxWaves = 35;
+    document.getElementById('game-area').classList.add('anti-normal');
+    showMessage(translate('anti_normal_active'), 'error');
+  }
+
+  document.getElementById('mode-selection').style.display = 'none';
+  document.getElementById('mode-selection').classList.remove('glitch-state');
+
+  retryGame();
+  renderMultiplayerPlayerList(multiplayerPlayers);
+  applyScale();
+
+  gameState.globetines = mode === 'tutorial' ? 650 : 500;
+  if (mode !== 'tutorial') setTutorialStage(null);
+  updateUI();
+  showMessage(translate('mode_selected', { mode: mode.toUpperCase() }), 'info');
+
+  setTimeout(() => {
+    if (gameState.mode === 'tutorial') return;
+    const isUrban = (gameState.map || 'gelatin_lake') === 'urbanistic_road';
+    if (gameState.mode === 'corrupto') {
+      if (isUrban) {
+        const storyText = currentLanguage === 'es'
+          ? "¡Bienvenido a mi casino... o lo que queda de él tras mis mejoras! Aquí los Pyces juegan con mis reglas, ¡y NADIE sale sin pagar! ¡Prepárate para apostarlo todo!"
+          : "Welcome to my casino... or what's left of it after my upgrades! Here the Pyces play by MY rules, and NOBODY leaves without paying! Prepare to bet it all!";
+        showNarratorMsg('arkyvoid', NARRATOR_DATA.arkyvoid.img, NARRATOR_DATA.arkyvoid[currentLanguage].name, storyText);
+      } else {
+        const storyText = currentLanguage === 'es'
+          ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!"
+          : "Welcome to Gelatin Lake... or what is left of it. You have entered my region, where the Pyces do not act of their own free will, but obey my sacred stellar design. Prepare to be assimilated!";
+        showNarratorMsg('moonstar', 'Recursos/img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
+      }
+    } else if (gameState.mode === 'antiNormal') {
+      if (isUrban) {
+        const storyText = currentLanguage === 'es'
+          ? "las estrellas lo anunciaron hace tiempo... ahora los Arkys hemos tomado el control de este lugar. no hay escapatoria. el firmamento ya lo ha decidido por vosotros."
+          : "the stars announced it long ago... now we Arkys have taken control of this place. there is no escape. the sky has already decided for you.";
+        showNarratorMsg('crystarky', NARRATOR_DATA.crystarky.img, NARRATOR_DATA.crystarky[currentLanguage].name, storyText);
+      } else {
+        const storyText = currentLanguage === 'es'
+          ? "¡S1S73M4 D3F1N171V0 D373C74D0! NOeye y MoonStar Pyce han unido sus fuerzas para crear la versión definitiva de este entorno. Los Globs serán borrados del sistema. ¡La purga comienza ya!"
+          : "DEFINITIVE SYSTEM DETECTED! NOeye and MoonStar Pyce have joined forces to create the ultimate version of this environment. The Globs will be deleted from the system. The purge begins now!";
+        showNarratorMsg('noeye', 'Recursos/img/NOeye_Pyce.png', 'NOeye & MoonStar', storyText, 'enemy-voice');
+      }
+    } else if (isUrban) {
+      // Modos normales en Urbanistic Road → Arky da la bienvenida
+      const storyText = currentLanguage === 'es'
+        ? "¡Ja! Otro defensor que se atreve a entrar al Gambling Gaming Casino. La casa siempre gana, ¿sabes? ¡Mucha suerte... la vas a necesitar!"
+        : "Ha! Another defender dares to enter the Gambling Gaming Casino. The house always wins, you know? Good luck... you're going to need it!";
+      showNarratorMsg('arky', NARRATOR_DATA.arky.img, NARRATOR_DATA.arky[currentLanguage].name, storyText);
+    }
+  }, 1000);
+}
+
+function startInterstellarMission(enableParacristalQuest) {
+  closeModal('shop-modal');
+  closeModal('pass-modal');
+  document.getElementById('mode-selection').style.display = 'none';
+  document.getElementById('map-selection').style.display = 'none';
+
+  gameState.interstellarParacristalQuest = enableParacristalQuest;
+  gameState.paracristalActive = false;
+  gameState.paracristalEnergy = 100;
+  gameState.paracristalAstrorbSeen = false;
+  gameState.paracristalFinal = false;
+  gameState.map = 'gelatin_lake';
+  generateSpots();
+  createMap();
+
+  gameState.mode = 'interstellar';
+  gameState.modeConfirmed = true;
+  gameState.maxWaves = 40;
+  retryGame();
+  renderMultiplayerPlayerList(multiplayerPlayers);
+  applyScale();
+  gameState.health = 200;
+  gameState.globetines = 500;
+  updateUI();
+}
+
+function startBlockQuest() {
+  if (gameState.blockQuestStarted || !gameState.blockQuestActive) return;
+  gameState.blockQuestStarted = true;
+  gameState.blockQuestStage = 0;
+  const map = document.getElementById('map');
+  if (!map) return;
+  const colors = [
+    { id: 'blue', color: '#278cff', label: 'AZUL' },
+    { id: 'green', color: '#2ecc71', label: 'VERDE' },
+    { id: 'lightgray', color: '#d8dee9', label: 'GRIS CLARO' },
+    { id: 'orange', color: '#ff8c00', label: 'NARANJA' },
+    { id: 'cyan', color: '#5ee7ff', label: 'AZUL CELESTE' }
+  ];
+  const spots = [];
+  while (spots.length < colors.length) {
+    const spot = { x: 80 + Math.random() * 820, y: 70 + Math.random() * 460 };
+    if (spots.every(other => Math.hypot(other.x - spot.x, other.y - spot.y) > 130)) spots.push(spot);
+  }
+  colors.forEach((item, index) => {
+    const marker = document.createElement('button');
+    marker.className = 'block-quest-marker';
+    marker.dataset.questIndex = index;
+    marker.style.left = `${spots[index].x}px`;
+    marker.style.top = `${spots[index].y}px`;
+    marker.style.setProperty('--quest-color', item.color);
+    marker.title = item.label;
+    marker.textContent = '◆';
+    marker.onclick = () => {
+      if (Number(marker.dataset.questIndex) !== gameState.blockQuestStage) {
+        gameState.blockQuestStage = 0;
+        document.querySelectorAll('.block-quest-marker').forEach(el => el.classList.remove('found'));
+        showMessage(currentLanguage === 'es' ? 'Secuencia reiniciada.' : 'Sequence reset.', 'warning');
+        return;
+      }
+      marker.classList.add('found');
+      gameState.blockQuestStage++;
+      if (gameState.blockQuestStage >= colors.length) {
+        document.querySelectorAll('.block-quest-marker').forEach(el => el.remove());
+        gameState.blockQuestStarted = false;
+        gameState.blockQuestBossPending = true;
+        showMessage(currentLanguage === 'es' ? '⚔️ ¡Sharowd ha aparecido!' : '⚔️ Sharowd has appeared!', 'warning');
+        spawnEnemy('Sharowd', true);
+      }
+      saveProgress();
+    };
+    map.appendChild(marker);
+  });
+  showMessage(currentLanguage === 'es' ? '🧱 Encuentra los colores en orden.' : '🧱 Find the colors in order.', 'info');
+}
+
+function finishBlockQuest() {
+  gameState.blockQuestVictories = (gameState.blockQuestVictories || 0) + 1;
+  gameState.blockQuestCompleted = true;
+  gameState.blockQuestActive = false;
+  if (gameState.mode === 'dificil') {
+    unlockBadge('block_city');
+  }
+  if (gameState.blockQuestHadBlockTales || gameState.blockQuestVictories >= 2) {
+    unlockBadge('old_blox_city');
+  }
+  gameState.unlockedSkins.push('corrupt_swords_set');
+  gameState.unlockedSkins.push('heights_set');
+  gameState.unlockedSkins.push('jonk_set');
+  if (gameState.blockQuestVictories >= 2 || gameState.blockQuestHadBlockTales) gameState.unlockedSkins.push('old_tycoon_set');
+  gameState.unlockedSkins = [...new Set(gameState.unlockedSkins)];
+  showMessage(currentLanguage === 'es' ? '🎁 ¡Recompensas de Block City Quest desbloqueadas!' : '🎁 Block City Quest rewards unlocked!', 'success');
+  saveProgress();
+}
+
+function spawnParacristal() {
+  if (!gameState.paracristalActive || gameState.paracristalEnergy < 60 || gameState.paracristalFinal) return;
+  const map = document.getElementById('map');
+  if (!map || map.querySelectorAll('.paracristal').length >= 5) return;
+  const astrorbPresent = gameState.enemies.some(e => e.type === 'AstrorbOrbe' || e.type === 'AstrorbContenida' || e.type === 'AstrorbTF');
+  const roll = Math.random();
+  const clicks = astrorbPresent && roll < 0.35 ? (roll < 0.12 ? 5 : 4) : Math.ceil(Math.random() * 3);
+  const sizes = [null, 'MiniCrystal', 'Crystal', 'BigCrystal', 'MegaCrystal', 'GigaCrystal'];
+  const crystal = document.createElement('button');
+  crystal.className = 'paracristal';
+  crystal.dataset.clicks = clicks;
+  crystal.style.left = `${60 + Math.random() * 860}px`;
+  crystal.style.top = `${50 + Math.random() * 500}px`;
+  crystal.style.backgroundImage = `url('${encodeURI(IMAGE_PATHS[sizes[clicks]])}')`;
+  crystal.title = `${clicks} ${currentLanguage === 'es' ? 'clics' : 'clicks'}`;
+  crystal.onclick = event => {
+    event.stopPropagation();
+    const remaining = Number(crystal.dataset.clicks) - 1;
+    crystal.dataset.clicks = remaining;
+    crystal.classList.add('crystal-hit');
+    setTimeout(() => crystal.classList.remove('crystal-hit'), 120);
+    if (remaining <= 0) {
+      crystal.remove();
+      gameState.paracristalEnergy = Math.min(100, gameState.paracristalEnergy + clicks);
+    }
+  };
+  map.appendChild(crystal);
+}
+
+function startParacristalDimension() {
+  if (!gameState.interstellarParacristalQuest || gameState.mode !== 'interstellar') return false;
+  gameState.paracristalActive = true;
+  gameState.paracristalEnergy = 100;
+  let energy = document.getElementById('paracristal-energy');
+  if (!energy) {
+    energy = document.createElement('div');
+    energy.id = 'paracristal-energy';
+    document.getElementById('game-container').appendChild(energy);
+  }
+  energy.textContent = currentLanguage === 'es' ? '💎 Energía cristalina: 100%' : '💎 Crystal energy: 100%';
+  energy.style.display = 'block';
+  showMessage(currentLanguage === 'es' ? '💎 La Dimensión Paralecristal se ha abierto.' : '💎 The Paralecrystal Dimension has opened.', 'info');
+  return true;
+}
+
+function triggerCorrupt() {
+  gameState.healthClicks++;
+  if (gameState.healthClicks >= 7 && !gameState.corrupt) {
+    gameState.corrupt = true;
+    gameState.maxWaves = 45;
+    gameState.mode = 'corrupto';
+    document.getElementById('game-area').classList.add('corrupt');
+    showMessage(translate('corrupt_active'), 'error');
+    drawBadges();
+
+    setTimeout(() => {
+      const isUrban = (gameState.map || 'gelatin_lake') === 'urbanistic_road';
+      if (isUrban) {
+        const storyText = currentLanguage === 'es'
+          ? "*kzzt* ¡Este casino... *krkr*... es MÍO ahora! Los Pyces obedecen mis reglas... ¡y tú también lo harás! 🎩"
+          : "*kzzt* This casino... *krkr*... is MINE now! The Pyces obey my rules... and so will you! 🎩";
+        showNarratorMsg('arkyvoid', NARRATOR_DATA.arkyvoid.img, NARRATOR_DATA.arkyvoid[currentLanguage].name, storyText);
+      } else {
+        const storyText = currentLanguage === 'es'
+          ? "Bienvenido a Gelatin Lake... o lo que queda de él. Has entrado a mi región, donde los Pyces no actúan por voluntad propia, sino que obedecen mi sagrado diseño estelar. ¡Prepárate para ser asimilado!"
+          : "Welcome to Gelatin Lake... or what is left of it. You have entered my region, where the Pyces do not act of their own free will, but obey my sacred stellar design. Prepare to be assimilated!";
+        showNarratorMsg('moonstar', 'Recursos/img/MoonStar_Pyce.png', 'MoonStar Pyce', storyText);
+      }
+    }, 1000);
+  }
+}
+
+function createMap() {
+  const map = document.getElementById('map');
+  map.innerHTML = '';
+  gameState.towerSpots = [];
+
+  const mapKey = gameState.map || 'gelatin_lake';
+  const mapData = MAPS[mapKey];
+  if (!mapData) return;
+
+  mapData.riverZones.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'river';
+    if (mapKey === 'urbanistic_road') el.classList.add('urban-river');
+    el.style.left = `${r.x}px`; el.style.top = `${r.y}px`;
+    el.style.width = `${r.w}px`; el.style.height = `${r.h}px`;
+    map.appendChild(el);
+  });
+
+  // Apply water background directly for Sunlight Seaside (overrides green stripes)
+  if (mapKey === 'sunlight_seaside') {
+    map.style.background = '#00acc1';
+    map.style.backgroundImage = 'linear-gradient(160deg, #29b6cf 0%, #26c6da 40%, #00acc1 100%)';
+    const gameArea = document.getElementById('game-area');
+    if (gameArea) {
+      gameArea.style.background = '#00acc1';
+      gameArea.style.backgroundImage = 'linear-gradient(160deg, #29b6cf 0%, #26c6da 40%, #00acc1 100%)';
+    }
+    // Islands FIRST so paths render on top of them
+    if (mapData.islandZones) {
+      mapData.islandZones.forEach(island => {
+        const el = document.createElement('div');
+        el.className = 'sand-island';
+        el.style.left = `${island.x}px`; el.style.top = `${island.y}px`;
+        el.style.width = `${island.w}px`; el.style.height = `${island.h}px`;
+        map.appendChild(el);
+      });
+    }
+  } else {
+    // Clear any inline styles from a previous SS map
+    map.style.background = '';
+    map.style.backgroundImage = '';
+    const gameArea = document.getElementById('game-area');
+    if (gameArea) { gameArea.style.background = ''; gameArea.style.backgroundImage = ''; }
+  }
+
+  mapData.pathSegments.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'path-segment';
+    if (mapKey === 'urbanistic_road') el.classList.add('urban-path');
+    if (mapKey === 'sunlight_seaside') el.classList.add('seaside-path');
+    if (mapKey === 'frosty_christmas') el.classList.add('christmas-path');
+    if (mapKey === 'spooktacular_ruins') {
+      el.classList.add('spook-path');
+      if (p.intersection) el.classList.add('spook-crossing');
+    }
+    el.style.left = `${p.x}px`; el.style.top = `${p.y}px`;
+    el.style.width = `${p.w}px`; el.style.height = `${p.h}px`;
+    if (p.clipPath) el.style.clipPath = p.clipPath;
+    map.appendChild(el);
+  });
+
+  if (mapKey === 'spooktacular_ruins') {
+    mapData.enemyPaths.forEach(path => {
+      path.slice(1).forEach((end, index) => {
+        const start = path[index];
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const segment = document.createElement('div');
+        segment.className = 'spook-road-segment';
+        segment.style.left = `${(start.x + end.x) / 2}px`;
+        segment.style.top = `${(start.y + end.y) / 2}px`;
+        segment.style.width = `${Math.hypot(dx, dy)}px`;
+        segment.style.transform = `translate(-50%, -50%) rotate(${Math.atan2(dy, dx)}rad)`;
+        map.appendChild(segment);
+      });
+    });
+    (mapData.roadIntersections || []).forEach(point => {
+      const crossing = document.createElement('div');
+      crossing.className = 'spook-road-diamond';
+      crossing.style.left = `${point.x}px`;
+      crossing.style.top = `${point.y}px`;
+      map.appendChild(crossing);
+    });
+  }
+
+  TOWER_SPOTS.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'tower-spot';
+    if (mapKey === 'urbanistic_road') el.classList.add('urban-spot');
+    if (mapKey === 'frosty_christmas') {
+      el.classList.add('christmas-spot', `christmas-spot-${s.christmasColor}`);
+    }
+    el.dataset.id = i;
+    el.style.left = `${s.x}px`; el.style.top = `${s.y}px`;
+    el.style.width = `${s.w}px`; el.style.height = `${s.h}px`;
+    map.appendChild(el);
+    gameState.towerSpots.push({ occupied: false, x: s.x + 40, y: s.y + 40 });
+  });
+
+  // Decoración ambiental (árboles, palmeras, cactus, etc.). Puramente visual:
+  // sin colisión ni interacción, no afecta a spots ni a enemigos.
+  renderMapDecorations(map, mapData, mapKey);
+
+  // Cambiar la base visualmente
+  const allyBase = document.getElementById('ally-base');
+  const enemyBase = document.getElementById('forest-base');
+  const enemyBase2 = document.getElementById('forest-base-2');
+  const oldSecondAllyBase = document.getElementById('ally-base-2');
+  if (oldSecondAllyBase) oldSecondAllyBase.remove();
+
+  map.classList.remove('urban-map', 'sunlight-map', 'spook-map', 'frosty-map');
+  if (allyBase) {
+    allyBase.classList.remove('casino-base', 'tunnel-base', 'boat-base', 'spook-oasis-base');
+    allyBase.style.left = '';
+    allyBase.style.right = '';
+    allyBase.style.top = '';
+  }
+  if (enemyBase) {
+    enemyBase.classList.remove('casino-base', 'tunnel-base', 'raft-base', 'spook-pyramid-base', 'christmas-base');
+    enemyBase.style.left = '';
+    enemyBase.style.top = '';
+    enemyBase.style.display = '';
+  }
+  if (enemyBase2) {
+    enemyBase2.classList.remove('tunnel-base', 'raft-base', 'spook-pyramid-base', 'christmas-base');
+    enemyBase2.style.display = 'none';
+    enemyBase2.style.left = '';
+    enemyBase2.style.top = '';
+  }
+
+  const gameArea = document.getElementById('game-area');
+  if (gameArea) gameArea.classList.remove('sunlight-map', 'spook-map', 'frosty-map');
+
+  if (mapKey === 'urbanistic_road') {
+    map.classList.add('urban-map');
+    const acrossTimeInverted = gameState.mode === 'acrossTheTime' &&
+      gameState.acrossTheTimeSpace === 2;
+    if (allyBase && acrossTimeInverted) {
+      allyBase.classList.add('tunnel-base');
+      allyBase.title = 'Base aliada: Túnel';
+      allyBase.textContent = '';
+    } else if (allyBase) {
+      allyBase.classList.add('casino-base');
+      allyBase.title = "Base aliada: Gambling Gaming Casino";
+    }
+    if (enemyBase && acrossTimeInverted) {
+      enemyBase.classList.add('casino-base');
+      enemyBase.title = 'Base enemiga: Gambling Gaming Casino';
+      enemyBase.textContent = '';
+    } else if (enemyBase) {
+      enemyBase.classList.add('tunnel-base');
+      enemyBase.textContent = '';
+    }
+  } else if (mapKey === 'sunlight_seaside') {
+    map.classList.add('sunlight-map');
+    if (gameArea) gameArea.classList.add('sunlight-map');
+    if (allyBase) {
+      allyBase.classList.add('boat-base');
+      allyBase.title = "Base aliada: Barca";
+    }
+    if (enemyBase) {
+      enemyBase.classList.add('raft-base');
+      enemyBase.textContent = '⛵';
+      enemyBase.title = "Base enemiga: Balsa";
+    }
+    if (enemyBase2) {
+      enemyBase2.classList.add('raft-base');
+      enemyBase2.textContent = '⛵';
+      enemyBase2.title = "Base enemiga: Balsa 2";
+      enemyBase2.style.display = 'flex';
+      
+      // Posiciona las balsas enemigas un poco más centradas (como casitas),
+      // alineadas verticalmente con las entradas de los caminos (y≈148 y 448).
+      enemyBase.style.top = '108px';
+      enemyBase.style.left = '35px';
+      enemyBase2.style.top = '408px';
+      enemyBase2.style.left = '35px';
+    }
+  } else if (mapKey === 'spooktacular_ruins') {
+    map.classList.add('spook-map');
+    if (gameArea) gameArea.classList.add('spook-map');
+    if (allyBase) {
+      allyBase.classList.add('spook-oasis-base');
+      allyBase.title = 'Base aliada: Oasis nororiental';
+      allyBase.style.left = '894px';
+      allyBase.style.right = 'auto';
+      allyBase.style.top = '5px';
+    }
+    if (gameArea) {
+      const secondAllyBase = document.createElement('div');
+      secondAllyBase.id = 'ally-base-2';
+      secondAllyBase.className = 'spook-oasis-base';
+      secondAllyBase.title = 'Base aliada: Oasis suroriental';
+      secondAllyBase.style.left = '894px';
+      secondAllyBase.style.top = '420px';
+      gameArea.appendChild(secondAllyBase);
+    }
+    if (enemyBase) {
+      enemyBase.classList.add('spook-pyramid-base');
+      enemyBase.textContent = '';
+      enemyBase.title = 'Base enemiga: Pirámide noroccidental';
+      enemyBase.style.left = '0px';
+      enemyBase.style.top = '50px';
+    }
+    if (enemyBase2) {
+      enemyBase2.classList.add('spook-pyramid-base');
+      enemyBase2.textContent = '';
+      enemyBase2.title = 'Base enemiga: Pirámide suroccidental';
+      enemyBase2.style.left = '0px';
+      enemyBase2.style.top = '320px';
+      enemyBase2.style.display = 'flex';
+    }
+  } else if (mapKey === 'frosty_christmas') {
+    map.classList.add('frosty-map');
+    if (gameArea) gameArea.classList.add('frosty-map');
+    if (allyBase) {
+      allyBase.title = currentLanguage === 'en' ? 'Allied base: Christmas workshop' : 'Base aliada: Taller navideño';
+    }
+    if (enemyBase) {
+      enemyBase.classList.add('christmas-base');
+      enemyBase.textContent = '🎁';
+      enemyBase.title = currentLanguage === 'en' ? 'Enemy base: northern gift factory' : 'Base enemiga: fábrica de regalos norte';
+      enemyBase.style.left = '0px';
+      enemyBase.style.top = '125px';
+    }
+    if (enemyBase2) {
+      enemyBase2.classList.add('christmas-base');
+      enemyBase2.textContent = '🎁';
+      enemyBase2.title = currentLanguage === 'en' ? 'Enemy base: southern gift factory' : 'Base enemiga: fábrica de regalos sur';
+      enemyBase2.style.left = '0px';
+      enemyBase2.style.top = '405px';
+      enemyBase2.style.display = 'flex';
+    }
+  } else {
+    // Default Gelatin Lake
+    if (allyBase) {
+      allyBase.title = "Base aliada: Edificio Gris";
+    }
+    if (enemyBase) {
+      enemyBase.textContent = '🌲';
+      enemyBase.title = "Base enemiga: Bosque";
+      enemyBase.style.top = '';
+      enemyBase.style.left = '';
+    }
+    if (enemyBase2) {
+      enemyBase2.style.top = '';
+      enemyBase2.style.left = '';
+    }
+  }
+}
+
+// Coloca la decoración ambiental SOLO en zonas realmente libres: nunca sobre
+// un hueco de torre (edificios en UR, caramelos en FC...) ni sobre caminos.
+// Las posiciones se calculan a partir de los spots y caminos reales, así que
+// son seguras aunque el mapa cambie. Acepta mapData.decorationTypes (lista de
+// tipos) o, como respaldo, mapData.decorations (coordenadas fijas filtradas).
+function renderMapDecorations(map, mapData, mapKey) {
+  const types = Array.isArray(mapData.decorationTypes) ? mapData.decorationTypes : null;
+  const fixed = Array.isArray(mapData.decorations) ? mapData.decorations : null;
+  if (!types && !fixed) return;
+
+  // Caja visual de una decoración (se ancla por su base y crece hacia arriba).
+  const DECO_HALF_W = 20;
+  const DECO_TOP = 44;
+  const SPOT_MARGIN = 2;
+
+  const boxOverlapsSpot = (x, y) => {
+    const dL = x - DECO_HALF_W, dR = x + DECO_HALF_W, dT = y - DECO_TOP, dB = y + 4;
+    return (gameState.towerSpots || []).some(s => {
+      // towerSpots guarda el CENTRO (x,y); el hueco es 80x80 → esquina en x-40,y-40
+      const sL = s.x - 40 - SPOT_MARGIN, sR = s.x - 40 + 80 + SPOT_MARGIN;
+      const sT = s.y - 40 - SPOT_MARGIN, sB = s.y - 40 + 80 + SPOT_MARGIN;
+      return dR > sL && dL < sR && dB > sT && dT < sB;
+    });
+  };
+  const boxOverlapsBlocker = (x, y) => {
+    const dL = x - DECO_HALF_W, dR = x + DECO_HALF_W, dT = y - DECO_TOP, dB = y + 4;
+    const blockers = [...(mapData.riverZones || []), ...(mapData.pathSegments || [])];
+    if (blockers.some(z => dR > z.x && dL < z.x + z.w && dB > z.y && dT < z.y + z.h)) return true;
+    // Caminos procedurales (spook): distancia a los segmentos de ruta.
+    if (mapKey === 'spooktacular_ruins') {
+      const paths = mapData.enemyPaths || [];
+      for (const path of paths) {
+        for (let k = 1; k < path.length; k++) {
+          const start = path[k - 1], end = path[k];
+          const sx = end.x - start.x, sy = end.y - start.y;
+          const len = sx * sx + sy * sy || 1;
+          const pj = Math.max(0, Math.min(1, ((x - start.x) * sx + (y - start.y) * sy) / len));
+          if (Math.hypot(x - (start.x + pj * sx), y - (start.y + pj * sy)) < 64) return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  const placeDeco = (x, y, type, i) => {
+    const deco = document.createElement('div');
+    deco.className = `map-decor map-decor-${type}`;
+    deco.style.left = `${x}px`;
+    deco.style.top = `${y}px`;
+    deco.style.setProperty('--decor-delay', `${-(i * 0.37).toFixed(2)}s`);
+    deco.setAttribute('aria-hidden', 'true');
+    map.appendChild(deco);
+  };
+
+  if (fixed) {
+    // Respaldo: coordenadas fijas, filtrando las que pisen un hueco.
+    fixed.forEach((d, i) => {
+      if (boxOverlapsSpot(d.x, d.y) || boxOverlapsBlocker(d.x, d.y)) return;
+      if (d.scale) {
+        const deco = document.createElement('div');
+        deco.className = `map-decor map-decor-${d.type}`;
+        deco.style.left = `${d.x}px`;
+        deco.style.top = `${d.y}px`;
+        deco.style.setProperty('--decor-scale', d.scale);
+        deco.style.setProperty('--decor-delay', `${-(i * 0.37).toFixed(2)}s`);
+        deco.setAttribute('aria-hidden', 'true');
+        map.appendChild(deco);
+      } else {
+        placeDeco(d.x, d.y, d.type, i);
+      }
+    });
+    return;
+  }
+
+  // Auto-colocación: busca anclas libres y escoge las más separadas.
+  const anchors = [];
+  for (let x = 30; x <= 980; x += 15) {
+    for (let y = 60; y <= 590; y += 15) {
+      if (!boxOverlapsSpot(x, y) && !boxOverlapsBlocker(x, y)) anchors.push({ x, y });
+    }
+  }
+  // Baraja para variar la escena en cada partida, pero mantén buena separación.
+  for (let i = anchors.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [anchors[i], anchors[j]] = [anchors[j], anchors[i]];
+  }
+  const chosen = [];
+  const minDist = 110;
+  for (const a of anchors) {
+    if (chosen.length >= types.length) break;
+    if (chosen.every(c => Math.hypot(c.x - a.x, c.y - a.y) >= minDist)) chosen.push(a);
+  }
+  // Si no hubo sitio para todas, relaja la distancia y completa.
+  if (chosen.length < types.length) {
+    for (const a of anchors) {
+      if (chosen.length >= types.length) break;
+      if (chosen.includes(a)) continue;
+      if (chosen.every(c => Math.hypot(c.x - a.x, c.y - a.y) >= 70)) chosen.push(a);
+    }
+  }
+  chosen.forEach((pos, i) => placeDeco(pos.x, pos.y, types[i % types.length], i));
+}
+
+function showTooltip(t, el) {
+  const tooltip = document.getElementById('tooltip');
+  if (!tooltip) return;
+
+  const rect = el.getBoundingClientRect();
+  const name = translate('tower_' + (t.family || t.type) + '_name');
+  tooltip.innerHTML = `
+    <b>${translate(t.name)}</b>
+    <p>${translate(t.desc) || ""}</p>
+    <div style="margin-top: 5px; font-size: 0.75rem; color: #aaa;">
+      ⚔️ ${t.damage || 0} | 🔭 ${t.range || 0}
+    </div>
+  `;
+  tooltip.style.display = 'block';
+  tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+  tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+}
+
+function hideTooltip() {
+  const tooltip = document.getElementById('tooltip');
+  if (tooltip) tooltip.style.display = 'none';
+}
+
+let resetCounter = 0;
+function confirmReset() {
+  resetCounter++;
+  const btn = document.getElementById('reset-btn');
+  if (resetCounter === 1) {
+    btn.textContent = translate('reset_confirm_1') || "⚠️ ¿ESTÁS SEGURO? (1/3)";
+  } else if (resetCounter === 2) {
+    btn.textContent = translate('reset_confirm_2') || "⚠️ ¿REALMENTE SEGURO? (2/3)";
+  } else if (resetCounter === 3) {
+    btn.textContent = translate('reset_confirm_3') || "💥 ÚLTIMO AVISO: BORRAR TODO (3/3)";
+  } else if (resetCounter >= 4) {
+    const user = localStorage.getItem('glob_username') || 'default';
+    localStorage.removeItem('glob_progress_' + user);
+    localStorage.removeItem('glob_defenders_save');
+    localStorage.removeItem(HYPERMUTATED_CLICK_KEY);
+    localStorage.removeItem(HYPERMUTATED_GLOBS_KEY);
+    localStorage.removeItem(HYPERMUTATED_PENDING_KEY);
+    alert(translate('reset_done') || "Progreso completamente reseteado.");
+    location.reload();
+  }
+}
+
+function openOptions() {
+  checkGlitchEffectUnlock();
+  resetCounter = 0;
+  const btn = document.getElementById('reset-btn');
+  if (btn) btn.textContent = translate('reset_progress_btn');
+
+  document.getElementById('options-modal').style.display = 'flex';
+  document.getElementById('opt-show-desc').checked = gameState.settings.showShopDesc;
+  document.getElementById('opt-show-damage').checked = gameState.settings.showTotalDamage;
+  const optShowRanges = document.getElementById('opt-show-ranges');
+  if (optShowRanges) optShowRanges.checked = !!gameState.settings.showRanges;
+  const optOldAch = document.getElementById('opt-old-achievements');
+  if (optOldAch) optOldAch.checked = !!gameState.settings.oldAchievements;
+  const optMetaEmojis = document.getElementById('opt-meta-emojis');
+  if (optMetaEmojis) optMetaEmojis.checked = !!gameState.settings.metaEmojis;
+  const optFullscreen = document.getElementById('opt-fullscreen-map');
+  if (optFullscreen) optFullscreen.checked = !!gameState.settings.fullscreenMap;
+  const optAutoEn = document.getElementById('opt-auto-english');
+  if (optAutoEn) optAutoEn.checked = !!gameState.settings.autoEnglish;
+  const optHideDate = document.getElementById('opt-hide-date');
+  if (optHideDate) optHideDate.checked = !!gameState.settings.hideDate;
+  const hitboxCheck = document.getElementById('opt-show-hitbox');
+  if (hitboxCheck) hitboxCheck.checked = showHitbox;
+  const hypermutatedSection = document.getElementById('hypermutated-settings');
+  const hypermutatedCheck = document.getElementById('opt-hypermutated');
+  const canUseSpecialEffects = gameState.debugState === 'unlocked';
+  const canUseHypermutated = gameState.hypermutatedUnlocked || canUseSpecialEffects;
+  const canUseGlitch = gameState.glitchUnlocked || canUseSpecialEffects;
+  if (hypermutatedSection) hypermutatedSection.style.display = canUseHypermutated || canUseGlitch ? '' : 'none';
+  const hypermutatedRow = document.getElementById('hypermutated-effect-row');
+  if (hypermutatedRow) hypermutatedRow.style.display = canUseHypermutated ? '' : 'none';
+  if (hypermutatedCheck) hypermutatedCheck.checked = canUseHypermutated && !!gameState.settings.hypermutatedEffect;
+  const glitchRow = document.getElementById('glitch-effect-row');
+  if (glitchRow) glitchRow.style.display = canUseGlitch ? '' : 'none';
+  const glitchCheck = document.getElementById('opt-glitch');
+  if (glitchCheck) glitchCheck.checked = canUseGlitch && !!gameState.settings.glitchEffect;
+
+  const cheatedRow = document.getElementById('admin-cheated-row');
+  const adminSection = document.getElementById('admin-section');
+  if (cheatedRow) {
+    cheatedRow.style.display = gameState.adminMode ? 'flex' : 'none';
+  }
+  if (adminSection) {
+    adminSection.style.display = gameState.adminMode ? 'block' : 'none';
+  }
+  const cheatedCheck = document.getElementById('opt-cheated');
+  if (cheatedCheck) {
+    cheatedCheck.checked = !!gameState.cheatedModeActive;
+  }
+}
+
+function closeOptions() {
+  document.getElementById('options-modal').style.display = 'none';
+  saveProgress();
+}
+
+function showAntiNormalWarning(onConfirm) {
+  // Remove old if exists
+  const old = document.getElementById('antinormal-warning-overlay');
+  if (old) old.remove();
+
+  const isEs = currentLanguage === 'es';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'antinormal-warning-overlay';
+  overlay.style.cssText = `
+    position: fixed; inset: 0; z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(20,0,40,0.97) 0%, rgba(0,0,0,0.99) 100%);
+    backdrop-filter: blur(8px);
+    animation: antinormal-fadein 0.3s ease;
+  `;
+
+  const box = document.createElement('div');
+  box.style.cssText = `
+    background: linear-gradient(145deg, #0d0d1a 0%, #1a0a2e 50%, #0d1a1a 100%);
+    border: 2px solid rgba(150,0,255,0.5);
+    border-radius: 20px;
+    padding: 36px 40px 30px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(100,0,200,0.4), 0 0 120px rgba(0,200,200,0.1), inset 0 0 40px rgba(50,0,100,0.3);
+    position: relative;
+    overflow: hidden;
+    animation: antinormal-slidein 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+  `;
+
+  // Glitch lines decoration
+  const glitch1 = document.createElement('div');
+  glitch1.style.cssText = `
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, #9b00ff, #00ffee, transparent);
+    animation: antinormal-scan 2s linear infinite;
+  `;
+  box.appendChild(glitch1);
+
+  const icon = document.createElement('div');
+  icon.style.cssText = `font-size: 3.5rem; margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(150,0,255,0.8)); animation: antinormal-pulse 1.5s ease-in-out infinite;`;
+  icon.textContent = '🌑';
+  box.appendChild(icon);
+
+  const title = document.createElement('div');
+  title.style.cssText = `font-size: 1.05rem; font-weight: 900; letter-spacing: 3px; color: #c060ff; text-transform: uppercase; text-shadow: 0 0 20px rgba(150,0,255,0.9); margin-bottom: 6px;`;
+  title.textContent = isEs ? '⚠ MODO ANTI-NORMAL ⚠' : '⚠ ANTI-NORMAL MODE ⚠';
+  box.appendChild(title);
+
+  const divider = document.createElement('div');
+  divider.style.cssText = `width: 60%; height: 1px; background: linear-gradient(90deg, transparent, rgba(150,0,255,0.6), transparent); margin: 10px auto 18px;`;
+  box.appendChild(divider);
+
+  const desc = document.createElement('p');
+  desc.style.cssText = `font-size: 0.92rem; color: #d0c0e8; line-height: 1.6; margin-bottom: 8px;`;
+  desc.textContent = isEs
+    ? 'El modo Anti-Normal es un modo complicado. Si quieres tirar hacia atrás, aún puedes hacerlo.'
+    : 'Anti-Normal mode is a complicated mode. If you want to back out, you still can.';
+  box.appendChild(desc);
+
+  const question = document.createElement('p');
+  question.style.cssText = `font-size: 1.05rem; font-weight: 800; color: #ffffff; text-shadow: 0 0 12px rgba(255,80,80,0.8); margin: 14px 0 24px;`;
+  question.textContent = isEs ? '¿Estás SEGURO de iniciar Anti-Normal?' : 'Are you SURE you want to start Anti-Normal?';
+  box.appendChild(question);
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = `display: flex; gap: 14px; justify-content: center;`;
+
+  const btnConfirm = document.createElement('button');
+  btnConfirm.style.cssText = `
+    padding: 12px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 800; letter-spacing: 1px;
+    background: linear-gradient(135deg, #7b00ff, #c000c0);
+    color: #fff; box-shadow: 0 0 20px rgba(120,0,255,0.6); transition: all 0.2s; text-transform: uppercase;
+  `;
+  btnConfirm.textContent = isEs ? 'Aceptar' : 'Accept';
+  btnConfirm.onmouseenter = () => { btnConfirm.style.transform = 'scale(1.07)'; btnConfirm.style.boxShadow = '0 0 30px rgba(150,0,255,0.9)'; };
+  btnConfirm.onmouseleave = () => { btnConfirm.style.transform = ''; btnConfirm.style.boxShadow = '0 0 20px rgba(120,0,255,0.6)'; };
+  btnConfirm.onclick = () => { overlay.remove(); onConfirm(); };
+
+  const btnCancel = document.createElement('button');
+  btnCancel.style.cssText = `
+    padding: 12px 30px; border: 1px solid rgba(150,150,200,0.4); border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 700;
+    background: rgba(255,255,255,0.07); color: #aaa; transition: all 0.2s;
+  `;
+  btnCancel.textContent = isEs ? 'Cancelar' : 'Cancel';
+  btnCancel.onmouseenter = () => { btnCancel.style.background = 'rgba(255,255,255,0.14)'; btnCancel.style.color = '#fff'; };
+  btnCancel.onmouseleave = () => { btnCancel.style.background = 'rgba(255,255,255,0.07)'; btnCancel.style.color = '#aaa'; };
+  btnCancel.onclick = () => overlay.remove();
+
+  btnRow.appendChild(btnConfirm);
+  btnRow.appendChild(btnCancel);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
+
+  // Inject keyframes if not present
+  if (!document.getElementById('antinormal-styles')) {
+    const style = document.createElement('style');
+    style.id = 'antinormal-styles';
+    style.textContent = `
+      @keyframes antinormal-fadein { from { opacity:0 } to { opacity:1 } }
+      @keyframes antinormal-slidein { from { transform:scale(0.7) translateY(30px); opacity:0 } to { transform:scale(1) translateY(0); opacity:1 } }
+      @keyframes antinormal-scan { 0%{opacity:0;transform:translateX(-100%)} 50%{opacity:1} 100%{opacity:0;transform:translateX(100%)} }
+      @keyframes antinormal-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function activateCheatedMode() {
+  gameState.cheatedBackup = {
+    unlockedSkins: JSON.parse(JSON.stringify(gameState.unlockedSkins)),
+    equippedSkins: JSON.parse(JSON.stringify(gameState.equippedSkins)),
+    claimedRewards: JSON.parse(JSON.stringify(gameState.claimedRewards)),
+    pycoins: gameState.pycoins,
+    duckPassCurrency: gameState.duckPassCurrency,
+    duckPassXP: gameState.duckPassXP,
+    duckPassLevel: gameState.duckPassLevel,
+    unlockedInfinite: gameState.unlockedInfinite,
+    unlockedInterstellar: gameState.unlockedInterstellar,
+    towerTypes: Object.fromEntries(Object.keys(TOWER_TYPES).map(type => [type, TOWER_TYPES[type].unlocked])),
+    badges: Object.fromEntries(Object.entries(BADGES).map(([k, v]) => [k, v.unlocked]))
+  };
+  gameState.cheatedModeActive = true;
+
+  Object.keys(BADGES).forEach(k => {
+    BADGES[k].unlocked = true;
+  });
+
+  gameState.claimedRewards = Object.keys(BADGES);
+
+  const allSkins = ['default'];
+  Object.keys(SKINS_DATA).forEach(family => {
+    SKINS_DATA[family].forEach(skin => {
+      if (skin.id && !allSkins.includes(skin.id)) {
+        allSkins.push(skin.id);
+      }
+    });
+  });
+  gameState.unlockedSkins = allSkins;
+  Object.keys(TOWER_TYPES).forEach(type => { TOWER_TYPES[type].unlocked = true; });
+  gameState.unlockedInfinite = true;
+  gameState.unlockedInterstellar = true;
+  gameState.pycoins = 999999;
+  gameState.duckPassCurrency = 999999;
+  gameState.duckPassXP = 999999;
+  gameState.duckPassLevel = 100;
+
+  drawBadges();
+  updateMetaUI();
+  drawTowerShop();
+  saveProgress();
+  showMessage(currentLanguage === 'es' ? "¡Modo Cheated Activado! 👑" : "Cheated Mode Activated! 👑", 'success');
+}
+
+function deactivateCheatedMode() {
+  if (!gameState.cheatedBackup) return;
+
+  const backup = gameState.cheatedBackup;
+  gameState.unlockedSkins = backup.unlockedSkins || ['default'];
+  gameState.equippedSkins = backup.equippedSkins || { 'Glob': 'default', 'Red_Glob': 'default', 'Global': 'default', 'Grey': 'default' };
+  gameState.claimedRewards = backup.claimedRewards || [];
+  gameState.pycoins = backup.pycoins || 0;
+  gameState.duckPassCurrency = backup.duckPassCurrency || 0;
+  gameState.duckPassXP = backup.duckPassXP || 0;
+  gameState.duckPassLevel = backup.duckPassLevel || 1;
+  gameState.unlockedInfinite = !!backup.unlockedInfinite;
+  gameState.unlockedInterstellar = !!backup.unlockedInterstellar;
+  Object.keys(TOWER_TYPES).forEach(type => {
+    if (backup.towerTypes[type] !== undefined) TOWER_TYPES[type].unlocked = backup.towerTypes[type];
+  });
+
+  Object.keys(BADGES).forEach(k => {
+    if (BADGES[k]) {
+      BADGES[k].unlocked = !!backup.badges[k];
+    }
+  });
+
+  gameState.cheatedModeActive = false;
+  gameState.cheatedBackup = null;
+
+  gameState.towers.forEach(t => {
+    t.el.style.backgroundImage = `url('${encodeURI(getTowerImage(t.type))}')`;
+    applyTowerEffects(t.el, t.type);
+  });
+
+  drawBadges();
+  updateMetaUI();
+  drawTowerShop();
+  saveProgress();
+  showMessage(currentLanguage === 'es' ? "¡Modo Cheated Desactivado!" : "Cheated Mode Deactivated!", 'info');
+}
+
+function updateHitboxesVisibility() {
+  const map = document.getElementById('map');
+  if (map) {
+    if (typeof showHitbox !== 'undefined' && showHitbox) map.classList.add('show-hitboxes');
+    else map.classList.remove('show-hitboxes');
+  }
+}
+function applyMetaButtonMode() {
+  const iconOnly = !!gameState.settings.metaEmojis;
+  document.body.classList.toggle('meta-emojis-only', iconOnly);
+  document.querySelectorAll('.meta-btn-text').forEach(text => {
+    text.hidden = iconOnly;
+  });
+}
+
+function isOwnerDebugUser() {
+  const role = getSessionUserRole();
+  return role === 'OWNER' || role === 'DEVBUILD';
+}
+
+function ownerUnlockEverything() {
+  Object.keys(TOWER_TYPES).forEach(type => { TOWER_TYPES[type].unlocked = true; });
+  gameState.rainbowFuelUnlocked = [...new Set([
+    ...(Array.isArray(gameState.rainbowFuelUnlocked) ? gameState.rainbowFuelUnlocked : []),
+    ...Object.keys(SKINS_DATA).filter(isRainbowFuelEligibleFamily)
+  ])];
+  gameState.unlockedBombotAccessories = [...new Set([
+    ...(gameState.unlockedBombotAccessories || []),
+    ...BOMBOT_ACCESSORIES.map(accessory => accessory.id)
+  ])];
+  Object.values(SKINS_DATA).forEach(skins => skins.forEach(skin => {
+    if (skin.id && !gameState.unlockedSkins.includes(skin.id)) gameState.unlockedSkins.push(skin.id);
+  }));
+  Object.keys(BADGES).forEach(key => {
+    BADGES[key].unlocked = true;
+    if (!gameState.claimedRewards.includes(key)) gameState.claimedRewards.push(key);
+  });
+  gameState.acrossTheTimeProgress = {
+    ...gameState.acrossTheTimeProgress,
+    started: true,
+    spaceOneComplete: true,
+    spaceTwoComplete: true,
+    spaceThreeComplete: true,
+    completed: true,
+    timeAttackUnlocked: true
+  };
+  gameState.unlockedInfinite = true;
+  gameState.unlockedInterstellar = true;
+  gameState.duckPassLevel = Math.max(gameState.duckPassLevel, 100);
+  const profileFamilies = getProfileGlobFamilies().map(({ family }) => family);
+  gameState.maxedFamilies = [...new Set([...(gameState.maxedFamilies || []), ...profileFamilies])];
+  gameState.profileMaxAvatars = [...new Set([...(gameState.profileMaxAvatars || []), ...profileFamilies])];
+  gameState.profileMaxRewampAvatars = [...new Set([...(gameState.profileMaxRewampAvatars || []), ...profileFamilies])];
+  gameState.profilePurchasedBorders = [...new Set([
+    ...(gameState.profilePurchasedBorders || []),
+    'placeholder',
+    'coded',
+    ...PROFILE_SHOP_BORDERS.map(border => border.id),
+    ...PROFILE_EVENT_BORDERS.map(border => border.id)
+  ])];
+  gameState.profileMapModeWins = Object.fromEntries(
+    PROFILE_MAP_BORDERS.map(({ map }) => [
+      map,
+      [...new Set([...(gameState.profileMapModeWins?.[map] || []), ...PROFILE_MAP_MODES])]
+    ])
+  );
+  Object.keys(ENEMY_TYPES).forEach(type => {
+    const target = typeof getPyceKillTarget === 'function' ? getPyceKillTarget(type) : 9999;
+    gameState.pycesKilled[type] = Math.max(gameState.pycesKilled[type] || 0, target);
+  });
+  drawBadges();
+  drawTowerShop();
+  drawShop();
+  if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+  updateMetaUI();
+}
+
+function showOwnerDebugPanel() {
+  const role = getSessionUserRole();
+  if (role !== 'OWNER' && role !== 'DEVBUILD') return;
+  const panel = document.getElementById('owner-debug-panel');
+  if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function normalizeDebugSearch(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Z0-9]+/gi, ' ')
+    .trim()
+    .toUpperCase();
+}
+
+function getDebugPathTerms(path) {
+  return String(path || '')
+    .split(/[\\/()._-]+/)
+    .map(normalizeDebugSearch)
+    .filter(Boolean);
+}
+
+function debugSearchScore(query, values) {
+  if (String(query || '').trim() === '???' && values.some(value => String(value || '').trim() === '???')) return 1001;
+  const needle = normalizeDebugSearch(query);
+  if (!needle) return 1;
+  const haystack = values.map(normalizeDebugSearch).join(' ');
+  if (haystack === needle) return 1000;
+  if (haystack.startsWith(needle)) return 800;
+  if (haystack.includes(needle)) return 600;
+  let score = 0;
+  let cursor = 0;
+  for (const character of needle) {
+    const index = haystack.indexOf(character, cursor);
+    if (index === -1) return 0;
+    score += index === cursor ? 8 : 2;
+    cursor = index + 1;
+  }
+  return score;
+}
+
+const DEBUG_ENEMY_GROUP_ALIASES = {
+  pyces: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
+  enemigos: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
+  christmas: ['Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
+  navidad: ['Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'],
+  bits: ['BitY1', 'BitB4', 'BitG2', 'BitP3'],
+  bytes: ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'],
+  spyware: ['Spyware', 'Spyware1', 'Spyware2', 'Spyware3'],
+  arky: ['Arky', 'CrystArky', 'ArkyVoid'],
+  astrorb: ['AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb'],
+  crystals: ['Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'NO_CrystEye_CB', 'Crystalic_Orb'],
+  cristalizados: ['Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'NO_CrystEye_CB', 'Crystalic_Orb'],
+  treepers: ['Treeper', 'Big_Treeper', 'Stacked_Treepers'],
+  trees: ['Treeper', 'Big_Treeper', 'Stacked_Treepers'],
+  arboles: ['Treeper', 'Big_Treeper', 'Stacked_Treepers'],
+  shrums: ['Baby_Shrum', 'Shrum', 'Old_Fungus'],
+  mushrooms: ['Baby_Shrum', 'Shrum', 'Old_Fungus'],
+  hongos: ['Baby_Shrum', 'Shrum', 'Old_Fungus'],
+  rens: ['Ren', 'Thunren', 'Renibig'],
+  pysh: ['Pysh', 'Clown_Pysh'],
+  water: ['Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
+  aquatic: ['Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
+  acuaticos: ['Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce'],
+  bosses: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Arky', 'CrystArky', 'ArkyVoid', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'Crystal_Bombot', 'Curse_Boneker'],
+  jefes: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Arky', 'CrystArky', 'ArkyVoid', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'Crystal_Bombot', 'Curse_Boneker'],
+  gambling: ['BitY1', 'BitB4', 'BitG2', 'BitP3', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Fireflies', 'Spyware', 'Spyware1', 'Spyware2', 'Spyware3', 'Arky', 'CrystArky', 'ArkyVoid'],
+  urban: ['BitY1', 'BitB4', 'BitG2', 'BitP3', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Fireflies', 'Spyware', 'Spyware1', 'Spyware2', 'Spyware3', 'Arky', 'CrystArky', 'ArkyVoid', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce'],
+  leafy: ['Ren', 'Thunren', 'Renibig', 'Treeper', 'Big_Treeper', 'Stacked_Treepers', 'Baby_Shrum', 'Shrum', 'Old_Fungus', 'Pysh', 'Clown_Pysh', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'Piz', 'Followishers', 'Creamplet', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Bushi_Brella'],
+  playa: ['Ren', 'Thunren', 'Renibig', 'Treeper', 'Big_Treeper', 'Stacked_Treepers', 'Baby_Shrum', 'Shrum', 'Old_Fungus', 'Pysh', 'Clown_Pysh', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'Piz', 'Followishers', 'Creamplet', 'PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Bushi_Brella'],
+  interstellar: ['Leni_the_big_Hammer', 'Monster', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'NO_CrystEye_CB', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb'],
+  mimics: ['Stupid_GoldPyce', 'Mimic_Pyce', 'Bushi_Brella']
+};
+
+const DEBUG_SPEAKER_ALIASES = {
+  omnipresent: ['???'],
+  festive_pyce: ['festive', 'festive pyce', 'navidad', 'regalo'],
+  toybomb_pyce: ['toy bomb', 'toy bomb pyce', 'bomb toy'],
+  snowcapsule_pyce: ['snow capsule', 'snowcapsule pyce', 'nieve'],
+  elf_pyce: ['elf', 'elf pyce', 'elfo'],
+  giftbox_pyce: ['giftbox', 'gift box', 'caja regalo'],
+  mysterybug: ['mysterybug', 'mystery bug'],
+  jerry: ['jerry'],
+  mysterybug_custom: ['mysterybug', 'mystery bug'],
+  astral_exclamation: ['astralexclamation', 'astral exclamation'],
+  error_entity: ['error', '3rr0r'],
+  login_guy: ['loginguy', 'login guy'],
+  bombot: ['bombot', 'robot', 'maquina', 'máquina', 'work', 'trabajo'],
+  glob: ['glob', 'defensor', 'defender', 'verde'],
+  stupid: ['stupid', 'torpe', 'pyce'],
+  pyce2: ['pyce2', 'pyce', 'visitante'],
+  noeye: ['noeye', 'ojo', 'materia', 'oscura', 'dark matter'],
+  moonstar: ['moonstar', 'luna', 'estrellas', 'jefe', 'boss'],
+  mimic: ['mimic', 'copia', 'imitador'],
+  arky: ['arky', 'urban', 'bit', 'boss', 'jefe'],
+  crystarky: ['crystarky', 'cristal', 'arky', 'anti normal'],
+  arkyvoid: ['arkyvoid', 'vacio', 'void', 'arky', 'boss'],
+  one_x: ['1x1x1x1', 'one x', 'uno', 'corrupto', 'jefe', 'boss'],
+  astrorb: ['astrorb', 'orb', 'orbe', 'interstellar', 'interestelar'],
+  kirb_clone: ['kirbyte', 'kirbytebi', 'kirb', 'kirb clone', 'clone', 'gods shadow', 'kirb god']
+};
+
+function getSpeakerDebugAliases(id, data, languageData) {
+  return [
+    id,
+    languageData.name,
+    data.img,
+    ...getDebugPathTerms(data.img),
+    ...(DEBUG_SPEAKER_ALIASES[id] || [])
+  ];
+}
+
+function getEnemyDebugAliases(id, enemy) {
+  const aliases = [
+    id,
+    enemy.name,
+    enemy.desc,
+    enemy.image,
+    ...getDebugPathTerms(enemy.image)
+  ];
+  Object.entries(DEBUG_ENEMY_GROUP_ALIASES).forEach(([alias, ids]) => {
+    if (ids.includes(id)) aliases.push(alias);
+  });
+  return aliases;
+}
+
+function renderDebugSearchResults(container, results, onSelect, selectedId) {
+  if (!container) return;
+  container.innerHTML = '';
+  results.slice(0, 30).forEach(result => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.resultId = result.id;
+    button.className = `debug-search-result${result.id === selectedId ? ' selected' : ''}`;
+    if (result.image) {
+      const image = document.createElement('img');
+      image.src = result.image;
+      image.alt = '';
+      button.appendChild(image);
+    }
+    const label = document.createElement('span');
+    label.textContent = result.label;
+    button.appendChild(label);
+    button.addEventListener('click', () => onSelect(result));
+    container.appendChild(button);
+  });
+}
+
+function setupOwnerDebugTools() {
+  const enemySearch = document.getElementById('debug-enemy-search');
+  const enemyResults = document.getElementById('debug-enemy-results');
+  const spawnEnemyButton = document.getElementById('debug-spawn-enemy');
+  const speakerSearch = document.getElementById('debug-speaker-search');
+  const speakerResults = document.getElementById('debug-speaker-results');
+  const dialogueText = document.getElementById('debug-dialogue-text');
+  const showDialogueButton = document.getElementById('debug-show-dialogue');
+  const mysteryBugOptions = document.getElementById('debug-mysterybug-options');
+  const mysteryBugName = document.getElementById('debug-mysterybug-name');
+  const mysteryBugImage = document.getElementById('debug-mysterybug-image');
+  let selectedEnemy = null;
+  let selectedSpeaker = null;
+  const savedMysteryBugName = localStorage.getItem('glob_mysterybug_name');
+  const savedMysteryBugImage = localStorage.getItem('glob_mysterybug_image');
+  if (mysteryBugName && savedMysteryBugName) mysteryBugName.value = savedMysteryBugName;
+  const mysteryBugImageOptions = [
+    'Recursos/img/Sellos/MysteryBug.png|blacked-out',
+    'Recursos/img/Sellos/MysteryBug.png',
+    'Recursos/img/Sellos/AstralExclamation.png|blacked-out',
+    'Recursos/img/Sellos/AstralExclamation.png',
+    'Recursos/Misiones (2026)/Elementos/ZONESUBJECT.gif|blacked-out',
+    'Recursos/Misiones (2026)/Elementos/ZONESUBJECT.gif'
+  ];
+  if (mysteryBugImage && mysteryBugImageOptions.includes(savedMysteryBugImage)) {
+    mysteryBugImage.value = savedMysteryBugImage;
+  }
+  const updateMysteryBugOptions = () => {
+    const hasMysteryBugSelected = Boolean(
+      selectedSpeaker &&
+      selectedSpeaker.id === 'mysterybug' &&
+      !selectedSpeaker.isFallback
+    );
+    mysteryBugOptions.hidden = !hasMysteryBugSelected;
+  };
+  const mysteryBugSearchAliases = [
+    'mysterybug',
+    'mysterybug_custom',
+    'jerry',
+    'astral_exclamation',
+    'astralexclamation',
+    'error_entity',
+    'error',
+    'login_guy',
+    'loginguy'
+  ];
+
+  setupOwnerDebugPanelDrag();
+
+  const searchEnemies = () => {
+    const query = enemySearch.value;
+    const results = Object.entries(ENEMY_TYPES)
+      .map(([id, enemy]) => ({
+        id,
+        image: enemy.image,
+        label: translate(enemy.name || `enemy_${id}_name`) || id,
+        score: debugSearchScore(query, getEnemyDebugAliases(id, enemy))
+      }))
+      .filter(result => result.score > 0)
+      .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+    renderDebugSearchResults(enemyResults, results, result => {
+      selectedEnemy = result;
+      spawnEnemyButton.disabled = false;
+      renderDebugSearchResults(enemyResults, results, value => {
+        selectedEnemy = value;
+        spawnEnemyButton.disabled = false;
+        searchEnemies();
+      }, selectedEnemy.id);
+    }, selectedEnemy && selectedEnemy.id);
+  };
+
+  const searchSpeakers = () => {
+    const query = speakerSearch.value;
+    const narratorData = typeof NARRATOR_DATA === 'object' ? NARRATOR_DATA : {};
+    const registeredSpeakers = Object.entries(narratorData)
+      .filter(([id]) => id === 'mysterybug' || !mysteryBugSearchAliases.includes(id))
+      .filter(([id]) => id !== 'omnipresent' || !query.trim() || query.trim() === '???')
+      .map(([id, data]) => {
+        const languageData = data[currentLanguage] || data.es || data.en || {};
+        const mysteryBugLabel = mysteryBugName?.value.trim() || 'MysteryBug';
+        return {
+          id,
+          image: data.img,
+          label: id === 'mysterybug' ? mysteryBugLabel : (languageData.name || id),
+          isFallback: false,
+          score: debugSearchScore(
+            query,
+            id === 'mysterybug'
+              ? [...getSpeakerDebugAliases(id, data, languageData), mysteryBugLabel, ...mysteryBugSearchAliases]
+              : getSpeakerDebugAliases(id, data, languageData)
+          )
+        };
+      });
+    const registeredSpeakerImages = new Set(
+      Object.values(narratorData)
+        .map(data => data.img)
+        .filter(Boolean)
+    );
+    const fallbackSpeakers = [
+      ...Object.entries(typeof ENEMY_TYPES === 'object' ? ENEMY_TYPES : {}).map(([id, enemy]) => ({
+        id,
+        image: enemy.image,
+        label: translate(enemy.name) || id,
+        aliases: getEnemyDebugAliases(id, enemy)
+      })),
+      ...Object.entries(typeof TOWER_TYPES === 'object' ? TOWER_TYPES : {}).map(([id, tower]) => ({
+        id,
+        image: tower.image,
+        label: translate(tower.name) || id,
+        aliases: getEnemyDebugAliases(id, tower)
+      }))
+    ]
+      .filter(speaker => !narratorData[speaker.id] && !registeredSpeakerImages.has(speaker.image))
+      .map(speaker => ({
+        id: speaker.id,
+        image: speaker.image,
+        label: speaker.label,
+        isFallback: true,
+        score: debugSearchScore(query, speaker.aliases)
+      }));
+    const results = [...registeredSpeakers, ...fallbackSpeakers]
+      .filter(result => result.score > 0)
+      .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+
+    if (!results.some(result => result.id === (selectedSpeaker && selectedSpeaker.id))) {
+      selectedSpeaker = null;
+      showDialogueButton.disabled = true;
+    }
+    updateMysteryBugOptions();
+
+    renderDebugSearchResults(speakerResults, results, result => {
+      selectedSpeaker = result;
+      showDialogueButton.disabled = false;
+      updateMysteryBugOptions();
+      speakerResults.querySelectorAll('.debug-search-result').forEach(button => {
+        const isSelected = button.dataset.resultId === result.id;
+        button.classList.toggle('selected', isSelected);
+        button.style.display = isSelected ? 'inline-flex' : 'none';
+      });
+    }, selectedSpeaker && selectedSpeaker.id);
+  };
+
+  enemySearch?.addEventListener('input', searchEnemies);
+  speakerSearch?.addEventListener('input', searchSpeakers);
+  mysteryBugName?.addEventListener('input', () => {
+    updateMysteryBugOptions();
+  });
+  mysteryBugImage?.addEventListener('change', () => {
+    updateMysteryBugOptions();
+  });
+  updateMysteryBugOptions();
+  searchSpeakers();
+  spawnEnemyButton?.addEventListener('click', () => {
+    if (!isOwnerDebugUser() || !selectedEnemy) return;
+    spawnEnemy(selectedEnemy.id);
+    if (socket && currentSeed) {
+      socket.emit('spawn-enemy', { enemyType: selectedEnemy.id, boss: false, forcedPath: null });
+    }
+    showMessage(translate('debug_enemy_spawned', { name: selectedEnemy.label }), 'info');
+  });
+  showDialogueButton?.addEventListener('click', () => {
+    if (!isOwnerDebugUser() || !selectedSpeaker) return;
+    const text = dialogueText.value.trim();
+    if (!text) {
+      showMessage(translate('debug_empty_dialogue'), 'warning');
+      dialogueText.focus();
+      return;
+    }
+
+    let emitId, emitImg, emitName;
+
+    if (selectedSpeaker.isFallback) {
+      showNarratorMsg(selectedSpeaker.id, selectedSpeaker.image, selectedSpeaker.label, text, 'speaker-fallback');
+      emitId = selectedSpeaker.id; emitImg = selectedSpeaker.image; emitName = selectedSpeaker.label;
+    } else {
+      const data = NARRATOR_DATA[selectedSpeaker.id];
+      const languageData = data[currentLanguage] || data.es || data.en || {};
+      if (selectedSpeaker.id === 'mysterybug') {
+        const name = mysteryBugName?.value.trim() || 'MysteryBug';
+        const image = mysteryBugImage?.value || data.img;
+        localStorage.setItem('glob_mysterybug_name', name);
+        localStorage.setItem('glob_mysterybug_image', image);
+        showNarratorMsg(selectedSpeaker.id, image, name, text);
+        emitId = selectedSpeaker.id; emitImg = image; emitName = name;
+      } else {
+        showNarratorMsg(selectedSpeaker.id, data.img, languageData.name || selectedSpeaker.label, text);
+        emitId = selectedSpeaker.id; emitImg = data.img; emitName = languageData.name || selectedSpeaker.label;
+      }
+    }
+
+    if (socket && currentSeed) {
+      socket.emit('show-dialog', { id: emitId, img: emitImg, name: emitName, text: text });
+    }
+  });
+  window.refreshOwnerDebugLanguage = () => {
+    searchEnemies();
+    searchSpeakers();
+  };
+}
+
+function setupOwnerDebugPanelDrag() {
+  const panel = document.getElementById('owner-debug-panel');
+  const header = panel?.querySelector('.owner-debug-header');
+  if (!panel || !header) return;
+
+  const savedPosition = localStorage.getItem('glob_owner_debug_position');
+  if (savedPosition) {
+    const [left, top] = savedPosition.split(',').map(Number);
+    if (Number.isFinite(left) && Number.isFinite(top)) {
+      panel.style.left = `${left}px`;
+      panel.style.top = `${top}px`;
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+    }
+  }
+
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  let isDragging = false;
+
+  const movePanel = event => {
+    if (!isDragging) return;
+    const maxLeft = Math.max(0, window.innerWidth - panel.offsetWidth);
+    const maxTop = Math.max(0, window.innerHeight - panel.offsetHeight);
+    const left = Math.min(maxLeft, Math.max(0, event.clientX - dragOffsetX));
+    const top = Math.min(maxTop, Math.max(0, event.clientY - dragOffsetY));
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+  };
+
+  header.addEventListener('pointerdown', event => {
+    if (event.target.closest('button')) return;
+    const rect = panel.getBoundingClientRect();
+    dragOffsetX = event.clientX - rect.left;
+    dragOffsetY = event.clientY - rect.top;
+    isDragging = true;
+    header.setPointerCapture(event.pointerId);
+    panel.classList.add('is-dragging');
+  });
+
+  header.addEventListener('pointermove', movePanel);
+  header.addEventListener('pointerup', event => {
+    if (!isDragging) return;
+    isDragging = false;
+    header.releasePointerCapture(event.pointerId);
+    panel.classList.remove('is-dragging');
+    localStorage.setItem('glob_owner_debug_position', `${panel.offsetLeft},${panel.offsetTop}`);
+  });
+  header.addEventListener('pointercancel', () => {
+    isDragging = false;
+    panel.classList.remove('is-dragging');
+  });
+  window.addEventListener('resize', () => {
+    if (!panel.style.left || !panel.style.top) return;
+    const maxLeft = Math.max(0, window.innerWidth - panel.offsetWidth);
+    const maxTop = Math.max(0, window.innerHeight - panel.offsetHeight);
+    const left = Math.min(maxLeft, Math.max(0, panel.offsetLeft));
+    const top = Math.min(maxTop, Math.max(0, panel.offsetTop));
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+  });
+}
+
+function updateSettings() {
+  gameState.settings.showShopDesc = document.getElementById('opt-show-desc').checked;
+  gameState.settings.showTotalDamage = document.getElementById('opt-show-damage').checked;
+  const optShowRanges = document.getElementById('opt-show-ranges');
+  if (optShowRanges) gameState.settings.showRanges = optShowRanges.checked;
+  const optOldAch = document.getElementById('opt-old-achievements');
+  if (optOldAch) {
+    gameState.settings.oldAchievements = optOldAch.checked;
+    updateAchievementsBtnUI();
+  }
+  const optMetaEmojis = document.getElementById('opt-meta-emojis');
+  if (optMetaEmojis) gameState.settings.metaEmojis = optMetaEmojis.checked;
+  const optFullscreen = document.getElementById('opt-fullscreen-map');
+  if (optFullscreen) gameState.settings.fullscreenMap = optFullscreen.checked;
+  const optAutoEn = document.getElementById('opt-auto-english');
+  if (optAutoEn) gameState.settings.autoEnglish = optAutoEn.checked;
+  const optHideDate = document.getElementById('opt-hide-date');
+  if (optHideDate) gameState.settings.hideDate = optHideDate.checked;
+  const hypermutatedCheck = document.getElementById('opt-hypermutated');
+  gameState.settings.hypermutatedEffect = (gameState.hypermutatedUnlocked || gameState.debugState === 'unlocked') &&
+    Boolean(hypermutatedCheck?.checked);
+  updateHypermutatedTowers();
+  const glitchCheck = document.getElementById('opt-glitch');
+  gameState.settings.glitchEffect = (gameState.glitchUnlocked || gameState.debugState === 'unlocked') &&
+    Boolean(glitchCheck?.checked);
+  updateGlitchTowers();
+
+  updateSessionClock();
+  applyMetaButtonMode();
+
+  if (gameState.settings.fullscreenMap) {
+    document.body.classList.add('fullscreen-map');
+  } else {
+    document.body.classList.remove('fullscreen-map');
+  }
+
+  const hitboxCheck = document.getElementById('opt-show-hitbox');
+  if (hitboxCheck) showHitbox = hitboxCheck.checked;
+  updateHitboxesVisibility();
+  updateAllTowerRanges();
+
+  document.getElementById('total-damage-stat').style.display = gameState.settings.showTotalDamage ? 'flex' : 'none';
+
+  const cheatedCheck = document.getElementById('opt-cheated');
+  if (cheatedCheck) {
+    const isCheatedNow = cheatedCheck.checked;
+    if (isCheatedNow && !gameState.cheatedModeActive) {
+      activateCheatedMode();
+    } else if (!isCheatedNow && gameState.cheatedModeActive) {
+      deactivateCheatedMode();
+    }
+  }
+
+  drawTowerShop();
+  saveProgress();
+}
+
+function drawTowerShop() {
+  if (!gameState.modeConfirmed) return;
+
+  const shopContainer = document.getElementById('tower-shop');
+  if (!shopContainer) return;
+  shopContainer.innerHTML = '';
+  if (gameState.mode === 'tutorial') {
+    const skipButton = document.createElement('button');
+    skipButton.type = 'button';
+    skipButton.className = 'tutorial-skip-button';
+    skipButton.textContent = translate('tutorial_skip');
+    skipButton.addEventListener('click', window.skipTutorial);
+    shopContainer.appendChild(skipButton);
+  }
+
+  const allShopTowers = {
+    'Glob':         { type: 'Glob', unlocked: true },
+    'Red_Glob':     { type: 'Red_Glob', unlocked: true },
+    'Soap_Glob':    { type: 'Soap_Glob', unlocked: true },
+    'Ducky_Glob':   { type: 'Ducky_Glob', unlocked: true },
+    'Comet_Glob':   { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
+    'Old_Glob':     { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
+    'Sprout_Glob':  { type: 'Sprout_Glob', unlocked: !!(TOWER_TYPES['Sprout_Glob'] && TOWER_TYPES['Sprout_Glob'].unlocked), req: 'shop' },
+    'Work_Bombot':  { type: 'Work_Bombot', unlocked: !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked), req: 'challenge' },
+    'Worker_Glob':  { type: 'Worker_Glob', unlocked: true },
+    'Balloon_Glob': { type: 'Balloon_Glob', unlocked: true },
+    'Streamer_Glob':{ type: 'Streamer_Glob', unlocked: true },
+    'Bomb_Glob':    { type: 'Bomb_Glob', unlocked: true },
+    'Pirate_Glob':  { type: 'Pirate_Glob', unlocked: !!(TOWER_TYPES['Pirate_Glob'] && TOWER_TYPES['Pirate_Glob'].unlocked), req: 'shop' }
+  };
+
+  const equippedTowerTypes = gameState.mode === 'tutorial' && gameState.tutorialStage !== 'waves'
+    ? ['Glob', 'Red_Glob']
+    : (gameState.equippedTowers || ['Glob', 'Red_Glob']);
+  const shopTowers = equippedTowerTypes.map(t => allShopTowers[t]).filter(Boolean);
+
+  shopTowers.forEach(item => {
+    const type = item.type;
+    const t = TOWER_TYPES[type];
+    if (!t) return;
+
+    const capacity = getTowerPlacementLimits(type);
+    const family = t.family || type;
+    const ownerId = multiplayerActionOwner || socket?.id || localStorage.getItem('glob_username') || 'Jugador';
+    const currentCount = multiplayerEnabled
+      ? gameState.towers.filter(tower =>
+        (tower.family || tower.type) === family && tower.ownerId === ownerId
+      ).length
+      : getFamilyCount(type);
+    const displayCount = multiplayerEnabled ? getFamilyCount(type) : currentCount;
+    const limit = capacity.perPlayerLimit;
+    const isFull = currentCount >= limit ||
+      (multiplayerEnabled && getFamilyCount(type) >= capacity.sharedLimit);
+    const displayImg = getTowerImage(type);
+    const name = translate(t.name);
+
+    const btn = document.createElement('button');
+
+    if (!item.unlocked) {
+      btn.className = 'tower-item locked';
+      let reqText = '';
+      let unlockMsg = '';
+      if (item.req === 'lvl3') { reqText = 'Lvl 3'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 3' : '🔒 Unlocks at Duck Pass Level 3'; }
+      else if (item.req === 'lvl6') { reqText = 'Lvl 6'; unlockMsg = currentLanguage === 'es' ? '🔒 Se desbloquea en Duck Pass Nivel 6' : '🔒 Unlocks at Duck Pass Level 6'; }
+      else if (item.req === 'challenge') { reqText = (currentLanguage === 'es' ? 'DESAFÍO' : 'CHALLENGE'); unlockMsg = currentLanguage === 'es' ? '🔒 Desbloqueado al superar modo Anti-normal o Corrupto' : '🔒 Unlocked by beating Anti-normal or Corrupt mode'; }
+      else if (item.req === 'shop') { reqText = (currentLanguage === 'es' ? 'TIENDA' : 'SHOP'); unlockMsg = currentLanguage === 'es' ? '🔒 Desbloquéalo en la Tienda Meta por PyCoins' : '🔒 Unlock it in the Meta Shop using PyCoins'; }
+      else if (item.req === 'urban') { reqText = 'URBAN'; unlockMsg = currentLanguage === 'es' ? '🔒 Torres exclusivas del mapa Urbanistic Road' : '🔒 Towers exclusive to the Urbanistic Road map'; }
+
+      btn.innerHTML = `
+                <div class="lock-overlay">🔒</div>
+                <img src="${displayImg}" alt="${name}" style="filter: grayscale(1) opacity(0.4);">
+                <span style="font-size:0.55rem; color:#ff9f43; font-weight:900;">${reqText}</span>
+            `;
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        showMessage(unlockMsg, 'warning');
+      };
+    } else {
+      btn.className = 'tower-item';
+      btn.dataset.type = type;
+      if (isFull) btn.classList.add('disabled');
+      if (gameState.selectedTowerType === type) btn.classList.add('selected');
+
+      btn.innerHTML = `
+                <img src="${displayImg}" alt="${name}">
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                  <span style="font-size:0.65rem;">💰${t.cost}</span>
+                  <span style="font-size:0.55rem; color:#fff; background:rgba(0,0,0,0.5); padding:1px 4px; border-radius:4px; margin-top:2px;">${displayCount}/${multiplayerEnabled ? capacity.sharedLimit : limit}</span>
+                </div>
+            `;
+
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        if (isFull) {
+          showMessage(translate('limit_reached', { name: name, limit: limit }), 'error');
+          return;
+        }
+        if (gameState.selectedTowerType === type) {
+          gameState.selectedTowerType = null;
+          btn.classList.remove('selected');
+        } else {
+          document.querySelectorAll('.tower-item').forEach(b => b.classList.remove('selected'));
+          gameState.selectedTowerType = type;
+          btn.classList.add('selected');
+        }
+        syncPlacingTowerClass();
+      };
+    }
+
+    shopContainer.appendChild(btn);
+  });
+
+
+}
+
+function getBadgeColorGroup(badge) {
+  return badge.colorGroup || (badge.category === 'misiones' ? 'mission' : 'base');
+}
+
+function drawBadges() {
+  const list = document.getElementById('badges-list');
+  if (!list) return;
+  list.innerHTML = '';
+  
+  const categoriesMap = {
+    'misiones': '📜 Misiones',
+    'modos': '🎮 Modos',
+    'interacciones': '💡 Interacciones',
+    'economia': '💸 Economía',
+    'otros': '🌐 Otros'
+  };
+  
+  const grouped = {};
+  Object.values(BADGES).forEach(b => {
+    const cat = b.category || 'otros';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(b);
+  });
+  
+  Object.keys(categoriesMap).forEach(cat => {
+    if (!grouped[cat] || grouped[cat].length === 0) return;
+    
+    const header = document.createElement('h3');
+    header.style.color = '#ffd700';
+    header.style.borderBottom = '1px solid #ffd700';
+    header.style.paddingBottom = '5px';
+    header.style.marginTop = '15px';
+    header.style.textAlign = 'left';
+    header.textContent = categoriesMap[cat];
+    list.appendChild(header);
+    
+    grouped[cat].forEach(b => {
+      if (b.unlocked && !gameState.claimedRewards.includes(b.key)) {
+        grantBadgeReward(b);
+      }
+      const el = document.createElement('div');
+      el.className = `badge badge-tone-${getBadgeColorGroup(b)} ${b.unlocked ? '' : 'locked'}`;
+      const name = translate(`badge_${b.key}_name`);
+      const desc = translate(`badge_${b.key}_desc`);
+  
+      let rewardText = "";
+      if (b.reward.pycoins) rewardText += `<img src="Recursos/img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins} `;
+      if (b.reward.duckpass) rewardText += `<img src="Recursos/img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass} `;
+      if (b.reward.xp) rewardText += ` ✨+${b.reward.xp}xp`;
+  
+      el.innerHTML = `
+              <span class="badge-icon">${b.icon}</span>
+              <div class="badge-info">
+                  <b>${name}</b><br>
+                  <small>${desc}</small><br>
+                  <b style="color:#ffd700; font-size:0.7rem">${rewardText}</b>
+              </div>
+          `;
+      list.appendChild(el);
+    });
+  });
+}
+
+function unlockBadge(key) {
+  if (multiplayerSpectator) return;
+  if (BADGES[key] && !BADGES[key].unlocked) {
+    BADGES[key].unlocked = true;
+    saveProgress();
+    drawBadges();
+    showBadgePopup(BADGES[key]);
+    publishMultiplayerProfile();
+  }
+}
+
+function checkTowerCombinationBadges() {
+  const towers = gameState.towers || [];
+  const hasFamily = family => towers.some(tower => tower.family === family);
+  const hasNearbyFamilies = (first, second, distance) => towers.some(firstTower =>
+    firstTower.family === first &&
+    towers.some(secondTower =>
+      secondTower.family === second &&
+      Math.hypot(firstTower.x - secondTower.x, firstTower.y - secondTower.y) <= distance
+    )
+  );
+
+  if (hasNearbyFamilies('IEx', 'Worker_Glob', 180)) {
+    unlockBadge('fenced_kaboom');
+  }
+
+  if (hasFamily('Brown') && hasFamily('Worker_Glob')) {
+    const hadSoapFamily = hasFamily('Soap_Glob');
+    const shouldShowSoapMessage = !gameState.wallGardenSoapMessageShown;
+    unlockBadge('wall_garden');
+    if (hadSoapFamily && shouldShowSoapMessage) {
+      gameState.wallGardenSoapMessageShown = true;
+      showMessage(
+        currentLanguage === 'es'
+          ? 'Yo que pensaba que no usarias jabon para ralentizar aun mas... Me equivoque contigo.'
+          : 'I thought you would not use soap to slow them down even more... I was wrong about you.',
+        'info'
+      );
+    }
+  }
+
+  const urbanFamilies = ['White', 'Pink', 'Worker_Glob', 'IEx'];
+  if (urbanFamilies.every(family => gameState.maxedFamilies.includes(family))) {
+    unlockBadge('urban_king');
+  }
+
+  const dangerousFamilies = ['IEx', 'Comet_Glob', 'Pirate_Glob'];
+  const hasDangerousSet = dangerousFamilies.every(family => {
+    const familyTowers = towers.filter(tower => tower.family === family);
+    const maximum = gameState.towerLimits[family] || 0;
+    return maximum > 0 &&
+      familyTowers.length >= maximum &&
+      familyTowers.every(tower => !TOWER_TYPES[tower.type]?.evolution);
+  });
+  if (hasDangerousSet) {
+    unlockBadge('dangerous_set');
+  }
+}
+
+function showBadgePopup(badge) {
+  const popup = document.getElementById('badge-popup');
+  const icon = document.getElementById('badge-popup-icon');
+  const title = document.getElementById('badge-popup-title');
+  const desc = document.getElementById('badge-popup-desc');
+  if (!popup) return;
+
+  popup.classList.remove('badge-tone-collab', 'badge-tone-mission', 'badge-tone-key');
+  popup.classList.add(`badge-tone-${getBadgeColorGroup(badge)}`);
+  icon.innerHTML = badge.icon;
+  title.textContent = translate(`badge_${badge.key}_name`);
+  desc.textContent = translate(`badge_${badge.key}_desc`);
+
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 4000);
+}
+
+function showEncyclopediaPopup(enemy) {
+  const popup = document.getElementById('encyclopedia-popup');
+  const image = document.getElementById('encyclopedia-popup-image');
+  const title = document.getElementById('encyclopedia-popup-title');
+  const desc = document.getElementById('encyclopedia-popup-desc');
+  if (!popup || !image || !title || !desc || !enemy) return;
+
+  image.innerHTML = enemy.image
+    ? `<img src="${encodeURI(enemy.image)}" alt="">`
+    : '📖';
+  title.textContent = translate(enemy.name || enemy.key || 'Enemigo');
+  desc.textContent = currentLanguage === 'es'
+    ? 'Has completado el registro de este enemigo en la Enciclopedia.'
+    : 'You have completed this enemy entry in the Encyclopedia.';
+
+  popup.classList.remove('show');
+  void popup.offsetWidth;
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 4500);
+}
+
+function grantBadgeReward(badge) {
+  if (multiplayerSpectator) return;
+  if (gameState.claimedRewards.includes(badge.key)) return;
+
+  const hasReward = Object.values(badge.reward || {}).some(value => Number(value) > 0);
+  if (badge.reward.pycoins) gameState.pycoins += badge.reward.pycoins;
+  if (badge.reward.duckpass) gameState.duckPassCurrency += badge.reward.duckpass;
+  if (badge.reward.xp) addXP(badge.reward.xp);
+
+  gameState.claimedRewards.push(badge.key);
+  updateMetaUI();
+  saveProgress();
+  if (hasReward) showMessage(translate('badge_reward_received', { name: translate('badge_' + badge.key + '_name') }), 'success');
+}
+
+function toggleLanguage() {
+  currentLanguage = currentLanguage === 'es' ? 'en' : 'es';
+  updateLanguage();
+  updateLightModeButton();
+  renderMultiplayerChat();
+  renderMapSelection();
+  drawTowerShop();
+  drawBadges();
+  if (document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
+  if (document.getElementById('encyclopedia-modal')?.style.display === 'flex') {
+    const activeTab = document.querySelector('.encyclopedia-tab.active')?.id.replace('enc-tab-', '') || 'globs';
+    switchEncyclopediaTab(activeTab);
+  }
+  if (document.getElementById('story-logs-modal').style.display === 'flex') drawStoryLogs();
+  if (document.getElementById('advent-calendar-modal').style.display === 'flex') renderAdventCalendar();
+}
+
+function toggleBadgesPanel() {
+  const panel = document.getElementById('badges-panel');
+  if (panel) {
+    panel.classList.toggle('show');
+  }
+}
+
+function updateAchievementsBtnUI() {
+  const btn = document.getElementById('badges-toggle-btn');
+  if (!btn) return;
+  btn.innerHTML = translate('btn_encyclopedia');
+  btn.classList.add('encyclopedia-btn-yellow');
+  btn.title = translate('btn_encyclopedia').replace('📖 ', '');
+}
+
+function openEncyclopedia() {
+  const modal = document.getElementById('encyclopedia-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+    switchEncyclopediaTab('globs');
+  }
+}
+
+function switchEncyclopediaTab(tab) {
+  document.querySelectorAll('.encyclopedia-tab').forEach(btn => btn.classList.remove('active'));
+  const activeBtn = document.getElementById('enc-tab-' + tab);
+  if (activeBtn) activeBtn.classList.add('active');
+  const adventButton = document.getElementById('advent-calendar-encyclopedia-btn');
+  if (adventButton) {
+    adventButton.style.display = tab === 'globs' ? 'inline-flex' : 'none';
+    adventButton.textContent = currentLanguage === 'en' ? '🎄 Advent Calendar' : '🎄 Calendario de Adviento';
+  }
+
+  const body = document.getElementById('encyclopedia-body');
+  if (!body) return;
+  body.innerHTML = '';
+
+  // Create split layout container
+  const container = document.createElement('div');
+  container.className = 'almanac-container';
+
+  const grid = document.createElement('div');
+  grid.className = 'almanac-grid';
+  grid.id = 'almanac-grid';
+
+  const details = document.createElement('div');
+  details.className = 'meta-item almanac-details';
+  details.id = 'almanac-details';
+
+  container.appendChild(grid);
+  container.appendChild(details);
+  body.appendChild(container);
+
+  let firstItem = null;
+
+  if (tab === 'globs') {
+    // Determine base towers: any tower that is NOT an evolution of another tower
+    const allEvos = Object.values(TOWER_TYPES).map(t => t.evolution).filter(Boolean);
+    const baseTowers = Object.keys(TOWER_TYPES).filter(type => !allEvos.includes(type));
+
+    baseTowers.forEach(type => {
+      const t = TOWER_TYPES[type];
+      if (!firstItem) firstItem = type;
+      const btn = document.createElement('div');
+      btn.className = 'almanac-btn';
+      btn.id = 'almanac-btn-' + type;
+      btn.onclick = () => selectAlmanacItem(type, 'globs');
+      btn.innerHTML = `<img src="${t.image}" title="${translate(t.name)}">`;
+      grid.appendChild(btn);
+    });
+    selectAlmanacItem('Glob', 'globs');
+  } else if (tab === 'enemies') {
+    grid.style.display = '';
+    grid.style.gap = '';
+    grid.style.justifyContent = '';
+    grid.style.padding = '';
+    details.style.display = '';
+    
+    const filterContainer = document.createElement('div');
+    filterContainer.style.gridColumn = '1 / -1';
+    filterContainer.style.display = 'flex';
+    filterContainer.style.flexWrap = 'wrap';
+    filterContainer.style.gap = '10px';
+    filterContainer.style.marginBottom = '15px';
+    
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = translate('search_enemy') || 'Buscar enemigo...';
+    searchInput.style.flex = '1';
+    searchInput.style.padding = '8px';
+    searchInput.style.borderRadius = '5px';
+    searchInput.style.border = '1px solid #555';
+    searchInput.style.backgroundColor = '#1a1a1f';
+    searchInput.style.color = '#fff';
+    
+    const mapSelect = document.createElement('select');
+    mapSelect.innerHTML = `
+      <option value="all">${currentLanguage === 'en' ? 'All Maps' : 'Todos los mapas'}</option>
+      <option value="urbanistic_road">Urbanistic Road (UR)</option>
+      <option value="gelatin_lake">Gelatin Lake (GL)</option>
+      <option value="interstellar_menace">Interstellar Menace (IM)</option>
+      <option value="sunlight_seaside">Sunlight Seaside (SS)</option>
+      <option value="spooktacular_ruins">${currentLanguage === 'en' ? 'Spooktacular Ruins' : 'Aridez Escalofriante'}</option>
+    `;
+    mapSelect.style.padding = '8px';
+    mapSelect.style.borderRadius = '5px';
+    mapSelect.style.border = '1px solid #555';
+    mapSelect.style.backgroundColor = '#1a1a1f';
+    mapSelect.style.color = '#fff';
+    
+    const typeSelect = document.createElement('select');
+    typeSelect.innerHTML = `
+      <option value="all">${currentLanguage === 'en' ? 'All Classes' : 'Todos'}</option>
+      <option value="tank">Tank</option>
+      <option value="melee">Melee</option>
+      <option value="shooter">Shooter</option>
+      <option value="boss">Bosses</option>
+    `;
+    typeSelect.style.padding = '8px';
+    typeSelect.style.borderRadius = '5px';
+    typeSelect.style.border = '1px solid #555';
+    typeSelect.style.backgroundColor = '#1a1a1f';
+    typeSelect.style.color = '#fff';
+
+    const themeSelect = document.createElement('select');
+    themeSelect.innerHTML = `
+      <option value="all">${currentLanguage === 'en' ? 'All themes' : 'Todos los temas'}</option>
+      <option value="halloween">Halloween</option>
+      <option value="christmas">${currentLanguage === 'en' ? 'Christmas' : 'Navidad'}</option>
+      <option value="events">${currentLanguage === 'en' ? 'Events' : 'Eventos'}</option>
+    `;
+    themeSelect.style.padding = '8px';
+    themeSelect.style.borderRadius = '5px';
+    themeSelect.style.border = '1px solid #555';
+    themeSelect.style.backgroundColor = '#1a1a1f';
+    themeSelect.style.color = '#fff';
+
+    const groupContainer = document.createElement('div');
+    groupContainer.style.display = 'flex';
+    groupContainer.style.gap = '8px';
+    groupContainer.style.flexWrap = 'wrap';
+    groupContainer.style.marginTop = '10px';
+    
+    let activeGroup = 'all';
+    
+    const groups = [
+      { id: 'all',      label: currentLanguage === 'en' ? 'All' : 'Todos' },
+      { id: 'pyces',    label: currentLanguage === 'en' ? 'Pyces' : 'Pyces' },
+      { id: 'otros',    label: currentLanguage === 'en' ? 'Others' : 'Otros Enemigos' },
+      { id: 'bits',     label: 'Bits & Spywares' },
+      { id: 'arkys',    label: 'Arkys' },
+      { id: 'crystalized', label: currentLanguage === 'en' ? 'Crystallized' : 'Cristalizados' },
+      { id: 'og',       label: 'OG' },
+      { id: 'id',       label: 'Proyecto I.D.' },
+      { id: 'ren',      label: 'Familia Ren' },
+      { id: 'treepers', label: 'Treepers' },
+      { id: 'shrums',   label: 'Shrums' },
+      { id: 'pysh',     label: 'Familia Pysh' },
+      { id: 'new_ss',   label: currentLanguage === 'en' ? 'New SS Enemies' : 'Nuevos de SS' }
+    ];
+    
+    const renderGroupButtons = () => {
+      groupContainer.innerHTML = '';
+      if (activeGroup === 'all') {
+        groups.forEach(g => {
+          if (g.id === 'all') return; // 'all' is the default state
+          const btn = document.createElement('button');
+          btn.className = 'meta-btn';
+          btn.innerText = g.label;
+          btn.style.padding = '5px 10px';
+          btn.style.fontSize = '0.8rem';
+          
+          btn.dataset.group = g.id;
+          btn.onclick = () => {
+            activeGroup = g.id;
+            renderGroupButtons();
+            renderFilteredEnemies();
+          };
+          groupContainer.appendChild(btn);
+        });
+      } else {
+        const backBtn = document.createElement('button');
+        backBtn.className = 'meta-btn';
+        backBtn.innerText = currentLanguage === 'en' ? '⬅ Back' : '⬅ Volver atrás';
+        backBtn.style.padding = '5px 10px';
+        backBtn.style.fontSize = '0.8rem';
+        backBtn.style.border = '2px solid #e74c3c';
+        backBtn.onclick = () => {
+          activeGroup = 'all';
+          renderGroupButtons();
+          renderFilteredEnemies();
+        };
+        groupContainer.appendChild(backBtn);
+        
+        const currentGroup = groups.find(g => g.id === activeGroup);
+        if (currentGroup) {
+          const currentLbl = document.createElement('span');
+          currentLbl.innerText = `[${currentGroup.label}]`;
+          currentLbl.style.padding = '5px 10px';
+          currentLbl.style.fontSize = '0.9rem';
+          currentLbl.style.color = '#ffd700';
+          currentLbl.style.fontWeight = 'bold';
+          groupContainer.appendChild(currentLbl);
+        }
+      }
+    };
+    renderGroupButtons();
+
+    filterContainer.appendChild(searchInput);
+    filterContainer.appendChild(mapSelect);
+    filterContainer.appendChild(typeSelect);
+    filterContainer.appendChild(themeSelect);
+    
+    const headerWrapper = document.createElement('div');
+    headerWrapper.style.gridColumn = '1 / -1';
+    headerWrapper.appendChild(filterContainer);
+    headerWrapper.appendChild(groupContainer);
+    grid.appendChild(headerWrapper);
+
+    const enemyGrid = document.createElement('div');
+    enemyGrid.style.display = 'flex';
+    enemyGrid.style.flexWrap = 'wrap';
+    enemyGrid.style.gap = '10px';
+    enemyGrid.style.gridColumn = '1 / -1';
+    grid.appendChild(enemyGrid);
+
+    window.triggerFilterGroup = (groupId) => {
+      activeGroup = groupId;
+      renderGroupButtons();
+      renderFilteredEnemies();
+    };
+
+    const renderFilteredEnemies = () => {
+      enemyGrid.innerHTML = '';
+      const term = searchInput.value.toLowerCase();
+      const mapVal = mapSelect.value;
+      const typeVal = typeSelect.value;
+      const themeVal = themeSelect.value;
+      const groupVal = activeGroup;
+
+      if (!term && mapVal === 'all' && typeVal === 'all' && themeVal === 'all' && groupVal === 'all') {
+        enemyGrid.innerHTML = `
+          <div class="enemy-category-card" onclick="triggerFilterGroup('pyces')" style="width:100%; max-width:200px; padding:20px; background:#e74c3c; border:3px solid #c0392b; border-radius:15px; text-align:center; cursor:pointer; transition:transform 0.2s; margin:auto;">
+            <img src="${IMAGE_PATHS.Stupid_Pyce || 'Recursos/img/Sellos/CuboPyceIcon.png'}" style="width:80px; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5));" onerror="this.src='Recursos/img/Sellos/CuboPyceIcon.png'">
+            <h3 style="margin-top:10px; font-size:1.5rem; text-shadow:0 2px 4px rgba(0,0,0,0.5);">Pyces</h3>
+          </div>
+          <div class="enemy-category-card" onclick="triggerFilterGroup('otros')" style="width:100%; max-width:200px; padding:20px; background:#8e44ad; border:3px solid #732d91; border-radius:15px; text-align:center; cursor:pointer; transition:transform 0.2s; margin:auto;">
+            <img src="${IMAGE_PATHS.Monster || 'Recursos/img/Sellos/Monster.png'}" style="width:80px; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5));" onerror="this.src='Recursos/img/Sellos/Monster.png'">
+            <h3 style="margin-top:10px; font-size:1.5rem; text-shadow:0 2px 4px rgba(0,0,0,0.5);">Otros Enemigos</h3>
+          </div>
+        `;
+        details.innerHTML = `<div style="padding:6px 10px; text-align:center; color:#444; font-size:0.7rem; font-style:italic;">${currentLanguage === 'en' ? 'Description will appear here' : 'La descripción irá aquí'}</div>`;
+        return;
+      }
+      
+      // === PYCES: anything with 'Pyce' or 'Pysh' in its key name ===
+      const PYCES_ENEMIES = Object.keys(ENEMY_TYPES).filter(k =>
+        k.includes('Pyce') || k.includes('Pysh') || k === 'SO_Pyce'
+      );
+      // === OTROS: everything NOT a Pyce/Pysh ===
+      const OTROS_ENEMIES = Object.keys(ENEMY_TYPES).filter(k => !PYCES_ENEMIES.includes(k));
+
+      let firstItem = null;
+      const HIDDEN_VARIANTS = ['NO_CrystEye_CB', 'AstrorbContenida', 'AstrorbTF', 'Spyware2', 'Spyware3', 'BitG2', 'BitP3', 'BitB4', 'ByteYP2', 'BytePG3', 'ByteYB4'];
+
+      const OG_ENEMIES = ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce'];
+      const ID_ENEMIES = ['Leni_the_big_Hammer', 'Monster', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF', 'Crystalic_Orb', 'Sharowd', 'NO_CrystEye_CB', 'Arky', 'CrystArky', 'ArkyVoid', 'Fireflies', 'Treeper', 'Big_Treeper', 'Stacked_Treepers', 'Baby_Shrum', 'Shrum', 'Old_Fungus', 'Spyware1', 'Spyware2', 'Spyware3', 'BitY1', 'BitG2', 'BitP3', 'BitB4', 'ByteYP2', 'BytePG3', 'ByteYB4', 'ByteGB1'];
+      const REN_ENEMIES = ['Ren', 'Thunren', 'Renibig'];
+      const TREEPER_ENEMIES = ['Treeper', 'Big_Treeper', 'Stacked_Treepers'];
+      const SHRUM_ENEMIES = ['Baby_Shrum', 'Shrum', 'Old_Fungus'];
+      const PYSH_ENEMIES = ['Pysh', 'Clown_Pysh'];
+      const NEW_SS_ENEMIES = ['Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'Piz', 'Followishers', 'Creamplet'];
+
+      Object.keys(ENEMY_TYPES).forEach(type => {
+        const e = ENEMY_TYPES[type];
+        if (HIDDEN_VARIANTS.includes(type)) return;
+        const acrossTimeRevealed = gameState.acrossTheTimeProgress?.spaceOneComplete === true;
+        if (e.timeAttackOnly && !acrossTimeRevealed && !isOwnerDebugUser()) return;
+        
+        let mapSource = e.mapSource || 'gelatin_lake';
+        if (!e.mapSource) {
+           if (e.category === 'gambling' || ['Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce'].includes(type)) {
+             mapSource = 'urbanistic_road';
+           } else if (e.category === 'other' && !['Monster', 'Cristalized_Monster', 'Lenistal'].includes(type)) {
+             mapSource = 'interstellar_menace';
+           } else if (['Leni_the_big_Hammer', 'Monster', 'Cristalized_Monster', 'Lenistal', 'Crystal_Bombot', 'AstrorbOrbe'].includes(type)) {
+             mapSource = 'interstellar_menace';
+           }
+        }
+        const isHalloweenEnemy = mapSource === 'spooktacular_ruins';
+        const isChristmasEnemy = mapSource === 'frosty_christmas';
+        const isInterstellarEnemy = mapSource === 'interstellar_menace' || e.category === 'other';
+        const isAcrossTimeEnemy = Boolean(e.timeAttackOnly || e.acrossTimeBoss || e.acrossTimeFinal);
+
+        let enemyClass = e.enemyClass || 'melee';
+        if (!e.enemyClass) {
+          if (e.boss) enemyClass = 'boss';
+          else if (e.health > 200) enemyClass = 'tank';
+          else if (e.projectile || e.shooter) enemyClass = 'shooter';
+        }
+
+        const name = translate(e.name || type).toLowerCase();
+        
+        if (term && !name.includes(term)) return;
+        if (mapVal !== 'all' && mapSource !== mapVal) return;
+        if (typeVal !== 'all' && enemyClass !== typeVal) return;
+        if (themeVal === 'halloween' && !isHalloweenEnemy) return;
+        if (themeVal === 'christmas' && !isChristmasEnemy) return;
+        if (themeVal === 'events' && !(isHalloweenEnemy || isChristmasEnemy || isInterstellarEnemy || isAcrossTimeEnemy)) return;
+        
+        if (groupVal !== 'all') {
+          if (groupVal === 'pyces' && !PYCES_ENEMIES.includes(type)) return;
+          if (groupVal === 'otros' && !OTROS_ENEMIES.includes(type)) return;
+          if (groupVal === 'bits' && !(type.startsWith('Bit') || type.startsWith('Byte') || type.startsWith('Spyware') || type === 'Fireflies')) return;
+          if (groupVal === 'arkys' && !(['Arky', 'CrystArky', 'ArkyVoid'].includes(type))) return;
+          if (groupVal === 'crystalized' && !(e.isCrystallized || type.startsWith('Astrorb') || type === 'Cristalized_Monster' || type === 'Crystal_Bombot' || type === 'Crystal_Pyce' || type === 'Dreamy_SPyce' || type === 'Astral_BPyce')) return;
+          if (groupVal === 'og' && !OG_ENEMIES.includes(type)) return;
+          if (groupVal === 'id' && !ID_ENEMIES.includes(type)) return;
+          if (groupVal === 'ren' && !REN_ENEMIES.includes(type)) return;
+          if (groupVal === 'treepers' && !TREEPER_ENEMIES.includes(type)) return;
+          if (groupVal === 'shrums' && !SHRUM_ENEMIES.includes(type)) return;
+          if (groupVal === 'pysh' && !PYSH_ENEMIES.includes(type)) return;
+          if (groupVal === 'new_ss' && !NEW_SS_ENEMIES.includes(type)) return;
+        }
+
+        if (!firstItem) firstItem = type;
+        const btn = document.createElement('div');
+        btn.className = 'almanac-btn';
+        let killed = gameState.pycesKilled[type] || 0;
+        if (type === 'BitY1' || type.startsWith('Bit')) {
+          killed = ['BitY1', 'BitB4', 'BitG2', 'BitP3'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
+        } else if (type === 'ByteGB1' || type.startsWith('Byte')) {
+          killed = ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
+        }
+
+        let imageToShow = e.image;
+        if (killed === 0) {
+          imageToShow = e.isCrystallized ? 'Recursos/img/Sellos/AstralExclamation.png' : 'Recursos/img/Sellos/MysteryBug.png';
+        }
+
+        if (typeof getPyceKillTarget === 'function' && killed >= getPyceKillTarget(type)) {
+          btn.style.boxShadow = '0 0 10px #ffd700';
+          btn.style.borderColor = '#ffd700';
+        }
+        btn.id = 'almanac-btn-' + type;
+        btn.onclick = () => selectAlmanacItem(type, 'enemies');
+        
+        const isImportant = e.boss || e.isCrystallized || type === 'Mimic_Pyce' || type === 'Leni_the_big_Hammer' || type === 'Monster' || type === 'AstrorbOrbe';
+        btn.innerHTML = `<img src="${imageToShow}" title="${killed === 0 && isImportant ? '???' : translate(e.name || type)}" ${type === 'GODs_Shadow' ? 'style="filter:brightness(0)"' : ''}>`;
+        enemyGrid.appendChild(btn);
+      });
+      
+      if (firstItem) selectAlmanacItem(firstItem, 'enemies');
+      else details.innerHTML = `<div style="padding:20px; text-align:center; color:#888;">${currentLanguage === 'en' ? 'No enemies found.' : 'No se encontraron enemigos.'}</div>`;
+    };
+
+    searchInput.addEventListener('input', renderFilteredEnemies);
+    mapSelect.addEventListener('change', renderFilteredEnemies);
+    typeSelect.addEventListener('change', renderFilteredEnemies);
+    themeSelect.addEventListener('change', renderFilteredEnemies);
+    
+    renderFilteredEnemies();
+  } else if (tab === 'emblemas') {
+    Object.values(BADGES).forEach(b => {
+      if (!firstItem) firstItem = b.key;
+      const btn = document.createElement('div');
+      btn.className = `almanac-btn badge-tone-${getBadgeColorGroup(b)}`;
+      btn.id = 'almanac-btn-' + b.key;
+      btn.onclick = () => selectAlmanacItem(b.key, 'emblemas');
+      if (!b.unlocked) btn.style.filter = 'grayscale(100%)';
+      btn.innerHTML = `<span class="almanac-badge-icon">${b.icon}</span>`;
+      grid.appendChild(btn);
+    });
+    // Default selection for emblemas as requested: duckpass or first item
+    selectAlmanacItem(firstItem, 'emblemas');
+  }
+}
+
+function selectAlmanacItem(id, category) {
+  if (id !== 'GODs_Shadow') godsShadowClueOverride = false;
+  // Update active button styling
+  document.querySelectorAll('.almanac-btn').forEach(btn => btn.classList.remove('active'));
+  const btn = document.getElementById('almanac-btn-' + id);
+  if (btn) btn.classList.add('active');
+
+  const details = document.getElementById('almanac-details');
+  if (!details) return;
+
+  if (category === 'globs') {
+    const t = TOWER_TYPES[id];
+    if (!t) return;
+
+    // Find base tower to show full evolution tree
+    let base = id;
+    let parentFound = true;
+    while (parentFound) {
+      const parent = Object.keys(TOWER_TYPES).find(k => TOWER_TYPES[k].evolution === base);
+      if (parent) base = parent;
+      else parentFound = false;
+    }
+
+    let evosHTML = `<div class="evo-list" style="justify-content:center;">`;
+    let curKey = base;
+    let cur = TOWER_TYPES[base];
+    let evoCount = 0;
+    while (cur) {
+      if (curKey !== base) evoCount++;
+      const isSelected = curKey === id ? 'background: rgba(255,215,0,0.2); border: 1px solid #ffd700;' : 'cursor: pointer;';
+      evosHTML += `
+        <div class="evo-step" style="${isSelected}" onclick="selectAlmanacItem('${curKey}', 'globs')">
+          <img src="${cur.image}" width="30" height="30">
+          <div style="font-size: 0.7rem;">${translate(cur.name)}</div>
+        </div>`;
+      curKey = cur.evolution;
+      cur = TOWER_TYPES[curKey];
+    }
+    evosHTML += `</div>`;
+
+    let metaHTML = '';
+    if (gameState.gtacks && gameState.gtacks[t.family]) {
+      metaHTML += `<div style="color:#2ecc71; font-size:0.85rem; font-weight:bold; margin-top:10px;">${translate('almanac_gtack_active')}</div>`;
+    }
+    if (gameState.duckgrades && gameState.duckgrades['dg_' + t.family]) {
+      metaHTML += `<div style="color:#ff9f43; font-size:0.85rem; font-weight:bold; margin-top:5px;">${translate('almanac_duckgrade_active')}</div>`;
+    }
+    const rgbFamilyLore = {
+      Glob: ['green_rgb_sr', 'encyclopedia_rgb_lore_green'],
+      Red_Glob: ['red_rgb_sr', 'encyclopedia_rgb_lore_red'],
+      Soap_Glob: ['blue_rgb_sr', 'encyclopedia_rgb_lore_blue'],
+      Ducky_Glob: ['ducky_rgb_sr', 'encyclopedia_rgb_lore_ducky'],
+      Comet_Glob: ['black_rgb_sr', 'encyclopedia_rgb_lore_black']
+    }[t.family];
+    const rgbLoreSkin = rgbFamilyLore && SKINS_DATA[t.family]?.find(skin => skin.id === rgbFamilyLore[0]);
+    if (rgbFamilyLore && (
+      gameState.unlockedSkins.includes(rgbFamilyLore[0]) ||
+      isProfileImageUnlockConditionMet(rgbLoreSkin || {})
+    )) {
+      metaHTML += `<div class="encyclopedia-secret-lore">🔎 ${translate(rgbFamilyLore[1])}</div>`;
+    }
+
+    details.innerHTML = `
+      <img src="${t.image}" style="width:80px; height:80px; margin-bottom:10px;">
+      <h3 style="font-size: 1.4rem;">${translate(t.name)}</h3>
+      <p style="font-size:0.9rem;">${translate(t.desc)}</p>
+      <div style="display:flex; justify-content:center; gap:15px; font-size:0.85rem; color:#ccc; margin-top:10px;">
+        <span>${translate('almanac_damage')} ${t.damage}</span>
+        <span>${translate('almanac_range')} ${t.range}</span>
+        <span>${translate('almanac_speed')} ${t.speed}</span>
+      </div>
+      ${evoCount > 0 ? evosHTML : ''}
+      ${metaHTML}
+    `;
+  } else if (category === 'enemies') {
+    const e = ENEMY_TYPES[id];
+    if (!e) return;
+
+    const isBoss = e.boss;
+    const isMimic = id === 'Mimic_Pyce' || id === 'Stupid_GoldPyce';
+    let titleStyle = '';
+    if (isMimic) titleStyle = 'color: #e84393; text-shadow: 0 0 8px rgba(232, 67, 147, 0.5);';
+    else if (isBoss) titleStyle = 'color: #8e44ad; text-shadow: 0 0 8px rgba(142, 68, 173, 0.5);';
+
+    let mechanicText = translate('mechanic_common');
+    if (e.mechanic_key) mechanicText = translate(e.mechanic_key);
+    else if (isMimic) mechanicText = translate('mechanic_mimic');
+    else if (isBoss) mechanicText = translate('mechanic_boss');
+    else if (e.health > 150) mechanicText = translate('mechanic_tank');
+    else if (e.speed > 1.8) mechanicText = translate('mechanic_speed');
+    else if (e.healer) mechanicText = translate('mechanic_support');
+    else if (e.stunAbility) mechanicText = translate('mechanic_annoying');
+
+    const target = typeof getPyceKillTarget === 'function' ? getPyceKillTarget(id) : 9999;
+    let killed = gameState.pycesKilled[id] || 0;
+    if (id.startsWith('Bit')) {
+      killed = ['BitY1', 'BitB4', 'BitG2', 'BitP3'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
+    } else if (id.startsWith('Byte')) {
+      killed = ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'].reduce((sum, b) => sum + (gameState.pycesKilled[b] || 0), 0);
+    }
+    const isMaxed = killed >= target;
+    const progressBg = isMaxed ? 'rgba(255, 215, 0, 0.3)' : 'rgba(0,0,0,0.3)';
+    const barWidth = Math.min(100, (killed / target) * 100);
+
+    const shadowSpaceOneComplete = gameState.acrossTheTimeProgress?.spaceOneComplete === true;
+    const isUndiscovered = id === 'GODs_Shadow'
+      ? !shadowSpaceOneComplete
+      : killed === 0;
+    let displayImage = e.image;
+    let displayName = translate(e.name || id);
+    let displayDesc = e.desc ? translate(e.desc) : "";
+    if (id === 'GODs_Shadow' && gameState.acrossTheTimeProgress?.completed) {
+      displayDesc = godsShadowClueOverride
+        ? translate('enemy_GODs_Shadow_desc')
+        : gameState.acrossTheTimeProgress?.completed
+          ? translate('enemy_GODs_Shadow_completed_desc')
+          : translate('enemy_GODs_Shadow_desc');
+    }
+    let displayHealth = e.health;
+    let displaySpeed = e.speed;
+    let displayReward = e.reward;
+
+    if (isUndiscovered) {
+      displayImage = e.isCrystallized ? 'Recursos/img/Sellos/AstralExclamation.png' : 'Recursos/img/Sellos/MysteryBug.png';
+      
+      const isImportant = e.boss || e.isCrystallized || id === 'Mimic_Pyce' || id === 'Leni_the_big_Hammer' || id === 'Monster' || id === 'AstrorbOrbe';
+      
+      if (isImportant) {
+         displayName = "???";
+         displayDesc = displayDesc.replace(/./g, "#");
+      }
+      
+      displayHealth = "???";
+      displaySpeed = "???";
+      displayReward = "???";
+    }
+    if (e.timeAttackOnly && id !== 'GODs_Shadow' && killed === 0) {
+      displayDesc = displayDesc.replace(/./g, '#');
+    }
+
+    let variantsHTML = '';
+    if (id.startsWith('Bit') || id.startsWith('Byte') || id.startsWith('Spyware')) {
+      let variants = [];
+      if (id.startsWith('Bit')) variants = ['BitY1', 'BitB4', 'BitG2', 'BitP3'];
+      else if (id.startsWith('Byte')) variants = ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'];
+      else if (id.startsWith('Spyware')) variants = ['Spyware1', 'Spyware2', 'Spyware3'];
+
+      variantsHTML = `<div class="evo-list" style="justify-content:center; margin-top: 15px;">`;
+      variants.forEach(v => {
+        const vi = ENEMY_TYPES[v] || { image: IMAGE_PATHS[v] };
+        if (vi && vi.image) {
+          let vKilled = gameState.pycesKilled[v] || 0;
+          let vImage = vi.image;
+          if (vKilled === 0) {
+             vImage = vi.isCrystallized ? 'Recursos/img/Sellos/AstralExclamation.png' : 'Recursos/img/Sellos/MysteryBug.png';
+          }
+          variantsHTML += `
+            <div class="evo-item" onclick="selectAlmanacItem('${v}', 'enemies')" style="cursor:pointer; ${v === id || (id === 'Spyware' && v === 'Spyware1') ? 'border: 2px solid #fff;' : 'opacity: 0.7;'} border-radius: 10px; margin: 0 5px;">
+              <img src="${vImage}" style="width:50px; height:50px; border-radius:10px;" title="${vKilled === 0 ? '???' : translate(vi.name || v)}">
+            </div>
+          `;
+        }
+      });
+      variantsHTML += `</div>`;
+    } else if (id === 'NOeye_Pyce') {
+      const cryst = ENEMY_TYPES['NO_CrystEye_CB'];
+      if (cryst) {
+        let vKilled = gameState.pycesKilled['NO_CrystEye_CB'] || 0;
+        let vImage = vKilled === 0 ? 'Recursos/img/Sellos/AstralExclamation.png' : cryst.image;
+        let vName = vKilled === 0 ? "???" : translate(cryst.name || 'NO_CrystEye_CB');
+        variantsHTML = `
+          <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
+            <p style="font-size:0.75rem; color:#aaa; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Variante Cristalizada</p>
+            <div class="evo-list" style="justify-content:center;">
+              <div class="evo-item" onclick="selectAlmanacItem('NO_CrystEye_CB', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; border:2px solid #cc44ff;">
+                <img src="${vImage}" style="width:55px; height:55px; border-radius:10px;" title="${vName}">
+                ${vKilled === 0 ? '' : `<div style="font-size:0.7rem; color:#cc44ff; margin-top:4px;">${vName}</div>`}
+              </div>
+            </div>
+          </div>`;
+      }
+    } else if (id === 'AstrorbOrbe' || id === 'AstrorbContenida' || id === 'AstrorbTF') {
+      const forms = ['AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF'];
+      variantsHTML = `
+        <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
+          <p style="font-size:0.75rem; color:#aaa; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Formas de Astrorb</p>
+          <div class="evo-list" style="justify-content:center;">`;
+      forms.forEach(f => {
+        const fi = ENEMY_TYPES[f];
+        if (fi) {
+          let vKilled = gameState.pycesKilled[f] || 0;
+          let vImage = vKilled === 0 ? 'Recursos/img/Sellos/MysteryBug.png' : fi.image;
+          let vName = vKilled === 0 ? "???" : translate(fi.name || f);
+          variantsHTML += `
+            <div class="evo-item" onclick="selectAlmanacItem('${f}', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; ${f === id ? 'border:2px solid #ff00ff; box-shadow: 0 0 10px #ff00ff;' : 'opacity:0.7; border:1px solid rgba(255,0,255,0.3);'}">
+              <img src="${vImage}" style="width:${f === 'AstrorbOrbe' ? '60' : '48'}px; height:${f === 'AstrorbOrbe' ? '60' : '48'}px; border-radius:10px;" title="${vName}">
+              ${vKilled === 0 ? '' : `<div style="font-size:0.65rem; color:#ff88ff; margin-top:3px;">${vName}</div>`}
+            </div>`;
+        }
+      });
+      variantsHTML += `</div></div>`;
+    } else if (id === 'Pyce2' || id === 'Symbol_Pyce' || id === 'Bomb_Pyce') {
+      // Crystal variants shown as sub-versions
+      const crystalMap = {
+        'Pyce2':        'Crystal_Pyce',   // Crystal Pyce is a crystallized Pyce2
+        'Symbol_Pyce':  'Dreamy_SPyce',   // Dreamy SPyce is a crystallized Symbol Pyce
+        'Bomb_Pyce':    'Astral_BPyce'    // Astral BPyce is a crystallized Bomb Pyce
+      };
+      const crystType = crystalMap[id];
+      const cryst = ENEMY_TYPES[crystType];
+      if (cryst) {
+        let vKilled = gameState.pycesKilled[crystType] || 0;
+        let vImage = vKilled === 0 ? 'Recursos/img/Sellos/AstralExclamation.png' : cryst.image;
+        let vName = vKilled === 0 ? "???" : translate(cryst.name || crystType);
+        variantsHTML = `
+          <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
+            <p style="font-size:0.75rem; color:#aaa; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Variante Cristalizada</p>
+            <div class="evo-list" style="justify-content:center;">
+              <div class="evo-item" onclick="selectAlmanacItem('${crystType}', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; border:2px solid #44ddff; box-shadow:0 0 8px rgba(68,221,255,0.5);">
+                <img src="${vImage}" style="width:55px; height:55px; border-radius:10px;" title="${vName}">
+                ${vKilled === 0 ? '' : `<div style="font-size:0.7rem; color:#44ddff; margin-top:4px;">${vName}</div>`}
+              </div>
+            </div>
+          </div>`;
+      }
+    } else if (id === 'Monster') {
+      const cryst = ENEMY_TYPES['Cristalized_Monster'];
+      if (cryst) {
+        let vKilled = gameState.pycesKilled['Cristalized_Monster'] || 0;
+        let vImage = vKilled === 0 ? 'Recursos/img/Sellos/AstralExclamation.png' : cryst.image;
+        let vName = vKilled === 0 ? "???" : translate(cryst.name || 'Cristalized_Monster');
+        variantsHTML = `
+          <div style="margin-top:18px; border-top: 1px solid rgba(255,255,255,0.15); padding-top:12px;">
+            <p style="font-size:0.75rem; color:#aaa; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Variante Cristalizada</p>
+            <div class="evo-list" style="justify-content:center;">
+              <div class="evo-item" onclick="selectAlmanacItem('Cristalized_Monster', 'enemies')" style="cursor:pointer; border-radius:10px; margin:0 5px; border:2px solid #44bbff;">
+                <img src="${vImage}" style="width:55px; height:55px; border-radius:10px;" title="${vName}">
+                ${vKilled === 0 ? '' : `<div style="font-size:0.7rem; color:#44bbff; margin-top:4px;">${vName}</div>`}
+              </div>
+            </div>
+          </div>`;
+      }
+    }
+
+    details.innerHTML = `
+      <img src="${displayImage}" style="width:100px; height:100px; margin-bottom:10px; ${id === 'GODs_Shadow' ? 'filter:brightness(0);' : ''} ${isBoss && !isUndiscovered ? 'transform:scale(1.2);' : ''}">
+      <h3 style="font-size: 1.5rem; ${titleStyle}">${displayName}</h3>
+      ${displayDesc ? `<p style="font-size:0.9rem; margin-top:5px; margin-bottom:10px; overflow-wrap: anywhere;">${displayDesc}</p>` : ''}
+      ${e.category === 'gambling' || isUndiscovered ? '' : `<p style="font-size:0.95rem; color:#ffd700; font-weight:bold; margin-top:5px;">⭐ ${mechanicText}</p>`}
+      
+      <div style="margin-top:15px; width:100%; max-width:300px; margin-left:auto; margin-right:auto; background:#222; border-radius:5px; padding:3px; position:relative;">
+        <div style="width:${barWidth}%; height:15px; background:${isMaxed ? '#ffd700' : '#4caf50'}; border-radius:3px; transition: width 0.3s;"></div>
+        <div style="position:absolute; width:100%; top:0; left:0; text-align:center; font-size:0.8rem; font-weight:bold; color:#fff; text-shadow:1px 1px 1px #000; line-height:15px;">
+          ${killed} / ${target}
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:15px; font-size:0.9rem; color:#ddd; margin-top:15px; background: ${progressBg}; padding:10px; border-radius:10px;">
+        <span>${translate('almanac_hp')} ${displayHealth}</span>
+        <span>${translate('almanac_speed')} ${displaySpeed}</span>
+        <span>${translate('almanac_reward')}${displayReward}</span>
+      </div>
+      
+      ${variantsHTML}
+      ${(id === 'Monster' || id === 'Cristalized_Monster') ? `
+        <div style="margin-top:15px; font-size:0.75rem; color:#e67e22; opacity:0.85; font-style:italic; letter-spacing:0.5px;">
+          ${currentLanguage === 'en' ? '✏️ Idea by POP, Draw by KirByte_Bi' : '✏️ Idea de POP, Dibujo de KirByte_Bi'}
+        </div>` : ''}
+    `;
+    if (id === 'GODs_Shadow' && gameState.acrossTheTimeProgress?.completed) {
+      const clueButton = document.createElement('button');
+      clueButton.type = 'button';
+      clueButton.className = 'almanac-clue-toggle';
+      clueButton.textContent = translate(godsShadowClueOverride
+        ? 'enemy_GODs_Shadow_show_main_desc'
+        : 'enemy_GODs_Shadow_show_clue');
+      clueButton.addEventListener('click', () => {
+        godsShadowClueOverride = !godsShadowClueOverride;
+        selectAlmanacItem('GODs_Shadow', 'enemies');
+      });
+      details.appendChild(clueButton);
+    }
+  } else if (category === 'emblemas') {
+    const badgeArr = Object.values(BADGES);
+    const b = badgeArr.find(x => x.key === id);
+    if (!b) return;
+
+    const name = translate(`badge_${b.key}_name`);
+    const desc = translate(`badge_${b.key}_desc`);
+    let rewardText = "";
+    if (b.reward.pycoins) rewardText += `<img src="Recursos/img/Tokens/PyCoin.png" class="token-inline-icon" alt="PyCoins">+${b.reward.pycoins} `;
+    if (b.reward.duckpass) rewardText += `<img src="Recursos/img/Tokens/DuckPass.png" class="token-inline-icon" alt="DuckPass">+${b.reward.duckpass} `;
+    if (b.reward.xp) rewardText += `✨+${b.reward.xp}xp`;
+
+    details.innerHTML = `
+      <div class="badge-detail-icon" style="filter:${b.unlocked ? 'none' : 'grayscale(100%)'};">${b.icon}</div>
+      <h3 style="font-size: 1.4rem;">${name}</h3>
+      <p style="font-size:0.95rem;">${desc}</p>
+      ${rewardText ? `<div style="margin-top:15px; padding:10px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:10px;">
+        <b style="color:#ffd700; font-size:0.9rem;">${translate('badge_reward_label')}${rewardText}</b>
+      </div>` : ''}
+      ${b.unlocked ? `<div style="color:#2ecc71; margin-top:10px; font-weight:bold;">${translate('badge_unlocked')}</div>` : `<div style="color:#e74c3c; margin-top:10px; font-weight:bold;">${translate('badge_locked')}</div>`}
+    `;
+    if (b.key === 'tutorial') {
+      const repeatButton = document.createElement('button');
+      repeatButton.className = 'almanac-clue-toggle';
+      repeatButton.textContent = translate('tutorial_emblem_repeat');
+      repeatButton.addEventListener('click', window.repeatTutorial);
+      details.appendChild(repeatButton);
+    }
+  }
+}
+
+// Sincroniza la clase visual del body según si hay una torre seleccionada
+// para colocar. Solo afecta al resaltado de los huecos (cosmético).
+function syncPlacingTowerClass() {
+  document.body.classList.toggle('placing-tower', !!gameState.selectedTowerType);
+}
+
+function bindEvents() {
+  setupMultiplayerChat();
+  const tutorialSkipModal = document.getElementById('tutorial-skip-modal');
+  tutorialSkipModal?.addEventListener('click', event => {
+    if (event.target === tutorialSkipModal) closeTutorialSkipDialog();
+  });
+  tutorialSkipModal?.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    event.stopPropagation();
+    closeTutorialSkipDialog();
+  });
+  document.getElementById('tutorial-skip-cancel')?.addEventListener('click', closeTutorialSkipDialog);
+  document.getElementById('tutorial-skip-accept')?.addEventListener('click', () => {
+    closeTutorialSkipDialog();
+    if (gameState.mode === 'tutorial') chooseModeAfterGame();
+  });
+  document.getElementById('pause-game')?.addEventListener('click', pauseGame);
+  document.querySelector('#game-over .retry-btn:not(#resume-game)')?.addEventListener('click', () => {
+    sendMultiplayerAction({ type: 'retry' });
+  });
+  document.getElementById('login-btn').onclick = handleLogin;
+  document.getElementById('offline-play-btn').onclick = handleSkipLogin;
+  const createAccountButton = document.getElementById('create-account-btn');
+  if (createAccountButton) createAccountButton.onclick = handleCreateAccount;
+  const rememberCheckbox = document.getElementById('remember-me-checkbox');
+  if (rememberCheckbox) {
+    rememberCheckbox.addEventListener('change', () => {
+      const warning = document.getElementById('remember-me-warning');
+      if (warning) warning.style.display = rememberCheckbox.checked ? 'block' : 'none';
+      if (!rememberCheckbox.checked) {
+        try {
+          localStorage.removeItem('glob_remember_me');
+          localStorage.removeItem('glob_remember_user');
+          localStorage.removeItem('glob_remember_pass');
+        } catch (e) { /* ignore */ }
+      }
+    });
+  }
+  ['username-input', 'password-input'].forEach(id => {
+    const input = document.getElementById(id);
+    input?.addEventListener('keydown', event => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+
+      const username = document.getElementById('username-input')?.value.trim();
+      const password = document.getElementById('password-input')?.value;
+      if (username && password) {
+        handleLogin();
+      } else if (id === 'username-input' && username) {
+        document.getElementById('password-input')?.focus();
+      } else {
+        document.getElementById('username-input')?.focus();
+      }
+    });
+  });
+  
+  const loadingFamilyTips = {
+    es: {
+      Glob: ['Los Glob básicos sostienen la defensa temprana; colócalos bien para controlar la primera oleada.', 'Los Glob no son los más fuertes, pero son el núcleo de tu ritmo de juego y de tu economía.'],
+      Red_Glob: ['La familia roja suele ser la mejor para empujar daño directo a enemigos rápidos.', 'Combina Red_Glob con apoyo para eliminar objetivos prioritarios antes de que te abran paso.'],
+      Soap_Glob: ['Es muy útil para frenar ataques y ganar tiempo en oleadas difíciles.', 'Si el enemigo acelera demasiado, la familia azul te da control real del campo.'],
+      Ducky_Glob: ['Aporta economía y consistencia; no lo dejes en segundo plano.', 'Los Ducky son excelentes para generar más recursos y sostener partidas largas.'],
+      Comet_Glob: ['La familia negra hace daño brutal cuando ya has controlado el tablero.', 'Es ideal para presionar en el centro del mapa en oleadas medianas.'],
+      Old_Glob: ['Funciona muy bien si quieres estabilidad y apoyo defensivo.', 'A veces conviene conservarlo en puntos estratégicos para no perder presión.'],
+      Work_Bombot: ['Bombot gana mucho cuando sabes anticipar los flancos por donde entran los Pyces.', 'No lo uses como relleno: su explosión es más útil si enchufas una ruta clara.'],
+      White: ['La familia blanca suele complementar mejor a la hora de controlar distancias y cobertura.', 'Suele ser muy buena para sostener el mapa mientras esperas a que tu daño llegue.'],
+      Pink: ['La familia rosa funciona mejor cuando sabes aprovechar la presión y el control de zonas.', 'Si la combinas con un daño fuerte, puedes limpiar más rápido a los enemigos más molestos.'],
+      IEx: ['Es excelente para reforzar el daño y la presión en rutas largas, pero no es una torre de sacrificio.', 'Si quieres explosivos de radio puro, Bomb Glob es mucho más directo: explota al entrar alguien en su alcance.'],
+      Worker_Glob: ['Es perfecto para sostener la defensa en mapas más abiertos.', 'Aporta estabilidad y te ayuda a mantener el control si la ola empieza a complicarse.'],
+      Bomb_Glob: ['Explota cuando alguien entra en su radio; es ideal para limpiar un paso sospechoso.', 'No tiene bonificaciones: su valor está en el sacrificio y en borrar amenazas a tiempo.'],
+      Sprout_Glob: ['Sprout_Glob funciona muy bien si quieres más control y ralentización sin perder presión.', 'Los efectos de ralentización te dan más margen para responder antes del choque.'],
+      Pirate_Glob: ['Aporta mucho en mapas con más recorrido y presión lateral.', 'Cuando tienes rutas largas, su utilidad y apoyo de control se vuelven muy fuertes.']
+    },
+    en: {
+      Glob: ['Basic Globs hold the early defense; place them well to control the first wave.', 'Globs are not the strongest, but they are the core of your pacing and economy.'],
+      Red_Glob: ['The red family is usually best for direct pressure against fast enemies.', 'Pair Red_Glob with support to remove priority targets before they break through.'],
+      Soap_Glob: ['It is very useful for slowing attacks and buying time in tougher waves.', 'If enemies accelerate too much, the blue family gives real map control.'],
+      Ducky_Glob: ['It favors economy and consistency; do not leave it behind.', 'Ducky is excellent for generating more resources and sustaining long runs.'],
+      Comet_Glob: ['The black family deals brutal damage once you already control the board.', 'Comet_Glob is ideal for pressure in the center of the map during mid waves.'],
+      Old_Glob: ['Old_Glob works well if you want stability and defensive support.', 'Sometimes it is better to keep it in a strategic spot than to rotate too much.'],
+      Work_Bombot: ['Bombot shines when you anticipate where enemies will enter.', 'Do not use it as filler: its blast is more useful if you have a clear route.'],
+      White: ['The white family usually complements better when controlling distances and cover.', 'It is very good for holding the map while your damage is still coming together.'],
+      Pink: ['The pink family works best when you take advantage of pressure and zone control.', 'If you combine it with strong damage, you can clear the most annoying enemies faster.'],
+      IEx: ['IEx is excellent for reinforcing damage and pressure on long routes, but it is not a sacrifice tower.', 'If you want pure blast radius, Bomb Glob is much more direct: it explodes when something enters its range.'],
+      Worker_Glob: ['Worker_Glob is perfect for sustaining defense on more open maps.', 'It gives stability and helps maintain control if the wave starts to get messy.'],
+      Bomb_Glob: ['Bomb_Glob explodes when someone enters its radius; it is ideal for clearing a risky lane.', 'It has no bonuses or support buffs: its value lies in the sacrifice and in removing threats in time.'],
+      Sprout_Glob: ['Sprout_Glob works very well if you want more control and slowing without losing pressure.', 'The slow effects give you more room to react before the clash.'],
+      Pirate_Glob: ['It adds a lot on maps with longer paths and lateral pressure.', 'When you have long routes, its utility and control support become very strong.']
+    }
+  };
+
+  function getLoadingTips(language) {
+    const langTips = loadingFamilyTips[language] || loadingFamilyTips.es;
+    const orderedTips = Object.entries(langTips).flatMap(([family, tips]) => {
+      const label = family === 'Glob' ? 'Glob' : family.replace(/_/g, ' ');
+      return tips.map(tip => `${label}: ${tip}`);
+    });
+    return orderedTips;
+  }
+
+  const musicToggle = document.getElementById('music-toggle-btn');
+  if (musicToggle) musicToggle.onclick = toggleMusic;
+
+  const effectsToggle = document.getElementById('effects-toggle-btn');
+  if (effectsToggle) effectsToggle.onclick = toggleMute;
+
+  document.addEventListener('click', function (e) {
+    const panel = document.getElementById('badges-panel');
+    const btn = document.getElementById('badges-toggle-btn');
+    if (panel && panel.classList.contains('show')) {
+      if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+        panel.classList.remove('show');
+      }
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const target = e.target instanceof HTMLElement ? e.target : null;
+    const isEditingText = target && (
+      target.matches('input, textarea, select') ||
+      target.isContentEditable ||
+      target.closest('input, textarea, select, [contenteditable="true"]')
+    );
+    if (isEditingText) return;
+    if (multiplayerSpectator) return;
+
+    const key = e.key.toLowerCase();
+    if (e.repeat && (key === 'u' || key === 'd')) return;
+    const upgradeMenu = document.getElementById('evolve-panel');
+    const isUpgradeOpen = upgradeMenu && upgradeMenu.style.display === 'flex';
+
+    if (key === 'u') {
+      if (gameState.modeConfirmed && !gameState.gameOver && !gameState.paused) {
+        e.preventDefault();
+        upgradeAllAffordableTowers();
+      }
+    } else if (key === 'c') {
+      if (isUpgradeOpen) {
+        deselectTower();
+      } else if (gameState.selectedTowerType) {
+        cancelTowerSelection();
+      }
+    } else if (key === 'v') {
+      if (isUpgradeOpen) {
+        const sellBtn = document.getElementById('sell-tower-btn');
+        if (sellBtn && sellBtn.style.display !== 'none') {
+          sellBtn.click();
+        }
+      }
+    } else if (key === 'd' && gameState.modeConfirmed && !gameState.gameOver && !gameState.paused) {
+      e.preventDefault();
+      sellSelectedTowerFamily();
+    }
+  });
+
+  document.querySelectorAll('.login-logo, .game-logo').forEach(logo => {
+    logo.onclick = () => handleLogoClick(logo);
+    logo.onkeydown = event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      handleLogoClick(logo);
+    };
+  });
+
+  document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => btn.onclick = () => selectMode(btn.dataset.mode));
+  document.getElementById('health-stat').onclick = triggerCorrupt;
+
+  // Onda de pulsación "física" en los botones de partida (solo visual).
+  const controlsBar = document.querySelector('.controls');
+  if (controlsBar) {
+    controlsBar.addEventListener('pointerdown', event => {
+      const btn = event.target.closest('button');
+      if (!btn || btn.disabled) return;
+      btn.classList.remove('gd-pressed');
+      void btn.offsetWidth; // reinicia la animación
+      btn.classList.add('gd-pressed');
+      btn.addEventListener('animationend', e => {
+        if (e.animationName === 'gdPressRipple') btn.classList.remove('gd-pressed');
+      }, { once: true });
+    });
+  }
+
+  document.getElementById('start-wave').onclick = () => startWave();
+  document.getElementById('auto-wave').onclick = () => {
+    gameState.autoWave = !gameState.autoWave;
+    document.getElementById('auto-wave').classList.toggle('active', gameState.autoWave);
+    if (gameState.autoWave && !gameState.waveActive) startWave();
+  };
+
+  document.getElementById('deselect-tower').onclick = () => {
+    gameState.selectedTowerType = null;
+    document.querySelectorAll('.tower-item').forEach(i => i.classList.remove('selected'));
+    syncPlacingTowerClass();
+  };
+
+  document.getElementById('tower-shop').onclick = (e) => {
+    const item = e.target.closest('.tower-item');
+    if (item) {
+      gameState.selectedTowerType = item.dataset.type;
+      document.querySelectorAll('.tower-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      syncPlacingTowerClass();
+    }
+  };
+
+  document.getElementById('map').onclick = (e) => {
+    const spotEl = e.target.closest('.tower-spot');
+    if (spotEl && gameState.selectedTowerType) {
+      const id = spotEl.dataset.id;
+      if (!gameState.towerSpots[id].occupied) placeTower(id, gameState.selectedTowerType);
+    }
+  };
+
+  document.getElementById('apply-code').onclick = async () => {
+    const input = document.getElementById('game-code');
+    const code = input.value.trim().toUpperCase();
+    if (!code) return;
+
+    if (code === '14/05/26-TIMETRAVEL') {
+      if (!canPlayAcrossTimeSolo()) {
+        showMessage(translate('across_time_solo_required'), 'error');
+        input.value = '';
+        return;
+      }
+      if (!gameState.acrossTheTimeProgress?.spaceTwoComplete &&
+          !gameState.acrossTheTimeProgress?.timeAttackUnlocked) {
+        showMessage(translate('across_time_code_required'), 'error');
+        input.value = '';
+        return;
+      }
+      const confirmation = currentLanguage === 'en'
+        ? translate('across_time_confirm')
+        : translate('across_time_confirm');
+      if (!window.confirm(confirmation)) {
+        input.value = '';
+        return;
+      }
+      gameState.acrossTheTimeProgress.spaceThreeStarted = true;
+      transitionAcrossTimeMap(3, 'gelatin_lake');
+      showMessage(translate('across_time_transition'), 'success');
+      input.value = '';
+      return;
+    }
+
+    const oneTimeSkinCodes = {
+      'FROGGY_VICTEST': { skinIds: ['froggy_set'], towerUnlocks: [], name: 'Froggy Set' },
+      'NITRO-BOOMER': { skinIds: ['sharkbot_bombot'], towerUnlocks: [], name: 'RoboTibu' },
+      'ASTRAL-CREDIBLE': {
+        skinIds: ['fracstal_set'],
+        towerUnlocks: ['Worker_Glob'],
+        name: currentLanguage === 'en' ? 'Worker Glob and Fracstral Set' : 'Worker Glob y Fracstral Set'
+      },
+      'THE-USER-BOMB': {
+        skinIds: [],
+        towerUnlocks: ['Bomb_Glob'],
+        name: currentLanguage === 'en' ? 'Bomb Glob' : 'Bomb Glob'
+      }
+    };
+    const oneTimeSkinReward = oneTimeSkinCodes[code];
+    if (oneTimeSkinReward) {
+      if (!activeCloudUserId || isOfflineSession()) {
+        showMessage(
+          currentLanguage === 'en'
+            ? 'Sign in to an online account to redeem this one-time code.'
+            : 'Inicia sesión con una cuenta online para canjear este código de un solo uso.',
+          'warning'
+        );
+        input.value = '';
+        return;
+      }
+
+      try {
+        const { data, error } = await getSupabaseClient().functions.invoke(
+          'redeem-one-time-skin-code',
+          { body: { code } }
+        );
+        if (error) throw error;
+        if (!data || typeof data.result !== 'string') {
+          throw new Error('Supabase devolvió una respuesta inválida al canjear el código.');
+        }
+
+        const grantedSkinIds = Array.isArray(data.skinIds) ? data.skinIds : (data.skinId ? [data.skinId] : []);
+        const grantedTowers = Array.isArray(data.towerUnlocks) ? data.towerUnlocks : [];
+        const rewardsMatch = grantedSkinIds.length === oneTimeSkinReward.skinIds.length &&
+          grantedTowers.length === oneTimeSkinReward.towerUnlocks.length &&
+          oneTimeSkinReward.skinIds.every(id => grantedSkinIds.includes(id)) &&
+          oneTimeSkinReward.towerUnlocks.every(type => grantedTowers.includes(type));
+
+        if (data.result === 'redeemed' && rewardsMatch) {
+          gameState.unlockedSkins = [...new Set([...(gameState.unlockedSkins || []), ...oneTimeSkinReward.skinIds])];
+          oneTimeSkinReward.towerUnlocks.forEach(type => {
+            if (TOWER_TYPES[type]) TOWER_TYPES[type].unlocked = true;
+          });
+          gameState.usedCodes[code] = true;
+          updateMetaUI();
+          drawTowerShop();
+          drawShop();
+          saveProgress();
+          showMessage(
+            currentLanguage === 'en'
+              ? `One-time code redeemed! ${oneTimeSkinReward.name} unlocked for your account.`
+              : `¡Código de un solo uso canjeado! ${oneTimeSkinReward.name} se ha desbloqueado en tu cuenta.`,
+            'success'
+          );
+        } else if (data.result === 'already_claimed') {
+          showMessage(
+            currentLanguage === 'en'
+              ? 'This one-time code has already been claimed by another player.'
+              : 'Otro jugador ya ha canjeado este código de un solo uso.',
+            'warning'
+          );
+        } else if (data.result === 'not_eligible') {
+          const reservedUsername = code === 'ASTRAL-CREDIBLE' ? 'credible' : 'Victorillo_24';
+          showMessage(
+            currentLanguage === 'en'
+              ? `This one-time code is reserved for the ${reservedUsername} account.`
+              : `Este código de un solo uso está reservado para la cuenta ${reservedUsername}.`,
+            'warning'
+          );
+        } else if (data.result === 'already_owned') {
+          showMessage(
+            currentLanguage === 'en'
+              ? `Your account already owns ${oneTimeSkinReward.name}; the code remains available for another player.`
+              : `Tu cuenta ya tiene ${oneTimeSkinReward.name}; el código sigue disponible para otra persona.`,
+            'info'
+          );
+        } else {
+          throw new Error('Supabase devolvió un resultado inesperado al canjear el código.');
+        }
+      } catch (error) {
+        console.error('No se pudo canjear el código global de un solo uso:', error);
+        showMessage(
+          currentLanguage === 'en'
+            ? 'The code could not be redeemed. Check your connection and try again.'
+            : 'No se pudo canjear el código. Comprueba la conexión e inténtalo de nuevo.',
+          'error'
+        );
+      }
+      input.value = '';
+      return;
+    }
+
+    // DEV_BUILD / GLOB_BUILD: special code only for dev users
+    if (code === 'DEV_BUILD' || code === 'GLOB_BUILD') {
+      const role = getSessionUserRole();
+      if (role !== 'OWNER' && role !== 'DEVBUILD') {
+        showMessage('⛔ Código de desarrollo no disponible... ¿Qué pretendías?', 'error');
+        input.value = '';
+        return;
+      }
+      if (role === 'OWNER') {
+        gameState.pycoins += 9999;
+        gameState.duckPassCurrency += 9999;
+        gameState.duckPassLevel += 100;
+        Object.keys(BADGES).forEach(k => unlockBadge(k));
+        Object.keys(TOWER_TYPES).forEach(t => TOWER_TYPES[t].unlocked = true);
+        Object.keys(SKIN_META).forEach(s => {
+            if(!gameState.unlockedSkins.includes(s)) gameState.unlockedSkins.push(s);
+        });
+        showMessage('👑 OWNER: +9999 PyCoins/DuckPass, todas las torres, skins y emblemas!', 'success');
+      } else if (role === 'DEVBUILD') {
+        gameState.pycoins += 500;
+        gameState.duckPassCurrency += 500;
+        showMessage('🛠️ DEVBUILD: +500 PyCoins y DuckPass', 'success');
+      }
+      updateMetaUI();
+      drawBadges();
+      input.value = '';
+      return;
+    }
+
+    if (gameState.usedCodes[code] && code !== 'CR1-M3-CA+GLD' && code !== 'BLOCK_QUEST') {
+      showMessage(translate('code_already_used'), 'warning');
+      input.value = '';
+      return;
+    }
+
+    if (code === 'BLOCK_QUEST') {
+      const validMap = gameState.map === 'urbanistic_road';
+      const validMode = ['dificil', 'extremo', 'corrupto', 'antiNormal'].includes(gameState.mode);
+      if (!validMap || !validMode) {
+        showMessage(currentLanguage === 'es' ? 'BLOCK_QUEST requiere Urbanistic Road en Difícil o superior.' : 'BLOCK_QUEST requires Urbanistic Road on Hard or higher.', 'error');
+        input.value = '';
+        return;
+      }
+      gameState.blockQuestActive = true;
+      gameState.blockQuestPending = true;
+      gameState.blockQuestHadBlockTales = gameState.unlockedSkins.includes('corrupt_swords_set');
+      gameState.usedCodes[code] = true;
+      showMessage(currentLanguage === 'es' ? '🧱 Misión aceptada. La secuencia aparecerá a mitad de la partida.' : '🧱 Quest accepted. The sequence will appear halfway through the game.', 'success');
+      saveProgress();
+      input.value = '';
+      return;
+    }
+
+    if (code === 'CR1-M3-CA+GLD') {
+      gameState.usedCodes[code] = true;
+      saveProgress();
+      publishMultiplayerProfile();
+      startInterstellarMission(false);
+      input.value = '';
+      return;
+    }
+
+    if (code === 'ONLINE-AVATARS') {
+      if (!gameState.profilePurchasedBorders.includes('coded')) {
+        gameState.profilePurchasedBorders.push('coded');
+      }
+      gameState.usedCodes[code] = true;
+      updateMetaUI();
+      saveProgress();
+      if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+      publishMultiplayerProfile();
+      showMessage(
+        currentLanguage === 'en' ? 'Coded profile frame unlocked!' : '¡Borde de perfil Coded desbloqueado!',
+        'success'
+      );
+      input.value = '';
+      return;
+    }
+
+    if (code === 'FESTIVE_XMAS') {
+      unlockProfileBorderReward('festive');
+      gameState.usedCodes[code] = true;
+      updateMetaUI();
+      saveProgress();
+      if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+      publishMultiplayerProfile();
+      showMessage(
+        currentLanguage === 'en' ? 'Festive profile frame unlocked!' : '¡Borde de perfil Festivo desbloqueado!',
+        'success'
+      );
+      input.value = '';
+      return;
+    }
+
+    let valid = false;
+    const rewards = {
+      'GL0B_CL1CKER': { py: 100, msg: '100 PyCoins', badge: 'secret' },
+      'B1TL4NDS': { py: 50, xp: 150, msg: '50 PyCoins + 150 XP' },
+      'GLOBFNF': { py: 76, xp: 150, msg: '76 PyCoins + 150 XP' },
+      'PINKWAVE': { py: 30, dp: 30, msg: '30 PyCoins + 30 DuckPass' },
+      'B4D_P1GG13S': { py: 50, dp: 5, msg: '50 PyCoins + 5 DuckPass' },
+      'MUSICFAN': { py: 50, xp: 10, msg: '50 PyCoins + 10 XP' },
+      'T3CHSP4WN': { py: 50, xp: 150, msg: '50 PyCoins + 150 XP' },
+      'ICEDAGGGER': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
+      'VENOMSHARK': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
+      'GHOSTWALKER': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
+      'FIREBRAND': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
+      'WINDFORCE': { py: 100, dp: 25, msg: '100 PyCoins + 25 DuckPass' },
+      'THANIYEL': { dp: 150, xp: 500, msg: '150 DuckPass + 500 XP' },
+      'FIRSTJTESTER': { py: 123, msg: '123 PyCoins' },
+      'ILERNA': { py: 130, msg: '130 PyCoins' },
+      'MANOLO': { py: 100, msg: '100 PyCoins' },
+      'BETA_OPENING': { dp: 100, msg: '100 DuckPass' },
+      'REWORKED': { dp: 100, py: 100, xp: 200, msg: '100 DuckPass + 100 PyCoins + 200 XP' },
+      'GLOBS_ATTACK': { dp: 100, xp: 100, msg: '100 DuckPass + 100 XP' },
+      'GALAXIUM': { py: 200, dp: 200, msg: '200 PyCoins + 200 DuckPass' },
+      'MAYJUNE_RELEASE': { py: 100, dp: 100, xp: 100, msg: '100 PyCoins + 100 DuckPass + 100 XP' },
+      'DELAYED_RELEASE': { py: 200, dp: 150, msg: '200 PyCoins + 150 DuckPass' },
+      'NITRODRAWS': { py: 50, dp: 25, msg: '50 PyCoins + 25 DuckPass' },
+      'DREAMY_POYO': { py: 200, dp: 200, msg: '200 PyCoins + 200 DuckPass' },
+      'SANTI_THEGOAT': { py: 150, msg: '150 PyCoins' },
+      'FORGOTTEN': { py: 50, dp: 100, msg: '50 PyCoins + 100 DuckPass' },
+      'HAL-IS-ALL': { py: 100, dp: 150, msg: '100 PyCoins + 150 DuckPass' },
+      'COMUNITTY': { py: 50, dp: 100, msg: '50 PyCoins + 100 DuckPass' },
+      'SERVERS-OVER': { py: 75, dp: 120, msg: '75 PyCoins + 120 DuckPass' },
+      'SWITCHEDGAMBLING': { py: 200, dp: 250, msg: '200 PyCoins + 250 DuckPass' },
+      'SPANISH-SUPERSTAR': { dp: 350, msg: '350 DuckPass' },
+      'GLOBS-ARE-AWESOME': { py: 150, dp: 200, msg: '150 PyCoins + 200 DuckPass' },
+      'SUMMERS-OVER': { py: 250, dp: 300, msg: '250 PyCoins + 300 DuckPass' }
+    };
+
+    if (rewards[code]) {
+      const r = rewards[code];
+      if (r.py) gameState.pycoins += r.py;
+      if (r.xp) addXP(r.xp);
+      if (r.dp) gameState.duckPassCurrency += r.dp;
+      if (r.badge) unlockBadge(r.badge);
+      showMessage(translate('codeSuccess', { name: r.msg }), 'success');
+      valid = true;
+    }
+
+    if (valid) {
+      gameState.failedCodeAttempts = 0;
+      gameState.usedCodes[code] = true;
+      updateMetaUI();
+      drawBadges();
+      saveProgress();
+    } else {
+      gameState.failedCodeAttempts++;
+      if (gameState.failedCodeAttempts >= 3) {
+        const secretCodes = ['PINKWAVE', 'FORGOTTEN', 'HAL-IS-ALL', 'COMUNITTY', 'SERVERS-OVER', 'SWITCHEDGAMBLING', 'SUMMERS-OVER'];
+        let randomCode = secretCodes[Math.floor(Math.random() * secretCodes.length)];
+        if (gameState.lastCodeHint === randomCode) {
+          randomCode = secretCodes[(secretCodes.indexOf(randomCode) + 1) % secretCodes.length];
+        }
+        gameState.lastCodeHint = randomCode;
+        showMessage(translate('code_hint') + randomCode, 'error');
+      } else {
+        showMessage(translate('codeInvalid'), 'error');
+      }
+    }
+    input.value = '';
+  };
+
+  document.getElementById('debug-toggle').onclick = () => {
+    const role = getSessionUserRole();
+    if (role !== 'OWNER' && role !== 'DEVBUILD') return; // Only DEV users can use the debug button
+
+    if (!gameState.debugState) {
+      // First click: save snapshot & unlock everything
+      gameState.debugState = 'unlocked';
+      gameState.debugSnapshot = {
+        pycoins: gameState.pycoins,
+        duckPassCurrency: gameState.duckPassCurrency,
+        duckPassXP: gameState.duckPassXP,
+        duckPassLevel: gameState.duckPassLevel,
+        unlockedSkins: [...(gameState.unlockedSkins || [])],
+        unlockedBombotAccessories: [...(gameState.unlockedBombotAccessories || [])],
+        unlockedInfinite: gameState.unlockedInfinite,
+        unlockedInterstellar: gameState.unlockedInterstellar,
+        claimedRewards: [...(gameState.claimedRewards || [])],
+        maxedFamilies: [...(gameState.maxedFamilies || [])],
+        profileMaxAvatars: [...(gameState.profileMaxAvatars || [])],
+        profileMaxRewampAvatars: [...(gameState.profileMaxRewampAvatars || [])],
+        profilePurchasedBorders: [...(gameState.profilePurchasedBorders || [])],
+        profileMapModeWins: JSON.parse(JSON.stringify(gameState.profileMapModeWins || {})),
+        profileAvatar: gameState.profileAvatar,
+        profileBorder: gameState.profileBorder,
+        hypermutatedEffect: !!gameState.settings.hypermutatedEffect,
+        glitchEffect: !!gameState.settings.glitchEffect,
+        badges: Object.fromEntries(Object.entries(BADGES).map(([k, v]) => [k, v.unlocked])),
+        pycesKilled: JSON.parse(JSON.stringify(gameState.pycesKilled || {})),
+        towerTypes: JSON.parse(JSON.stringify(
+          Object.fromEntries(Object.keys(TOWER_TYPES).map(k => [k, { unlocked: TOWER_TYPES[k].unlocked }]))
+        ))
+      };
+      // Unlock all towers
+      Object.keys(TOWER_TYPES).forEach(k => { TOWER_TYPES[k].unlocked = true; });
+      gameState.pycoins = Math.max(gameState.pycoins, 999999);
+      gameState.duckPassCurrency = Math.max(gameState.duckPassCurrency, 999999);
+      gameState.duckPassXP = Math.max(gameState.duckPassXP, 999999);
+      gameState.duckPassLevel = Math.max(gameState.duckPassLevel, 100);
+      gameState.unlockedInfinite = true;
+      gameState.unlockedInterstellar = true;
+      Object.keys(BADGES).forEach(k => {
+        BADGES[k].unlocked = true;
+        if (!gameState.claimedRewards.includes(k)) gameState.claimedRewards.push(k);
+      });
+      // Unlock all skins
+      const allSkinIds = [];
+      Object.values(SKINS_DATA).forEach(arr => arr.forEach(s => allSkinIds.push(s.id)));
+      allSkinIds.forEach(id => { if (!gameState.unlockedSkins.includes(id)) gameState.unlockedSkins.push(id); });
+      gameState.unlockedBombotAccessories = [...new Set([
+        ...(gameState.unlockedBombotAccessories || []),
+        ...BOMBOT_ACCESSORIES.map(accessory => accessory.id)
+      ])];
+      gameState.maxedFamilies = getProfileGlobFamilies().map(({ family }) => family);
+      gameState.profileMaxAvatars = [...gameState.maxedFamilies];
+      gameState.profileMaxRewampAvatars = [...gameState.maxedFamilies];
+      gameState.profilePurchasedBorders = [
+        'placeholder',
+        'coded',
+        ...PROFILE_SHOP_BORDERS.map(border => border.id),
+        ...PROFILE_EVENT_BORDERS.map(border => border.id)
+      ];
+      gameState.profileMapModeWins = Object.fromEntries(
+        PROFILE_MAP_BORDERS.map(border => [border.map, [...PROFILE_MAP_MODES]])
+      );
+      // Reveal entire encyclopedia: max out all kill counters
+      Object.keys(ENEMY_TYPES).forEach(type => {
+        const target = typeof getPyceKillTarget === 'function' ? getPyceKillTarget(type) : 9999;
+        gameState.pycesKilled[type] = Math.max(gameState.pycesKilled[type] || 0, target);
+      });
+      showMessage(translate('debug_unlocked_notice'), 'success');
+      const indicator = document.getElementById('admin-indicator');
+      indicator.textContent = role === 'OWNER' ? '👑 OWNER MODE' : '🛠 DEVBUILD MODE';
+      indicator.style.display = 'block';
+    } else {
+      // Second click: restore snapshot
+      const snap = gameState.debugSnapshot;
+      if (snap) {
+        Object.keys(TOWER_TYPES).forEach(k => {
+          if (snap.towerTypes[k] !== undefined) TOWER_TYPES[k].unlocked = snap.towerTypes[k].unlocked;
+        });
+        gameState.unlockedSkins = snap.unlockedSkins;
+        gameState.unlockedBombotAccessories = snap.unlockedBombotAccessories || gameState.unlockedBombotAccessories || [];
+        gameState.pycoins = snap.pycoins;
+        gameState.duckPassCurrency = snap.duckPassCurrency;
+        gameState.duckPassXP = snap.duckPassXP;
+        gameState.duckPassLevel = snap.duckPassLevel;
+        gameState.unlockedInfinite = snap.unlockedInfinite;
+        gameState.unlockedInterstellar = snap.unlockedInterstellar;
+        gameState.claimedRewards = snap.claimedRewards;
+        gameState.maxedFamilies = snap.maxedFamilies || [];
+        gameState.profileMaxAvatars = snap.profileMaxAvatars || [];
+        gameState.profileMaxRewampAvatars = snap.profileMaxRewampAvatars || [];
+        gameState.profilePurchasedBorders = snap.profilePurchasedBorders || [];
+        gameState.profileMapModeWins = snap.profileMapModeWins || {};
+        gameState.profileAvatar = snap.profileAvatar || 'glob:Glob';
+        gameState.profileBorder = snap.profileBorder || 'default';
+        gameState.settings.hypermutatedEffect = !!snap.hypermutatedEffect;
+        gameState.settings.glitchEffect = !!snap.glitchEffect;
+        Object.keys(BADGES).forEach(k => { BADGES[k].unlocked = !!snap.badges[k]; });
+        // Restore encyclopedia kill counters
+        if (snap.pycesKilled) gameState.pycesKilled = JSON.parse(JSON.stringify(snap.pycesKilled));
+      }
+      gameState.debugState = null;
+      gameState.debugSnapshot = null;
+      saveProgress();
+      updateRoleIndicator();
+      showMessage(translate('debug_restored_notice'), 'warning');
+    }
+    updateHypermutatedTowers();
+    updateGlitchTowers();
+    drawShop();
+    drawTowerShop();
+    if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+    updateUI();
+    publishMultiplayerProfile();
+    if (role === 'OWNER' || role === 'DEVBUILD') {
+      showOwnerDebugPanel();
+      document.getElementById('debug-panel-toggle')?.classList.add('visible');
+    }
+  };
+
+  document.getElementById('close-debug-panel')?.addEventListener('click', () => {
+    document.getElementById('owner-debug-panel').style.display = 'none';
+  });
+  document.getElementById('debug-panel-toggle')?.addEventListener('click', () => {
+    const role = getSessionUserRole();
+    if (role !== 'OWNER' && role !== 'DEVBUILD') return;
+    const panel = document.getElementById('owner-debug-panel');
+    if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+  document.getElementById('debug-add-resources')?.addEventListener('click', () => {
+    if (!isOwnerDebugUser()) return;
+    const value = id => Math.max(0, Number(document.getElementById(id)?.value) || 0);
+    gameState.globetines += value('debug-globetines');
+    gameState.pycoins += value('debug-pycoins');
+    gameState.duckPassCurrency += value('debug-duckpass');
+    gameState.duckPassXP += value('debug-xp');
+    gameState.duckPassLevel = Math.max(gameState.duckPassLevel, value('debug-level') || 1);
+    updateUI();
+    updateMetaUI();
+    saveProgress();
+    showMessage(translate('debug_resources_added_notice'), 'success');
+  });
+  document.getElementById('debug-max-resources')?.addEventListener('click', () => {
+    if (!isOwnerDebugUser()) return;
+    gameState.globetines = 999999;
+    gameState.pycoins = 999999;
+    gameState.duckPassCurrency = 999999;
+    gameState.duckPassXP = 999999;
+    gameState.duckPassLevel = 100;
+    updateUI();
+    updateMetaUI();
+    saveProgress();
+    showMessage(translate('debug_resources_maxed_notice'), 'success');
+  });
+  document.getElementById('debug-unlock-all')?.addEventListener('click', () => {
+    if (!isOwnerDebugUser()) return;
+    ownerUnlockEverything();
+    saveProgress();
+    if (document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
+    showMessage(translate('debug_everything_unlocked_notice'), 'success');
+  });
+  document.getElementById('debug-grant-advent')?.addEventListener('click', () => {
+    if (!isOwnerDebugUser()) return;
+    const now = new Date();
+    const { year } = getAdventCalendarDate(now);
+    const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+    const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
+    const daysToGrant = ADVENT_CALENDAR_REWARDS
+      .map((entry, index) => ({ ...entry, day: index + 1 }))
+      .filter(({ day }) => !claimedDays.includes(day));
+    const granted = daysToGrant.map(({ reward }) => grantAdventReward(reward));
+    calendar.claimedDays[String(year)] = [
+      ...new Set([...claimedDays, ...ADVENT_CALENDAR_REWARDS.map((_, index) => index + 1)])
+    ];
+    gameState.adventCalendar = calendar;
+    const completionReward = unlockSantaWorkshopForCompletedCalendar(year);
+    saveProgress();
+    updateUI();
+    updateMetaUI();
+    if (document.getElementById('advent-calendar-modal')?.style.display === 'flex') renderAdventCalendar();
+    if (document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
+    showMessage(
+      currentLanguage === 'en'
+        ? `👑 OWNER DEBUG: ${granted.length} Advent rewards granted.${completionReward ? ` ${completionReward}` : ''}`
+        : `👑 OWNER DEBUG: otorgadas ${granted.length} recompensas de Adviento.${completionReward ? ` ${completionReward}` : ''}`,
+      granted.length ? 'success' : 'info'
+    );
+  });
+  document.getElementById('debug-grant-winter-pass')?.addEventListener('click', () => {
+    if (!isOwnerDebugUser()) return;
+    if (!Array.isArray(gameState.winterPassClaimed)) gameState.winterPassClaimed = [];
+    const pending = WINTER_PASS_REWARDS.filter(entry => !gameState.winterPassClaimed.includes(entry.level));
+    pending.forEach(entry => grantWinterPassReward(entry.reward));
+    gameState.winterPassClaimed = [
+      ...new Set([...gameState.winterPassClaimed, ...WINTER_PASS_REWARDS.map(entry => entry.level)])
+    ];
+    // Nivel máximo con la barra llena.
+    gameState.winterPassLevel = WINTER_PASS_REWARDS.length;
+    gameState.winterPassXP = 100;
+    saveProgress();
+    updateUI();
+    updateMetaUI();
+    if (document.getElementById('winter-pass-modal')?.style.display === 'flex') drawWinterPass();
+    if (document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
+    showMessage(
+      currentLanguage === 'en'
+        ? `👑 OWNER DEBUG: ${pending.length} Winter Pass rewards granted.`
+        : `👑 OWNER DEBUG: otorgadas ${pending.length} recompensas del Pase de Invierno.`,
+      pending.length ? 'success' : 'info'
+    );
+  });
+  setupOwnerDebugTools();
+
+  const shopBtn = document.getElementById('open-shop');
+  if (shopBtn) shopBtn.onclick = () => { if (typeof openShop === 'function') openShop(); };
+
+  const passBtn = document.getElementById('open-pass');
+  if (passBtn) passBtn.onclick = () => { if (typeof openPass === 'function') openPass(); };
+
+  const winterPassBtn = document.getElementById('open-winter-pass');
+  if (winterPassBtn) {
+    // Siempre visible: durante el evento abre el pase; antes del evento abre el
+    // modal con "ABRE PRÓXIMAMENTE" (así el botón y el aviso tienen sentido).
+    winterPassBtn.style.display = '';
+    winterPassBtn.onclick = () => { if (typeof openWinterPass === 'function') openWinterPass(); };
+  }
+
+  const storyBtn = document.getElementById('open-story-logs');
+  if (storyBtn) storyBtn.onclick = () => { openStoryLogs(); };
+
+  const badgesBtn = document.getElementById('badges-toggle-btn');
+  if (badgesBtn) badgesBtn.onclick = openEncyclopedia;
+
+  const openEncBtn = document.getElementById('open-encyclopedia-btn');
+  if (openEncBtn) openEncBtn.onclick = () => {
+    toggleBadgesPanel(); // close floating panel
+    openEncyclopedia();
+  };
+
+  const newMapText = document.getElementById('new-map-easter-egg');
+  if (newMapText) {
+    let clickCount = 0;
+    newMapText.onclick = () => {
+      clickCount++;
+      newMapText.style.transform = `translate(${Math.random() * 10 - 5}px, ${Math.random() * 10 - 5}px)`;
+      newMapText.style.filter = `hue-rotate(${Math.random() * 360}deg)`;
+      setTimeout(() => {
+        newMapText.style.transform = 'none';
+        newMapText.style.filter = 'none';
+      }, 100);
+
+      if (clickCount === 5) {
+        gameState.duckPassCurrency += 250;
+        showMessage("+250 DuckPass", "success");
+        updateMetaUI();
+        saveProgress();
+      } else if (clickCount > 5 && (clickCount - 5) % 10 === 0) {
+        gameState.pycoins += 20;
+        showMessage("+20 PyCoins", "success");
+        updateMetaUI();
+        saveProgress();
+      }
+    };
+
+    setInterval(() => {
+      if (gameState.unlockedInfinite && document.getElementById('mode-selection').style.display !== 'none') {
+        if (newMapText.style.display === 'none' && !newMapText.dataset.timerStarted) {
+          newMapText.dataset.timerStarted = 'true';
+          setTimeout(() => {
+            if (document.getElementById('mode-selection').style.display !== 'none') {
+              newMapText.style.display = 'block';
+            }
+          }, 5000); // Esperar 5s en la pantalla
+        }
+      } else {
+        newMapText.style.display = 'none';
+        delete newMapText.dataset.timerStarted;
+        clickCount = 0; // Reiniciar contador si sale
+      }
+    }, 1000);
+  }
+
+  window.addEventListener('resize', applyScale);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', applyScale);
+  }
+  if (screen.orientation) {
+    screen.orientation.addEventListener('change', applyScale);
+  }
+}
+
+function saveGameSnapshot() {
+  gameState._snapshot = {
+    mode: gameState.mode,
+    modeConfirmed: gameState.modeConfirmed,
+    wave: gameState.wave,
+    waveActive: gameState.waveActive,
+    spawningActive: gameState.spawningActive,
+    health: gameState.health,
+    globetines: gameState.globetines,
+    pycoins: gameState.pycoins,
+    duckPassXP: gameState.duckPassXP,
+    duckPassLevel: gameState.duckPassLevel,
+    towers: JSON.parse(JSON.stringify(gameState.towers || [])),
+    enemies: (gameState.enemies || []).map(e => ({ type: e.type, x: e.x, y: e.y, health: e.health, pathIndex: e.pathIndex, boss: e.boss })),
+    projectiles: []
+  };
+  try { localStorage.setItem('gd_snapshot', JSON.stringify(gameState._snapshot)); } catch (e) { }
+}
+
+function restoreGameSnapshot() {
+  const snap = gameState._snapshot || (function () { try { return JSON.parse(localStorage.getItem('gd_snapshot')); } catch (e) { return null; } })();
+  if (!snap) return;
+  gameState.mode = snap.mode;
+  gameState.modeConfirmed = !!snap.modeConfirmed;
+  gameState.wave = snap.wave;
+  gameState.waveActive = !!snap.waveActive;
+  gameState.spawningActive = !!snap.spawningActive;
+  gameState.health = snap.health;
+  gameState.globetines = snap.globetines;
+  gameState.pycoins = snap.pycoins;
+  gameState.duckPassXP = snap.duckPassXP;
+  gameState.duckPassLevel = snap.duckPassLevel;
+  gameState.towers = snap.towers || [];
+  gameState.enemies = (snap.enemies || []).map(e => {
+    const t = ENEMY_TYPES[e.type] || {};
+    const mapBalance = ENEMY_BALANCE[gameState.map || 'gelatin_lake'];
+    const tier = e.boss ? 'boss' : Object.keys(mapBalance || {}).find(key => mapBalance[key].includes(e.type)) || ((t.health || 0) >= 400 ? 'tank' : (t.health || 0) >= 150 ? 'medium' : 'basic');
+    const baseDamage = e.boss ? 10 : (ENEMY_TIER_DAMAGE[tier] || 2);
+    return { ...t, type: e.type, tier, baseDamage, x: e.x, y: e.y, health: e.health, maxHealth: e.health, pathIndex: e.pathIndex, boss: !!e.boss };
+  });
+  delete gameState._snapshot;
+  try { localStorage.removeItem('gd_snapshot'); } catch (e) { }
+}
+
+function openShop() {
+  closeModal('pass-modal');
+  document.getElementById('shop-modal').style.display = 'flex';
+  drawShop();
+}
+
+function getAdventCalendarDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+  return {
+    year,
+    month,
+    day,
+    key: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  };
+}
+
+function updateAdventCalendarClock(date = new Date()) {
+  const current = getAdventCalendarDate(date);
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  if (!calendar.lastSeenDate && current.month !== 11) return;
+
+  let changed = false;
+  if (calendar.lastSeenDate && current.key < calendar.lastSeenDate) {
+    const previousYear = Number(calendar.lastSeenDate.slice(0, 4));
+    calendar.tamperedYears = [...new Set([...calendar.tamperedYears, previousYear, current.year])];
+    changed = true;
+  } else if (calendar.lastSeenDate !== current.key) {
+    calendar.lastSeenDate = current.key;
+    changed = true;
+  }
+
+  if (changed) {
+    gameState.adventCalendar = calendar;
+    saveProgress();
+  }
+  return calendar.tamperedYears.includes(current.year);
+}
+
+function getAdventCalendarDays(collection, year) {
+  const yearKey = String(year);
+  if (!Array.isArray(collection[yearKey])) collection[yearKey] = [];
+  return collection[yearKey];
+}
+
+function getAdventRewardLabel(reward) {
+  if (reward.type === 'pycoins') return `${reward.amount} PyCoins`;
+  if (reward.type === 'duckpass') return `${reward.amount} Duckpasses`;
+  if (reward.type === 'xp') return `${reward.amount} XP`;
+  if (reward.type === 'skin') return currentLanguage === 'en' ? 'Green SnowGlob Set' : 'Set SnowGlob verde';
+  const accessory = BOMBOT_ACCESSORIES.find(item => item.id === reward.id);
+  if (!accessory) throw new Error(`Unknown Advent Calendar accessory: ${reward.id}`);
+  return getBombotAccessoryName(accessory);
+}
+
+function getAdventRewardNote(reward) {
+  if (reward.type !== 'accessory') return '';
+  const notes = {
+    silent_habitant_reskin: {
+      es: 'Referencia a Waddle Dee · © HAL Laboratory',
+      en: 'Waddle Dee reference · © HAL Laboratory'
+    },
+    monobear_bombot_reskin: {
+      es: 'Danganronpa',
+      en: 'Danganronpa'
+    },
+    bunnity_bombot_reskin: {
+      es: 'Danganronpa',
+      en: 'Danganronpa'
+    },
+    glamour_hat: {
+      es: 'Guiño sutil a Cappy, de Super Mario Odyssey',
+      en: 'A subtle nod to Cappy from Super Mario Odyssey'
+    }
+  };
+  return notes[reward.id]?.[currentLanguage] || '';
+}
+
+function unlockSantaWorkshopForCompletedCalendar(year) {
+  const claimedDays = getAdventCalendarDays(
+    normalizeAdventCalendarState(gameState.adventCalendar).claimedDays,
+    year
+  );
+  const allDays = ADVENT_CALENDAR_REWARDS.length;
+  if (claimedDays.length !== allDays || gameState.unlockedSkins.includes('santa_workshop_set')) {
+    return '';
+  }
+  gameState.unlockedSkins.push('santa_workshop_set');
+  return currentLanguage === 'en'
+    ? 'Santa\'s Workshop unlocked!'
+    : '¡Santa\'s Workshop desbloqueado!';
+}
+
+function isChristmasEventActive(date = new Date()) {
+  // El contenido navideño (avatares, recompensas de evento) sigue el evento de
+  // invierno completo (1 nov -> 8 ene), no solo diciembre, para dar margen a
+  // reclamar. El Calendario de Adviento mantiene su propia ventana (diciembre).
+  return isWinterEventActive(date);
+}
+
+function unlockProfileBorderReward(borderId) {
+  if (gameState.profilePurchasedBorders.includes(borderId)) return false;
+  gameState.profilePurchasedBorders.push(borderId);
+  gameState.profilePurchasedBorders = [...new Set(gameState.profilePurchasedBorders)];
+  return true;
+}
+
+function unlockSantaProfileBorderForCalendar(year) {
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
+  if (claimedDays.length < Math.ceil(ADVENT_CALENDAR_REWARDS.length / 2)) return false;
+  return unlockProfileBorderReward('santa');
+}
+
+function isChristmasEnemyType(type) {
+  return CHRISTMAS_ENEMY_TYPES.has(type);
+}
+
+// Evento de invierno (Parte 1): 1 de noviembre -> 8 de enero (cruza el año).
+// Es mas amplio que el Calendario de Adviento (que abre solo en diciembre) y
+// lo contiene. Pensado para extenderse con mas partes/eventos en el futuro.
+function isWinterEventActive(date = new Date()) {
+  const { month, day } = getAdventCalendarDate(date);
+  if (month === 10 || month === 11) return true;   // noviembre y diciembre
+  if (month === 0 && day <= 8) return true;         // hasta el 8 de enero
+  return false;
+}
+
+// Antes de que arranque el evento (antes del 1 de noviembre) el pase se muestra
+// como "ABRE PRÓXIMAMENTE". En modo debug (panel de Kirb) se considera abierto
+// siempre, para poder probar niveles y recompensas fuera de temporada.
+function isWinterPassOpen(date = new Date()) {
+  if (gameState && gameState.debugState === 'unlocked') return true;
+  return isWinterEventActive(date);
+}
+
+// Pase de invierno de 50 niveles. Tipos de recompensa:
+//   { type:'duckpass', amount } | { type:'accessory', id } |
+//   { type:'recolor', id:'monochrome'|'negative'|'snowy'|'alternate' } | { type:'skin', id } | { type:'filter', id }
+// Los items importantes (reskins, efectos, skins, accesorios) van en hitos; el
+// resto son DuckPasses de relleno crecientes. El nivel sube cada 100 CandyLove.
+const WINTER_PASS_REWARDS = [
+  { level: 1, reward: { type: 'duckpass', amount: 40 } },
+  { level: 2, reward: { type: 'accessory', id: 'dingdong_ticktock' } },
+  { level: 3, reward: { type: 'duckpass', amount: 40 } },
+  { level: 4, reward: { type: 'duckpass', amount: 50 } },
+  { level: 5, reward: { type: 'recolor', id: 'monochrome' } },
+  { level: 6, reward: { type: 'duckpass', amount: 50 } },
+  { level: 7, reward: { type: 'duckpass', amount: 50 } },
+  { level: 8, reward: { type: 'accessory', id: 'clockwork_bombot_reskin' } },
+  { level: 9, reward: { type: 'duckpass', amount: 60 } },
+  { level: 10, reward: { type: 'accessory', id: 'bakhef' } },
+  { level: 11, reward: { type: 'duckpass', amount: 60 } },
+  { level: 12, reward: { type: 'duckpass', amount: 60 } },
+  { level: 13, reward: { type: 'duckpass', amount: 70 } },
+  { level: 14, reward: { type: 'duckpass', amount: 70 } },
+  { level: 15, reward: { type: 'skin', id: 'rewamped_gray_set' } },
+  { level: 16, reward: { type: 'skin', id: 'toy_glomb_set' } },
+  { level: 17, reward: { type: 'duckpass', amount: 80 } },
+  { level: 18, reward: { type: 'duckpass', amount: 80 } },
+  { level: 19, reward: { type: 'duckpass', amount: 80 } },
+  { level: 20, reward: { type: 'accessory', id: 'furnace_bombot_reskin' } },
+  { level: 21, reward: { type: 'duckpass', amount: 90 } },
+  { level: 22, reward: { type: 'duckpass', amount: 90 } },
+  { level: 23, reward: { type: 'duckpass', amount: 90 } },
+  { level: 24, reward: { type: 'duckpass', amount: 100 } },
+  { level: 25, reward: { type: 'recolor', id: 'negative' } },
+  { level: 26, reward: { type: 'duckpass', amount: 100 } },
+  { level: 27, reward: { type: 'duckpass', amount: 100 } },
+  { level: 28, reward: { type: 'duckpass', amount: 110 } },
+  { level: 29, reward: { type: 'duckpass', amount: 110 } },
+  { level: 30, reward: { type: 'accessory', id: 'golderous_spoon' } },
+  { level: 31, reward: { type: 'duckpass', amount: 110 } },
+  { level: 32, reward: { type: 'duckpass', amount: 120 } },
+  { level: 33, reward: { type: 'duckpass', amount: 120 } },
+  { level: 34, reward: { type: 'duckpass', amount: 120 } },
+  { level: 35, reward: { type: 'recolor', id: 'snowy' } },
+  { level: 36, reward: { type: 'duckpass', amount: 130 } },
+  { level: 37, reward: { type: 'duckpass', amount: 130 } },
+  { level: 38, reward: { type: 'duckpass', amount: 140 } },
+  { level: 39, reward: { type: 'duckpass', amount: 140 } },
+  { level: 40, reward: { type: 'accessory', id: 'red_breath_bombot_reskin' } },
+  { level: 41, reward: { type: 'duckpass', amount: 150 } },
+  { level: 42, reward: { type: 'duckpass', amount: 150 } },
+  { level: 43, reward: { type: 'duckpass', amount: 160 } },
+  { level: 44, reward: { type: 'duckpass', amount: 160 } },
+  { level: 45, reward: { type: 'duckpass', amount: 180 } },
+  { level: 46, reward: { type: 'duckpass', amount: 180 } },
+  { level: 47, reward: { type: 'duckpass', amount: 200 } },
+  { level: 48, reward: { type: 'duckpass', amount: 220 } },
+  { level: 49, reward: { type: 'duckpass', amount: 250 } },
+  { level: 50, reward: { type: 'recolor', id: 'alternate' } }
+];
+
+// XP del pase de invierno que otorga un enemigo al morir.
+// - Enemigos navideños: bastante. - Otros Pyces/enemigos: poco.
+// - "Globs de color" (rojo/verde/amarillo/azul) no navideños: muy poco CandyLove.
+// - Jugar en el mapa navideño renta mucho más (x2).
+function getWinterPassXPForEnemy(e) {
+  if (!e || !e.type) return 0;
+  let xp = 0;
+  if (isChristmasEnemyType(e.type)) {
+    xp = e.boss ? 25 : 5;
+  } else if (isPyceEnemy(e.type)) {
+    xp = 1;
+  } else {
+    // enemigos no-Pyce: solo los "de color" dan algo, y muy poco
+    xp = 0.5;
+  }
+  if (gameState.map === 'frosty_christmas') xp *= 2;
+  return xp;
+}
+
+// Añade XP al pase de invierno y gestiona la subida de nivel (cada 100 XP).
+function addWinterPassXP(amount) {
+  if (multiplayerSpectator || !amount || amount <= 0) return;
+  // Durante el evento, o siempre en modo debug (para poder probar el pase).
+  if (!isWinterPassOpen()) return;
+  const WINTER_PASS_MAX_LEVEL = WINTER_PASS_REWARDS.length; // 50
+  gameState.winterPassXP = (gameState.winterPassXP || 0) + amount;
+  let leveled = false;
+  while (gameState.winterPassXP >= 100 && (gameState.winterPassLevel || 1) < WINTER_PASS_MAX_LEVEL) {
+    gameState.winterPassLevel = (gameState.winterPassLevel || 1) + 1;
+    gameState.winterPassXP -= 100;
+    leveled = true;
+  }
+  // Al llegar al nivel máximo, la barra de XP se queda llena.
+  if ((gameState.winterPassLevel || 1) >= WINTER_PASS_MAX_LEVEL) {
+    gameState.winterPassXP = Math.min(gameState.winterPassXP, 100);
+  }
+  if (leveled) {
+    const msg = currentLanguage === 'es'
+      ? `¡Nivel ${gameState.winterPassLevel} del Pase de Invierno!`
+      : `Winter Pass Level ${gameState.winterPassLevel}!`;
+    if (typeof showIconMessage === 'function') {
+      showIconMessage('Recursos/img/Tokens/CandyLove.png', msg, 'success');
+    } else if (typeof showMessage === 'function') {
+      showMessage(msg, 'success');
+    }
+    saveProgress();
+  }
+}
+
+function isAdventRewardLimited(reward) {
+  return getAdventCalendarDate(new Date()).month !== 11 &&
+    (reward.type === 'accessory' || reward.type === 'skin') &&
+    ADVENT_CALENDAR_CHRISTMAS_REWARD_IDS.has(reward.id);
+}
+
+function isAdventCosmeticLimited(id) {
+  return getAdventCalendarDate(new Date()).month !== 11 &&
+    ADVENT_CALENDAR_CHRISTMAS_REWARD_IDS.has(id);
+}
+
+function isAdventCosmeticShopAvailable(id) {
+  return getAdventCalendarDate(new Date()).month !== 11 &&
+    Number.isFinite(ADVENT_CALENDAR_SHOP_PRICES[id]);
+}
+
+function grantAdventReward(reward) {
+  if (reward.type === 'pycoins') {
+    gameState.pycoins += reward.amount;
+  } else if (reward.type === 'duckpass') {
+    gameState.duckPassCurrency += reward.amount;
+  } else if (reward.type === 'xp') {
+    addXP(reward.amount);
+  } else if (reward.type === 'accessory') {
+    const accessory = BOMBOT_ACCESSORIES.find(item => item.id === reward.id);
+    if (!accessory) throw new Error(`Unknown Advent Calendar accessory: ${reward.id}`);
+    if (gameState.unlockedBombotAccessories.includes(reward.id)) {
+      gameState.pycoins += 250;
+      return currentLanguage === 'en' ? 'Duplicate cosmetic: +250 PyCoins' : 'Cosmético repetido: +250 PyCoins';
+    }
+    gameState.unlockedBombotAccessories.push(reward.id);
+    gameState.unlockedBombotAccessories = [...new Set(gameState.unlockedBombotAccessories)];
+  } else if (reward.type === 'skin') {
+    const skinId = reward.id;
+    if (!Object.values(SKINS_DATA).flat().some(skin => skin.id === skinId)) {
+      throw new Error(`Unknown Advent Calendar skin: ${skinId}`);
+    }
+    if (gameState.unlockedSkins.includes(skinId)) {
+      gameState.pycoins += 250;
+      return currentLanguage === 'en' ? 'Duplicate skin: +250 PyCoins' : 'Skin repetida: +250 PyCoins';
+    }
+    gameState.unlockedSkins.push(skinId);
+  } else {
+    throw new Error(`Unknown Advent Calendar reward type: ${reward.type}`);
+  }
+  return getAdventRewardLabel(reward);
+}
+
+function renderAdventCalendar() {
+  const modal = document.getElementById('advent-calendar-modal');
+  const grid = document.getElementById('advent-calendar-grid');
+  const status = document.getElementById('advent-calendar-status');
+  const note = document.getElementById('advent-calendar-note');
+  const balance = document.getElementById('advent-calendar-balance');
+  if (!modal || !grid || !status || !note || !balance) return;
+
+  const now = new Date();
+  const { year, month, day } = getAdventCalendarDate(now);
+  const title = document.getElementById('advent-calendar-title');
+  const isTampered = updateAdventCalendarClock(now);
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  gameState.adventCalendar = calendar;
+  const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
+  const victoryDays = getAdventCalendarDays(calendar.victoryDays, year);
+  const santaBorderUnlocked = unlockSantaProfileBorderForCalendar(year);
+  if (santaBorderUnlocked) {
+    saveProgress();
+    showMessage(
+      currentLanguage === 'en'
+        ? 'Santa profile frame unlocked after claiming 13 Advent Calendar rewards!'
+        : '¡Borde de perfil Santa desbloqueado tras reclamar 13 premios del Calendario de Adviento!',
+      'success'
+    );
+  }
+  const paidCount = Number(calendar.paidDays[String(year)] || 0);
+  const isAdventMonth = month === 11;
+  const isAfterCalendar = isAdventMonth && day > 25;
+  const currentDay = isAdventMonth ? day : 0;
+
+  if (title) title.textContent = currentLanguage === 'en' ? '🎄 Advent Calendar' : '🎄 Calendario de Adviento';
+  status.textContent = isTampered
+    ? (currentLanguage === 'en'
+      ? '⚠️ The device date moved backwards. All unclaimed rewards this year now require Duckpasses.'
+      : '⚠️ La fecha del dispositivo retrocedió. Ahora todos los premios pendientes de este año requieren Duckpasses.')
+    : !isAdventMonth
+      ? (currentLanguage === 'en'
+        ? `The calendar opens on December 1, ${year}.`
+        : `El calendario se abre el 1 de diciembre de ${year}.`)
+      : isAfterCalendar
+        ? (currentLanguage === 'en'
+          ? 'The calendar is closed for free claims; missed days can still be recovered with Duckpasses.'
+          : 'El calendario ya no permite reclamar gratis; aún puedes recuperar los días omitidos con Duckpasses.')
+        : (currentLanguage === 'en'
+          ? `Today is day ${day} of the calendar. Beat any map today to claim its reward.`
+          : `Hoy es el día ${day} del calendario. Supera cualquier mapa hoy para reclamar su premio.`);
+  balance.replaceChildren();
+  [
+    { image: 'Recursos/img/Tokens/DuckPass.png', amount: gameState.duckPassCurrency, label: 'Duckpasses' },
+    { image: 'Recursos/img/Tokens/PyCoin.png', amount: Math.floor(gameState.pycoins), label: 'PyCoins' }
+  ].forEach((currency, index) => {
+    if (index > 0) {
+      const separator = document.createElement('span');
+      separator.className = 'advent-calendar-balance-separator';
+      separator.textContent = '·';
+      separator.setAttribute('aria-hidden', 'true');
+      balance.appendChild(separator);
+    }
+    const item = document.createElement('span');
+    item.className = 'advent-calendar-balance-item';
+    const icon = document.createElement('img');
+    icon.src = currency.image;
+    icon.alt = '';
+    icon.setAttribute('aria-hidden', 'true');
+    const amount = document.createElement('span');
+    amount.textContent = `${currency.amount} ${currency.label}`;
+    item.append(icon, amount);
+    balance.appendChild(item);
+  });
+  note.textContent = month !== 11
+    ? (currentLanguage === 'en'
+      ? 'Generic Advent cosmetics are available in the shop for Duckpasses. Items marked LIMITED return only during future Christmas events.'
+      : 'Los cosméticos genéricos del calendario están disponibles en la tienda por Duckpasses. Los marcados LIMITADA solo volverán en futuros eventos navideños.')
+    : (currentLanguage === 'en'
+      ? 'If a cosmetic is already unlocked, it converts to 250 PyCoins.'
+      : 'Si ya tienes un cosmético, se convierte en 250 PyCoins.');
+  grid.replaceChildren();
+
+  ADVENT_CALENDAR_REWARDS.forEach((entry, index) => {
+    const dayNumber = index + 1;
+    const isClaimed = claimedDays.includes(dayNumber);
+    const isToday = dayNumber === currentDay;
+    const isPast = dayNumber < currentDay || isAfterCalendar;
+    const canPay = !isClaimed && (isTampered || isPast);
+    const canClaim = !isClaimed && !isTampered && isToday && victoryDays.includes(dayNumber);
+    const cost = 637 + paidCount * 100;
+    const tile = document.createElement('article');
+    tile.className = `advent-day${isClaimed ? ' claimed' : ''}${isToday ? ' today' : ''}${canPay ? ' purchasable' : ''}`;
+
+    const number = document.createElement('strong');
+    number.className = 'advent-day-number';
+    number.textContent = String(dayNumber).padStart(2, '0');
+    const rewards = document.createElement('div');
+    rewards.className = 'advent-day-rewards';
+    const reward = entry.reward;
+    const line = document.createElement('div');
+    line.className = 'advent-day-reward';
+    const imagePath = reward.type === 'pycoins'
+      ? 'Recursos/img/Tokens/PyCoin.png'
+      : reward.type === 'duckpass'
+        ? 'Recursos/img/Tokens/DuckPass.png'
+        : reward.type === 'accessory'
+          ? getBombotAccessoryImage(reward.id)
+          : reward.type === 'skin'
+            ? SKINS_DATA.Glob.find(skin => skin.id === reward.id)?.skins.Glob
+            : null;
+    if (imagePath) {
+      const image = document.createElement('img');
+      image.src = encodeURI(imagePath);
+      image.alt = '';
+      line.appendChild(image);
+    } else {
+      const icon = document.createElement('span');
+      icon.textContent = '✨';
+      icon.setAttribute('aria-hidden', 'true');
+      line.appendChild(icon);
+    }
+    const labelGroup = document.createElement('span');
+    labelGroup.className = 'advent-day-reward-label';
+    if (isAdventRewardLimited(reward)) {
+      const limitedTag = document.createElement('small');
+      limitedTag.className = 'advent-limited-tag';
+      limitedTag.textContent = currentLanguage === 'en' ? 'LIMITED' : 'LIMITADA';
+      labelGroup.appendChild(limitedTag);
+    }
+    const label = document.createElement('span');
+    label.textContent = getAdventRewardLabel(reward);
+    labelGroup.appendChild(label);
+    const rewardNote = getAdventRewardNote(reward);
+    if (rewardNote) {
+      const noteText = document.createElement('small');
+      noteText.className = 'advent-day-reward-note';
+      if (reward.id === 'monobear_bombot_reskin' || reward.id === 'bunnity_bombot_reskin') {
+        noteText.append(`${rewardNote} · `);
+        const creatorTag = document.createElement('span');
+        creatorTag.className = 'advent-credit-tag';
+        creatorTag.textContent = 'Luna1255';
+        noteText.appendChild(creatorTag);
+      } else {
+        noteText.textContent = rewardNote;
+      }
+      labelGroup.appendChild(noteText);
+    }
+    line.appendChild(labelGroup);
+    rewards.appendChild(line);
+
+    const action = document.createElement('button');
+    action.type = 'button';
+    if (isClaimed) {
+      action.textContent = currentLanguage === 'en' ? 'Claimed ✓' : 'Reclamado ✓';
+      action.disabled = true;
+    } else if (canClaim) {
+      action.textContent = currentLanguage === 'en' ? 'Claim reward' : 'Reclamar premio';
+      action.addEventListener('click', () => claimAdventDay(dayNumber));
+    } else if (canPay) {
+      action.textContent = currentLanguage === 'en' ? `Recover · ${cost} DP` : `Recuperar · ${cost} DP`;
+      action.disabled = gameState.duckPassCurrency < cost;
+      action.addEventListener('click', () => buyAdventDay(dayNumber));
+    } else if (isToday && !isTampered) {
+      action.textContent = victoryDays.includes(dayNumber)
+        ? (currentLanguage === 'en' ? 'Ready to claim' : 'Listo para reclamar')
+        : (currentLanguage === 'en' ? 'Win a map first' : 'Supera un mapa primero');
+      action.disabled = true;
+    } else {
+      action.textContent = currentLanguage === 'en' ? 'Not available yet' : 'Aún no disponible';
+      action.disabled = true;
+    }
+
+    tile.append(number, rewards, action);
+    grid.appendChild(tile);
+  });
+}
+
+function claimAdventDay(dayNumber) {
+  if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > 25) return;
+  const now = new Date();
+  const { year, month, day } = getAdventCalendarDate(now);
+  const isTampered = updateAdventCalendarClock(now);
+  if (isTampered || month !== 11 || day !== dayNumber) {
+    renderAdventCalendar();
+    return;
+  }
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
+  const victoryDays = getAdventCalendarDays(calendar.victoryDays, year);
+  if (claimedDays.includes(dayNumber) || !victoryDays.includes(dayNumber)) {
+    renderAdventCalendar();
+    return;
+  }
+
+  claimedDays.push(dayNumber);
+  gameState.adventCalendar = calendar;
+  const granted = [grantAdventReward(ADVENT_CALENDAR_REWARDS[dayNumber - 1].reward)];
+  const completionReward = unlockSantaWorkshopForCompletedCalendar(year);
+  const santaBorderUnlocked = unlockSantaProfileBorderForCalendar(year);
+  saveProgress();
+  updateMetaUI();
+  showMessage(`🎁 ${granted.join(' · ')}${completionReward ? ` · ${completionReward}` : ''}${santaBorderUnlocked ? (currentLanguage === 'en' ? ' · Santa profile frame unlocked!' : ' · ¡Borde de perfil Santa desbloqueado!') : ''}`, 'success');
+  if (santaBorderUnlocked && document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+  renderAdventCalendar();
+}
+
+function buyAdventDay(dayNumber) {
+  if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > 25) return;
+  const now = new Date();
+  const { year, month, day } = getAdventCalendarDate(now);
+  const isTampered = updateAdventCalendarClock(now);
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  const claimedDays = getAdventCalendarDays(calendar.claimedDays, year);
+  const isPast = month === 11 && (dayNumber < day || day > 25);
+  if (claimedDays.includes(dayNumber) || (!isTampered && !isPast)) {
+    renderAdventCalendar();
+    return;
+  }
+
+  const yearKey = String(year);
+  const paidCount = Number(calendar.paidDays[yearKey] || 0);
+  const cost = 637 + paidCount * 100;
+  if (gameState.duckPassCurrency < cost) {
+    showMessage(currentLanguage === 'en' ? 'Not enough Duckpasses.' : 'No tienes suficientes Duckpasses.', 'error');
+    return;
+  }
+
+  gameState.duckPassCurrency -= cost;
+  calendar.paidDays[yearKey] = paidCount + 1;
+  claimedDays.push(dayNumber);
+  gameState.adventCalendar = calendar;
+  const granted = [grantAdventReward(ADVENT_CALENDAR_REWARDS[dayNumber - 1].reward)];
+  const completionReward = unlockSantaWorkshopForCompletedCalendar(year);
+  const santaBorderUnlocked = unlockSantaProfileBorderForCalendar(year);
+  saveProgress();
+  updateMetaUI();
+  showMessage(`🎁 ${granted.join(' · ')}${completionReward ? ` · ${completionReward}` : ''}${santaBorderUnlocked ? (currentLanguage === 'en' ? ' · Santa profile frame unlocked!' : ' · ¡Borde de perfil Santa desbloqueado!') : ''}`, 'success');
+  if (santaBorderUnlocked && document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+  renderAdventCalendar();
+}
+
+function recordAdventCalendarVictory() {
+  if (gameState.mode === 'tutorial' || !gameState.map) return;
+  const now = new Date();
+  const { year, month, day } = getAdventCalendarDate(now);
+  updateAdventCalendarClock(now);
+  if (month !== 11 || day < 1 || day > 25) return;
+  const calendar = normalizeAdventCalendarState(gameState.adventCalendar);
+  const victoryDays = getAdventCalendarDays(calendar.victoryDays, year);
+  if (!victoryDays.includes(day)) victoryDays.push(day);
+  gameState.adventCalendar = calendar;
+  saveProgress();
+}
+
+function openAdventCalendar() {
+  ['encyclopedia-modal', 'shop-modal', 'pass-modal', 'story-logs-modal'].forEach(closeModal);
+  const modal = document.getElementById('advent-calendar-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  const winterBtn = document.getElementById('advent-to-winter-pass');
+  if (winterBtn) winterBtn.style.display = '';
+  renderAdventCalendar();
+}
+
+window.openAdventCalendar = openAdventCalendar;
+
+function openPass() {
+  closeModal('shop-modal');
+  document.getElementById('pass-modal').style.display = 'flex';
+  const winterBtn = document.getElementById('duckpass-to-winter');
+  if (winterBtn) winterBtn.style.display = '';
+  drawPass();
+  updateMetaUI();
+}
+
+function openWinterPass() {
+  closeModal('shop-modal');
+  closeModal('pass-modal');
+  closeModal('advent-calendar-modal');
+  document.getElementById('winter-pass-modal').style.display = 'flex';
+  drawWinterPass();
+}
+
+function drawWinterPass() {
+  const open = isWinterPassOpen();
+  const closedNotice = document.getElementById('winter-pass-closed-notice');
+  const info = document.getElementById('winter-pass-info');
+  const container = document.getElementById('winter-pass-rewards');
+  if (closedNotice) closedNotice.style.display = open ? 'none' : 'block';
+  if (info) info.style.display = open ? 'block' : 'none';
+  if (!container) return;
+  container.innerHTML = '';
+  if (!open) return;
+
+  const level = gameState.winterPassLevel || 1;
+  const xp = gameState.winterPassXP || 0;
+  const levelEl = document.getElementById('winter-pass-level');
+  const xpEl = document.getElementById('winter-pass-xp');
+  const fillEl = document.getElementById('winter-xp-fill');
+  if (levelEl) levelEl.textContent = level;
+  if (xpEl) xpEl.textContent = xp;
+  if (fillEl) fillEl.style.width = `${Math.min(100, xp)}%`;
+
+  const claimed = Array.isArray(gameState.winterPassClaimed) ? gameState.winterPassClaimed : [];
+  WINTER_PASS_REWARDS.forEach(entry => {
+    const reached = level >= entry.level;
+    const isClaimed = claimed.includes(entry.level);
+    const el = document.createElement('div');
+    el.className = `pass-node ${reached ? 'unlocked' : 'locked'}`;
+    const r = entry.reward;
+    let rewardLabel = '';
+    if (r.type === 'duckpass') rewardLabel = `<img src="Recursos/img/Tokens/DuckPass.png" width="20"> +${r.amount}`;
+    else if (r.type === 'filter') rewardLabel = currentLanguage === 'es' ? `🔎 Filtro: ${r.id}` : `🔎 Filter: ${r.id}`;
+    else if (r.type === 'recolor') {
+      const recolorName = `${currentLanguage === 'es' ? 'Efecto' : ''} ${getFxEffectLabel(r.id)}${currentLanguage === 'es' ? '' : ' effect'}`.trim();
+      const recolorSwatch = r.id === 'negative'
+        ? 'background:linear-gradient(135deg,#00e5ff,#ff00aa);filter:invert(0.15);'
+        : r.id === 'snowy'
+          ? 'background:linear-gradient(135deg,#ffffff,#d8ecff);'
+          : r.id === 'alternate'
+            ? 'background:conic-gradient(#ff0000,#ff8800,#ffff00,#00ff00,#0088ff,#8800ff,#ff0000);'
+            : 'background:linear-gradient(135deg,#c9c9c9,#6f6f6f);';
+      rewardLabel = `<span style="display:inline-block;width:42px;height:42px;border-radius:50%;${recolorSwatch}"></span><div style="font-size:0.72rem; margin-top:4px;">${recolorName}</div>`;
+    }
+    else if (r.type === 'skin') {
+      const skin = Object.values(SKINS_DATA).flat().find(s => s.id === r.id);
+      const skinImg = skin ? Object.values(skin.skins)[0] : null;
+      const skinName = skin ? translate(skin.name) : r.id;
+      rewardLabel = skinImg
+        ? `<img src="${encodeURI(skinImg)}" width="42" style="object-fit:contain;"><div style="font-size:0.72rem; margin-top:4px;">${skinName}</div>`
+        : `🎨 ${skinName}`;
+    }
+    let btnHTML;
+    if (isClaimed) {
+      btnHTML = `<button class="meta-buy-btn" disabled>${currentLanguage === 'es' ? 'Reclamado' : 'Claimed'}</button>`;
+    } else if (reached) {
+      btnHTML = `<button class="meta-buy-btn" onclick="claimWinterPassReward(${entry.level})">${currentLanguage === 'es' ? 'Reclamar' : 'Claim'}</button>`;
+    } else {
+      btnHTML = `<button class="meta-buy-btn" disabled>${currentLanguage === 'es' ? 'Bloqueado' : 'Locked'}</button>`;
+    }
+    el.innerHTML = `
+      <div class="pass-level-badge">LVL ${entry.level}</div>
+      <div class="pass-node-content">
+        <div style="margin:10px 0; font-weight:bold;">${rewardLabel}</div>
+        ${btnHTML}
+      </div>`;
+    container.appendChild(el);
+  });
+}
+
+// Aplica una recompensa del Pase de Invierno al estado (sin guardar ni redibujar).
+// La usan tanto el reclamo normal como el botón OWNER DEBUG.
+function grantWinterPassReward(r) {
+  if (!r) return;
+  if (r.type === 'duckpass') {
+    gameState.duckPassCurrency = (gameState.duckPassCurrency || 0) + r.amount;
+  } else if (r.type === 'filter') {
+    // Placeholder: las recompensas de filtro se registran como reclamadas.
+  } else if (r.type === 'recolor') {
+    // Se desbloquea y se equipa en los dos destinos: perfil y skins RGB/Rewamp.
+    if (!Array.isArray(gameState.unlockedRecolors)) gameState.unlockedRecolors = [];
+    // Desbloquea el efecto: aparece su apartado en el perfil y sus skins en la
+    // tienda (categoría Efectos). No se equipa solo.
+    gameState.unlockedRecolors = [...new Set([...gameState.unlockedRecolors, r.id])];
+  } else if (r.type === 'accessory') {
+    if (!Array.isArray(gameState.unlockedBombotAccessories)) gameState.unlockedBombotAccessories = [];
+    ensurePersonalizableBombotUnlocked();
+    gameState.unlockedBombotAccessories = [...new Set([...gameState.unlockedBombotAccessories, r.id])];
+  } else if (r.type === 'skin') {
+    if (!Array.isArray(gameState.unlockedSkins)) gameState.unlockedSkins = ['default'];
+    gameState.unlockedSkins = [...new Set([...gameState.unlockedSkins, r.id])];
+  }
+}
+
+function claimWinterPassReward(level) {
+  if (!isWinterPassOpen()) return;
+  if ((gameState.winterPassLevel || 1) < level) return;
+  if (!Array.isArray(gameState.winterPassClaimed)) gameState.winterPassClaimed = [];
+  if (gameState.winterPassClaimed.includes(level)) return;
+  const entry = WINTER_PASS_REWARDS.find(e => e.level === level);
+  if (!entry) return;
+  grantWinterPassReward(entry.reward);
+  if (entry.reward.type === 'duckpass') updateMetaUI();
+  gameState.winterPassClaimed.push(level);
+  saveProgress();
+  drawWinterPass();
+  showMessage(currentLanguage === 'es' ? 'Recompensa reclamada.' : 'Reward claimed.', 'success');
+}
+window.openWinterPass = openWinterPass;
+window.claimWinterPassReward = claimWinterPassReward;
+
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
+function smartClose(modalId) {
+  closeModal(modalId);
+}
+
+function backToModes() {
+  closeModal('shop-modal');
+  closeModal('pass-modal');
+  closeModal('story-logs-modal');
+  if (!gameState.map) {
+    document.getElementById('map-selection').style.display = 'flex';
+  } else {
+    document.getElementById('mode-selection').style.display = 'flex';
+  }
+}
+
+function updateResponsiveGameLayout() {
+  const wrapper = document.querySelector('.game-scale-wrapper');
+  const gameArea = document.getElementById('game-area');
+  if (!wrapper || !gameArea) return;
+
+  const viewport = window.visualViewport;
+  const viewportWidth = viewport ? viewport.width : document.documentElement.clientWidth;
+  const viewportHeight = viewport ? viewport.height : document.documentElement.clientHeight;
+  const mobileAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const shortestSide = Math.min(viewportWidth, viewportHeight);
+  const mobileLayout = mobileAgent && shortestSide <= 500;
+  const tabletLayout = mobileAgent && shortestSide > 500 && shortestSide <= 1100;
+  const compactLayout = (mobileLayout || tabletLayout) && viewportWidth > viewportHeight;
+  if (!compactLayout) return;
+
+  const sideWidth = mobileLayout ? 76 : 100;
+  const topOffset = 42;
+  const gameTopOffset = 92;
+  const availableWidth = Math.max(320, viewportWidth - (sideWidth * 2) - 8);
+  const availableHeight = Math.max(220, viewportHeight - gameTopOffset - 4);
+  const scale = Math.min(availableWidth / 1000, availableHeight / 600, 1);
+
+  wrapper.style.left = `${sideWidth + 4}px`;
+  wrapper.style.top = `${gameTopOffset}px`;
+  wrapper.style.width = `${availableWidth}px`;
+  wrapper.style.height = `${availableHeight}px`;
+  gameArea.style.width = '1000px';
+  gameArea.style.height = '600px';
+  gameArea.style.transform = `scale(${scale})`;
+
+  const towerShop = document.getElementById('tower-shop');
+  const languageToggle = document.getElementById('language-toggle');
+  const optionsToggle = document.getElementById('options-toggle');
+  const metaControls = document.getElementById('meta-controls');
+  towerShop?.style.setProperty('position', 'fixed', 'important');
+  towerShop?.style.setProperty('left', '3px', 'important');
+  towerShop?.style.setProperty('right', 'auto', 'important');
+  towerShop?.style.setProperty('top', `${topOffset}px`, 'important');
+  languageToggle?.style.setProperty('left', 'auto', 'important');
+  languageToggle?.style.setProperty('right', '4px', 'important');
+  languageToggle?.style.setProperty('top', '4px', 'important');
+  optionsToggle?.style.setProperty('left', 'auto', 'important');
+  optionsToggle?.style.setProperty('right', '4px', 'important');
+  optionsToggle?.style.setProperty('top', '50px', 'important');
+  metaControls?.style.setProperty('left', 'auto', 'important');
+  metaControls?.style.setProperty('right', '4px', 'important');
+  metaControls?.style.setProperty('top', '92px', 'important');
+
+  const playerList = document.getElementById('multiplayer-player-list');
+  playerList?.style.setProperty('left', `${sideWidth + 4}px`);
+  playerList?.style.setProperty('right', `${sideWidth + 4}px`);
+}
+
+const GAME_DESIGN_W = 1000;
+const GAME_DESIGN_H = 600;
+
+function applyScale() {
+  const container = document.getElementById('game-container');
+  if (!container) return;
+
+  const viewport = window.visualViewport;
+  const viewportWidth = viewport ? viewport.width : document.documentElement.clientWidth;
+  const viewportHeight = viewport ? viewport.height : document.documentElement.clientHeight;
+  const mobileAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const shortestSide = Math.min(viewportWidth, viewportHeight);
+  const mobileLayout = mobileAgent && shortestSide <= 500;
+  const tabletLayout = mobileAgent && shortestSide > 500 && shortestSide <= 1100;
+  const compactLayout = (mobileLayout || tabletLayout) && viewportWidth > viewportHeight;
+  document.body.classList.toggle('touch-landscape', compactLayout);
+  document.body.classList.toggle('mobile-landscape', mobileLayout && compactLayout);
+  document.body.classList.toggle('tablet-landscape', tabletLayout && compactLayout);
+
+  if (compactLayout) {
+    container.style.transform = 'none';
+    container.style.marginTop = '0';
+    container.style.width = '';
+    updateResponsiveGameLayout();
+    return;
+  }
+
+  ['tower-shop', 'language-toggle', 'options-toggle', 'meta-controls', 'multiplayer-player-list'].forEach(id => {
+    const element = document.getElementById(id);
+    if (!element) return;
+    ['position', 'left', 'right', 'top'].forEach(property => element.style.removeProperty(property));
+  });
+
+  const area = document.getElementById('game-area');
+  const wrapper = document.querySelector('.game-scale-wrapper');
+  if (area) {
+    area.style.transform = 'none';
+  }
+  if (wrapper) {
+    ['left', 'top', 'width'].forEach(property => wrapper.style.removeProperty(property));
+    wrapper.style.height = GAME_DESIGN_H + 'px';
+  }
+
+  container.style.transform = 'none';
+  container.style.marginTop = '0';
+  container.style.width = '1000px'; // Force PC layout width
+
+  // Force reflow
+  void container.offsetHeight;
+
+  const cWidth = 1000;
+  const cHeight = container.scrollHeight;
+  const availW = viewportWidth;
+  const playerList = document.getElementById('multiplayer-player-list');
+  const profileSpace = gameState.modeConfirmed && playerList && !playerList.hidden
+    ? Math.ceil(playerList.getBoundingClientRect().height + 24)
+    : 0;
+  const availH = Math.max(160, viewportHeight - profileSpace);
+
+  const scaleW = availW / cWidth;
+  const scaleH = availH / cHeight;
+  
+  const scale = Math.min(scaleW, scaleH, 1.0);
+  
+  container.style.transformOrigin = 'top center';
+  container.style.transform = `scale(${scale})`;
+  
+  const scaledHeight = cHeight * scale;
+  if (availH > scaledHeight) {
+    const margin = (availH - scaledHeight) / 2;
+    container.style.marginTop = `${margin}px`;
+  }
+}
+
+function updateBuffs() {
+  gameState.towerBuffs = { damage: gameState.metaDamage || 1, range: gameState.metaRange || 0, speed: 1 };
+  if (gameState.mode !== 'tutorial') {
+    SKINS_DATA['Global'].forEach(m => {
+      if (m.buff && gameState.duckPassLevel >= m.level) {
+        if (m.buff.damage) gameState.towerBuffs.damage *= m.buff.damage;
+        if (m.buff.range_flat) gameState.towerBuffs.range += m.buff.range_flat;
+        if (m.buff.speed) gameState.towerBuffs.speed *= m.buff.speed;
+      }
+    });
+  }
+  gameState.towers.forEach(t => {
+    const base = TOWER_TYPES[t.type];
+    t.damage = base.damage * gameState.towerBuffs.damage;
+    t.range = base.range + gameState.towerBuffs.range;
+    if (gameState.globalRangeBuffTimer && gameState.globalRangeBuffTimer > 0) {
+      t.range += 50;
+    }
+    t.speed = base.speed * gameState.towerBuffs.speed;
+  });
+}
+
+function getPycoinMultiplier() {
+  if (gameState.duckPassLevel >= 100) return 3.0;
+  if (gameState.duckPassLevel >= 80) return 2.5;
+  if (gameState.duckPassLevel >= 60) return 1.5;
+  return 1.0;
+}
+
+function getDuckpassMultiplier() {
+  if (gameState.duckPassLevel >= 100) return 2.0;
+  return 1.0;
+}
+
+// Icono del token de XP. CandyLove durante el evento de invierno (1 nov -> 8 ene),
+// XPgiver el resto del año.
+function getXPTokenIcon() {
+  if (typeof isWinterEventActive === 'function' && isWinterEventActive()) {
+    return 'Recursos/img/Tokens/CandyLove.png';
+  }
+  return 'Recursos/img/Tokens/XPgiver.png';
+}
+
+// Popup (toast) que muestra el XP ganado con el icono del token actual.
+function showXPPopup(amount) {
+  if (!amount || amount <= 0) return;
+  if (typeof showIconMessage === 'function') {
+    showIconMessage(getXPTokenIcon(), `+${amount} XP`, 'success');
+  } else if (typeof showMessage === 'function') {
+    showMessage(`+${amount} XP`, 'success');
+  }
+}
+
+function addXP(amount) {
+  if (multiplayerSpectator) return;
+  const previousLevel = gameState.duckPassLevel;
+  gameState.duckPassXP += amount;
+  while (gameState.duckPassXP >= 100) {
+    gameState.duckPassLevel++;
+    gameState.duckPassXP -= 100;
+    updateBuffs();
+    if (gameState.duckPassLevel <= 200) {
+      gameState.duckPassCurrency++;
+      if (typeof showIconMessage === 'function') {
+        showIconMessage(getXPTokenIcon(), translate('level_duckpass', { level: gameState.duckPassLevel }), 'success');
+      } else {
+        showMessage(translate('level_duckpass', { level: gameState.duckPassLevel }), 'success');
+      }
+    } else if (gameState.duckPassLevel % 5 === 0) {
+      gameState.duckPassCurrency += 2;
+      showMessage(translate('prestige_duckpass'), 'success');
+    }
+    saveProgress();
+  }
+  updateMetaUI();
+  checkFutureVoyageBadge();
+  if (gameState.duckPassLevel !== previousLevel) {
+    syncBombotAccessoryUnlocksFromProgress();
+    publishMultiplayerProfile();
+  }
+}
+
+function updateMetaUI() {
+  const pycoinsEl = document.getElementById('pycoins-value');
+  const duckpassEl = document.getElementById('duckpass-currency');
+  if (pycoinsEl) {
+    if (typeof setStatValue === 'function') setStatValue('pycoins-value', Math.floor(gameState.pycoins));
+    else pycoinsEl.textContent = Math.floor(gameState.pycoins);
+  }
+  if (duckpassEl) {
+    if (typeof setStatValue === 'function') setStatValue('duckpass-currency', gameState.duckPassCurrency);
+    else duckpassEl.textContent = gameState.duckPassCurrency;
+  }
+
+  if (gameState.pycoins >= 1500 && gameState.duckPassCurrency >= 1500) {
+    unlockBadge('deepSavings');
+  }
+
+  document.querySelectorAll('.shop-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === currentShopTab);
+  });
+
+  if (document.getElementById('pass-modal').style.display === 'flex') {
+    document.getElementById('pass-level').textContent = gameState.duckPassLevel;
+    document.getElementById('pass-xp').textContent = gameState.duckPassXP;
+    document.getElementById('xp-fill').style.width = `${gameState.duckPassXP}%`;
+    const leftEl = document.getElementById('pass-xp-left');
+    if (leftEl) leftEl.textContent = 100 - gameState.duckPassXP;
+  }
+}
+
+function isTowerOwned(t) {
+  if (t === 'Glob' || t === 'Red_Glob' || t === 'Recolors' || t === 'Global') return true;
+  if (t === 'Soap_Glob' || t === 'Ducky_Glob' || t === 'Balloon_Glob' || t === 'Streamer_Glob' || t === 'Worker_Glob' || t === 'Bomb_Glob') return !!TOWER_TYPES[t]?.unlocked;
+  if (t === 'Work_Bombot' || t === 'Special') return !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked);
+  if (t === 'Old_Glob' || t === 'Pyce_Glob' || t === 'SpyGlob' || t === 'Grey') return !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked);
+  if (t === 'Sprout_Glob' || t === 'Brown') return !!(TOWER_TYPES['Sprout_Glob'] && TOWER_TYPES['Sprout_Glob'].unlocked);
+  if (t === 'Comet_Glob') return !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked);
+  // F. Marina family
+  if (t === 'Pirate_Glob' || t === 'PMate_Glob' || t === 'BreathKing_Glob' || t === 'Haunted_Pirate_Glob') return !!(TOWER_TYPES['Pirate_Glob'] && TOWER_TYPES['Pirate_Glob'].unlocked);
+  // Urbanistic Road families
+  if (t === 'White') return !!TOWER_TYPES['Balloon_Glob']?.unlocked;
+  if (t === 'Pink') return !!TOWER_TYPES['Streamer_Glob']?.unlocked;
+  if (t === 'IEx') return !!TOWER_TYPES['Bomb_Glob']?.unlocked;
+  return false;
+}
+
+const PROFILE_MAP_MODES = ['facil', 'normal', 'dificil', 'extremo', 'corrupto', 'antiNormal'];
+const PROFILE_MAP_BORDERS = [
+  { id: 'map:gelatin_lake', map: 'gelatin_lake', label: 'Gelatin Lake', colors: ['#b7d98b', '#75543b'], style: 'map-gelatin' },
+  { id: 'map:urbanistic_road', map: 'urbanistic_road', label: 'Urbanistic Road', colors: ['#aeb5ba', '#17191d'], style: 'map-urban' },
+  { id: 'map:sunlight_seaside', map: 'sunlight_seaside', label: 'Sunlight Seaside', colors: ['#eed28b', '#b8e2ac'], style: 'map-seaside' },
+  { id: 'map:spooktacular_ruins', map: 'spooktacular_ruins', label: 'Spooktacular Ruins', colors: ['#ed7d32', '#452817'], style: 'map-spook' }
+];
+const PROFILE_FREE_BORDERS = [
+  { id: 'color:green', label: 'Verde', labelEn: 'Green', colors: ['#72e36b', '#202833'] }
+];
+const PROFILE_PASS_BORDERS = [
+  { id: 'color:blue', label: 'Azul', labelEn: 'Blue', colors: ['#62b8ff', '#202833'], level: 10 },
+  { id: 'color:pink', label: 'Rosa', labelEn: 'Pink', colors: ['#ff83d2', '#202833'], level: 20 },
+  { id: 'color:yellow', label: 'Amarillo', labelEn: 'Yellow', colors: ['#ffe45c', '#202833'], level: 35 },
+  { id: 'color:orange', label: 'Naranja', labelEn: 'Orange', colors: ['#ffa34f', '#202833'], level: 60 }
+];
+const PROFILE_SHOP_BORDERS = [
+  { id: 'color:red', label: 'Rojo', labelEn: 'Red', colors: ['#ff5555', '#202833'], cost: 250 },
+  { id: 'color:purple', label: 'Morado', labelEn: 'Purple', colors: ['#c18aff', '#202833'], cost: 350 },
+  { id: 'color:cyan', label: 'Cian', labelEn: 'Cyan', colors: ['#67e6e1', '#202833'], cost: 350 },
+  { id: 'spooky', label: 'Fantasmal', labelEn: 'Spooky', colors: ['#175b30', 'rgba(56, 190, 92, 0.35)'], cost: 500, currency: 'duckpass', style: 'spooky' },
+  { id: 'pumpkin', label: 'Calabaza', labelEn: 'Pumpkin', colors: ['#65c86e', '#d77b28'], cost: 500, currency: 'duckpass', style: 'pumpkin' },
+  { id: 'candy', label: 'Caramelo', labelEn: 'Candy', colors: ['#c62838', '#1e8b54'], cost: 500, currency: 'duckpass', style: 'candy' },
+  { id: 'bomb', label: 'Bomba', labelEn: 'Bomb', colors: ['#d84934', '#8f241f'], cost: 350, currency: 'pycoins', style: 'bomb' },
+  { id: 'ice', label: 'Hielo', labelEn: 'Ice', colors: ['#6bd9ff', '#d8f7ff'], cost: 150, currency: 'pycoins', style: 'ice' },
+  { id: 'gift', label: 'Regalo', labelEn: 'Gift', colors: ['#d52830', '#ffd84a'], cost: 250, currency: 'pycoins', style: 'gift' }
+];
+const PROFILE_EVENT_BORDERS = [
+  { id: 'festive', label: 'Festivo', labelEn: 'Festive', colors: ['#d52830', '#16834a'], style: 'festive' },
+  { id: 'elf', label: 'Elfo', labelEn: 'Elf', colors: ['#16834a', '#d52830'], style: 'elf' },
+  { id: 'santa', label: 'Santa', labelEn: 'Santa', colors: ['#d52830', '#fff8e8'], style: 'santa' }
+];
+const PROFILE_BORDER_STYLE_CLASSES = new Set([
+  'candy', 'bomb', 'ice', 'gift', 'festive', 'elf', 'santa', 'time-attack-a', 'time-attack-b',
+  'spooky', 'pumpkin', 'interstellar',
+  'map-gelatin', 'map-urban', 'map-seaside', 'map-spook', 'frosty'
+]);
+const PROFILE_TIME_ATTACK_BORDERS = [
+  { id: 'time-attack-a', label: 'TIME ATTACK A', colors: ['#2600FF', '#00FFFF'], style: 'time-attack-a' },
+  { id: 'time-attack-b', label: 'TIME ATTACK B', colors: ['#b8873b', '#392614'], style: 'time-attack-b' }
+];
+
+function getProfileGlobFamilies() {
+  const evolvedTypes = new Set(Object.values(TOWER_TYPES).map(tower => tower.evolution).filter(Boolean));
+  const families = new Map();
+  Object.keys(TOWER_TYPES).forEach(type => {
+    const family = getTowerFamily(type);
+    if (family === 'Special') return;
+    if (!families.has(family)) families.set(family, []);
+    families.get(family).push(type);
+  });
+
+  return [...families.entries()].map(([family, types]) => {
+    const firstType = types.find(type => !evolvedTypes.has(type));
+    if (!firstType) return null;
+    let finalType = firstType;
+    while (TOWER_TYPES[finalType]?.evolution && types.includes(TOWER_TYPES[finalType].evolution)) {
+      finalType = TOWER_TYPES[finalType].evolution;
+    }
+    return { family, firstType, finalType };
+  }).filter(Boolean);
+}
+
+function getProfileTowerImage(type) {
+  const tower = TOWER_TYPES[type];
+  return tower?.image || IMAGE_PATHS[type] || IMAGE_PATHS.Omnipresent_Glob;
+}
+
+function getProfileRewampSkin(family, type) {
+  return SKINS_DATA[family]?.find(item =>
+    REWAMPED_SKIN_IDS.includes(item.id) && item.skins?.[type]
+  ) || null;
+}
+
+function isProfileRewampUnlocked(family, type) {
+  const skin = getProfileRewampSkin(family, type);
+  return Boolean(skin && gameState.unlockedSkins.includes(skin.id));
+}
+
+function isProfileEnemyFramed(type) {
+  const imageGroup = getUniqueProfileEnemies().find(enemy => enemy.types.includes(type));
+  if (!imageGroup) return false;
+  if (!imageGroup.variantGroup) return Boolean(window._isEnemyFramed?.(type));
+
+  const { canonical, types } = imageGroup.variantGroup;
+  const totalTarget = window._getPyceKillTarget?.(canonical);
+  if (!Number.isFinite(totalTarget)) return false;
+
+  if (imageGroup.types.includes(canonical)) {
+    const totalKills = types.reduce((sum, enemyType) =>
+      sum + (gameState.pycesKilled[enemyType] || 0), 0
+    );
+    return totalKills >= totalTarget;
+  }
+
+  const variantTarget = Math.ceil(totalTarget / 4);
+  return imageGroup.types.some(enemyType =>
+    (gameState.pycesKilled[enemyType] || 0) >= variantTarget
+  );
+}
+
+function getUniqueProfileEnemies() {
+  const enemiesByImage = new Map();
+  Object.entries(ENEMY_TYPES).forEach(([type, enemy]) => {
+    const image = enemy.image || IMAGE_PATHS[type];
+    if (!image) return;
+    if (!enemiesByImage.has(image)) {
+      enemiesByImage.set(image, { type, image, types: [] });
+    }
+    enemiesByImage.get(image).types.push(type);
+  });
+  return [...enemiesByImage.values()].map(enemy => ({
+    ...enemy,
+    variantGroup: PROFILE_ENEMY_VARIANT_GROUPS.find(group =>
+      group.types.some(type => enemy.types.includes(type))
+    ) || null
+  }));
+}
+
+function getProfileRgbRewampSkin(family, type) {
+  return SKINS_DATA[family]?.find(item =>
+    isRgbRewampSkin(item) && item.rgbTypes?.includes(type) && item.skins?.[type]
+  ) || null;
+}
+
+function isProfileRgbRewampUnlocked(skin) {
+  return Boolean(skin && (
+    gameState.unlockedSkins.includes(skin.id) ||
+    isProfileImageUnlockConditionMet(skin)
+  ));
+}
+
+function isProfileImageUnlockConditionMet(skin) {
+  return skin.unlockCondition === 'all_profile_images' && hasUnlockedAllProfileImages();
+}
+
+function canUseStaffProfileAvatar() {
+  const username = localStorage.getItem('glob_username') || '';
+  const role = typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
+  return gameState.debugState === 'unlocked' || ['OWNER', 'ADMIN', 'DEVBUILD'].includes(role);
+}
+
+function hasUnlockedAllProfileImages() {
+  if (gameState.debugState === 'unlocked') return true;
+  const families = getProfileGlobFamilies();
+  const globImagesComplete = families.every(({ family, finalType }) => {
+    const rewamp = getProfileRewampSkin(family, finalType);
+    return isTowerOwned(family) &&
+      gameState.maxedFamilies.includes(family) &&
+      gameState.profileMaxAvatars.includes(family) &&
+      (!rewamp || (
+        gameState.unlockedSkins.includes(rewamp.id) &&
+        gameState.profileMaxRewampAvatars.includes(family)
+      ));
+  });
+  return globImagesComplete && hasUnlockedAllProfileFrames();
+}
+
+function hasUnlockedAllProfileFrames() {
+  return getUniqueProfileEnemies().every(enemy =>
+    enemy.types.some(isProfileEnemyFramed)
+  );
+}
+
+function hasUnlockedAllProfileBorders() {
+  if (gameState.debugState === 'unlocked') return true;
+  const requiredBorderIds = [
+    'default',
+    ...PROFILE_FREE_BORDERS.map(border => border.id),
+    ...PROFILE_PASS_BORDERS.map(border => border.id),
+    ...PROFILE_SHOP_BORDERS.map(border => border.id),
+    ...PROFILE_EVENT_BORDERS.map(border => border.id),
+    ...PROFILE_TIME_ATTACK_BORDERS.map(border => border.id),
+    'interstellar',
+    'placeholder',
+    'coded',
+    ...PROFILE_MAP_BORDERS.map(border => border.id)
+  ];
+  return requiredBorderIds.every(borderId => {
+    if (borderId === 'default') return true;
+    if (PROFILE_FREE_BORDERS.some(border => border.id === borderId)) return true;
+    if (borderId === 'interstellar') {
+      return Boolean(BADGES.unmenaced?.unlocked || BADGES.paracristal_dimension?.unlocked);
+    }
+    if (borderId.startsWith('map:')) {
+      const map = PROFILE_MAP_BORDERS.find(border => border.id === borderId)?.map;
+      const wonModes = gameState.profileMapModeWins[map] || [];
+      return PROFILE_MAP_MODES.every(mode => wonModes.includes(mode));
+    }
+    if (PROFILE_PASS_BORDERS.some(border => border.id === borderId)) {
+      const passBorder = PROFILE_PASS_BORDERS.find(border => border.id === borderId);
+      return gameState.duckPassLevel >= passBorder.level;
+    }
+    if (PROFILE_TIME_ATTACK_BORDERS.some(border => border.id === borderId)) {
+      return Boolean(gameState.acrossTheTimeProgress?.timeAttackUnlocked);
+    }
+    return gameState.profilePurchasedBorders.includes(borderId);
+  });
+}
+
+function checkGlitchEffectUnlock() {
+  if (gameState.glitchUnlocked || gameState.debugState === 'unlocked') return false;
+
+  const interstellarBadges = ['unmenaced', 'urban_crystals', 'paracristal_dimension', 'fracstral_victory'];
+  const completedSpecialMaps = PROFILE_MAP_BORDERS.every(({ map }) =>
+    ['corrupto', 'antiNormal'].every(mode =>
+      (gameState.profileMapModeWins[map] || []).includes(mode)
+    )
+  );
+  const completedInterstellar = interstellarBadges.every(key => BADGES[key]?.unlocked);
+  if (
+    !hasUnlockedAllProfileImages() ||
+    !hasUnlockedAllProfileBorders() ||
+    !completedSpecialMaps ||
+    !completedInterstellar
+  ) return false;
+
+  gameState.glitchUnlocked = true;
+  saveProgress();
+  const section = document.getElementById('hypermutated-settings');
+  if (section) section.style.display = '';
+  showMessage(translate('glitch_unlocked'), 'success');
+  return true;
+}
+
+function getAvailableProfileBorders() {
+  const borders = [{ id: 'default', label: currentLanguage === 'en' ? 'Classic' : 'Clásico', colors: ['#8796a5', '#202833'] }];
+  borders.push(...PROFILE_FREE_BORDERS.map(border => ({
+    id: border.id,
+    label: currentLanguage === 'en' ? border.labelEn : border.label,
+    colors: border.colors
+  })));
+  PROFILE_PASS_BORDERS.forEach(border => {
+    if (gameState.duckPassLevel >= border.level) {
+      borders.push({
+        id: border.id,
+        label: currentLanguage === 'en' ? border.labelEn : border.label,
+        colors: border.colors
+      });
+    }
+  });
+  PROFILE_SHOP_BORDERS.forEach(border => {
+    if (gameState.profilePurchasedBorders.includes(border.id)) {
+      borders.push({
+        id: border.id,
+        label: currentLanguage === 'en' ? border.labelEn : border.label,
+        colors: border.colors,
+        style: border.style
+      });
+    }
+  });
+  PROFILE_EVENT_BORDERS.forEach(border => {
+    if (gameState.profilePurchasedBorders.includes(border.id)) {
+      borders.push({
+        ...border,
+        label: currentLanguage === 'en' ? border.labelEn : border.label
+      });
+    }
+  });
+  if (gameState.acrossTheTimeProgress?.timeAttackUnlocked) {
+    borders.push(...PROFILE_TIME_ATTACK_BORDERS);
+  }
+  if (BADGES.unmenaced?.unlocked || BADGES.paracristal_dimension?.unlocked) {
+    borders.push({ id: 'interstellar', label: 'Interstellar', colors: ['#ff68d1', '#174caa'], style: 'interstellar' });
+  }
+  if (gameState.debugState === 'unlocked' ||
+      (localStorage.getItem('glob_username') || '').toLowerCase() === 'kirbytebi') {
+    borders.push({
+      id: 'kirb',
+      label: currentLanguage === 'en' ? 'Binary Love' : 'Amor Binario',
+      colors: ['#38a853', '#f6bfd5'],
+      style: 'binary-love'
+    });
+  }
+  if (gameState.profilePurchasedBorders.includes('placeholder')) {
+    borders.push({ id: 'placeholder', label: 'Placeholder', colors: ['#777777', '#050505'] });
+  }
+  if (gameState.profilePurchasedBorders.includes('coded')) {
+    borders.push({ id: 'coded', label: 'Coded', colors: ['#050505', '#258a45'] });
+  }
+  PROFILE_MAP_BORDERS.forEach(border => {
+    const wonModes = gameState.profileMapModeWins[border.map] || [];
+    if (PROFILE_MAP_MODES.every(mode => wonModes.includes(mode))) {
+      borders.push({ ...border, label: border.label });
+    }
+  });
+  // Borde dedicado del mapa navideño: "Ventisca" / "Frosty".
+  // Se desbloquea al ganar Frosty Christmas en cualquier modo.
+  if ((gameState.profileMapModeWins?.frosty_christmas || []).length > 0) {
+    borders.push({
+      id: 'map:frosty_christmas',
+      label: currentLanguage === 'en' ? 'Frosty' : 'Ventisca',
+      colors: ['#eaf6ff', '#2b6cb0'],
+      style: 'frosty'
+    });
+  }
+  if (hasUnlockedAllProfileBorders()) {
+    borders.push({
+      id: 'rainbow',
+      label: currentLanguage === 'en' ? 'Rainbow' : 'Arcoíris',
+      colors: ['#ff5050', '#202833'],
+      multicolor: true
+    });
+  }
+  if (hasUnlockedAllProfileImages() && hasUnlockedAllProfileBorders()) {
+    borders.push({
+      id: 'glb-fever',
+      label: 'GLB Fever',
+      colors: ['#38e64b', '#202833'],
+      rgb: true
+    });
+  }
+  return borders;
+}
+
+function getProfileAvatarChoices() {
+  const avatars = [{
+    id: 'glob:Glob',
+    label: currentLanguage === 'en' ? 'Glob' : 'Glob',
+    image: getProfileTowerImage('Glob')
+  }];
+  if (isTowerOwned('Red_Glob')) {
+    avatars.push({
+      id: 'glob:Red_Glob',
+      label: translate(TOWER_TYPES.Red_Glob.name),
+      image: getProfileTowerImage('Red_Glob')
+    });
+  }
+  getProfileGlobFamilies().forEach(({ family, firstType, finalType }) => {
+    if (!isTowerOwned(family)) return;
+    const firstAvatarId = `glob:${firstType}`;
+    if (!avatars.some(avatar => avatar.id === firstAvatarId)) {
+      avatars.push({
+        id: firstAvatarId,
+        label: translate(TOWER_TYPES[firstType].name),
+        image: getProfileTowerImage(firstType)
+      });
+    }
+    if (isProfileRewampUnlocked(family, firstType)) {
+      const rewampSkin = getProfileRewampSkin(family, firstType);
+      avatars.push({
+        id: `glob:${firstType}:rewamp`,
+        label: `${translate(TOWER_TYPES[firstType].name)} Rewamp`,
+        image: rewampSkin.skins[firstType],
+        rewampFamily: family,
+        defaultEffect: 'original'
+      });
+    }
+    const firstRgbSkin = getProfileRgbRewampSkin(family, firstType);
+    if (isProfileRgbRewampUnlocked(firstRgbSkin)) {
+      avatars.push({
+        id: `glob:${firstType}:rgb-rewamp`,
+        label: firstRgbSkin.names?.[firstType] || `${translate(TOWER_TYPES[firstType].name)} RGB`,
+        image: firstRgbSkin.skins[firstType],
+        rgb: true,
+        section: 'rgb',
+        rewampFamily: family,
+        defaultEffect: 'rgb'
+      });
+    }
+    if (gameState.profileMaxAvatars.includes(family)) {
+      avatars.push({
+        id: `glob:${finalType}`,
+        label: translate(TOWER_TYPES[finalType].name),
+        image: getProfileTowerImage(finalType)
+      });
+    }
+    if (gameState.profileMaxRewampAvatars.includes(family) &&
+        isProfileRewampUnlocked(family, finalType)) {
+      const rewampSkin = getProfileRewampSkin(family, finalType);
+      avatars.push({
+        id: `glob:${finalType}:rewamp`,
+        label: `${translate(TOWER_TYPES[finalType].name)} Rewamp`,
+        image: rewampSkin.skins[finalType],
+        rewampFamily: family,
+        defaultEffect: 'original'
+      });
+    }
+    const finalRgbSkin = getProfileRgbRewampSkin(family, finalType);
+    if (gameState.profileMaxAvatars.includes(family) &&
+        isProfileRgbRewampUnlocked(finalRgbSkin)) {
+      avatars.push({
+        id: `glob:${finalType}:rgb-rewamp`,
+        label: finalRgbSkin.names?.[finalType] || `${translate(TOWER_TYPES[finalType].name)} RGB`,
+        image: finalRgbSkin.skins[finalType],
+        rgb: true,
+        section: 'rgb',
+        rewampFamily: family,
+        defaultEffect: 'rgb'
+      });
+    }
+  });
+  if (gameState.unlockedSkins.includes(PERSONALIZABLE_BOMBOT_SKIN_ID)) {
+    const bombotSkin = SKINS_DATA.Special.find(skin => skin.id === PERSONALIZABLE_BOMBOT_SKIN_ID);
+    const bombotImage = bombotSkin?.skins?.Work_Bombot;
+    if (bombotImage) {
+      avatars.push({
+        id: 'special:personalizable-bombot',
+        label: currentLanguage === 'en' ? 'Personalizable Bombot' : 'Bombot personalizable',
+        image: getBombotBodyImage(bombotImage),
+        layers: getBombotAccessoryLayerIds(undefined, false).map(getBombotAccessoryImage).filter(Boolean)
+      });
+    }
+  }
+  getUniqueProfileEnemies().forEach(({ type, image, types }) => {
+    if (types.some(isChristmasEnemyType) && !isChristmasEventActive()) return;
+    if (!types.some(isProfileEnemyFramed)) return;
+    avatars.push({
+      id: `enemy:${type}`,
+      label: translate(ENEMY_TYPES[type].name),
+      image
+    });
+  });
+  if (gameState.unlockedSkins.includes('virtuallity_set') || gameState.debugState === 'unlocked') {
+    const virtuallitySkins = SKINS_DATA.Grey.find(skin => skin.id === 'virtuallity_set');
+    if (virtuallitySkins) {
+      avatars.push(
+        {
+          id: 'special:virtuallity-discord',
+          label: 'Discord Glob',
+          image: virtuallitySkins.skins.Old_Glob
+        },
+        {
+          id: 'special:virtuallity-roblox',
+          label: 'Roblox Glob',
+          image: virtuallitySkins.skins.Pyce_Glob
+        },
+        {
+          id: 'special:virtuallity-champion',
+          label: 'Big-Champion Glob',
+          image: virtuallitySkins.skins.SpyGlob
+        },
+        {
+          id: 'special:across-time-trophy',
+          label: currentLanguage === 'en' ? 'Across the Time Trophy' : 'Copa de Across the Time',
+          image: IMAGE_PATHS.Across_Time_Trophy
+        }
+      );
+    }
+  }
+  if (gameState.debugState === 'unlocked' ||
+      (localStorage.getItem('glob_username') || '').toLowerCase() === 'kirbytebi') {
+    avatars.push({
+      id: 'special:kirbytebi',
+      label: currentLanguage === 'en' ? 'Kirb' : 'Kirb',
+      image: IMAGE_PATHS.Kirb_Glob
+    });
+  }
+  const canUseOmnipresentAvatar = canUseStaffProfileAvatar();
+  if (canUseOmnipresentAvatar) {
+    avatars.push({
+      id: 'special:omnipresent-glob',
+      label: currentLanguage === 'en' ? 'Omnipresent Glob' : 'Glob Omnipresente',
+      image: IMAGE_PATHS.Omnipresent_Glob
+    });
+  }
+  if (!canUseOmnipresentAvatar &&
+      (gameState.debugState === 'unlocked' ||
+       gameState.profileSpecialAvatars.includes('placeholder-glob'))) {
+    avatars.push({
+      id: 'special:placeholder-glob',
+      label: 'Placeholder Glob',
+      image: IMAGE_PATHS.Omnipresent_Glob
+    });
+  }
+  return avatars;
+}
+
+function getProfileAvatarById(avatarId) {
+  const avatars = getProfileAvatarChoices();
+  const legacyRainbowRewamp = avatars.find(avatar => avatar.id === 'glob:Rainbow_Glob:rgb-rewamp');
+  const legacyPlaceholderAlias = avatarId === 'special:placeholder-glob' && canUseStaffProfileAvatar()
+    ? avatars.find(avatar => avatar.id === 'special:omnipresent-glob')
+    : null;
+  return avatars.find(avatar => avatar.id === avatarId) ||
+    legacyPlaceholderAlias ||
+    (avatarId === 'special:rainbow-rewamp' ? legacyRainbowRewamp : null) ||
+    avatars[0];
+}
+
+function getProfileBorderById(borderId) {
+  return getAvailableProfileBorders().find(border => border.id === borderId) ||
+    getAvailableProfileBorders()[0];
+}
+
+function renderProfileShop(container) {
+  const heading = document.createElement('div');
+  heading.className = 'profile-shop-heading';
+  heading.textContent = currentLanguage === 'en'
+    ? 'Profile collection'
+    : 'Colección de perfil';
+  container.appendChild(heading);
+
+  getProfileGlobFamilies().forEach(({ family, finalType }) => {
+    if (!isTowerOwned(family) || !gameState.maxedFamilies.includes(family)) return;
+    const variants = [{ rewamp: false, image: getProfileTowerImage(finalType) }];
+    if (isProfileRewampUnlocked(family, finalType)) {
+      variants.push({ rewamp: true, image: getProfileRewampSkin(family, finalType).skins[finalType] });
+    }
+    variants.forEach(({ rewamp, image }) => {
+      const owned = (rewamp ? gameState.profileMaxRewampAvatars : gameState.profileMaxAvatars).includes(family);
+      const card = document.createElement('div');
+      card.className = `meta-item ${owned ? 'unlocked' : ''}`;
+      card.innerHTML = `
+        <img class="profile-shop-image" src="${encodeURI(image)}" alt="">
+        <h3>${currentLanguage === 'en' ? 'Max evolution' : 'Evolución máxima'}${rewamp ? ' Rewamp' : ''}: ${translate(TOWER_TYPES[finalType].name)}</h3>
+        <p>${rewamp
+          ? (currentLanguage === 'en' ? 'Requires the Rewamp skin and maxing this family at least once.' : 'Requiere la skin Rewamp y haber maxeado esta familia al menos una vez.')
+          : (currentLanguage === 'en' ? 'Unlocked after maxing this family at least once.' : 'Disponible tras maxear esta familia al menos una vez.')}</p>
+        <div class="cost">${owned ? '✅' : '<img src="Recursos/img/Tokens/PyCoin.png" width="18"> 300 + <img src="Recursos/img/Tokens/DuckPass.png" width="18"> 150'}</div>
+        <button class="meta-buy-btn" ${owned || gameState.pycoins < 300 || gameState.duckPassCurrency < 150 ? 'disabled' : ''}
+          onclick="buyProfileMaxAvatar('${family}', ${rewamp})">${owned ? (currentLanguage === 'en' ? 'Owned' : 'Comprado') : translate('buy')}</button>`;
+      container.appendChild(card);
+    });
+  });
+
+  const placeholderOwned = gameState.profilePurchasedBorders.includes('placeholder');
+  const placeholderCard = document.createElement('div');
+  placeholderCard.className = `meta-item ${placeholderOwned ? 'unlocked' : ''}`;
+  placeholderCard.innerHTML = `
+    <div class="profile-placeholder-sample" aria-hidden="true"></div>
+    <h3>Placeholder</h3>
+    <p>${currentLanguage === 'en' ? 'Black background with a grey frame.' : 'Fondo negro con borde gris.'}</p>
+    <div class="cost">${placeholderOwned ? '✅' : '<img src="Recursos/img/Tokens/DuckPass.png" width="18"> 250'}</div>
+    <button class="meta-buy-btn" ${placeholderOwned || gameState.duckPassCurrency < 250 ? 'disabled' : ''}
+      onclick="buyProfileBorder('placeholder')">${placeholderOwned ? (currentLanguage === 'en' ? 'Owned' : 'Comprado') : translate('buy')}</button>`;
+  container.appendChild(placeholderCard);
+
+  PROFILE_SHOP_BORDERS.forEach(border => {
+    const owned = gameState.profilePurchasedBorders.includes(border.id);
+    const currency = border.currency || 'duckpass';
+    const balance = currency === 'pycoins' ? gameState.pycoins : gameState.duckPassCurrency;
+    const icon = currency === 'pycoins' ? 'Recursos/img/Tokens/PyCoin.png' : 'Recursos/img/Tokens/DuckPass.png';
+    const description = {
+      candy: currentLanguage === 'en' ? 'Candy stripes match Frosty Christmas paths.' : 'Rayas de caramelo con los colores de los caminos de Frosty Christmas.',
+      bomb: currentLanguage === 'en' ? 'A bomb fuse flickers red before returning to its original color.' : 'Una mecha de bomba parpadea en rojo y vuelve a su color original.',
+      ice: currentLanguage === 'en' ? 'A cool, icy blue frame.' : 'Un borde azul frío con aspecto helado.',
+      gift: currentLanguage === 'en' ? 'A red gift wrapped with golden ribbons.' : 'Un regalo rojo envuelto con cintas doradas.',
+      spooky: currentLanguage === 'en' ? 'Translucent green background with a dark green frame.' : 'Fondo verde translúcido con borde verde oscuro.',
+      pumpkin: currentLanguage === 'en' ? 'Orange background with a green frame.' : 'Fondo naranja con borde verde.'
+    }[border.id] || (currentLanguage === 'en' ? 'A colored profile frame.' : 'Un borde de perfil de color.');
+    const card = document.createElement('div');
+    card.className = `meta-item ${owned ? 'unlocked' : ''}`;
+    card.innerHTML = `
+      <div class="profile-placeholder-sample${border.style ? ` ${border.style}` : ''}" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};" aria-hidden="true"></div>
+      <h3>${currentLanguage === 'en' ? border.labelEn : border.label}</h3>
+      <p>${description}</p>
+      <div class="cost">${owned ? '✅' : `<img src="${icon}" width="18"> ${border.cost}`}</div>
+      <button class="meta-buy-btn" ${owned || balance < border.cost ? 'disabled' : ''}
+        onclick="buyProfileBorder('${border.id}')">${owned ? (currentLanguage === 'en' ? 'Owned' : 'Comprado') : translate('buy')}</button>`;
+    container.appendChild(card);
+  });
+}
+
+window.buyProfileMaxAvatar = function(family, rewamp = false) {
+  const familyInfo = getProfileGlobFamilies().find(item => item.family === family);
+  if (!familyInfo || !isTowerOwned(family) || !gameState.maxedFamilies.includes(family) ||
+      (rewamp
+        ? (!isProfileRewampUnlocked(family, familyInfo.finalType) || gameState.profileMaxRewampAvatars.includes(family))
+        : gameState.profileMaxAvatars.includes(family))) return;
+  if (gameState.pycoins < 300 || gameState.duckPassCurrency < 150) {
+    showMessage(translate('notEnoughMoney'), 'error');
+    return;
+  }
+  gameState.pycoins -= 300;
+  gameState.duckPassCurrency -= 150;
+  (rewamp ? gameState.profileMaxRewampAvatars : gameState.profileMaxAvatars).push(family);
+  drawShop();
+  updateMetaUI();
+  saveProgress();
+  showMessage(
+    rewamp
+      ? (currentLanguage === 'en' ? 'Rewamp max-evolution profile picture unlocked!' : '¡Imagen Rewamp de evolución máxima desbloqueada!')
+      : (currentLanguage === 'en' ? 'Max-evolution profile picture unlocked!' : '¡Imagen de perfil de evolución máxima desbloqueada!'),
+    'success'
+  );
+  publishMultiplayerProfile();
+};
+
+window.buyProfileBorder = function(borderId) {
+  const shopBorder = PROFILE_SHOP_BORDERS.find(border => border.id === borderId);
+  if ((borderId !== 'placeholder' && !shopBorder) || gameState.profilePurchasedBorders.includes(borderId)) return;
+  const cost = shopBorder?.cost || 250;
+  const currency = shopBorder?.currency || 'duckpass';
+  const balance = currency === 'pycoins' ? gameState.pycoins : gameState.duckPassCurrency;
+  if (balance < cost) {
+    showMessage(translate('notEnoughMoney'), 'error');
+    return;
+  }
+  if (currency === 'pycoins') gameState.pycoins -= cost;
+  else gameState.duckPassCurrency -= cost;
+  gameState.profilePurchasedBorders.push(borderId);
+  drawShop();
+  updateMetaUI();
+  saveProgress();
+  if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+  const borderName = shopBorder
+    ? (currentLanguage === 'en' ? shopBorder.labelEn : shopBorder.label)
+    : 'Placeholder';
+  showMessage(
+    currentLanguage === 'en' ? `${borderName} profile frame unlocked!` : `¡Borde ${borderName} desbloqueado!`,
+    'success'
+  );
+};
+
+window.openUserProfile = function() {
+  multiplayerViewedProfile = null;
+  drawUserProfile();
+  document.getElementById('profile-modal').style.display = 'flex';
+};
+
+window.closeUserProfile = function() {
+  multiplayerViewedProfile = null;
+  closeModal('profile-modal');
+};
+
+function openMultiplayerPlayerProfile(playerId, fallbackPlayer) {
+  const player = multiplayerPlayers.find(item => item.playerId === playerId) || fallbackPlayer;
+  if (!player) return;
+  multiplayerViewedProfile = {
+    playerId,
+    username: typeof player.username === 'string' ? player.username : (currentLanguage === 'en' ? 'Player' : 'Jugador'),
+    profile: player.profile && typeof player.profile === 'object' ? player.profile : {}
+  };
+  drawViewedMultiplayerProfile();
+  document.getElementById('profile-modal').style.display = 'flex';
+}
+
+function appendPublicProfileStat(container, label, value) {
+  const stat = document.createElement('div');
+  stat.className = 'public-profile-stat';
+  const valueElement = document.createElement('strong');
+  valueElement.textContent = String(value);
+  const labelElement = document.createElement('span');
+  labelElement.textContent = label;
+  stat.append(valueElement, labelElement);
+  container.appendChild(stat);
+}
+
+function drawViewedMultiplayerProfile() {
+  const viewed = multiplayerViewedProfile;
+  const container = document.getElementById('profile-content');
+  if (!viewed || !container) return;
+  const profile = viewed.profile;
+  const title = document.getElementById('profile-title');
+  if (title) title.textContent = currentLanguage === 'en'
+    ? `${viewed.username}'s profile`
+    : `Perfil de ${viewed.username}`;
+  const shopButton = document.querySelector('.profile-shop-button');
+  if (shopButton) shopButton.hidden = true;
+  container.replaceChildren();
+
+  const preview = document.createElement('div');
+  preview.className = 'profile-preview public-profile-preview';
+  preview.appendChild(createMultiplayerProfileBadge(profile, 88));
+  const name = document.createElement('h3');
+  name.textContent = viewed.username;
+  preview.appendChild(name);
+  const cosmetics = document.createElement('p');
+  cosmetics.textContent = `${currentLanguage === 'en' ? 'Avatar' : 'Imagen'}: ${profile.avatarLabel || 'Glob'} · ${currentLanguage === 'en' ? 'Frame' : 'Borde'}: ${profile.borderLabel || (currentLanguage === 'en' ? 'Classic' : 'Clásico')}`;
+  preview.appendChild(cosmetics);
+  container.appendChild(preview);
+
+  const badges = Array.isArray(profile.unlockedBadges)
+    ? [...new Set(profile.unlockedBadges.filter(key => typeof key === 'string' && BADGES[key]))]
+    : [];
+  const totalBadges = Object.keys(BADGES).length;
+  const level = Math.max(1, Number(profile.duckPassLevel) || 1);
+  const xp = Math.max(0, Math.min(99, Number(profile.duckPassXP) || 0));
+  const families = Array.isArray(profile.maxedFamilies) ? new Set(profile.maxedFamilies) : new Set();
+  const rewampFamilies = Array.isArray(profile.maxedRewampFamilies) ? new Set(profile.maxedRewampFamilies) : new Set();
+  const stats = document.createElement('div');
+  stats.className = 'public-profile-stats';
+  appendPublicProfileStat(stats, currentLanguage === 'en' ? 'Duck Pass level' : 'Nivel del Duck Pass', level);
+  appendPublicProfileStat(stats, currentLanguage === 'en' ? 'Pass progress' : 'Progreso del Pass', `${xp}/100 XP`);
+  appendPublicProfileStat(stats, currentLanguage === 'en' ? 'Achievements' : 'Logros', `${badges.length}/${totalBadges}`);
+  appendPublicProfileStat(stats, currentLanguage === 'en' ? 'Maxed families' : 'Familias al máximo', `${families.size}/${getProfileGlobFamilies().length}`);
+  appendPublicProfileStat(stats, currentLanguage === 'en' ? 'Rewamp families' : 'Familias Rewamp', rewampFamilies.size);
+  container.appendChild(stats);
+
+  const mapHeading = document.createElement('h3');
+  mapHeading.textContent = currentLanguage === 'en' ? 'Map records' : 'Récords por mapa';
+  container.appendChild(mapHeading);
+  const mapRecords = document.createElement('div');
+  mapRecords.className = 'public-profile-maps';
+  PROFILE_MAP_BORDERS.forEach(({ map }) => {
+    const record = document.createElement('p');
+    const wins = profile.mapModeWins?.[map];
+    const modes = Array.isArray(wins) ? wins.filter(mode => PROFILE_MAP_MODES.includes(mode)) : [];
+    const modeLabels = modes.map(mode => {
+      const labels = currentLanguage === 'en'
+        ? { facil: 'Easy', normal: 'Normal', dificil: 'Hard', extremo: 'Extreme', corrupto: 'Corrupt', antiNormal: 'Anti-Normal' }
+        : { facil: 'Fácil', normal: 'Normal', dificil: 'Difícil', extremo: 'Extremo', corrupto: 'Corrupto', antiNormal: 'Anti-Normal' };
+      return labels[mode];
+    });
+    record.textContent = `${MAPS[map]?.name || map}: ${modeLabels.length ? modeLabels.join(', ') : (currentLanguage === 'en' ? 'No victories yet' : 'Sin victorias todavía')}`;
+    mapRecords.appendChild(record);
+  });
+  container.appendChild(mapRecords);
+
+  const achievementHeading = document.createElement('h3');
+  achievementHeading.textContent = currentLanguage === 'en' ? 'Achievements' : 'Logros';
+  container.appendChild(achievementHeading);
+  const categoryFilter = document.createElement('select');
+  categoryFilter.className = 'public-profile-achievement-filter';
+  categoryFilter.setAttribute('aria-label', currentLanguage === 'en' ? 'Filter achievements by category' : 'Filtrar logros por categoría');
+  const categories = [...new Set(badges.map(key => BADGES[key].category))].sort();
+  const allOption = document.createElement('option');
+  allOption.value = 'all';
+  allOption.textContent = currentLanguage === 'en' ? 'All categories' : 'Todas las categorías';
+  categoryFilter.appendChild(allOption);
+  const categoryLabels = currentLanguage === 'en'
+    ? { modos: 'Modes', misiones: 'Missions', interacciones: 'Interactions', economia: 'Economy' }
+    : { modos: 'Modos', misiones: 'Misiones', interacciones: 'Interacciones', economia: 'Economía' };
+  categories.forEach(category => {
+    const option = document.createElement('option');
+    option.value = category;
+    option.textContent = categoryLabels[category] || category;
+    categoryFilter.appendChild(option);
+  });
+  const achievementList = document.createElement('ul');
+  achievementList.className = 'public-profile-achievements';
+  const drawAchievements = () => {
+    achievementList.replaceChildren();
+    const filtered = badges.filter(key => categoryFilter.value === 'all' || BADGES[key].category === categoryFilter.value);
+    if (!filtered.length) {
+      const empty = document.createElement('li');
+      empty.textContent = currentLanguage === 'en' ? 'No achievements in this category.' : 'No hay logros en esta categoría.';
+      achievementList.appendChild(empty);
+      return;
+    }
+    filtered.forEach(key => {
+      const badge = BADGES[key];
+      const item = document.createElement('li');
+      const icon = document.createElement('span');
+      icon.innerHTML = badge.icon;
+      const text = document.createElement('span');
+      const name = document.createElement('strong');
+      name.textContent = translate(`badge_${badge.key}_name`);
+      const description = document.createElement('small');
+      description.textContent = translate(`badge_${badge.key}_desc`);
+      text.append(name, description);
+      item.append(icon, text);
+      achievementList.appendChild(item);
+    });
+  };
+  categoryFilter.addEventListener('change', drawAchievements);
+  drawAchievements();
+  container.append(categoryFilter, achievementList);
+}
+
+window.equipProfileAvatar = function(avatarId) {
+  if (!getProfileAvatarChoices().some(avatar => avatar.id === avatarId)) return;
+  // Al cambiar de imagen, vuelve al efecto propio de la nueva imagen.
+  if (gameState.profileAvatar !== avatarId) gameState.profileAvatarEffect = '';
+  gameState.profileAvatar = avatarId;
+  saveProgress();
+  drawUserProfile();
+  if (isOfflineSession() || !currentSeed) renderMultiplayerPlayerList([]);
+  publishMultiplayerProfile();
+};
+
+window.equipProfileBorder = function(borderId) {
+  if (!getAvailableProfileBorders().some(border => border.id === borderId)) return;
+  gameState.profileBorder = borderId;
+  saveProgress();
+  drawUserProfile();
+  if (isOfflineSession() || !currentSeed) renderMultiplayerPlayerList([]);
+  publishMultiplayerProfile();
+};
+
+function drawUserProfile() {
+  if (multiplayerViewedProfile) {
+    drawViewedMultiplayerProfile();
+    return;
+  }
+  const container = document.getElementById('profile-content');
+  if (!container) return;
+  const title = document.getElementById('profile-title');
+  if (title) title.textContent = currentLanguage === 'en' ? 'User profile' : 'Perfil de usuario';
+  const profileButton = document.getElementById('open-profile');
+  if (profileButton) {
+    profileButton.innerHTML = `👤 <span class="meta-btn-text">${currentLanguage === 'en' ? 'Profile' : 'Perfil'}</span>`;
+  }
+  const shopButtonLabel = document.querySelector('.profile-shop-button span');
+  if (shopButtonLabel) shopButtonLabel.textContent = currentLanguage === 'en' ? 'Profile customization shop' : 'Tienda de personalización';
+  const shopButton = document.querySelector('.profile-shop-button');
+  if (shopButton) shopButton.hidden = false;
+  const avatar = getProfileAvatarById(gameState.profileAvatar);
+  const border = getProfileBorderById(gameState.profileBorder);
+  if (!avatar || !border) return;
+  const username = localStorage.getItem('glob_username') || (currentLanguage === 'en' ? 'Player' : 'Jugador');
+  const selectedEffect = getSelectedProfileAvatarEffect(avatar);
+  const displayAvatar = withProfileAvatarEffect(avatar, selectedEffect);
+  const effectSuffix = selectedEffect && selectedEffect !== avatar.defaultEffect
+    ? ` (${selectedEffect === 'original' ? 'Original' : getFxEffectLabel(selectedEffect)})`
+    : '';
+  container.innerHTML = `
+    <div class="profile-preview">
+      <div class="profile-avatar-frame ${border.multicolor ? 'rainbow' : ''}${border.rgb ? ' glb-fever' : ''}${border.style ? ` ${border.style}` : ''}" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};">
+        ${getProfileAvatarImageMarkup(displayAvatar, border.rgb)}
+        ${border.style === 'time-attack-b' ? getProfileClockHandsMarkup() : ''}
+      </div>
+      <h3>${username}</h3>
+      <p>${currentLanguage === 'en' ? 'Avatar' : 'Imagen'}: ${avatar.label}${effectSuffix} · ${currentLanguage === 'en' ? 'Frame' : 'Borde'}: ${border.label}</p>
+    </div>
+    ${getProfileAvatarEffectPickerMarkup(avatar, selectedEffect)}
+    ${getProfileAvatarSectionsMarkup(avatar)}
+    <h3>${currentLanguage === 'en' ? 'Choose a frame' : 'Elige un borde'}</h3>
+    <div class="profile-border-grid">
+      ${getAvailableProfileBorders().map(choice => `
+        <button class="profile-border-choice ${choice.id === border.id ? 'selected' : ''}" type="button"
+          style="--profile-border-start:${choice.colors[0]};--profile-border-end:${choice.colors[1]};"
+          onclick="equipProfileBorder('${choice.id}')">
+          <span class="profile-border-swatch ${choice.multicolor ? 'rainbow' : ''}${choice.rgb ? ' glb-fever' : ''}${choice.style ? ` ${choice.style}` : ''}"></span><span>${choice.label}</span>
+        </button>`).join('')}
+    </div>`;
+  if (border.style === 'time-attack-b' ||
+      getAvailableProfileBorders().some(choice => choice.style === 'time-attack-b')) {
+    container.querySelectorAll('.profile-border-swatch.time-attack-b').forEach(swatch => {
+      swatch.insertAdjacentHTML('beforeend', getProfileClockHandsMarkup());
+    });
+    ensureProfileClockTimer();
+  }
+}
+
+// Selector de efecto de la imagen elegida: aparece al seleccionar una imagen
+// Rewamp o RGB. Cada botón muestra esa misma imagen con el efecto.
+function getProfileAvatarEffectPickerMarkup(avatar, selectedEffect) {
+  const options = getProfileAvatarEffectOptions(avatar);
+  if (options.length < 2) return '';
+  return `
+    <h3 class="profile-avatar-section-title">${currentLanguage === 'en' ? 'Image effect' : 'Efecto de la imagen'}</h3>
+    <div class="profile-choice-grid profile-effect-picker">
+      ${options.map(effectId => `
+        <button class="profile-choice ${effectId === selectedEffect ? 'selected' : ''}" type="button"
+          onclick="setProfileAvatarEffect('${effectId}')">
+          ${getProfileAvatarImageMarkup(withProfileAvatarEffect(avatar, effectId))}<span>${effectId === 'original' ? 'Original' : getFxEffectLabel(effectId)}</span>
+        </button>`).join('')}
+    </div>`;
+}
+
+window.setProfileAvatarEffect = function(effectId) {
+  const avatar = getProfileAvatarById(gameState.profileAvatar);
+  if (!getProfileAvatarEffectOptions(avatar).includes(effectId)) return;
+  gameState.profileAvatarEffect = effectId;
+  saveProgress();
+  drawUserProfile();
+  if (isOfflineSession() || !currentSeed) renderMultiplayerPlayerList([]);
+  publishMultiplayerProfile();
+};
+
+// Imágenes normales y RGB. Los efectos no repiten imágenes: se eligen en el
+// selector "Efecto de la imagen" al seleccionar una Rewamp o RGB.
+function getProfileAvatarSectionsMarkup(selectedAvatar) {
+  const choices = getProfileAvatarChoices();
+  const sections = [
+    { id: 'main', title: currentLanguage === 'en' ? 'Choose an avatar' : 'Elige una imagen' },
+    { id: 'rgb', title: 'RGB' }
+  ];
+  return sections.map(section => {
+    const list = choices.filter(choice => (choice.section || 'main') === section.id);
+    if (!list.length) return '';
+    return `
+    <h3 class="profile-avatar-section-title">${section.title}</h3>
+    <div class="profile-choice-grid">
+      ${list.map(choice => `
+        <button class="profile-choice ${choice.id === selectedAvatar.id ? 'selected' : ''}" type="button"
+          onclick="equipProfileAvatar('${choice.id}')">
+          ${getProfileAvatarImageMarkup(choice)}<span>${choice.label}</span>
+        </button>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function getProfileAvatarImageMarkup(avatar, applyRgbEffect = false) {
+  const imageUrl = encodeURI(avatar.image);
+  const isGodsShadow = avatar.id === 'enemy:GODs_Shadow';
+  const effect = getProfileAvatarVisualEffect(avatar, applyRgbEffect);
+  const isRainbowFuel = effect === 'rainbow-fuel';
+  const rgb = Boolean(effect) && !isGodsShadow;
+  const variantClass = rgb && !isRainbowFuel && effect !== 'rgb' ? ` ${effect}` : '';
+  const visualClass = isRainbowFuel ? 'rainbow-fuel-avatar' : 'rgb-avatar-image';
+  const maskProperty = isRainbowFuel ? '--rainbow-fuel-mask-image' : '--rgb-avatar-mask-image';
+  const visualStyle = rgb ? ` style="${maskProperty}:url('${getAbsoluteAssetUrl(avatar.image)}')"` : '';
+  if (Array.isArray(avatar.layers) && avatar.layers.length > 0) {
+    const layers = avatar.layers
+      .map(layer => `<img src="${encodeURI(layer)}" alt="">`)
+      .join('');
+    return `<span class="profile-avatar-layers${rgb ? ` ${visualClass}${variantClass}` : ''}"${visualStyle}><img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">${layers}</span>`;
+  }
+  if (isGodsShadow) {
+    // El filtro brightness(0) ennegrece todo el elemento, fondo incluido. El
+    // fondo va en el envoltorio para que la silueta se vea sobre él.
+    return `<span class="gods-shadow-avatar"><img class="gods-shadow-portrait" src="${imageUrl}" alt="${avatar.label}"></span>`;
+  }
+  const image = `<img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">`;
+  return rgb
+    ? `<span class="${visualClass}${variantClass}"${visualStyle}>${image}</span>`
+    : image;
+}
+
+// Clases/atributos de la miniatura de una skin en la tienda según su efecto.
+function getSkinPreviewFx(skin, previewImg) {
+  if (skin?.fxEffect) {
+    const canvasVariant = skin.fxEffect === 'rainbow-fuel' ? 'fuel'
+      : skin.fxEffect === 'alternate' ? 'alternate' : '';
+    return {
+      className: canvasVariant ? `rgb-fx-preview fx-${skin.fxEffect}` : `fx-${skin.fxEffect}`,
+      attrs: canvasVariant ? ` data-rgb-variant="${canvasVariant}"` : '',
+      style: ''
+    };
+  }
+  if (skin?.rgbTypes) {
+    return {
+      className: 'rgb-rewamp-preview',
+      attrs: '',
+      style: `--rgb-rewamp-mask-image:url('${getAbsoluteAssetUrl(previewImg)}')`
+    };
+  }
+  return { className: '', attrs: '', style: '' };
+}
+
+function getShopSkinDescription(skin) {
+  const description = translate(skin.desc);
+  const normalizedDescription = description.replace(/<span\b[^>]*>([\s\S]*?)<\/span>/gi, (span, content) => {
+    if (/(created by|creado por|credit:|crédito:|designed by|drawn by|diseñad[oa] por|dibujad[oa] por|idead[oa] y dibujad[oa])/i.test(content)) {
+      let authorClass = '';
+      if (/credible/i.test(content)) authorClass = ' skin-creator-credible';
+      else if (/justauser/i.test(content)) authorClass = ' skin-creator-justauser';
+      else if (/luna1255/i.test(content)) authorClass = ' skin-creator-luna1255';
+      else if (/victorillo/i.test(content)) authorClass = ' skin-creator-victorillo';
+      else if (/kirbyte/i.test(content)) authorClass = ' skin-creator-kirbyte';
+      return `<span class="skin-creator-tag${authorClass}">${content}</span>`;
+    }
+    return span;
+  }).replace(/\b(Created by:|Creado por:)\s*KirByte\b(?!_Bi)/g, '$1 KirByte_Bi');
+  const hasCreatorCredit = /(created by|creado por|credit:|crédito:|designed by|drawn by|diseñad[oa] por|dibujad[oa] por|idead[oa] y dibujad[oa]|artwork by|colaboraci[oó]n|collab)/i.test(description);
+  if (hasCreatorCredit) return normalizedDescription;
+
+  const creatorLabel = currentLanguage === 'es' ? 'Creado por: KirByte_Bi' : 'Created by: KirByte_Bi';
+  return `${normalizedDescription}<br><span class="skin-creator-tag">${creatorLabel}</span>`;
+}
+
+function checkBombotAccessoryPrerequisite(unlock) {
+  if (!unlock) return true;
+  switch (unlock) {
+    case 'pink_family': {
+      const pinkSkins = ['streamer_set', 'gamer_set', 'youtuber_set'];
+      return pinkSkins.some(id => gameState.unlockedSkins.includes(id));
+    }
+    case 'monster_framed':
+      return Boolean(gameState.framedEnemies?.includes?.('monster') || gameState.progress?.framedMonster);
+    case 'fireflies_framed':
+      return Boolean(gameState.framedEnemies?.includes?.('fireflies') || gameState.progress?.framedFireflies);
+    default:
+      return false;
+  }
+}
+
+function getBombotAccessoryUnlockText(accessory) {
+  const conditions = {
+    gelatin_lake: ['🟢 Gana en cualquier modo en Gelatin Lake', '🟢 Win any mode on Gelatin Lake'],
+    urbanistic_road: ['🏙️ Gana en cualquier modo en Urbanistic Road', '🏙️ Win any mode on Urbanistic Road'],
+    sunlight_seaside: ['☀️ Gana en cualquier modo en Sunlight Seaside', '☀️ Win any mode on Sunlight Seaside'],
+    sunlight_hard: ['☂️ Gana en Sunlight Seaside en un modo que no sea Fácil ni Normal', '☂️ Win Sunlight Seaside in a mode other than Easy or Normal'],
+    spooktacular_ruins: ['🎃 Gana en cualquier modo en Aridez Escalofriante', '🎃 Win any mode on Spooktacular Ruins'],
+    interstellar: ['💎 Completa Interstellar Menace', '💎 Complete Interstellar Menace'],
+    duckpass_bombot_hair: ['🦆 Alcanza el Nivel 15 en el Duck Pass', '🦆 Reach Level 15 in the Duck Pass'],
+    duckpass_girly_hair: ['🦆 Alcanza el Nivel 30 en el Duck Pass', '🦆 Reach Level 30 in the Duck Pass'],
+    duckpass_pyce2_headset: ['🦆 Alcanza el Nivel 45 en el Duck Pass', '🦆 Reach Level 45 in the Duck Pass'],
+    anti_normal: ['💀 Gana en cualquier mapa en modo Anti-Normal', '💀 Win any map on Anti-Normal mode'],
+    rewamped_skin: ['✨ Desbloquea cualquier skin Rewamp', '✨ Unlock any Rewamp skin'],
+    urban_corrupt: ['🏙️ Vence Urbanistic Road en modo Corrupto', '🏙️ Beat Urbanistic Road on Corrupt mode'],
+    spooktacular_anti_normal: ['🏜️ Vence Aridez Escalofriante en Anti-Normal', '🏜️ Beat Spooktacular Ruins on Anti-Normal'],
+    duckpass_cuby: ['🦆 Alcanza el Nivel 35 en el Duck Pass', '🦆 Reach Level 35 in the Duck Pass'],
+    pink_family: ['🩷 Compra la familia rosa (Streamer, Gamer, Youtuber)', '🩷 Buy the Pink family (Streamer, Gamer, Youtuber)'],
+    monster_framed: ['🖼️ Enmarca al Monster en la colección', '🖼️ Frame Monster in the collection'],
+    fireflies_framed: ['🦋 Enmarca a Fireflies en la colección', '🦋 Frame Fireflies in the collection']
+  };
+  return conditions[accessory.unlock]?.[currentLanguage === 'en' ? 1 : 0] || '';
+}
+
+function buyBombotAccessory(id) {
+  const accessory = BOMBOT_ACCESSORIES.find(item => item.id === id);
+  if (!accessory || gameState.unlockedBombotAccessories.includes(id)) return;
+  const isDuckpassPurchase = Boolean(accessory.duckpassCost);
+  if (isDuckpassPurchase && (!isAdventCosmeticShopAvailable(id) || isAdventCosmeticLimited(id))) return;
+  const cost = isDuckpassPurchase ? accessory.duckpassCost : accessory.cost;
+  if (!cost) return;
+  if (!gameState.unlockedSkins.includes(PERSONALIZABLE_BOMBOT_SKIN_ID)) {
+    showMessage(currentLanguage === 'en'
+      ? 'Unlock Personalizable Bombot first.'
+      : 'Desbloquea primero Personalizable Bombot.', 'warning');
+    return;
+  }
+  const currency = isDuckpassPurchase ? gameState.duckPassCurrency : gameState.pycoins;
+  if (currency < cost) {
+    showMessage(
+      currentLanguage === 'en'
+        ? `Not enough ${isDuckpassPurchase ? 'Duckpasses' : 'PyCoins'}.`
+        : `No tienes suficientes ${isDuckpassPurchase ? 'Duckpasses' : 'PyCoins'}.`,
+      'error'
+    );
+    return;
+  }
+  if (isDuckpassPurchase) gameState.duckPassCurrency -= cost;
+  else gameState.pycoins -= cost;
+  gameState.unlockedBombotAccessories.push(id);
+  gameState.unlockedBombotAccessories = [...new Set(gameState.unlockedBombotAccessories)];
+  saveProgress();
+  updateMetaUI();
+  drawShop();
+}
+
+function equipBombotAccessory(id) {
+  const accessory = BOMBOT_ACCESSORIES.find(item => item.id === id);
+  if (!accessory) return;
+  if (gameState.mode === 'tutorial') {
+    showMessage(currentLanguage === 'en'
+      ? 'Accessories are disabled during the tutorial.'
+      : 'Los accesorios están desactivados durante el tutorial.', 'warning');
+    return;
+  }
+  if (!gameState.unlockedBombotAccessories.includes(id) && gameState.debugState !== 'unlocked') return;
+
+  // Regla de reskins que no admiten gorros (se inclinarían sobre el Bombot).
+  // Permiten accesorios frontales, pero no gorros salvo los de su lista blanca.
+  if (accessory.slot === 'head') {
+    const reskinId = gameState.equippedBombotAccessories.reskin;
+    const reskin = reskinId && BOMBOT_ACCESSORIES.find(item => item.id === reskinId);
+    if (reskin?.noHats && !(reskin.allowedHats || []).includes(id)) {
+      const reskinName = getBombotAccessoryName(reskin) || reskinId;
+      showMessage(currentLanguage === 'en'
+        ? `${reskinName} can't wear tilted hats.`
+        : `${reskinName} no puede llevar gorros inclinados.`, 'warning');
+      return;
+    }
+  }
+
+  if (accessory.slot === 'front') {
+    const fronts = getEquippedBombotFronts();
+    if (fronts.includes(id)) {
+      gameState.equippedBombotAccessories.front = fronts.filter(item => item !== id);
+    } else {
+      const isGlasses = accessory.frontType === 'glasses';
+      if (isGlasses && gameState.equippedBombotAccessories.suit === 'pumpkin') {
+        showMessage(currentLanguage === 'en'
+          ? 'Pumpkin does not allow glasses.'
+          : 'Pumpkin no permite llevar gafas.', 'warning');
+        return;
+      }
+      if (isGlasses) {
+        const otherAccessory = fronts.find(item => BOMBOT_ACCESSORIES.find(front => front.id === item)?.frontType !== 'glasses');
+        gameState.equippedBombotAccessories.front = [id, otherAccessory].filter(Boolean);
+      } else {
+        const currentGlasses = fronts.find(item => BOMBOT_ACCESSORIES.find(front => front.id === item)?.frontType === 'glasses');
+        gameState.equippedBombotAccessories.front = [currentGlasses, id].filter(Boolean);
+      }
+    }
+  } else if (accessory.slot === 'suit') {
+    const wasEquipped = gameState.equippedBombotAccessories.suit === id;
+    gameState.equippedBombotAccessories.suit = wasEquipped ? null : id;
+    if (!wasEquipped && id === 'pumpkin') {
+      gameState.equippedBombotAccessories.front = getEquippedBombotFronts().filter(
+        frontId => BOMBOT_ACCESSORIES.find(front => front.id === frontId)?.frontType !== 'glasses'
+      );
+    }
+  } else if (accessory.slot === 'reskin') {
+    const nextReskin = gameState.equippedBombotAccessories.reskin === id ? null : id;
+    gameState.equippedBombotAccessories.reskin = nextReskin;
+    // Si el nuevo reskin no admite gorros, quitar el gorro equipado salvo que
+    // esté en su lista blanca (p. ej. Furnace conserva su Bakhef).
+    if (nextReskin && accessory.noHats) {
+      const head = gameState.equippedBombotAccessories.head;
+      if (head && !(accessory.allowedHats || []).includes(head)) {
+        gameState.equippedBombotAccessories.head = null;
+      }
+    }
+  } else {
+    gameState.equippedBombotAccessories[accessory.slot] =
+      gameState.equippedBombotAccessories[accessory.slot] === id ? null : id;
+  }
+  equipSkin('Special', PERSONALIZABLE_BOMBOT_SKIN_ID);
+  if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+  publishMultiplayerProfile();
+}
+
+window.buyBombotAccessory = buyBombotAccessory;
+window.equipBombotAccessory = equipBombotAccessory;
+
+function renderBombotAccessoryCustomizer(container, accessoryFilter = () => true) {
+  syncBombotAccessoryUnlocksFromProgress();
+  ensurePersonalizableBombotUnlocked();
+  if (!gameState.unlockedSkins.includes(PERSONALIZABLE_BOMBOT_SKIN_ID)) return;
+
+  const section = document.createElement('section');
+  section.className = 'bombot-accessory-customizer';
+  const title = document.createElement('h3');
+  title.textContent = '🤖 Personalizable Bombot';
+  const intro = document.createElement('p');
+  intro.textContent = currentLanguage === 'en'
+    ? 'Equip one base reskin, one hat/hair, one pair of glasses, one front accessory, and one suit.'
+    : 'Puedes equipar un aspecto base, una gorra/pelo, unas gafas, un accesorio frontal y un traje.';
+  const preview = document.createElement('div');
+  preview.className = 'bombot-accessory-preview';
+  preview.style.backgroundImage = getBombotCustomizationPreviewBackground();
+  preview.setAttribute('aria-label', currentLanguage === 'en' ? 'Current Bombot preview' : 'Vista previa actual de Bombot');
+  section.append(title, intro, preview);
+
+  const customizerCategories = [
+    {
+      id: 'reskin',
+      label: currentLanguage === 'en' ? 'Base Reskin' : 'Aspecto Base',
+      filter: accessory => accessory.slot === 'reskin',
+      isEquipped: accessory => gameState.equippedBombotAccessories.reskin === accessory.id,
+      hasAnyEquipped: () => Boolean(gameState.equippedBombotAccessories.reskin),
+      onClear: () => {
+        gameState.equippedBombotAccessories.reskin = null;
+        equipSkin('Special', gameState.equippedSkins.Special);
+      }
+    },
+    {
+      id: 'head',
+      label: currentLanguage === 'en' ? 'Hats & Hair' : 'Gorras y Pelo',
+      filter: accessory => accessory.slot === 'head',
+      isEquipped: accessory => gameState.equippedBombotAccessories.head === accessory.id,
+      hasAnyEquipped: () => Boolean(gameState.equippedBombotAccessories.head),
+      onClear: () => {
+        gameState.equippedBombotAccessories.head = null;
+        equipSkin('Special', gameState.equippedSkins.Special);
+      }
+    },
+    {
+      id: 'glasses',
+      label: currentLanguage === 'en' ? 'Glasses & Visors' : 'Gafas y Viseras',
+      filter: accessory => accessory.slot === 'front' && accessory.frontType === 'glasses',
+      isEquipped: accessory => getEquippedBombotFronts().includes(accessory.id),
+      hasAnyEquipped: () => getEquippedBombotFronts().some(item => BOMBOT_ACCESSORIES.find(f => f.id === item)?.frontType === 'glasses'),
+      onClear: () => {
+        gameState.equippedBombotAccessories.front = getEquippedBombotFronts().filter(item => BOMBOT_ACCESSORIES.find(f => f.id === item)?.frontType !== 'glasses');
+        equipSkin('Special', gameState.equippedSkins.Special);
+      }
+    },
+    {
+      id: 'accessory',
+      label: currentLanguage === 'en' ? 'Frontals' : 'Frontales',
+      filter: accessory => accessory.slot === 'front' && accessory.frontType !== 'glasses',
+      isEquipped: accessory => getEquippedBombotFronts().includes(accessory.id),
+      hasAnyEquipped: () => getEquippedBombotFronts().some(item => BOMBOT_ACCESSORIES.find(f => f.id === item)?.frontType !== 'glasses'),
+      onClear: () => {
+        gameState.equippedBombotAccessories.front = getEquippedBombotFronts().filter(item => BOMBOT_ACCESSORIES.find(f => f.id === item)?.frontType === 'glasses');
+        equipSkin('Special', gameState.equippedSkins.Special);
+      }
+    },
+    {
+      id: 'suit',
+      label: currentLanguage === 'en' ? 'Suits' : 'Trajes',
+      filter: accessory => accessory.slot === 'suit',
+      isEquipped: accessory => gameState.equippedBombotAccessories.suit === accessory.id,
+      hasAnyEquipped: () => Boolean(gameState.equippedBombotAccessories.suit),
+      onClear: () => {
+        gameState.equippedBombotAccessories.suit = null;
+        equipSkin('Special', gameState.equippedSkins.Special);
+      }
+    }
+  ];
+
+  customizerCategories.forEach(category => {
+    const categoryAccessories = BOMBOT_ACCESSORIES
+      .filter(category.filter)
+      .filter(accessoryFilter);
+    if (categoryAccessories.length === 0) return;
+    const group = document.createElement('div');
+    group.className = 'bombot-accessory-slot';
+    const heading = document.createElement('h4');
+    heading.textContent = category.label;
+    const items = document.createElement('div');
+    items.className = 'bombot-accessory-items';
+
+    const noneButton = document.createElement('button');
+    noneButton.type = 'button';
+    const isEquipped = category.hasAnyEquipped();
+    noneButton.className = `bombot-accessory-none${isEquipped ? '' : ' selected'}`;
+    noneButton.textContent = currentLanguage === 'en' ? 'None' : 'Ninguno';
+    noneButton.disabled = gameState.mode === 'tutorial';
+    noneButton.addEventListener('click', () => category.onClear());
+    items.appendChild(noneButton);
+
+    categoryAccessories.forEach(accessory => {
+      const isUnlocked = gameState.unlockedBombotAccessories.includes(accessory.id) ||
+        gameState.debugState === 'unlocked';
+      const equipped = category.isEquipped(accessory);
+      const card = document.createElement('article');
+      card.className = `bombot-accessory-card${equipped ? ' equipped' : ''}${isUnlocked ? '' : ' locked'}`;
+      const image = document.createElement('img');
+      image.src = encodeURI(getBombotAccessoryImage(accessory.id));
+      const accName = getBombotAccessoryName(accessory);
+      image.alt = accName;
+      const imgBox = document.createElement('div');
+      imgBox.className = 'bombot-accessory-img-box';
+      const preview = BOMBOT_ACCESSORY_PREVIEWS[accessory.id];
+      if (preview) {
+        image.style.transformOrigin = 'top left';
+        image.style.transform = `scale(${preview.scale}) translate(${preview.x}%, ${preview.y}%)`;
+      }
+      imgBox.appendChild(image);
+      const name = document.createElement('strong');
+      name.textContent = accName;
+      card.append(imgBox, name);
+      if (isAdventCosmeticLimited(accessory.id)) {
+        const limitedTag = document.createElement('small');
+        limitedTag.className = 'advent-limited-tag';
+        limitedTag.textContent = currentLanguage === 'en' ? 'LIMITED' : 'LIMITADA';
+        card.appendChild(limitedTag);
+      }
+      if (accessory.copyright) {
+        const copyrightNote = document.createElement('small');
+        copyrightNote.className = 'bombot-accessory-copyright';
+        copyrightNote.textContent = accessory.copyright;
+        card.appendChild(copyrightNote);
+      }
+
+      const action = document.createElement('button');
+      action.type = 'button';
+      if (isUnlocked) {
+        action.textContent = equipped
+          ? (currentLanguage === 'en' ? 'Unequip' : 'Quitar')
+          : (currentLanguage === 'en' ? 'Equip' : 'Equipar');
+        action.addEventListener('click', () => equipBombotAccessory(accessory.id));
+      } else if (isAdventCosmeticLimited(accessory.id)) {
+        action.textContent = currentLanguage === 'en' ? 'Christmas event exclusive' : 'Exclusivo de eventos navideños';
+        action.disabled = true;
+      } else if (accessory.duckpassCost && !isAdventCosmeticShopAvailable(accessory.id)) {
+        action.textContent = currentLanguage === 'en' ? 'Advent Calendar exclusive' : 'Exclusivo del Calendario de Adviento';
+        action.disabled = true;
+      } else if (accessory.duckpassCost) {
+        action.textContent = `🦆 ${accessory.duckpassCost} Duckpasses`;
+        action.disabled = gameState.duckPassCurrency < accessory.duckpassCost;
+        action.addEventListener('click', () => buyBombotAccessory(accessory.id));
+      } else if (accessory.cost && accessory.unlock) {
+        // Tiene precio Y condición de desbloqueo: verificar prerequisito
+        const prereqMet = checkBombotAccessoryPrerequisite(accessory.unlock);
+        if (prereqMet) {
+          action.textContent = `🪙 ${accessory.cost} PyCoins`;
+          action.disabled = gameState.pycoins < accessory.cost;
+          action.addEventListener('click', () => buyBombotAccessory(accessory.id));
+        } else {
+          action.textContent = getBombotAccessoryUnlockText(accessory);
+          action.disabled = true;
+        }
+      } else if (accessory.cost) {
+        action.textContent = `🪙 ${accessory.cost} PyCoins`;
+        action.disabled = gameState.pycoins < accessory.cost;
+        action.addEventListener('click', () => buyBombotAccessory(accessory.id));
+      } else {
+        action.textContent = getBombotAccessoryUnlockText(accessory);
+        action.disabled = true;
+      }
+      card.appendChild(action);
+      items.appendChild(card);
+    });
+    group.append(heading, items);
+    section.appendChild(group);
+  });
+  container.appendChild(section);
+}
+
+function drawShop() {
+  const container = document.getElementById('shop-items');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="shop-header-tabs">
+      <button class="shop-tab-btn ${currentShopTab === 'upgrades' ? 'active' : ''}" onclick="switchShopTab('upgrades')">${translate('shop_upgrades')}</button>
+      <button class="shop-tab-btn ${currentShopTab === 'duckgrades' ? 'active' : ''}" onclick="switchShopTab('duckgrades')">${translate('duckgrade_title')}</button>
+      <button class="shop-tab-btn ${currentShopTab === 'gtacks' ? 'active' : ''}" onclick="switchShopTab('gtacks')">G-Tacks</button>
+      <button class="shop-tab-btn ${currentShopTab === 'equip' ? 'active' : ''}" onclick="switchShopTab('equip')">${translate('shop_equip')}</button>
+      <button class="shop-tab-btn ${currentShopTab === 'skins' ? 'active' : ''}" onclick="switchShopTab('skins')">${translate('shop_skins')}</button>
+      <button class="shop-tab-btn ${currentShopTab === 'profile' ? 'active' : ''}" onclick="switchShopTab('profile')">${currentLanguage === 'en' ? 'Profile' : 'Perfil'}</button>
+    </div>
+    <div class="shop-balance">
+      <div class="balance-item"><img src="Recursos/img/Tokens/PyCoin.png" width="20"> <span>${Math.floor(gameState.pycoins)} PyCoins</span></div>
+      <div class="balance-item"><img src="Recursos/img/Tokens/DuckPass.png" width="20"> <span>${gameState.duckPassCurrency} Duck Pass</span></div>
+    </div>
+  `;
+
+  if (currentShopTab === 'upgrades') {
+    const upgrades = [
+      { id: 'hp', name: 'upgrade_hp_name', desc: 'upgrade_hp_desc', cost: 50, type: 'pycoin', level: gameState.baseHealthLevel, max: 10 },
+      { id: 'unlock_Soap_Glob', name: 'tower_Soap_Glob_name', desc: 'tower_Soap_Glob_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Ducky_Glob', name: 'tower_Ducky_Glob_name', desc: 'tower_Ducky_Glob_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Old_Glob', name: 'upgrade_unlock_old_name', desc: 'upgrade_unlock_old_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Comet_Glob', name: 'upgrade_unlock_comet_name', desc: 'upgrade_unlock_comet_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Sprout_Glob', name: 'upgrade_unlock_sprout_name', desc: 'upgrade_unlock_sprout_desc', cost: 150, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Balloon_Glob', name: 'tower_Balloon_Glob_name', desc: 'tower_Balloon_Glob_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Streamer_Glob', name: 'tower_Streamer_Glob_name', desc: 'tower_Streamer_Glob_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Worker_Glob', name: 'tower_Worker_Glob_name', desc: 'tower_Worker_Glob_desc', cost: 250, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Bomb_Glob', name: 'tower_Bomb_Glob_name', desc: 'tower_IEx1_desc', cost: 300, type: 'pycoin', hideIfUnlocked: true },
+      { id: 'unlock_Pirate_Glob', name: 'tower_Pirate_Glob_name', desc: 'tower_Pirate_Glob_desc', cost: 350, type: 'pycoin', hideIfUnlocked: true },
+
+      { id: 'meta_damage', name: 'upgrade_damage_name', desc: 'upgrade_damage_desc', cost: 15, type: 'duckpass', level: gameState.metaDamageLevel, max: 5 }
+    ];
+    const MAX_LIMITS = {
+      'Glob': 8, 'Red_Glob': 11, 'Soap_Glob': 5, 'Ducky_Glob': 8,
+      'Comet_Glob': 6, 'Old_Glob': 4, 'Work_Bombot': 2, 'Worker_Glob': 4,
+      'Sprout_Glob': 6, 'Pirate_Glob': 3
+    };
+
+    ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Old_Glob', 'Work_Bombot', 'Worker_Glob', 'Sprout_Glob', 'Pirate_Glob'].forEach(t => {
+      const isUnlocked = isTowerOwned(t);
+      const maxLim = MAX_LIMITS[t] || 10;
+
+      if (isUnlocked && gameState.towerLimits[t] < maxLim) {
+        upgrades.push({ id: 'limit_' + t, name: 'upgrade_limit_name', desc: 'upgrade_limit_desc', cost: 30, type: 'pycoin', params: { name: translate(TOWER_TYPES[t].name) } });
+      }
+    });
+
+    upgrades.forEach(u => {
+      if (u.id === 'unlock_Old_Glob' && TOWER_TYPES['Old_Glob'].unlocked) return;
+      if (u.id === 'unlock_Comet_Glob' && TOWER_TYPES['Comet_Glob'].unlocked) return;
+      if (u.id === 'unlock_Sprout_Glob' && TOWER_TYPES['Sprout_Glob'].unlocked) return;
+      if (u.id === 'unlock_Soap_Glob' && TOWER_TYPES['Soap_Glob'].unlocked) return;
+      if (u.id === 'unlock_Ducky_Glob' && TOWER_TYPES['Ducky_Glob'].unlocked) return;
+      if (u.id === 'unlock_Balloon_Glob' && TOWER_TYPES['Balloon_Glob'].unlocked) return;
+      if (u.id === 'unlock_Streamer_Glob' && TOWER_TYPES['Streamer_Glob'].unlocked) return;
+      if (u.id === 'unlock_Worker_Glob' && TOWER_TYPES['Worker_Glob'].unlocked) return;
+      if (u.id === 'unlock_Bomb_Glob' && TOWER_TYPES['Bomb_Glob'].unlocked) return;
+      if (u.id === 'unlock_Pirate_Glob' && TOWER_TYPES['Pirate_Glob'].unlocked) return;
+      const el = document.createElement('div');
+      const isMax = u.max && u.level >= u.max;
+      el.className = `meta-item ${isMax ? 'unlocked' : ''}`;
+      const costIcon = u.type === 'pycoin' ? 'Recursos/img/Tokens/PyCoin.png' : 'Recursos/img/Tokens/DuckPass.png';
+
+      const levelText = u.max ? ` [${u.level}/${u.max}]` : '';
+      el.innerHTML = `<h3>${translate(u.name, u.params)}${levelText}</h3><p>${translate(u.desc, u.params)}</p>
+        <div class="cost">${isMax ? translate('max_reached') : `<img src="${costIcon}" width="18"> ${u.cost}`}</div>
+        <button class="meta-buy-btn" ${isMax || !canAfford(u) ? 'disabled' : ''} onclick="buyUpgrade('${u.id}', ${u.cost}, '${u.type}')">${isMax ? '✅' : translate('buy')}</button>`;
+      container.appendChild(el);
+    });
+  } else if (currentShopTab === 'duckgrades') {
+    const dgs = [
+      { id: 'dg_Glob', name: 'duckgrade_glob_name', desc: 'duckgrade_glob_desc', cost: 215, family: 'Glob' },
+      { id: 'dg_Red_Glob', name: 'duckgrade_red_name', desc: 'duckgrade_red_desc', cost: 230, family: 'Red_Glob' },
+      { id: 'dg_Soap_Glob', name: 'duckgrade_soap_name', desc: 'duckgrade_soap_desc', cost: 150, family: 'Soap_Glob' },
+      { id: 'dg_Comet_Glob', name: 'duckgrade_comet_name', desc: 'duckgrade_comet_desc', cost: 200, family: 'Comet_Glob' },
+      { id: 'dg_Grey', name: 'duckgrade_grey_name', desc: 'duckgrade_grey_desc', cost: 227, family: 'Special' },
+      { id: 'dg_Work_Bombot', name: 'duckgrade_bombot_name', desc: 'duckgrade_bombot_desc', cost: 30, family: 'Special' },
+      { id: 'dg_Ducky_Glob', name: 'duckgrade_duck_name', desc: 'duckgrade_duck_desc', cost: 150, family: 'Ducky_Glob' },
+      { id: 'dg_IEx', name: 'duckgrade_iex_name', desc: 'duckgrade_iex_desc', cost: 195, family: 'IEx' },
+      { id: 'dg_Worker_Glob', name: 'duckgrade_worker_name', desc: 'duckgrade_worker_desc', cost: 150, family: 'Worker_Glob' },
+      { id: 'dg_Brown', name: 'duckgrade_brown_name', desc: 'duckgrade_brown_desc', cost: 200, family: 'Brown' },
+      { id: 'dg_Pirate_Glob', name: 'duckgrade_pirate_name', desc: 'duckgrade_pirate_desc', cost: 220, family: 'Pirate_Glob' },
+      { id: 'dg_White', name: 'duckgrade_white_name', desc: 'duckgrade_white_desc', cost: 180, family: 'White' },
+      { id: 'dg_Pink', name: 'duckgrade_pink_name', desc: 'duckgrade_pink_desc', cost: 220, family: 'Pink' }
+    ];
+
+    const filteredDgs = dgs.filter(u => {
+      if (u.id === 'dg_Glob' || u.id === 'dg_Red_Glob') return true;
+      if (u.id === 'dg_Soap_Glob') return isTowerOwned('Soap_Glob');
+      if (u.id === 'dg_Comet_Glob') return isTowerOwned('Comet_Glob');
+      if (u.id === 'dg_Grey') return isTowerOwned('Old_Glob');
+      if (u.id === 'dg_Work_Bombot') return isTowerOwned('Work_Bombot');
+      if (u.id === 'dg_Ducky_Glob') return isTowerOwned('Ducky_Glob');
+      if (u.id === 'dg_IEx') return isTowerOwned('Bomb_Glob');
+      if (u.id === 'dg_Worker_Glob') return isTowerOwned('Worker_Glob');
+      if (u.id === 'dg_Brown') return isTowerOwned('Sprout_Glob');
+      if (u.id === 'dg_Pirate_Glob') return isTowerOwned('Pirate_Glob');
+      if (u.id === 'dg_White') return isTowerOwned('White');
+      if (u.id === 'dg_Pink') return isTowerOwned('Pink');
+      return false;
+    });
+
+    const dgsLocked = gameState.duckPassLevel < 35;
+    filteredDgs.forEach(u => {
+      const isUnlocked = gameState.duckgrades[u.id];
+      const el = document.createElement('div');
+      el.className = `meta-item ${isUnlocked ? 'unlocked' : ''} ${dgsLocked ? 'level-locked' : ''}`;
+
+      let buttonHTML = '';
+      if (dgsLocked) {
+        buttonHTML = `<button class="meta-buy-btn" disabled style="background: #95a5a6; border: 1px dashed #7f8c8d; cursor: not-allowed; color: #fff;">🔒 Req. Lvl 35</button>`;
+      } else {
+        buttonHTML = `<button class="meta-buy-btn" ${isUnlocked || gameState.duckPassCurrency < u.cost ? 'disabled' : ''} 
+          onclick="buyUpgrade('${u.id}', ${u.cost}, 'duckpass')">${isUnlocked ? translate('active') : translate('buy')}</button>`;
+      }
+
+      el.innerHTML = `<h3>${translate(u.name)}</h3><p>${translate(u.desc)}</p>
+        <div class="cost">${isUnlocked ? '✅' : `<img src="Recursos/img/Tokens/DuckPass.png" width="18"> ${u.cost}`}</div>
+        ${buttonHTML}`;
+      container.appendChild(el);
+    });
+  } else if (currentShopTab === 'gtacks') {
+    const gtacksData = [
+      { id: 'Glob', name: translate('gtack_green_name'), desc: translate('gtack_green_desc'), pyCost: 750, dpCost: 250 },
+      { id: 'Red_Glob', name: translate('gtack_red_name'), desc: translate('gtack_red_desc'), pyCost: 550, dpCost: 180 },
+      { id: 'Soap_Glob', name: translate('gtack_blue_name'), desc: translate('gtack_blue_desc'), pyCost: 580, dpCost: 190 },
+      { id: 'Ducky_Glob', name: translate('gtack_yellow_name'), desc: translate('gtack_yellow_desc'), pyCost: 650, dpCost: 210 },
+      { id: 'Comet_Glob', name: translate('gtack_black_name'), desc: translate('gtack_black_desc'), pyCost: 780, dpCost: 260 },
+      { id: 'Old_Glob', name: translate('gtack_grey_name'), desc: translate('gtack_grey_desc'), pyCost: 520, dpCost: 170 },
+      { id: 'Bomb_Glob', name: translate('gtack_iex_name'), desc: translate('gtack_iex_desc'), pyCost: 600, dpCost: 200 },
+      { id: 'Worker_Glob', name: translate('gtack_worker_name'), desc: translate('gtack_worker_desc'), pyCost: 600, dpCost: 200 },
+      { id: 'Brown', name: translate('gtack_brown_name'), desc: translate('gtack_brown_desc'), pyCost: 650, dpCost: 210 },
+      { id: 'Pirate_Glob', name: translate('gtack_pirate_name'), desc: translate('gtack_pirate_desc'), pyCost: 700, dpCost: 230 },
+      { id: 'White', name: translate('gtack_white_name'), desc: translate('gtack_white_desc'), pyCost: 600, dpCost: 200 },
+      { id: 'Pink', name: translate('gtack_pink_name'), desc: translate('gtack_pink_desc'), pyCost: 700, dpCost: 230 }
+    ];
+
+    const gtacksLocked = gameState.duckPassLevel < 50;
+    const filtered = gtacksData.filter(g => isTowerOwned(g.id));
+
+    filtered.forEach(u => {
+      const isUnlocked = gameState.gtacks[u.id];
+      const el = document.createElement('div');
+      el.className = `meta-item ${isUnlocked ? 'unlocked' : ''} ${gtacksLocked ? 'level-locked' : ''}`;
+
+      let buttonHTML = '';
+      if (gtacksLocked) {
+        buttonHTML = `<button class="meta-buy-btn" disabled style="background: #95a5a6; border: 1px dashed #7f8c8d; cursor: not-allowed; color: #fff;">${translate('gtack_req_lvl')}</button>`;
+      } else {
+        buttonHTML = `<button class="meta-buy-btn" ${isUnlocked || gameState.pycoins < u.pyCost || gameState.duckPassCurrency < u.dpCost ? 'disabled' : ''} 
+          onclick="buyGTack('${u.id}', ${u.pyCost}, ${u.dpCost})">${isUnlocked ? translate('gtack_active') : translate('gtack_buy')}</button>`;
+      }
+
+      el.innerHTML = `<h3>${u.name}</h3><p>${u.desc}</p>
+        <div class="cost">${isUnlocked ? '✅' : `<img src="Recursos/img/Tokens/PyCoin.png" width="16"> ${u.pyCost} + <img src="Recursos/img/Tokens/DuckPass.png" width="16"> ${u.dpCost}`}</div>
+        ${buttonHTML}`;
+      container.appendChild(el);
+    });
+  } else if (currentShopTab === 'equip') {
+    drawEquipShop(container);
+  } else if (currentShopTab === 'skins') {
+    if (!window.activeSkinFilter) window.activeSkinFilter = 'all';
+
+    const missionSkinIds = ['corrupt_swords_set', 'fracstal_set', 'old_tycoon_set', 'cuby_bombot'];
+    const otherNewSkinIds = [
+      'astrorb_set', 'crystal_bombot', 'cuby_bombot', 'pyce_morph', 'dreams_set',
+      'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set', 'ducky_rewamp_set', 'snowglob_set',
+      'ducky_rgb_sr', 'rewamped_black_set', 'black_rgb_sr', PERSONALIZABLE_BOMBOT_SKIN_ID
+    ];
+    const storeUnlockableIds = [...new Set([
+      ...missionSkinIds,
+      ...otherNewSkinIds,
+      ...REWAMPED_SKIN_IDS,
+      ...RGB_REWAMP_SKIN_IDS
+    ])];
+    const halloweenSkinIds = new Set([
+      'pumpking_set', 'skelebones_set', 'wicked_set', 'rewamped_black_set', 'black_rgb_sr'
+    ]);
+    const christmasSkinIds = new Set(['snowglob_set', 'santa_workshop_set']);
+    const acrossTimeSkinIds = new Set(['virtuallity_set']);
+    const halloweenAccessoryIds = new Set(['witch_hat', 'pumpkin', 'darkness_emissary']);
+    const christmasAccessoryIds = new Set([...ADVENT_CALENDAR_CHRISTMAS_REWARD_IDS, 'santa_hat']);
+
+    function accessoryMatchesEvent(accessory, event) {
+      const isHalloween = halloweenAccessoryIds.has(accessory.id);
+      const isChristmas = christmasAccessoryIds.has(accessory.id);
+      const isInterstellar = accessory.unlock === 'interstellar';
+
+      if (event === 'halloween') return isHalloween;
+      if (event === 'christmas') return isChristmas;
+      return isHalloween || isChristmas || isInterstellar;
+    }
+
+    function skinMatchesEvent(skin, event) {
+      const assetPaths = Object.values(skin.skins || {}).join(' ').toLowerCase();
+      const condition = String(skin.unlockCondition || '').toLowerCase();
+      const isRewamp = REWAMPED_SKIN_IDS.includes(skin.id) || isRgbRewampSkin(skin);
+      const isHalloween = halloweenSkinIds.has(skin.id) || condition.includes('spooktacular');
+      const isChristmas = christmasSkinIds.has(skin.id) ||
+        assetPaths.includes('frozen calendar christmas') ||
+        condition.includes('advent_calendar');
+      const isAcrossTime = acrossTimeSkinIds.has(skin.id) ||
+        assetPaths.includes('across the time') ||
+        assetPaths.includes('virtuallity set');
+      const isInterstellar = assetPaths.includes('interestelar menace') ||
+        condition.includes('interstellar') ||
+        ['astrorb_set', 'fracstal_set', 'crystal_bombot', 'cuby_bombot', 'spanish_bombot'].includes(skin.id);
+
+      if (event === 'halloween') return isHalloween;
+      if (event === 'christmas') return isChristmas;
+      return isHalloween || isChristmas || isAcrossTime || isInterstellar || isRewamp;
+    }
+
+    const filterDiv = document.createElement('div');
+    filterDiv.className = 'shop-filters';
+    filterDiv.style.cssText = 'grid-column: 1 / -1; display:flex; justify-content:center; gap:8px; margin-bottom:15px; flex-wrap:wrap; width: 100%;';
+    
+    const filters = [
+      { id: 'all', label: currentLanguage === 'en' ? 'All' : 'Todos' },
+      { id: 'new', label: currentLanguage === 'en' ? 'New' : 'Nuevas' },
+      { id: 'buyable', label: currentLanguage === 'en' ? 'Buyable' : 'Comprables' },
+      { id: 'special', label: currentLanguage === 'en' ? 'Special' : 'Especiales' },
+      { id: 'equipped', label: currentLanguage === 'en' ? 'Equipped' : 'Equipados' },
+      { id: 'unlockable', label: currentLanguage === 'en' ? 'Unlockable' : 'Desbloqueables' },
+      { id: 'halloween', label: 'Halloween' },
+      { id: 'christmas', label: currentLanguage === 'en' ? 'Christmas' : 'Navidad' },
+      { id: 'events', label: currentLanguage === 'en' ? 'Events' : 'Eventos' }
+    ];
+
+    filters.forEach(f => {
+      const btn = document.createElement('button');
+      btn.className = 'meta-btn';
+      btn.innerText = f.label;
+      btn.style.padding = '5px 10px';
+      btn.style.fontSize = '0.8rem';
+      if (f.id === window.activeSkinFilter) btn.style.border = '2px solid #ffd700';
+      else btn.style.border = 'none';
+      
+      btn.onclick = () => {
+        window.activeSkinFilter = f.id;
+        drawShop();
+      };
+      filterDiv.appendChild(btn);
+    });
+    container.appendChild(filterDiv);
+
+    function shouldShowSkin(skin, family, isUnlockableCat) {
+      if (window.activeSkinFilter === 'all') return true;
+      if (['halloween', 'christmas', 'events'].includes(window.activeSkinFilter)) {
+        return skinMatchesEvent(skin, window.activeSkinFilter);
+      }
+      if (window.activeSkinFilter === 'new') return storeUnlockableIds.includes(skin.id);
+      const isEquipped = gameState.equippedSkins[family] === skin.id;
+
+      if (window.activeSkinFilter === 'buyable') return !isUnlockableCat && skin.cost > 0 && skin.type !== 'free';
+      if (window.activeSkinFilter === 'special') return skin.isSpecial;
+      if (window.activeSkinFilter === 'equipped') return isEquipped;
+      if (window.activeSkinFilter === 'unlockable') return isUnlockableCat;
+      return true;
+    }
+
+    // ── Sección Normal ──
+    Object.keys(SKINS_DATA).forEach(family => {
+      if (family === 'Global') return;
+      if (!isTowerOwned(family)) return;
+      SKINS_DATA[family].forEach(skin => {
+        const isSpecialUnlockable = ['mimic_set', ...storeUnlockableIds].includes(skin.id);
+        if (skin.unlockCondition || isSpecialUnlockable) return; // Las que tienen condición van abajo
+
+        if (!shouldShowSkin(skin, family, false)) return;
+
+        const isUnlocked = gameState.unlockedSkins.includes(skin.id);
+        const isEquipped = gameState.equippedSkins[family] === skin.id;
+        const el = document.createElement('div');
+        el.className = `skin-item ${isEquipped ? 'equipped' : ''} ${skin.isSpecial ? 'special-skin' : ''}`;
+
+        let costDisplay = '';
+        let btnText = '';
+        let canBuy = false;
+
+        if (isUnlocked) {
+          canBuy = true;
+          btnText = isEquipped ? (currentLanguage === 'es' ? 'Desequipar' : 'Unequip') : translate('equip_btn');
+        } else if (skin.type === 'free') {
+          btnText = '🔒 Especial';
+          costDisplay = `<div class="cost" style="color:#ffd700">🎁 Gratis (drop)</div>`;
+        } else if (skin.duckpass_cost) {
+          canBuy = gameState.pycoins >= skin.cost && gameState.duckPassCurrency >= skin.duckpass_cost;
+          costDisplay = `<div class="cost"><img src="Recursos/img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="Recursos/img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}</div>`;
+          btnText = translate('buy');
+        } else {
+          canBuy = gameState.pycoins >= skin.cost;
+          costDisplay = `<div class="cost"><img src="Recursos/img/Tokens/PyCoin.png" width="16"> ${skin.cost}</div>`;
+          btnText = translate('buy');
+        }
+
+        const previewImg = skin.skins ? (skin.skins[family] || Object.values(skin.skins)[0]) : 'Recursos/img/Glob_DEF.png';
+        const limitedBadge = isAdventCosmeticLimited(skin.id)
+          ? `<div class="advent-limited-tag shop-advent-limited-tag">${currentLanguage === 'en' ? 'LIMITED' : 'LIMITADA'}</div>`
+          : '';
+        const specialBadge = `${limitedBadge}${skin.isSpecial ? '<div class="special-badge">⭐ ESPECIAL</div>' : ''}`;
+
+        const buyable = isUnlocked ? true : (skin.type === 'free' ? false : canBuy);
+        const skinAction = isUnlocked
+          ? `equipSkin('${family}', '${skin.id}')`
+          : (skin.type === 'free' ? '' : `buySkin('${family}', '${skin.id}', ${skin.cost})`);
+
+        el.innerHTML = `
+          ${specialBadge}
+          <div class="skin-preview ${skin.class || ''}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
+          <h3>${translate(skin.name)}</h3><p>${getShopSkinDescription(skin)}</p>
+          ${!isUnlocked ? costDisplay : ''}
+          <button class="skin-buy-btn ${isUnlocked ? 'equip' : ''}" ${(!buyable && !isUnlocked) ? 'disabled' : ''} ${skinAction ? `onclick="${skinAction}"` : ''}>${btnText}</button>`;
+        container.appendChild(el);
+      });
+    });
+
+    if (['all', 'new'].includes(window.activeSkinFilter)) {
+      renderBombotAccessoryCustomizer(container);
+    } else if (['halloween', 'christmas', 'events'].includes(window.activeSkinFilter)) {
+      const event = window.activeSkinFilter;
+      renderBombotAccessoryCustomizer(container, accessory => accessoryMatchesEvent(accessory, event));
+    }
+
+    // ── Sección DESBLOQUEABLES ──
+    const unlockableSkins = {
+      mapa: [],
+      misiones: [],
+      efectos: [],
+      otros: []
+    };
+
+    Object.keys(SKINS_DATA).forEach(family => {
+      SKINS_DATA[family].forEach(skin => {
+        if (family === 'Global' && skin.id !== 'pyce_morph') return;
+
+        const isSpecialDrop = ['mimic_set', ...storeUnlockableIds].includes(skin.id);
+        if (!skin.unlockCondition && !isSpecialDrop) return;
+
+        // Skins de efecto: se muestran cuando el efecto está ganado; se pueden
+        // equipar al tener además la Rewamp de la familia.
+        if (skin.fxEffect) {
+          if (!isFxEffectUnlockedForFamily(skin.fxEffect, skin.fxFamily)) return;
+          if (!shouldShowSkin(skin, family, true)) return;
+          unlockableSkins.efectos.push({ family, skin, isUnlocked: isFxSkinUnlocked(skin) });
+          return;
+        }
+
+        const isUnlocked = gameState.unlockedSkins.includes(skin.id) ||
+          isProfileImageUnlockConditionMet(skin);
+        const isAlwaysVisible = [
+          'rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'ducky_rewamp_set', 'ducky_rgb_sr',
+          ...RGB_REWAMP_SKIN_IDS, 'judicial_set', 'snowglob_set', 'santa_workshop_set', ...storeUnlockableIds
+        ].includes(skin.id);
+
+        // Solo mostrar si está desbloqueada, o si es de las siempre visibles
+        if (!isUnlocked && !isAlwaysVisible) return;
+
+        if (!shouldShowSkin(skin, family, true)) return;
+
+        // Categorizar
+        let category = 'otros';
+        if (['rewamped_green_set', 'rewamped_red_set', 'rewamped_blue_set', 'rewamped_black_set', 'judicial_set', 'spanish_bombot', 'froggy_set', 'pumpking_set', 'skelebones_set', 'wicked_set', 'ducky_rewamp_set'].includes(skin.id)) category = 'mapa';
+        else if (missionSkinIds.includes(skin.id)) category = 'misiones';
+        else if (['mimic_set', ...otherNewSkinIds].includes(skin.id)) category = 'otros';
+        else if (skin.unlockCondition && (skin.unlockCondition.includes('urban') || skin.unlockCondition.includes('spooktacular'))) category = 'mapa';
+
+        unlockableSkins[category].push({ family, skin, isUnlocked });
+      });
+    });
+
+    const hasUnlockables = unlockableSkins.mapa.length > 0 || unlockableSkins.misiones.length > 0 ||
+      unlockableSkins.efectos.length > 0 || unlockableSkins.otros.length > 0;
+
+    if (hasUnlockables) {
+      const separator = document.createElement('div');
+      separator.style.cssText = 'grid-column:1/-1; text-align:center; padding:14px 0 6px; font-size:1.1rem; font-weight:bold; letter-spacing:2px; color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,0.5); border-top:1px solid rgba(255,215,0,0.25); margin-top:8px;';
+      separator.textContent = currentLanguage === 'es' ? '✦ DESBLOQUEABLES' : '✦ UNLOCKABLES';
+      container.appendChild(separator);
+
+      const subtext = document.createElement('div');
+      subtext.style.cssText = 'grid-column:1/-1; text-align:center; font-size:0.78rem; color:#aaa; margin-bottom:10px;';
+      subtext.textContent = currentLanguage === 'es'
+        ? 'Estas skins se desbloquean jugando — ¡sin coste adicional!'
+        : 'These skins are unlocked by playing — no extra cost!';
+      container.appendChild(subtext);
+
+      function getUnlockConditionText(skinId, condition) {
+        if (skinId === 'mimic_set') return currentLanguage === 'es' ? '🎁 Derrota a un Mimic Pyce Especial' : '🎁 Defeat a Special Mimic Pyce';
+        if (skinId === 'pyce_morph') return currentLanguage === 'es' ? '🎁 Recompensa Secreta' : '🎁 Secret Reward';
+        if (condition === 'advent_calendar') return currentLanguage === 'es'
+          ? '🎄 Recompensa del Calendario de Adviento'
+          : '🎄 Advent Calendar reward';
+        if (condition === 'advent_calendar_complete') return currentLanguage === 'es'
+          ? '🎄 Reclama las 25 recompensas del Calendario de Adviento'
+          : '🎄 Claim all 25 Advent Calendar rewards';
+        if (condition === 'all_profile_images') return currentLanguage === 'es'
+          ? '🖼️ Reúne todas las imágenes de perfil disponibles'
+          : '🖼️ Collect every available profile image';
+        if (skinId === 'cuby_bombot') return currentLanguage === 'es' ? '👑 Derrota a Astrorb True Form' : '👑 Defeat Astrorb True Form';
+        if (skinId === 'froggy_set') return currentLanguage === 'es' ? '🏖️ Puedes obtenerla gratis superando Sunlight Summer en Anti-Normal' : '🏖️ You can get it for free by beating Sunlight Summer in Anti-Normal';
+        if (skinId === 'pumpking_set') return currentLanguage === 'es' ? '🎃 Gana Fácil, Normal, Difícil o Extremo en Aridez Escalofriante' : '🎃 Win Easy, Normal, Hard, or Extreme on Spooktacular Ruins';
+        if (skinId === 'rewamped_black_set') return currentLanguage === 'es' ? '🌑 Vence Aridez Escalofriante en Difícil o Extremo' : '🌑 Beat Spooktacular Ruins in Hard or Extreme';
+        if (condition === 'win_gelatin_lake_base') return currentLanguage === 'es' ? '🦆 Supera Gelatin Lake en cualquier modo base' : '🦆 Beat Gelatin Lake in any base mode';
+        if (skinId === 'skelebones_set') return currentLanguage === 'es' ? '💀 Vence Aridez Escalofriante en Anti-Normal' : '💀 Beat Spooktacular Ruins in Anti-Normal';
+        if (skinId === 'wicked_set') return currentLanguage === 'es' ? '🧙 Vence Aridez Escalofriante en Corrupto' : '🧙 Beat Spooktacular Ruins in Corrupt';
+        if (condition === 'mission_block_tales') return currentLanguage === 'es' ? '🗡️ Completa la misión de Block Tales' : '🗡️ Complete the Block Tales mission';
+        if (condition === 'block_quest_shop') return currentLanguage === 'es' ? '🧱 Completa la misión Block Quest' : '🧱 Complete the Block Quest mission';
+        
+        if (condition === 'win_facil_urban') return currentLanguage === 'es' ? '🗺️ Gana en modo Fácil en Urbanistic Road' : '🗺️ Win in Easy mode on Urbanistic Road';
+        if (condition === 'win_spooktacular_ruins') return currentLanguage === 'es' ? '🎃 Gana en cualquier modo en Spooktacular Ruins' : '🎃 Win in any mode on Spooktacular Ruins';
+        if (condition === 'win_normal') return currentLanguage === 'es' ? '⚔️ Gana en modo Normal o superior' : '⚔️ Win in Normal mode or higher';
+        if (condition === 'win_extremo') return currentLanguage === 'es' ? '💀 Gana en modo Extremo o superior' : '💀 Win in Extreme mode or higher';
+        if (condition === 'astrorb_frame') return currentLanguage === 'es' ? '📖 Enmarca todos los Astrorb en la Enciclopedia' : '📖 Frame all Astrorb variants in the Encyclopedia';
+        if (condition === 'all_boss_frames') return currentLanguage === 'es' ? '💎 Enmarca todos los enemigos cristalizados' : '💎 Frame all crystallized enemies';
+        if (condition === 'winter_pass') return currentLanguage === 'es' ? '❄️ Recompensa del Pase de Invierno' : '❄️ Winter Pass reward';
+        if (condition === 'profile_effect') {
+          const fxSkin = Object.values(SKINS_DATA).flat().find(item => item.id === skinId);
+          const rewamp = fxSkin && getFamilyRewampBaseSkin(fxSkin.fxFamily);
+          return currentLanguage === 'es'
+            ? `✨ Consigue la skin ${rewamp ? translate(rewamp.name) : 'base de la familia'} para usar este efecto`
+            : `✨ Get the ${rewamp ? translate(rewamp.name) : 'family'} skin to use this effect`;
+        }
+        
+        return currentLanguage === 'es' ? '🔒 Condición especial' : '🔒 Special condition';
+      }
+
+      function renderCategory(list, title, colorHex) {
+        if (list.length === 0) return;
+        
+        const catHeader = document.createElement('div');
+        catHeader.style.cssText = `grid-column:1/-1; text-align:left; font-size:1rem; font-weight:bold; color:${colorHex}; margin-top:14px; margin-bottom:4px; padding-left:10px; border-left:4px solid ${colorHex}; background: linear-gradient(90deg, ${colorHex}22 0%, transparent 100%); padding-top:4px; padding-bottom:4px;`;
+        catHeader.textContent = title;
+        container.appendChild(catHeader);
+
+        list.forEach(({ family, skin, isUnlocked }) => {
+          const isCollabSkin = ['cuby_bombot', 'astrorb_set', 'crystal_bombot'].includes(skin.id);
+          const skinColor = isCollabSkin ? '#3498db' : colorHex;
+          const isEquipped = gameState.equippedSkins[family] === skin.id;
+          const el = document.createElement('div');
+          el.className = `skin-item special-skin unlockable-skin ${isEquipped ? 'equipped' : ''}`;
+          el.style.opacity = isUnlocked ? '1' : '0.85';
+          el.style.border = isUnlocked ? `1px solid ${skinColor}` : `1px solid ${skinColor}55`;
+          const limitedBadge = isAdventCosmeticLimited(skin.id)
+            ? `<div class="advent-limited-tag shop-advent-limited-tag">${currentLanguage === 'en' ? 'LIMITED' : 'LIMITADA'}</div>`
+            : '';
+
+          // Determine the best preview image for special skins
+          let previewImg;
+          if (skin.skins) {
+            if (skin.id === 'astrorb_set') {
+              // Always show the True Form (AstrorbTF) as the cover
+              previewImg = skin.skins['SpyGlob'] || Object.values(skin.skins)[0];
+            } else {
+              previewImg = skin.skins[family] || Object.values(skin.skins)[0];
+            }
+          } else if (skin.pyce_morph) {
+            // All-Stars Randomizer: show Pyce2 as preview
+            previewImg = IMAGE_PATHS['Pyce2'] || 'Recursos/img/All-Stars Randomizer (ENEMY SKIN).png';
+          } else {
+            previewImg = 'Recursos/img/Glob_DEF.png';
+          }
+          const conditionText = getUnlockConditionText(skin.id, skin.unlockCondition);
+          const previewFx = getSkinPreviewFx(skin, previewImg);
+          const rgbPreviewClass = previewFx.className;
+          const rgbPreviewStyle = previewFx.style;
+          const rgbPreviewAttrs = previewFx.attrs;
+
+          let costDisplay = '';
+          let btnText = '';
+          let canBuy = false;
+          let onclickAction = '';
+
+          if (!isUnlocked && !skin.unlockCondition && skin.cost > 0) {
+            const canBuy = skin.duckpass_cost
+              ? gameState.pycoins >= skin.cost && gameState.duckPassCurrency >= skin.duckpass_cost
+              : gameState.pycoins >= skin.cost;
+            const price = skin.duckpass_cost
+              ? `<img src="Recursos/img/Tokens/PyCoin.png" width="16"> ${skin.cost} + <img src="Recursos/img/Tokens/DuckPass.png" width="16"> ${skin.duckpass_cost}`
+              : `<img src="Recursos/img/Tokens/PyCoin.png" width="16"> ${skin.cost}`;
+            el.innerHTML = `
+              ${limitedBadge}
+              <div class="special-badge" style="background:${skinColor}; color:#000;">🌟 ${currentLanguage === 'es' ? 'NUEVA' : 'NEW'}</div>
+              <div class="skin-preview"><img src="${previewImg}" style="width:100%; height:100%;"></div>
+              <h3>${translate(skin.name)}</h3>
+              <p>${getShopSkinDescription(skin)}</p>
+              <div class="cost">${price}</div>
+              <button class="skin-buy-btn" ${canBuy ? `onclick="buySkin('${family}', '${skin.id}', ${skin.cost})"` : 'disabled'}>${translate('buy')}</button>`;
+          } else if (!isUnlocked) {
+            costDisplay = `<div class="cost" style="color:${colorHex}; font-size:0.78rem; margin-bottom:4px;">${currentLanguage === 'es' ? '🎁 Gratis al desbloquear' : '🎁 Free on unlock'}</div>`;
+            btnText = `🔒 ${currentLanguage === 'es' ? 'Bloqueada' : 'Locked'}`;
+            
+            el.innerHTML = `
+              ${limitedBadge}
+              <div class="special-badge" style="background:${skinColor}; color:#000;">🔓 ${currentLanguage === 'es' ? 'DESBLOQUEABLE' : 'UNLOCKABLE'}</div>
+              <div class="skin-preview ${rgbPreviewClass}"${rgbPreviewAttrs} style="filter:grayscale(0.4) brightness(0.8);${rgbPreviewStyle}"><img src="${previewImg}" style="width:100%; height:100%;"></div>
+              <h3>${translate(skin.name)}</h3>
+              ${skin.pyce_morph ? `<div style="font-size:0.7rem; color:#e67e22; font-weight:bold; margin:-6px 0 6px; text-transform:uppercase; letter-spacing:1px;">⚡ ${currentLanguage === 'en' ? 'General' : 'General'}</div>` : ''}
+              <p>${getShopSkinDescription(skin)}</p>
+              ${costDisplay}
+              <div style="font-size:0.75rem; color:#ccc; margin-bottom:8px; padding:4px 6px; background:rgba(0,0,0,0.2); border-radius:6px; border:1px dashed ${colorHex}55;">${conditionText}</div>
+              <button class="skin-buy-btn" disabled style="background:${colorHex}22; border:1px solid ${colorHex}55; color:${colorHex}; cursor:not-allowed;">${btnText}</button>`;
+          } else {
+            // Once purchased or unlocked, a skin is owned regardless of its original price.
+            btnText = isEquipped ? (currentLanguage === 'es' ? 'Desequipar' : 'Unequip') : translate('equip_btn');
+            onclickAction = isEquipped ? `equipSkin('${family}', 'default')` : `equipSkin('${family}', '${skin.id}')`;
+            canBuy = true;
+
+            el.innerHTML = `
+              ${limitedBadge}
+              <div class="special-badge" style="background:${skinColor}; color:#000;">🌟 ${currentLanguage === 'es' ? 'DESBLOQUEADA' : 'UNLOCKED'}</div>
+              <div class="skin-preview ${skin.class || ''} ${rgbPreviewClass}"${rgbPreviewAttrs} style="${rgbPreviewStyle}"><img src="${previewImg}" style="width:100%; height:100%; filter:${skin.filter || ''}"></div>
+              <h3>${translate(skin.name)}</h3>
+              ${skin.pyce_morph ? `<div style="font-size:0.7rem; color:#e67e22; font-weight:bold; margin:-6px 0 6px; text-transform:uppercase; letter-spacing:1px;">⚡ ${currentLanguage === 'en' ? 'General' : 'General'}</div>` : ''}
+              <p>${getShopSkinDescription(skin)}</p>
+              ${costDisplay}
+              <button class="skin-buy-btn equip" onclick="${onclickAction}">${btnText}</button>`;
+          }
+          container.appendChild(el);
+        });
+      }
+
+      renderCategory(unlockableSkins.mapa, currentLanguage === 'es' ? '🗺️ Mapa' : '🗺️ Map', '#f39c12'); // Naranja
+      renderCategory(unlockableSkins.misiones, currentLanguage === 'es' ? '🎯 Misiones / Collab' : '🎯 Missions / Collab', '#2ecc71'); // Verde
+      renderCategory(unlockableSkins.efectos, currentLanguage === 'es' ? '✨ Efectos' : '✨ Effects', '#8fd0ff'); // Azul hielo
+      renderCategory(unlockableSkins.otros, currentLanguage === 'es' ? '🏆 Otros' : '🏆 Others', '#ff69b4'); // Rosa
+    }
+
+    if (gameState.cheatedModeActive) {
+      const oldBtn = document.getElementById('admin-playtest-btn');
+      if (oldBtn) oldBtn.remove();
+
+      const secretBtn = document.createElement('button');
+      secretBtn.id = 'admin-playtest-btn';
+      secretBtn.style.marginTop = '20px';
+      secretBtn.style.alignSelf = 'flex-end';
+      secretBtn.style.width = '20px';
+      secretBtn.style.height = '20px';
+      secretBtn.style.opacity = '0.4';
+      secretBtn.style.backgroundColor = '#ff69b4';
+      secretBtn.style.border = 'none';
+      secretBtn.style.borderRadius = '50%';
+      secretBtn.style.cursor = 'pointer';
+      secretBtn.style.display = 'flex';
+      secretBtn.style.alignItems = 'center';
+      secretBtn.style.justifyContent = 'center';
+      secretBtn.style.fontSize = '10px';
+      secretBtn.textContent = '🐛';
+      secretBtn.title = 'Admin: Unlock All Towers';
+      secretBtn.onclick = () => {
+        // Toggle: first click = unlock all (save snapshot), second click = rollback
+        if (!window._adminSnapshot) {
+          // Save snapshot before unlocking
+          window._adminSnapshot = {
+            unlockedSkins: [...(gameState.unlockedSkins || [])],
+            towerUnlocks: {}
+          };
+          const LOCKABLE = ['Soap_Glob','Ducky_Glob','Comet_Glob','Old_Glob','Work_Bombot','Pyce_Glob','Balloon_Glob','Streamer_Glob','Bomb_Glob','Sprout_Glob'];
+          LOCKABLE.forEach(t => {
+            window._adminSnapshot.towerUnlocks[t] = !!(TOWER_TYPES[t] && TOWER_TYPES[t].unlocked);
+          });
+          // Unlock all towers
+          LOCKABLE.forEach(t => { if (TOWER_TYPES[t]) TOWER_TYPES[t].unlocked = true; });
+          // Unlock all skins
+          Object.keys(SKINS_DATA).forEach(family => {
+            SKINS_DATA[family].forEach(skin => {
+              if (!gameState.unlockedSkins.includes(skin.id)) gameState.unlockedSkins.push(skin.id);
+            });
+          });
+          secretBtn.style.backgroundColor = '#ff4444';
+          secretBtn.title = 'Admin: Rollback to previous state';
+          showMessage("👑 MODO ADMIN: Torres + Skins desbloqueadas. Pulsa de nuevo para revertir.", "success");
+        } else {
+          // Rollback
+          const snap = window._adminSnapshot;
+          gameState.unlockedSkins = snap.unlockedSkins;
+          Object.entries(snap.towerUnlocks).forEach(([t, was]) => {
+            if (TOWER_TYPES[t]) TOWER_TYPES[t].unlocked = was;
+          });
+          window._adminSnapshot = null;
+          secretBtn.style.backgroundColor = '#ff69b4';
+          secretBtn.title = 'Admin: Unlock All Towers';
+          showMessage("↩️ MODO ADMIN: Estado revertido al original.", "warning");
+        }
+        drawTowerShop();
+        drawShop();
+      };
+
+      const spacer = document.createElement('div');
+      spacer.style.width = '100%';
+      spacer.style.display = 'flex';
+      spacer.style.justifyContent = 'flex-end';
+      spacer.appendChild(secretBtn);
+
+      container.appendChild(spacer);
+    }
+  } else if (currentShopTab === 'profile') {
+    renderProfileShop(container);
+  }
+  if (currentShopTab === 'skins') {
+    const adventButton = document.createElement('button');
+    adventButton.type = 'button';
+    adventButton.className = 'advent-entry-btn advent-shop-entry-btn';
+    adventButton.textContent = currentLanguage === 'en'
+      ? '🎄 Open the Advent Calendar'
+      : '🎄 Abrir el Calendario de Adviento';
+    adventButton.addEventListener('click', openAdventCalendar);
+    container.appendChild(adventButton);
+  }
+}
+
+window.toggleEquipTower = function (type) {
+  if (!gameState.equippedTowers) gameState.equippedTowers = [];
+  const idx = gameState.equippedTowers.indexOf(type);
+  if (idx !== -1) {
+    gameState.equippedTowers.splice(idx, 1);
+    // Can't go into battle empty-handed!
+    if (gameState.equippedTowers.length === 0) {
+      gameState.equippedTowers = ['Glob'];
+      const msg = currentLanguage === 'es'
+        ? '¡No puedes ir al campo de batalla sin ninguna torre! 🟢 Glob equipado por defecto.'
+        : "You can't go into battle with no towers! 🟢 Glob equipped by default.";
+      showMessage(msg, 'warning');
+    }
+  } else {
+    if (gameState.equippedTowers.length >= 5) {
+      showMessage(currentLanguage === 'es' ? 'Solo puedes equipar hasta 5 torres.' : 'You can only equip up to 5 towers.', 'warning');
+      return;
+    }
+    gameState.equippedTowers.push(type);
+  }
+  saveProgress();
+  drawShop();
+  drawTowerShop();
+  publishMultiplayerProfile();
+};
+
+function drawEquipShop(container) {
+  // ── Loadout Banner — mismo formato que la barra de currency ── FIXING
+  let slotsHTML = '';
+  for (let i = 0; i < 5; i++) {
+    if (i < gameState.equippedTowers.length) {
+      const t = gameState.equippedTowers[i];
+      slotsHTML += `<div style="width:36px;height:36px;flex-shrink:0;background:url('${encodeURI(getTowerImage(t))}') center/cover;border:2px solid #2ecc71;border-radius:6px;box-shadow:0 0 5px rgba(46,204,113,0.4); cursor:pointer;" title="Desequipar ${translate(TOWER_TYPES[t] ? TOWER_TYPES[t].name : t)}" onclick="toggleEquipTower('${t}')"></div>`;
+    } else {
+      slotsHTML += `<div style="width:36px;height:36px;flex-shrink:0;background:rgba(255,255,255,0.04);border:2px dashed #4a5568;border-radius:6px;"></div>`;
+    }
+  }
+
+  const equipHeader = document.createElement('div');
+  equipHeader.className = 'shop-balance';
+  equipHeader.style.cssText += 'grid-column: 1 / -1;';
+  equipHeader.innerHTML = `
+    <div class="balance-item">
+      <span style="font-size:1.2rem;">🎒</span>
+      <span>Loadout <strong style="color:#2ecc71;">${gameState.equippedTowers.length}/5</strong></span>
+    </div>
+    <div class="balance-item" style="gap:6px;">
+      ${slotsHTML}
+    </div>
+  `;
+  container.appendChild(equipHeader);
+
+  const shopTowers = [
+    { type: 'Glob', unlocked: true },
+    { type: 'Red_Glob', unlocked: true },
+    { type: 'Soap_Glob', unlocked: isTowerOwned('Soap_Glob') },
+    { type: 'Ducky_Glob', unlocked: isTowerOwned('Ducky_Glob') },
+    { type: 'Comet_Glob', unlocked: !!(TOWER_TYPES['Comet_Glob'] && TOWER_TYPES['Comet_Glob'].unlocked), req: 'shop' },
+    { type: 'Sprout_Glob', unlocked: !!(TOWER_TYPES['Sprout_Glob'] && TOWER_TYPES['Sprout_Glob'].unlocked), req: 'shop' },
+    { type: 'Old_Glob', unlocked: !!(TOWER_TYPES['Old_Glob'] && TOWER_TYPES['Old_Glob'].unlocked), req: 'shop' },
+    { type: 'Work_Bombot', unlocked: !!(TOWER_TYPES['Work_Bombot'] && TOWER_TYPES['Work_Bombot'].unlocked), req: 'challenge' },
+    { type: 'Pirate_Glob', unlocked: !!(TOWER_TYPES['Pirate_Glob'] && TOWER_TYPES['Pirate_Glob'].unlocked), req: 'shop' },
+    { type: 'Worker_Glob', unlocked: isTowerOwned('Worker_Glob') },
+    { type: 'Balloon_Glob', unlocked: isTowerOwned('Balloon_Glob') },
+    { type: 'Streamer_Glob', unlocked: isTowerOwned('Streamer_Glob') },
+    { type: 'Bomb_Glob', unlocked: isTowerOwned('Bomb_Glob') }
+  ];
+
+  // ── Filtros de Equipación ──
+  const NEW_TOWERS = ['Bomb_Glob', 'Worker_Glob', 'Balloon_Glob', 'Streamer_Glob', 'Sprout_Glob', 'Old_Glob'];
+  window.activeEquipFilter = window.activeEquipFilter || 'all';
+
+  const filterBar = document.createElement('div');
+  filterBar.style.cssText = 'display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; grid-column:1/-1;';
+  const equipFilters = [
+    { key: 'all',      label: currentLanguage === 'en' ? 'All' : 'Todos' },
+    { key: 'equipped', label: currentLanguage === 'en' ? 'Equipped' : 'Equipados' },
+    { key: 'new',      label: currentLanguage === 'en' ? 'New 🆕' : 'Nuevos 🆕' }
+  ];
+  equipFilters.forEach(f => {
+    const btn = document.createElement('button');
+    btn.textContent = f.label;
+    const isActive = window.activeEquipFilter === f.key;
+    btn.style.cssText = `padding:6px 14px; border-radius:20px; border:none; cursor:pointer; font-size:0.8rem; font-weight:bold; transition:all 0.2s;
+      background:${isActive ? '#3498db' : 'rgba(255,255,255,0.1)'}; color:${isActive ? '#fff' : '#aaa'};
+      box-shadow:${isActive ? '0 0 8px rgba(52,152,219,0.5)' : 'none'};`;
+    btn.onclick = () => { window.activeEquipFilter = f.key; drawShop(); };
+    filterBar.appendChild(btn);
+  });
+  container.appendChild(filterBar);
+
+  shopTowers.forEach(item => {
+    const type = item.type;
+    const t = TOWER_TYPES[type];
+    if (!t) return;
+
+    // Apply filter
+    const isEquipped = gameState.equippedTowers.includes(type);
+    const isNew = NEW_TOWERS.includes(type);
+    if (window.activeEquipFilter === 'equipped' && !isEquipped) return;
+    if (window.activeEquipFilter === 'new' && !isNew) return;
+
+    const el = document.createElement('div');
+    el.className = 'meta-item ' + (item.unlocked ? 'unlocked' : 'locked');
+    if (isEquipped) {
+      el.style.border = '2px solid #2ecc71';
+      el.style.background = '#0a1f3a';
+      el.style.boxShadow = '0 0 8px rgba(46, 204, 113, 0.4)';
+    }
+
+    let btnHTML = '';
+
+    if (item.unlocked) {
+      if (isEquipped) {
+        btnHTML = `<button class="meta-buy-btn" style="background:#e74c3c;" onclick="toggleEquipTower('${type}')">Desequipar</button>`;
+      } else {
+        btnHTML = `<button class="meta-buy-btn" style="background:#2ecc71;" onclick="toggleEquipTower('${type}')" ${gameState.equippedTowers.length >= 5 ? 'disabled' : ''}>Equipar</button>`;
+      }
+    } else {
+      let reqText = '';
+      if (item.req === 'lvl3') reqText = 'Req: Pass Lvl 3';
+      else if (item.req === 'lvl6') reqText = 'Req: Pass Lvl 6';
+      else if (item.req === 'challenge') reqText = 'Desafío/Challenge';
+      else if (item.req === 'shop') reqText = 'Tienda/Shop';
+      else if (item.req === 'urban') reqText = 'Urban / Pass';
+      btnHTML = `<button class="meta-buy-btn" disabled style="background:#95a5a6;">🔒 ${reqText}</button>`;
+    }
+
+    el.innerHTML = `
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:40px; height:40px; background:url('${encodeURI(getTowerImage(type))}') center/cover; border-radius:5px; filter:${item.unlocked ? 'none' : 'grayscale(1)'};"></div>
+        <div style="flex-grow:1;">
+          <h3 style="margin:0;">${translate(t.name)}</h3>
+          <p style="margin:0; font-size:0.8em; line-height: 1.2;">${translate(t.desc) ? translate(t.desc).substring(0, 50) + '...' : ''}</p>
+        </div>
+      </div>
+      <div style="margin-top:10px;">${btnHTML}</div>
+    `;
+
+    container.appendChild(el);
+  });
+}
+
+let currentShopTab = 'upgrades';
+function switchShopTab(tab) { currentShopTab = tab; drawShop(); }
+
+function buyGTack(family, pyCost, dpCost) {
+  if (gameState.duckPassLevel < 50) {
+    showMessage(currentLanguage === 'es' ? "¡Necesitas Nivel 50 en el Duck Pass para comprar G-Tacks!" : "Requires Duck Pass Level 50 to buy G-Tacks!", 'error');
+    return;
+  }
+  if (gameState.pycoins >= pyCost && gameState.duckPassCurrency >= dpCost) {
+    gameState.pycoins -= pyCost;
+    gameState.duckPassCurrency -= dpCost;
+    gameState.gtacks[family] = true;
+    unlockBadge('gtackFirst');
+    drawShop();
+    saveProgress();
+    updateMetaUI();
+    showMessage(currentLanguage === 'es' ? "¡G-Tack Desbloqueada! 🌟" : "G-Tack Unlocked! 🌟", 'success');
+  } else {
+    showMessage(translate('notEnoughMoney') || "¡No tienes suficientes divisas!", 'error');
+  }
+}
+
+function buySkin(family, skinId, cost) {
+  const skin = SKINS_DATA[family].find(s => s.id === skinId);
+  if (!skin) {
+    console.error(`No se encontró la skin ${skinId} para la familia ${family}.`);
+    return;
+  }
+  if (skin.unlockCondition === 'advent_calendar_complete' &&
+      !gameState.unlockedSkins.includes(skinId)) {
+    showMessage(currentLanguage === 'en'
+      ? 'Claim all 25 Advent Calendar rewards to unlock this skin.'
+      : 'Reclama las 25 recompensas del Calendario de Adviento para desbloquear esta skin.', 'warning');
+    return;
+  }
+  if (gameState.unlockedSkins.includes(skinId)) {
+    equipSkin(family, skinId);
+    return;
+  }
+  if (skin.duckpass_cost) {
+    if (gameState.pycoins >= cost && gameState.duckPassCurrency >= skin.duckpass_cost) {
+      gameState.pycoins -= cost;
+      gameState.duckPassCurrency -= skin.duckpass_cost;
+      gameState.unlockedSkins.push(skinId);
+      drawShop();
+      saveProgress();
+      updateMetaUI();
+      showMessage(translate('skin_unlocked'), 'success');
+    } else {
+      showMessage(translate('notEnoughMoney'), 'error');
+    }
+    return;
+  }
+  if (gameState.pycoins >= cost) {
+    gameState.pycoins -= cost;
+    gameState.unlockedSkins.push(skinId);
+    drawShop();
+    saveProgress();
+    showMessage(translate('skin_unlocked'), 'success');
+  } else {
+    showMessage(translate('no_pycoins'), 'error');
+  }
+}
+
+function equipSkin(family, skinId) {
+  if (gameState.mode === 'tutorial') {
+    showMessage(currentLanguage === 'en'
+      ? 'Skins are disabled during the tutorial.'
+      : 'Las skins están desactivadas durante el tutorial.', 'warning');
+    return;
+  }
+  const skin = SKINS_DATA[family]?.find(item => item.id === skinId);
+  if (skin?.unlockCondition === 'advent_calendar_complete' &&
+      !gameState.unlockedSkins.includes(skin.id)) {
+    showMessage(currentLanguage === 'en'
+      ? 'Claim all 25 Advent Calendar rewards to unlock this skin.'
+      : 'Reclama las 25 recompensas del Calendario de Adviento para desbloquear esta skin.', 'warning');
+    return;
+  }
+  if (skin?.unlockCondition === 'all_profile_images' &&
+      !gameState.unlockedSkins.includes(skin.id) &&
+      !isProfileImageUnlockConditionMet(skin)) {
+    showMessage(currentLanguage === 'en'
+      ? 'Collect every available profile image to unlock this skin.'
+      : 'Reúne todas las imágenes de perfil disponibles para desbloquear esta skin.', 'warning');
+    return;
+  }
+  gameState.equippedSkins[family] = skinId;
+  if (skin?.unlockCondition === 'all_profile_images' &&
+      !gameState.unlockedSkins.includes(skin.id)) {
+    gameState.unlockedSkins.push(skin.id);
+  }
+  gameState.towers.forEach(t => { if (t.family === family || family === 'Global') { t.el.style.backgroundImage = `url('${encodeURI(getTowerImage(t.type))}')`; applyTowerEffects(t.el, t.type); } });
+  if (family === 'Worker_Glob') {
+    const trapImages = skin?.traps || {};
+    gameState.traps?.forEach(trap => {
+      if (TOWER_TYPES[trap.parentType]?.family !== family) return;
+      const image = trapImages[trap.trapType] || IMAGE_PATHS[trap.trapType];
+      trap.el.style.backgroundImage = `url('${encodeURI(image)}')`;
+    });
+  }
+  if (currentShopTab === 'skins') drawShop();
+  if (document.getElementById('pass-modal').style.display === 'flex') drawPass();
+  saveProgress();
+  showMessage(translate('appearance_updated'), 'success');
+}
+
+function canAfford(u) { return u.type === 'pycoin' ? gameState.pycoins >= u.cost : gameState.duckPassCurrency >= u.cost; }
+
+function buyUpgrade(id, cost, type) {
+  if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace >= 3 &&
+      (id === 'hp' || id.startsWith('limit_'))) {
+    showMessage(currentLanguage === 'en'
+      ? 'Base health and Glob limits are locked for this space.'
+      : 'La vida de la base y los límites de Globs están fijados durante este espacio.',
+    'warning');
+    return;
+  }
+  if (id.startsWith('dg_') && gameState.duckPassLevel < 35) {
+    showMessage(currentLanguage === 'es' ? "¡Necesitas Nivel 35 en el Duck Pass para comprar Duckgrades!" : "Requires Duck Pass Level 35 to buy Duckgrades!", 'error');
+    return;
+  }
+  if (type === 'pycoin' ? gameState.pycoins < cost : gameState.duckPassCurrency < cost) return;
+  if (type === 'pycoin') gameState.pycoins -= cost; else gameState.duckPassCurrency -= cost;
+
+  if (id === 'hp') { if (gameState.baseHealthLevel >= 10) return; gameState.baseHealthLevel++; gameState.health += 20; showMessage(translate('base_hp_improved'), 'success'); }
+  else if (id.startsWith('limit_')) {
+    const tKey = id.replace('limit_', '');
+    gameState.towerLimits[tKey]++;
+    showMessage(translate('tower_limit_increased', { name: translate(TOWER_TYPES[tKey].name) }), 'success');
+  }
+
+  else if (id === 'meta_damage') { if (gameState.metaDamageLevel >= 5) return; gameState.metaDamageLevel++; gameState.metaDamage = (gameState.metaDamage || 1) + 0.15; updateBuffs(); showMessage(translate('appearance_updated'), 'success'); }
+  else if (id === 'unlock_Old_Glob') {
+    if (TOWER_TYPES['Old_Glob']) TOWER_TYPES['Old_Glob'].unlocked = true;
+    if (TOWER_TYPES['Pyce_Glob']) TOWER_TYPES['Pyce_Glob'].unlocked = true;
+    showMessage("🩶 " + (currentLanguage === 'es' ? "TORRE ANCIANA DESBLOQUEADA!" : "ANCIENT GLOB TOWER UNLOCKED!"), 'success');
+  }
+  else if (id === 'unlock_Soap_Glob') {
+    if (TOWER_TYPES['Soap_Glob']) TOWER_TYPES['Soap_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'GLOB DE JABON DESBLOQUEADO!' : 'SOAP GLOB UNLOCKED!', 'success');
+  }
+  else if (id === 'unlock_Ducky_Glob') {
+    if (TOWER_TYPES['Ducky_Glob']) TOWER_TYPES['Ducky_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'DUCKY GLOB DESBLOQUEADO!' : 'DUCKY GLOB UNLOCKED!', 'success');
+  }
+  else if (id === 'unlock_Comet_Glob') {
+    if (TOWER_TYPES['Comet_Glob']) TOWER_TYPES['Comet_Glob'].unlocked = true;
+    showMessage("🖤 " + (currentLanguage === 'es' ? "TORRE COMETA DESBLOQUEADA!" : "COMET GLOB TOWER UNLOCKED!"), 'success');
+  }
+  else if (id === 'unlock_Sprout_Glob') {
+    if (TOWER_TYPES['Sprout_Glob']) TOWER_TYPES['Sprout_Glob'].unlocked = true;
+    showMessage("🎊 " + (currentLanguage === 'es' ? "SPROUT GLOB DESBLOQUEADO!" : "SPROUT GLOB UNLOCKED!"), 'success');
+  }
+  else if (id === 'unlock_Balloon_Glob') {
+    if (TOWER_TYPES['Balloon_Glob']) TOWER_TYPES['Balloon_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'BALLOON GLOB DESBLOQUEADO!' : 'BALLOON GLOB UNLOCKED!', 'success');
+  }
+  else if (id === 'unlock_Streamer_Glob') {
+    if (TOWER_TYPES['Streamer_Glob']) TOWER_TYPES['Streamer_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'STREAMER GLOB DESBLOQUEADO!' : 'STREAMER GLOB UNLOCKED!', 'success');
+  }
+  else if (id === 'unlock_Worker_Glob') {
+    if (TOWER_TYPES['Worker_Glob']) TOWER_TYPES['Worker_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'WORKER GLOB DESBLOQUEADO!' : 'WORKER GLOB UNLOCKED!', 'success');
+  }
+  else if (id === 'unlock_Bomb_Glob') {
+    if (TOWER_TYPES['Bomb_Glob']) TOWER_TYPES['Bomb_Glob'].unlocked = true;
+    showMessage(currentLanguage === 'es' ? 'BOMB GLOB DESBLOQUEADO!' : 'BOMB GLOB UNLOCKED!', 'success');
+  }
+  else if (id === 'unlock_Pirate_Glob') {
+    if (TOWER_TYPES['Pirate_Glob']) TOWER_TYPES['Pirate_Glob'].unlocked = true;
+    showMessage("🏴‍☠️ " + (currentLanguage === 'es' ? "PIRATE GLOB DESBLOQUEADO!" : "PIRATE GLOB UNLOCKED!"), 'success');
+  }
+  else if (id.startsWith('dg_')) {
+    gameState.duckgrades[id] = true;
+    showMessage("🦆 DUCKGRADE UNLOCKED!", 'success');
+    unlockBadge('duckgradeFirst');
+  }
+
+  checkTowerCombinationBadges();
+
+  updateMetaUI(); drawShop(); drawTowerShop(); saveProgress();
+  publishMultiplayerProfile();
+}
+
+function drawPass() {
+  const container = document.getElementById('pass-rewards');
+  if (!container) return; container.innerHTML = '';
+  
+  const isUrbanPass = gameState.duckPassLevel > 100;
+  container.className = `pass-timeline-container ${isUrbanPass ? 'urbanpass-theme' : 'duckpass-theme'}`;
+  
+  const title = document.getElementById('pass-title');
+  if (title) {
+     title.innerHTML = isUrbanPass ? `🏙️ Urban Pass` : `🦆 Duck Pass`;
+  }
+
+  [...SKINS_DATA['Global']].sort((a, b) => (a.level || 999) - (b.level || 999)).forEach((skin, index, arr) => {
+    // Check if this is the first Urban Pass item (level > 100)
+    const isNodeUrban = skin.level > 100;
+    const prevSkin = index > 0 ? arr[index - 1] : null;
+    if (isNodeUrban && (!prevSkin || prevSkin.level <= 100)) {
+      const sep = document.createElement('div');
+      sep.className = 'pass-separator';
+      sep.innerHTML = `<h2 style="color: ${isUrbanPass ? '#3498db' : '#777'}; text-align: center; margin: 20px 0;">🏙️ URBAN PASS 🏙️</h2>`;
+      if (!isUrbanPass) {
+        sep.innerHTML += `<p style="color: #ff4444; text-align: center; margin-bottom: 20px;">${currentLanguage === 'es' ? 'Solo se desbloquea completando el DuckPass (Nivel 100)' : 'Only unlocks by completing the DuckPass (Level 100)'}</p>`;
+      }
+      container.appendChild(sep);
+    }
+
+    const unlocked = skin.id === 'pyce_morph' ? (BADGES.encyclopediaMaster && BADGES.encyclopediaMaster.unlocked) : gameState.duckPassLevel >= skin.level;
+    const equipped = gameState.equippedSkins['Global'] === skin.id;
+    const el = document.createElement('div');
+    
+    let nodeClasses = `pass-node ${unlocked ? 'unlocked' : 'locked'}`;
+    if (isNodeUrban && !isUrbanPass) {
+      nodeClasses += ' urban-locked-grey';
+    }
+    el.className = nodeClasses;
+    
+    let btnHTML = "";
+    if (unlocked) {
+      if (equipped) {
+        btnHTML = `<button class="meta-buy-btn" style="background:#e74c3c;" onclick="equipSkin('Global', 'default')">${currentLanguage === 'es' ? 'Desequipar' : 'Unequip'}</button>`;
+      } else {
+        btnHTML = `<button class="meta-buy-btn equip" onclick="equipSkin('Global', '${skin.id}')">${translate('equip_btn')}</button>`;
+      }
+    } else {
+      if (skin.id === 'pyce_morph') {
+        btnHTML = `<button class="meta-buy-btn" disabled>${currentLanguage === 'es' ? 'Completa la Enciclopedia' : 'Complete the Encyclopedia'}</button>`;
+      } else {
+        btnHTML = `<button class="meta-buy-btn" disabled>${translate('req_level', { level: skin.level })}</button>`;
+      }
+    }
+
+    el.innerHTML = `
+      <div class="pass-level-badge">${skin.level ? 'LVL ' + skin.level : 'MAX'}</div>
+      <div class="pass-node-content">
+        <h3 style="font-size:1rem; margin-top:10px;">${translate(skin.name)}</h3>
+        <p style="font-size:0.8rem; color:#ccc; margin-bottom:10px;">${translate(skin.desc)}</p>
+      </div>
+      ${skin.buff && unlocked ? `<b style="color:#2ecc71;">${translate('active')}</b>` : btnHTML}`;
+    container.appendChild(el);
+  });
+
+  const profilePassHeading = document.createElement('div');
+  profilePassHeading.className = 'pass-separator';
+  profilePassHeading.innerHTML = `<h2 style="color:#79d6a0;text-align:center;margin:20px 0;">${currentLanguage === 'es' ? '👤 BORDES DE PERFIL' : '👤 PROFILE FRAMES'}</h2>`;
+  container.appendChild(profilePassHeading);
+  PROFILE_PASS_BORDERS.forEach(border => {
+    const unlocked = gameState.duckPassLevel >= border.level;
+    const el = document.createElement('div');
+    el.className = `pass-node ${unlocked ? 'unlocked' : 'locked'}`;
+    el.innerHTML = `
+      <div class="pass-level-badge">LVL ${border.level}</div>
+      <div class="pass-node-content">
+        <span class="profile-border-swatch" style="--profile-border-start:${border.colors[0]};--profile-border-end:${border.colors[1]};"></span>
+        <h3 style="font-size:1rem;margin-top:10px;">${currentLanguage === 'en' ? border.labelEn : border.label}</h3>
+        <p style="font-size:0.8rem;color:#ccc;margin-bottom:10px;">${currentLanguage === 'en' ? 'Profile frame unlocked at this Duck Pass level.' : 'Borde de perfil desbloqueado al alcanzar este nivel del Duck Pass.'}</p>
+      </div>
+      <b style="color:${unlocked ? '#2ecc71' : '#aaa'};">${unlocked ? (currentLanguage === 'en' ? 'UNLOCKED' : 'DESBLOQUEADO') : translate('req_level', { level: border.level })}</b>`;
+    container.appendChild(el);
+  });
+}
+
+function placeTower(spotId, type) {
+  if (gameState.mode === 'tutorial' && gameState.tutorialStage !== 'waves') {
+    const allowedTypes = {
+      place_green: ['Glob'],
+      place_red: ['Red_Glob'],
+      build: ['Glob', 'Red_Glob']
+    }[gameState.tutorialStage] || [];
+    if (!allowedTypes.includes(type)) {
+      showMessage(translate('tutorial_restriction'), 'warning');
+      return;
+    }
+  }
+  const tCfg = TOWER_TYPES[type];
+  const family = tCfg.family || type;
+  const currentCount = getFamilyCount(type);
+  const capacity = getTowerPlacementLimits(type);
+  const ownerId = multiplayerActionOwner || socket?.id || localStorage.getItem('glob_username') || 'Jugador';
+  if (multiplayerEnabled) {
+    const ownedCount = gameState.towers.filter(tower =>
+      (tower.family || tower.type) === family && tower.ownerId === ownerId
+    ).length;
+    if (ownedCount >= capacity.perPlayerLimit || currentCount >= capacity.sharedLimit) {
+      return showMessage(
+        translate('limit_reached', {
+          name: translate('tower_' + type + '_name'),
+          limit: Math.min(capacity.perPlayerLimit, Math.max(0, capacity.sharedLimit - currentCount))
+        }),
+        'error'
+      );
+    }
+  } else if (currentCount >= capacity.perPlayerLimit) {
+    return showMessage(
+      translate('limit_reached', {
+        name: translate('tower_' + type + '_name'),
+        limit: capacity.perPlayerLimit
+      }),
+      'error'
+    );
+  }
+
+  const spot = gameState.towerSpots[spotId];
+  let discount = 0;
+  gameState.towers.forEach(auraTower => {
+    if (auraTower.family === 'Pink') {
+      if (Math.hypot(spot.x - auraTower.x, spot.y - auraTower.y) <= auraTower.range) {
+        const d = auraTower.type === 'Youtuber_Glob' ? 0.3 : (auraTower.type === 'Gamer_Glob' ? 0.2 : 0.1);
+        discount = Math.max(discount, d);
+      }
+    }
+  });
+  const cost = Math.floor(tCfg.cost * (1 - discount));
+  if (gameState.globetines < cost) return showMessage(translate('notEnoughMoney'), 'error');
+
+  const el = document.createElement('div');
+  const towerFamily = tCfg.family || type;
+  const idleClass = getTowerIdleClass(type);
+  el.className = `tower ${idleClass}`; el.style.left = `${spot.x}px`; el.style.top = `${spot.y}px`;
+  el.style.setProperty('--idle-delay', `${-(Math.random() * 1.5).toFixed(2)}s`);
+  el.style.backgroundImage = `url('${encodeURI(getTowerImage(type))}')`;
+  // Fallback: si la imagen falla, usar color de fondo visible
+  el.onerror = function () { el.style.backgroundColor = '#9b59b6'; el.style.backgroundImage = 'none'; };
+  applyTowerEffects(el, type);
+  document.getElementById('map').appendChild(el);
+
+  const tower = { ...tCfg, type, x: spot.x, y: spot.y, el, cooldown: 0, spotId, ownerId, stunned: 0, moneyTimer: 0, teammateBonusTimer: 0 };
+  tower.damage *= gameState.towerBuffs.damage;
+  tower.range += gameState.towerBuffs.range;
+  tower.speed *= gameState.towerBuffs.speed;
+
+  el.onclick = (e) => { e.stopPropagation(); selectTower(tower); };
+  gameState.towers.push(tower);
+  if (tower.isSummoner) {
+    spawnBoat(tower);
+    tower.summonCooldown = { Boat_S1: 3.5, Boat_S2: 3, Boat_S3: 2.5, Boat_S4: 2 }[tower.summonType] || 3;
+  }
+  checkTowerCombinationBadges();
+  gameState.globetines -= cost;
+  gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
+  gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
+  gameState.globsPlaced[type] = (gameState.globsPlaced[type] || 0) + 1;
+  spot.occupied = true;
+  if (gameState.mode === 'tutorial') {
+    if (gameState.tutorialStage === 'place_green') {
+      gameState.tutorialFocusSpotId = spotId;
+      setTutorialStage('select_green');
+    } else if (gameState.tutorialStage === 'place_red') {
+      setTutorialStage('families');
+    } else if (gameState.tutorialStage === 'build') {
+      updateTutorialArmyProgress();
+    }
+  }
+  if (!tCfg.evolution && !gameState.maxedFamilies.includes(family)) {
+    gameState.maxedFamilies.push(family);
+    publishMultiplayerProfile();
+  }
+
+  recalculateAuras();
+  if (typeof checkEncyclopediaMaster === 'function') checkEncyclopediaMaster();
+  updateUI(); drawTowerShop();
+  updateAllTowerRanges();
+  sendMultiplayerAction({ type: 'place-tower', spotId, towerType: type });
+}
+
+function selectTower(t) {
+  if (gameState.mode === 'tutorial' &&
+      gameState.tutorialStage === 'select_green' &&
+      t.spotId === gameState.tutorialFocusSpotId) {
+    setTutorialStage('evolve_green');
+  }
+  gameState.selectedTower = t;
+  const panel = document.getElementById('evolve-panel');
+  panel.style.display = 'flex';
+
+  panel.classList.remove('buff-white', 'buff-pink', 'buff-both');
+  if (t.hasWhiteBuff && t.hasPinkBuff) panel.classList.add('buff-both');
+  else if (t.hasWhiteBuff) panel.classList.add('buff-white');
+  else if (t.hasPinkBuff) panel.classList.add('buff-pink');
+
+  document.getElementById('tower-name').textContent = getTowerName(t);
+  // Truncate description: strip HTML tags and limit to 90 chars
+  const rawDesc = translate(t.desc) || '';
+  const plainDesc = rawDesc.replace(/<[^>]*>/g, '').trim();
+  const shortDesc = plainDesc.length > 90 ? plainDesc.substring(0, 90) + '...' : plainDesc;
+  document.getElementById('tower-desc').textContent = shortDesc;
+  updateEvolveButtons(t);
+  drawRangePreview(t.x, t.y, t.range);
+
+  requestAnimationFrame(() => {
+    let leftPos = t.x - 140;
+    if (leftPos < 10) leftPos = 10;
+    if (leftPos + 280 > 950) leftPos = 950 - 280;
+    panel.style.left = `${leftPos}px`;
+
+    if (t.y < 300) {
+      panel.style.top = `${t.y + 50}px`;
+    } else {
+      panel.style.top = `${t.y - panel.offsetHeight - 50}px`;
+    }
+  });
+}
+
+function getGTackName(family) {
+  switch (family) {
+    case 'Glob': return 'Frenesí ⚡';
+    case 'Red_Glob': return 'Sobrecarga 🔥';
+    case 'Soap_Glob': return 'Impacto Relámpago ⚡';
+    case 'Ducky_Glob': return 'Lluvia Financiera 💰';
+    case 'Comet_Glob': return 'Contagio 💀';
+    case 'Grey': return 'Ampliación 📡';
+    case 'IEx': return 'Detonación 💥';
+    case 'Worker_Glob': return 'Actividad Policial 🚨';
+    case 'Pirate_Glob': return 'Bombardeo Glob 💣';
+    case 'White': return 'Apoyo Blanco 🛡️';
+    case 'Pink': return 'Compensación Rosa 🌸';
+    default: return 'G-Táctica';
+  }
+}
+
+function activateGTack(t) {
+  const cost = t.family === 'Ducky_Glob' ? 500 : 400;
+  if (gameState.globetines < cost) return;
+  if (t.gTackCooldown && t.gTackCooldown > 0) return;
+
+  gameState.globetines -= cost;
+  gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
+  t.gTackCooldown = 30;
+
+  updateUI();
+  updateEvolveButtons(t);
+
+  if (t.family === 'Glob') {
+    t.frenzyShots = 10;
+    t.cooldown = 0;
+    showEffect(t.x, t.y - 25, "FRENZIED! ⚡", "#2ecc71");
+  } else if (t.family === 'Red_Glob') {
+    t.toxicTimer = 6;
+    showEffect(t.x, t.y - 25, "OVERCHARGED! 🔥", "#e74c3c");
+    gameState.usedGTackRed = true;
+  } else if (t.family === 'Soap_Glob') {
+    t.stunStrikeActive = true;
+    showEffect(t.x, t.y - 25, "STUN STRIKE! ⚡", "#3498db");
+  } else if (t.family === 'Ducky_Glob') {
+    const earnedPy = Math.round(15 * getPycoinMultiplier());
+    const earnedDp = Math.round(3 * getDuckpassMultiplier());
+    gameState.pycoins += earnedPy;
+    gameState.duckPassCurrency += earnedDp;
+    updateMetaUI();
+    saveProgress();
+    showEffect(t.x, t.y - 25, `+${earnedPy} 💎 +${earnedDp} 🦆`, "#f1c40f");
+    showMessage(`¡Lluvia Financiera! Recibiste ${earnedPy} PyCoins y ${earnedDp} DuckPasses`, 'success');
+  } else if (t.family === 'Comet_Glob') {
+    t.contagioTimer = 8;
+    showEffect(t.x, t.y - 25, "CONTAGIO! 💀", "#9b59b6");
+  } else if (t.family === 'Grey') {
+    gameState.globalRangeBuffTimer = 10;
+    updateBuffs();
+    showEffect(t.x, t.y - 25, "RADAR AMPLIFIED! 📡", "#95a5a6");
+    gameState.usedGTackGrey = true;
+  } else if (t.family === 'IEx') {
+    const iexTowers = gameState.towers.filter(tower => tower.family === 'IEx');
+    if (iexTowers.length > 1 || gameState.towers.some(tower => tower.family === 'Red_Glob')) {
+      unlockBadge('chain_reaction');
+    }
+    gameState.towers.forEach(iex => {
+      if (iex.family === 'IEx') {
+        iex.forceExplode = true;
+      }
+    });
+    gameState.towers.forEach(otherTower => {
+      if (otherTower.family !== 'IEx' && Math.hypot(otherTower.x - t.x, otherTower.y - t.y) <= t.range * 2) {
+        otherTower.iexBuffTimer = 5;
+      }
+    });
+    showEffect(t.x, t.y - 25, "CHAIN DETONATION! 💥", "#ff4444");
+  } else if (t.family === 'Worker_Glob') {
+    gameState.towers.forEach(wt => {
+      if (wt.family === 'Worker_Glob') {
+        wt.trapSpeedBuffTimer = 10;
+      }
+    });
+    showEffect(t.x, t.y - 25, "POLICE ACTIVITY! 🚨", "#3498db");
+  } else if (t.family === 'Pirate_Glob') {
+    t.marineGtackTimer = 10;
+    showEffect(t.x, t.y - 25, "GLOB BOMBARDMENT! 💣", "#2ecc71");
+  } else if (t.family === 'White') {
+    gameState.towers.forEach(otherTower => {
+      if ((otherTower.family === 'Worker_Glob' || otherTower.family === 'Soap_Glob') &&
+          Math.hypot(otherTower.x - t.x, otherTower.y - t.y) <= t.range) {
+        otherTower.whiteSupportTimer = 10;
+      }
+    });
+    showEffect(t.x, t.y - 25, "SUPPORT DEPLOYED! 🛡️", "#ecf0f1");
+  } else if (t.family === 'Pink') {
+    gameState.towers.forEach(otherTower => {
+      if (otherTower !== t && Math.hypot(otherTower.x - t.x, otherTower.y - t.y) <= t.range) {
+        otherTower.pinkGtackTimer = 10;
+      }
+    });
+    showEffect(t.x, t.y - 25, "COOLDOWN SHIFT! 🌸", "#ff69b4");
+  } else if (t.family === 'Brown') {
+    gameState.towers.forEach(otherTower => {
+        if (Math.hypot(otherTower.x - t.x, otherTower.y - t.y) <= (t.range || 100) * 1.5) {
+          otherTower.brownBuffTimer = 8;
+        }
+      });
+      showEffect(t.x, t.y - 25, "BLOOMING! 🌸", "#ff69b4");
+    }
+
+    if (gameState.usedGTackRed && gameState.usedGTackGrey) {
+      unlockBadge('supremeAlliance');
+    }
+  }
+
+  function updateEvolveButtons(t) {
+    const container = document.getElementById('evolve-options');
+    if (container) {
+      container.innerHTML = '';
+      const next = TOWER_TYPES[t.evolution];
+      if (next) {
+        const btn = document.createElement('button');
+        btn.className = 'evolve-btn';
+        const cost = Math.floor(next.cost * (1 - (t.pinkDiscount || 0)));
+        if (gameState.globetines < cost) btn.disabled = true;
+        const nextName = getTowerName({ ...next, type: t.evolution, family: t.family });
+        btn.innerHTML = `${translate('evolve_to', { name: nextName })} <div class="cost-tag"><img src="Recursos/img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
+        btn.onclick = () => evolveTower(t, t.evolution, cost);
+        container.appendChild(btn);
+      } else {
+        const familyKey = t.family === 'Grey' ? 'Old_Glob' : t.family;
+        const hasGTackUnlocked = gameState.gtacks[familyKey];
+
+        const evolveTitle = document.querySelector('#evolve-panel h3');
+        if (evolveTitle) evolveTitle.textContent = hasGTackUnlocked ? 'G-Tack (Habilidad)' : translate('max_reached');
+
+        if (hasGTackUnlocked) {
+          const btn = document.createElement('button');
+          btn.className = 'evolve-btn gtack-btn';
+          const cost = t.family === 'Ducky_Glob' ? 500 : 400;
+          const onCd = t.gTackCooldown && t.gTackCooldown > 0;
+          if (gameState.globetines < cost || onCd) btn.disabled = true;
+
+          let label = `G-TACK: ${getGTackName(t.family)}`;
+          if (onCd) {
+            label += ` (${Math.ceil(t.gTackCooldown)}s)`;
+          }
+          btn.innerHTML = `${label} <div class="cost-tag"><img src="Recursos/img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
+          btn.onclick = () => activateGTack(t);
+          container.appendChild(btn);
+        } else {
+          const el = document.createElement('div');
+          el.className = 'gtack-locked';
+          el.style.textAlign = 'center';
+          el.style.color = '#ffd700';
+          el.style.fontWeight = 'bold';
+          el.textContent = translate('max_reached');
+          container.appendChild(el);
+        }
+      }
+    }
+    const sellBtn = document.getElementById('sell-tower-btn');
+    if (sellBtn) {
+      const cost = Math.floor(t.cost * 0.7);
+      sellBtn.innerHTML = `${translate('sell_tower')} <div class="cost-tag"><img src="Recursos/img/Tokens/Globetin.png" width="14"> ${cost}</div>`;
+      sellBtn.onclick = () => sellTower(t);
+    }
+
+    requestAnimationFrame(() => {
+      const panel = document.getElementById('evolve-panel');
+      if (panel && panel.style.display !== 'none' && gameState.selectedTower === t) {
+        let leftPos = t.x - 140;
+        if (leftPos < 10) leftPos = 10;
+        if (leftPos + 280 > 950) leftPos = 950 - 280;
+        panel.style.left = `${leftPos}px`;
+
+        if (t.y < 300) {
+          panel.style.top = `${t.y + 50}px`;
+        } else {
+          panel.style.top = `${t.y - panel.offsetHeight - 50}px`;
+        }
+      }
+    });
+  }
+
+  function evolveTower(tower, nextType, costOverride = null) {
+    const next = TOWER_TYPES[nextType];
+    if (gameState.mode === 'tutorial' &&
+        gameState.tutorialStage !== 'waves' &&
+        (gameState.tutorialStage !== 'evolve_green' ||
+         tower.spotId !== gameState.tutorialFocusSpotId ||
+         nextType !== 'Poop_Glob')) {
+      showMessage(translate('tutorial_restriction'), 'warning');
+      return;
+    }
+    const cost = costOverride !== null ? costOverride : next.cost;
+    if (gameState.globetines < cost) return;
+    gameState.globetines -= cost;
+    gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
+    if (tower.type !== nextType) { gameState.towerCounts[tower.type]--; gameState.towerCounts[nextType] = (gameState.towerCounts[nextType] || 0) + 1; }
+    tower.type = nextType;
+    tower.evolution = next.evolution;
+    Object.assign(tower, next);
+    tower.damage *= gameState.towerBuffs.damage; tower.range += gameState.towerBuffs.range; tower.speed *= gameState.towerBuffs.speed;
+    tower.el.style.backgroundImage = `url('${encodeURI(getTowerImage(nextType))}')`; applyTowerEffects(tower.el, nextType);
+    if (!next.evolution) {
+      unlockBadge('evolution');
+      if (!gameState.maxedFamilies.includes(tower.family)) {
+        gameState.maxedFamilies.push(tower.family);
+        publishMultiplayerProfile();
+      }
+    }
+    if (gameState.mode === 'tutorial' && gameState.tutorialStage === 'evolve_green') {
+      setTutorialStage('sell_green');
+    }
+
+    checkTowerCombinationBadges();
+    recalculateAuras();
+    if (typeof checkEncyclopediaMaster === 'function') checkEncyclopediaMaster();
+    updateAllTowerRanges();
+    selectTower(tower); updateUI(); drawTowerShop();
+    sendMultiplayerAction({ type: 'evolve-tower', spotId: tower.spotId, towerType: nextType, cost });
+  }
+
+  function upgradeAllAffordableTowers() {
+    let upgradedCount = 0;
+
+    while (true) {
+      const candidates = gameState.towers
+        .filter(tower => tower.evolution && TOWER_TYPES[tower.evolution])
+        .sort((a, b) => getTowerEvolutionLevel(b.type) - getTowerEvolutionLevel(a.type));
+      const tower = candidates.find(candidate => {
+        const next = TOWER_TYPES[candidate.evolution];
+        const cost = Math.floor(next.cost * (1 - (candidate.pinkDiscount || 0)));
+        return Number.isFinite(cost) && cost >= 0 && gameState.globetines >= cost;
+      });
+      if (!tower) break;
+
+      const nextType = tower.evolution;
+      const cost = Math.floor(TOWER_TYPES[nextType].cost * (1 - (tower.pinkDiscount || 0)));
+      const previousBalance = gameState.globetines;
+      evolveTower(tower, nextType, cost);
+      if (tower.type !== nextType || gameState.globetines >= previousBalance) break;
+      upgradedCount++;
+    }
+
+    showMessage(
+      upgradedCount
+        ? (currentLanguage === 'es'
+          ? `⬆️ ${upgradedCount} ${upgradedCount === 1 ? 'torre evolucionada' : 'torres evolucionadas'} con tus Globetines.`
+          : `⬆️ ${upgradedCount} ${upgradedCount === 1 ? 'tower evolved' : 'towers evolved'} with your Globetines.`)
+        : (currentLanguage === 'es'
+          ? 'No hay evoluciones disponibles con tus Globetines.'
+          : 'No evolutions are available with your current Globetines.'),
+      upgradedCount ? 'success' : 'info'
+    );
+  }
+
+  function sellSelectedTowerFamily() {
+    const selectedTower = gameState.selectedTower;
+    if (!selectedTower || !gameState.towers.includes(selectedTower)) {
+      showMessage(
+        currentLanguage === 'es'
+          ? 'Selecciona una torre de la familia que quieras vender.'
+          : 'Select a tower from the family you want to sell.',
+        'info'
+      );
+      return;
+    }
+
+    const family = selectedTower.family;
+    const familyTowers = gameState.towers.filter(tower => tower.family === family);
+    const refund = familyTowers.reduce((total, tower) => total + Math.floor(tower.cost * 0.7), 0);
+    familyTowers.forEach(sellTower);
+    showMessage(
+      currentLanguage === 'es'
+        ? `🪙 Vendiste ${familyTowers.length} ${familyTowers.length === 1 ? 'torre' : 'torres'} de la familia por ${refund} Globetines.`
+        : `🪙 Sold ${familyTowers.length} ${familyTowers.length === 1 ? 'tower' : 'towers'} from the family for ${refund} Globetines.`,
+      'success'
+    );
+  }
+
+  function sellTower(tower) {
+    if (gameState.mode === 'tutorial' &&
+        gameState.tutorialStage !== 'waves' &&
+        (gameState.tutorialStage !== 'sell_green' ||
+         tower.spotId !== gameState.tutorialFocusSpotId)) {
+      showMessage(translate('tutorial_restriction'), 'warning');
+      return;
+    }
+    const wasTutorialGreen = gameState.mode === 'tutorial' &&
+      gameState.tutorialStage === 'sell_green' &&
+      tower.spotId === gameState.tutorialFocusSpotId;
+    gameState.globetines += Math.floor(tower.cost * 0.7);
+    // Badge: mimicRevenge (Traición) - sell a max level tower
+    const tCfg = TOWER_TYPES[tower.type];
+    if (tCfg && !tCfg.evolution) {
+      unlockBadge('mimicRevenge');
+    }
+    tower.el.remove();
+    if (tower.rangeEl) tower.rangeEl.remove();
+    gameState.towerCounts[tower.type]--;
+    gameState.towerSpots[tower.spotId].occupied = false;
+    gameState.towers.splice(gameState.towers.indexOf(tower), 1);
+    if (gameState.moneySpentThisGame > 40000 && gameState.towers.length === 0) {
+      unlockBadge('globiscal_debt');
+    }
+    checkTowerCombinationBadges();
+    recalculateAuras();
+    if (wasTutorialGreen) {
+      gameState.tutorialFocusSpotId = null;
+      setTutorialStage('place_red');
+    }
+    deselectTower(); updateUI(); drawTowerShop();
+    sendMultiplayerAction({ type: 'sell-tower', spotId: tower.spotId });
+  }
+
+  function deselectTower() { gameState.selectedTower = null; document.getElementById('evolve-panel').style.display = 'none'; const p = document.getElementById('range-preview'); if (p) p.remove(); }
+
+  function recalculateAuras() {
+    gameState.towers.forEach(t => {
+      const tCfg = TOWER_TYPES[t.type];
+      t.damage = tCfg.damage * gameState.towerBuffs.damage;
+      t.range = tCfg.range + gameState.towerBuffs.range;
+      t.speed = tCfg.speed * gameState.towerBuffs.speed;
+      t.hasWhiteBuff = false;
+      t.hasPinkBuff = false;
+      t.pinkDiscount = 0;
+      t.bestWhiteAura = { rangeInc: 0, speedDec: 1 };
+      t.bestPinkAura = { dmgDec: 1, discount: 0 };
+    });
+
+    gameState.towers.forEach(auraTower => {
+      if (auraTower.family === 'White') {
+        const buffRange = auraTower.range * (gameState.duckgrades.dg_White ? 1.25 : 1);
+        const rangeInc = auraTower.type === 'Alien_Glob' ? 60 : (auraTower.type === 'Heliglob' ? 40 : 20);
+        const speedDec = auraTower.type === 'Alien_Glob' ? 0.7 : (auraTower.type === 'Heliglob' ? 0.8 : 0.9);
+
+        gameState.towers.forEach(t => {
+          if (t !== auraTower && Math.hypot(t.x - auraTower.x, t.y - auraTower.y) <= buffRange) {
+            t.hasWhiteBuff = true;
+            if (rangeInc > t.bestWhiteAura.rangeInc) {
+              t.bestWhiteAura.rangeInc = rangeInc;
+              t.bestWhiteAura.speedDec = speedDec;
+            }
+          }
+        });
+      } else if (auraTower.family === 'Pink') {
+        const buffRange = auraTower.range;
+        const discount = auraTower.type === 'Youtuber_Glob' ? 0.3 : (auraTower.type === 'Gamer_Glob' ? 0.2 : 0.1);
+        const dmgDec = auraTower.type === 'Youtuber_Glob' ? 0.7 : (auraTower.type === 'Gamer_Glob' ? 0.8 : 0.9);
+
+        gameState.towers.forEach(t => {
+          if (t !== auraTower && Math.hypot(t.x - auraTower.x, t.y - auraTower.y) <= buffRange) {
+            t.hasPinkBuff = true;
+            t.pinkDiscount = Math.max(t.pinkDiscount, discount);
+            const compensatedDmgDec = gameState.duckgrades.dg_Pink ? Math.min(1, dmgDec + 0.1) : dmgDec;
+            if (compensatedDmgDec < t.bestPinkAura.dmgDec) {
+              t.bestPinkAura.dmgDec = compensatedDmgDec;
+            }
+          }
+        });
+      }
+    });
+
+    gameState.towers.forEach(t => {
+      if (t.hasWhiteBuff) {
+        t.range += t.bestWhiteAura.rangeInc;
+        t.speed *= t.bestWhiteAura.speedDec;
+      }
+      if (t.hasPinkBuff) {
+        t.damage *= t.bestPinkAura.dmgDec;
+      }
+    });
+
+    if (gameState.selectedTower) {
+      selectTower(gameState.selectedTower);
+    }
+  }
+
+  function getInfiniteWavePlan(mapKey, wave) {
+    const mapPools = {
+      gelatin_lake: {
+        enemies: ['Stupid_Pyce', 'Pyce2', 'Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', 'Stupid_GoldPyce'],
+        bosses: ['1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce']
+      },
+      urbanistic_road: {
+        enemies: ['BitY1', 'BitG2', 'BitP3', 'BitB4', 'HoloPyce', 'Rebel_Pyce', 'Strechy_Pyce', 'Bomb_Pyce', 'Fireflies', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4', 'Cannon_Pycer', 'Knight_Pyce', 'Spyware1', 'Spyware2', 'Spyware3', 'Stupid_GoldPyce'],
+        bosses: ['Arky', 'ArkyVoid', 'CrystArky', 'NOeye_Pyce', 'MoonStar_Pyce']
+      },
+      sunlight_seaside: {
+        enemies: ['Piz', 'Baby_Shrum', 'Ren', 'Pysh', 'Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Clown_Pysh', 'Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers', 'Creamplet', 'Umbrella_Pyce', 'Stupid_GoldPyce'],
+        bosses: ['PhantKeeper', 'GlitchKeeper', 'DarkSpirit', 'Old_Fungus', 'NOeye_Pyce', 'MoonStar_Pyce']
+      },
+      spooktacular_ruins: {
+        enemies: ['Broksp', 'Blood_Taker', 'Pumpitch', 'RIPslide', 'Sneekmy', 'SkeleBone_Pyce', 'Ghost_Pyce', 'ZomPyce'],
+        bosses: ['Curse_Boneker']
+      },
+      frosty_christmas: {
+        enemies: ['Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce', 'Creamplet', 'Bomb_Pyce', 'Cannon_Pycer'],
+        bosses: []
+      }
+    };
+    const plan = mapPools[mapKey] || mapPools.gelatin_lake;
+    const availableEnemies = plan.enemies.filter(type => ENEMY_TYPES[type] && !ENEMY_TYPES[type].boss);
+    const availableBosses = plan.bosses.filter(type => ENEMY_TYPES[type] && ENEMY_TYPES[type].boss);
+    const maxProgressionWave = 40;
+    const isBossWave = wave > maxProgressionWave && (wave - maxProgressionWave) % 30 === 0;
+    const bossCycle = Math.floor((wave - maxProgressionWave) / 30);
+    const bossCount = isBossWave ? Math.min(4, Math.max(1, bossCycle)) : 0;
+    const enemiesPerWave = 6 + Math.floor(wave * 0.08);
+    const spawnList = [];
+
+    for (let i = 0; i < enemiesPerWave; i++) {
+      const progress = Math.min(1, wave / maxProgressionWave);
+      const poolStart = Math.floor(progress * Math.max(0, availableEnemies.length - 5));
+      const pool = availableEnemies.slice(0, Math.min(availableEnemies.length, poolStart + 5));
+      spawnList.push(pool[Math.floor(Math.random() * pool.length)] || availableEnemies[0]);
+    }
+
+    const bossesToSpawn = [];
+    if (isBossWave && availableBosses.length > 0) {
+      const shuffledBosses = [...availableBosses].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < bossCount; i++) {
+        bossesToSpawn.push(shuffledBosses[i % shuffledBosses.length]);
+      }
+      spawnList.unshift(...bossesToSpawn);
+    }
+    return { spawnList, bossesToSpawn, isBossWave };
+  }
+
+  function showInfiniteCompletionDucky() {
+    if (document.getElementById('infinite-completion-ducky')) return;
+    const map = document.getElementById('map');
+    if (!map) return;
+    const ducky = document.createElement('div');
+    ducky.id = 'infinite-completion-ducky';
+    ducky.title = currentLanguage === 'es' ? '¡Has alcanzado la oleada 999!' : 'You reached wave 999!';
+    ducky.style.cssText = "position:absolute;left:50%;top:50%;width:110px;height:110px;transform:translate(-50%,-50%);background:url('" + encodeURI(IMAGE_PATHS.Ducky_Glob) + "') center/contain no-repeat;z-index:40;filter:drop-shadow(0 0 12px #ffd700);animation:idle-jump 1.8s ease-in-out infinite;pointer-events:none;";
+    map.appendChild(ducky);
+    showMessage(currentLanguage === 'es' ? '🦆 ¡Ducky Glob ha aparecido! Has superado el Infinito.' : '🦆 Ducky Glob has appeared! You conquered Endless.', 'success');
+  }
+
+  let waveSpawnInterval = null;
+
+  function stopWaveSpawnInterval() {
+    if (waveSpawnInterval !== null) {
+      clearInterval(waveSpawnInterval);
+      waveSpawnInterval = null;
+    }
+  }
+
+  function startWaveSpawnInterval() {
+    stopWaveSpawnInterval();
+    if (!gameState.waveSpawnQueue?.length ||
+        gameState.waveSpawnIndex >= gameState.waveSpawnQueue.length) {
+      gameState.spawningActive = false;
+      return;
+    }
+    const spawnInterval = Math.max(100, Number(gameState.waveSpawnIntervalMs) || 500);
+    waveSpawnInterval = setInterval(() => {
+      if (gameState.paused) return;
+      if (gameState.gameOver || !gameState.waveActive) {
+        stopWaveSpawnInterval();
+        gameState.spawningActive = false;
+        return;
+      }
+      const spawned = gameState.waveSpawnIndex;
+      const type = gameState.waveSpawnQueue[spawned];
+      if (!type) {
+        stopWaveSpawnInterval();
+        gameState.spawningActive = false;
+        return;
+      }
+      const isThisBoss = gameState.waveSpawnIsBoss &&
+        gameState.waveBossTypes.includes(type) &&
+        spawned < gameState.waveBossTypes.length;
+      const acrossTimePath = gameState.mode === 'acrossTheTime' &&
+        gameState.acrossTheTimeSpace === 2
+        ? [...ENEMY_PATHS[Math.floor(Math.random() * ENEMY_PATHS.length)]].reverse()
+        : null;
+      spawnEnemy(type, isThisBoss, acrossTimePath);
+      gameState.waveSpawnIndex++;
+      if (gameState.waveSpawnIndex >= gameState.waveSpawnQueue.length) {
+        stopWaveSpawnInterval();
+        gameState.spawningActive = false;
+      }
+    }, spawnInterval);
+  }
+
+  // Devuelve el narrador que amenaza en Corrupto según el MAPA (cada mapa
+  // tiene su propio jefe corrupto; MoonStar solo gobierna Gelatin Lake).
+  // phase: 'wave1' (amenaza inicial) | 'intercept' (corte 10 oleadas antes).
+  function getCorruptBossTaunt(map, phase = 'wave1') {
+    const es = currentLanguage === 'es';
+    const T = {
+      gelatin_lake: {
+        speaker: 'moonstar', img: NARRATOR_DATA.moonstar.img, name: NARRATOR_DATA.moonstar[currentLanguage].name,
+        wave1: es ? 'Aún estás a tiempo de huir...' : 'You still have time to flee...',
+        intercept: NARRATOR_DATA.moonstar[currentLanguage].intercept
+      },
+      urbanistic_road: {
+        speaker: 'crystarky', img: NARRATOR_DATA.crystarky?.img || IMAGE_PATHS.ArkyVoid, name: NARRATOR_DATA.crystarky?.[currentLanguage]?.name || 'ArkyVoid',
+        wave1: es ? 'La red ya es mía. Tu derrota está calculada.' : 'The network is already mine. Your defeat is calculated.',
+        intercept: es ? 'Conexión interceptada. No hay salida del sistema.' : 'Connection intercepted. There is no way out of the system.'
+      },
+      sunlight_seaside: {
+        speaker: 'glitchkeeper', img: IMAGE_PATHS.GlitchKeeper, name: 'GlitchKeeper',
+        wave1: es ? 'Estas aguas se tragarán a tus Globs, uno a uno.' : 'These waters will swallow your Globs, one by one.',
+        intercept: es ? 'La marea corrupta ya no se detiene. Ríndete.' : 'The corrupt tide no longer stops. Surrender.'
+      },
+      spooktacular_ruins: {
+        speaker: 'boneker', img: IMAGE_PATHS.Curse_Boneker, name: 'Curse Boneker',
+        wave1: es ? 'La arena esconde huesos... pronto los tuyos.' : 'The sand hides bones... soon yours.',
+        intercept: es ? 'El desierto maldito reclama lo que es suyo.' : 'The cursed desert claims what is its own.'
+      }
+    };
+    const entry = T[map] || T.gelatin_lake;
+    return {
+      speaker: entry.speaker,
+      img: entry.img,
+      name: entry.name,
+      text: entry[phase] || entry.wave1,
+      variant: ''
+    };
+  }
+
+  function startWave() {
+    console.log("🔥 startWave() iniciada");
+    console.log("waveActive:", gameState.waveActive);
+    console.log("gameOver:", gameState.gameOver);
+    console.log("mode:", gameState.mode);
+    console.log("maxWaves:", gameState.maxWaves);
+
+    if (gameState.mode === 'acrossTheTime') {
+      startAcrossTimeWave();
+      return;
+    }
+    if (gameState.mode === 'tutorial' && gameState.tutorialStage !== 'waves') {
+      showMessage(translate('tutorial_restriction'), 'warning');
+      return;
+    }
+    if (gameState.waveActive || gameState.gameOver || gameState.paused) return;
+
+    let maxWaves = gameState.maxWaves || 20;
+    if (gameState.mode === 'pesadilla') maxWaves = 50;
+    if (gameState.mode === 'infinito' && (gameState.infiniteCompleted || gameState.wave >= 999)) {
+      gameState.infiniteCompleted = true;
+      gameState.autoWave = false;
+      showInfiniteCompletionDucky();
+      updateUI();
+      return;
+    }
+
+    if (gameState.mode !== 'infinito' && gameState.wave >= maxWaves) return typeof endGame === 'function' && endGame(true);
+
+    gameState.waveActive = true;
+    gameState.spawningActive = true;
+    gameState.wave = (gameState.wave || 0) + 1;
+    sendMultiplayerAction({ type: 'start-wave' });
+    gameState.roundKills = [];
+    gameState.roundIExExplosions = 0;
+    if (roundCheckpointInterval === null && (!currentSeed || isSeedHost)) {
+      roundCheckpointInterval = setInterval(checkpointActiveRound, 5000);
+    }
+
+    if (gameState.blockQuestPending && gameState.wave >= Math.ceil(maxWaves / 2)) {
+      gameState.blockQuestPending = false;
+      setTimeout(startBlockQuest, 500);
+    }
+    if (gameState.mode === 'interstellar' && gameState.interstellarParacristalQuest && gameState.wave === 1) {
+      startParacristalDimension();
+    }
+
+    if (gameState.mode === 'interstellar' && gameState.wave === 26) {
+      showMessage("¡Transición detectada! Reubicando al equipo...", 'warning');
+      gameState.map = 'urbanistic_road';
+
+      let refund = 0;
+      gameState.towers.forEach(t => {
+        const tCost = (TOWER_TYPES[t.type] && TOWER_TYPES[t.type].cost) ? TOWER_TYPES[t.type].cost : 0;
+        refund += Math.floor(tCost * 0.60);
+        t.el.remove();
+        if (t.rangeEl) t.rangeEl.remove();
+      });
+      gameState.towers = [];
+      gameState.towerCounts = {};
+      gameState.globsPlaced = {};
+      gameState.towerSpots.forEach(s => s.occupied = false);
+      gameState.globetines += refund;
+      showMessage("+" + refund + " Globetines recuperados.", 'success');
+
+      generateSpots();
+      createMap();
+    }
+
+    if (gameState.wave === 1) {
+      if ((gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') && (gameState.map || mapKey) === 'frosty_christmas') {
+        // Frosty Christmas: NOeye es el guía aliado (en vez de Work-Bombot), y
+        // el jefe fantasma (NOsense/NOIRrupt) lanza su amenaza inicial.
+        setTimeout(() => {
+          const guide = currentLanguage === 'es'
+            ? 'No somos amigos. Pero este ser desprecia la navidad tanto como yo lo desprecio a él. Ayúdame a acabar con él de una vez.'
+            : "We are not friends. But this creature despises Christmas as much as I despise it. Help me end it once and for all.";
+          showNarratorMsg('noeye', NARRATOR_DATA.noeye.img, NARRATOR_DATA.noeye[currentLanguage].name, guide, 'enemy-voice');
+        }, 7000);
+        setTimeout(() => {
+          if (gameState.mode === 'corrupto') {
+            const txt = currentLanguage === 'es'
+              ? 'La navidad que me creó... arderá. Y tú con ella.'
+              : 'The Christmas that created me... will burn. And you with it.';
+            showNarratorMsg('nosense', NARRATOR_DATA.nosense.img, NARRATOR_DATA.nosense[currentLanguage].name, txt);
+          } else if (gameState.mode === 'antiNormal') {
+            const txt = currentLanguage === 'es'
+              ? 'El odio no es la respuesta... es el final. NOeye lo entenderá cuando acabe con él.'
+              : 'Hatred is not the answer... it is the end. NOeye will understand when I finish him.';
+            showNarratorMsg('noirrupt', NARRATOR_DATA.noirrupt.img, NARRATOR_DATA.noirrupt[currentLanguage].name, txt);
+          }
+        }, 14000);
+      } else if (gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') {
+        setTimeout(() => {
+          const d = NARRATOR_DATA.bombot[currentLanguage].modes[gameState.mode];
+          if (d) showNarratorMsg('bombot', NARRATOR_DATA.bombot.img, NARRATOR_DATA.bombot[currentLanguage].name, d);
+        }, 7000);
+
+        // Boss taunt at wave 1, but doesn't cut connection yet.
+        // El que amenaza depende del JEFE CORRUPTO de ESTE mapa (antes salía
+        // MoonStar en todos, pero MoonStar solo gobierna Gelatin Lake).
+        setTimeout(() => {
+          if (gameState.mode === 'corrupto') {
+            const taunt = getCorruptBossTaunt(gameState.map || mapKey);
+            showNarratorMsg(taunt.speaker, taunt.img, taunt.name, taunt.text, taunt.variant);
+          } else if (gameState.mode === 'antiNormal') {
+            const data = NARRATOR_DATA.noeye;
+            const txt = currentLanguage === 'es' ? "N0 S0BR3V1V1R4S 4 L4 0SCUR1D4D..." : "Y0U W0N'7 SURV1V3 7H3 D4RKN3SS...";
+            showNarratorMsg('noeye', data.img, data[currentLanguage].name, txt, 'enemy-voice');
+          }
+        }, 14000);
+      }
+    } else if (gameState.wave === maxWaves - 10) {
+      // Cut off connection 10 waves before the end
+      if (gameState.mode === 'corrupto') {
+        const taunt = getCorruptBossTaunt(gameState.map || mapKey, 'intercept');
+        showNarratorMsg(taunt.speaker, taunt.img, taunt.name, taunt.text, taunt.variant);
+      } else if (gameState.mode === 'antiNormal') {
+        const data = NARRATOR_DATA.noeye;
+        showNarratorMsg('noeye', data.img, data[currentLanguage].name, data[currentLanguage].intercept, 'enemy-voice');
+      } else {
+        checkWaveDialogues();
+      }
+    } else {
+      checkWaveDialogues();
+    }
+    const wave = gameState.wave;
+    const mode = gameState.mode;
+    if (typeof updateUI === 'function') updateUI();
+
+    // Banner de oleada con personalidad: distingue normal / jefe / final.
+    const isFinalWave = mode !== 'infinito' && mode !== 'tutorial' && wave >= maxWaves;
+    const isBossCadence = mode !== 'tutorial' && wave > 0 && wave % 10 === 0;
+    const bannerKind = isFinalWave ? 'final' : (isBossCadence ? 'boss' : 'normal');
+    if (typeof showWaveBanner === 'function') {
+      showWaveBanner(wave, bannerKind, mode);
+    } else if (typeof showMessage === 'function') {
+      showMessage(
+        mode === 'tutorial'
+          ? translate('tutorial_wave', { wave: gameState.wave })
+          : (typeof translate === 'function' ? translate('waveStarted', { wave: gameState.wave }) : `¡Oleada ${gameState.wave}!`),
+        'info'
+      );
+    }
+
+    let mult = 1.0;
+    if (mode === 'facil') mult = 0.7;
+    else if (mode === 'normal') mult = 1.0;
+    else if (mode === 'dificil') mult = 1.3;
+    else if (mode === 'extremo') mult = 1.6;
+    else if (mode === 'corrupto' || mode === 'antiNormal') mult = 1.8;
+    else if (mode === 'pesadilla') mult = 2.0;
+
+    const spawnList = [];
+    let isBossWave = false;
+    const bossesToSpawn = [];
+    const mapKey = gameState.map || 'gelatin_lake';
+
+    console.log(`📋 Generando oleada ${wave} en modo ${mode} con mult ${mult}`);
+
+    // 2. Construir la lista de enemigos según el modo y oleada
+    if (mode === 'tutorial') {
+      const mapBalance = ENEMY_BALANCE[mapKey] || ENEMY_BALANCE.gelatin_lake;
+      const pools = wave === 1
+        ? mapBalance.basic
+        : wave === 2
+          ? [...mapBalance.basic, ...mapBalance.medium]
+          : wave <= 4
+            ? [...mapBalance.basic, ...mapBalance.medium, ...mapBalance.tank]
+            : [...mapBalance.basic, ...mapBalance.medium, ...mapBalance.tank];
+      const count = wave + 2;
+      for (let i = 0; i < count; i++) {
+        spawnList.push(pools[Math.floor(Math.random() * pools.length)]);
+      }
+      if (wave === 5) {
+        bossesToSpawn.push(...(TUTORIAL_BOSSES_BY_MAP[mapKey] || TUTORIAL_BOSSES_BY_MAP.gelatin_lake));
+        isBossWave = true;
+        showMessage(translate('tutorial_boss_warning'), 'warning');
+        showNarratorMsg(
+          'bombot',
+          NARRATOR_DATA.bombot.img,
+          NARRATOR_DATA.bombot[currentLanguage].name,
+          `${translate('tutorial_boss_name_' + mapKey)}!`
+        );
+      }
+    } else if (mode === 'interstellar') {
+      let pool = [];
+      let count = 0;
+
+      const triggerDialog = (id, name, icon, text, type = 'unique') => {
+        if (type === 'unique' && gameState.interstellarStory[id]) return;
+        if (type === 'unique') gameState.interstellarStory[id] = true;
+        showNarratorMsg(name.toLowerCase(), icon, name, currentLanguage === 'es' ? text.es : text.en);
+      };
+
+      if (wave >= 1 && wave <= 11) {
+        pool = ['BitY1', 'Pyce2'];
+        count = 3 + Math.floor(Math.random() * 2); // 3-4
+        if (wave === 1) triggerDialog('intro', 'Work-Bombot', 'Recursos/img/Towers/Evolutions/Work_Bombot.png', {
+          es: "Algo está alterando Gelatin Lake... Defiende la zona mientras averiguamos qué ocurre.",
+          en: "Something is altering Gelatin Lake... Defend the area while we find out what's happening."
+        });
+      } else if (wave >= 12 && wave <= 19) {
+        pool = ['BitY1', 'ByteGB1', 'Leni_the_big_Hammer', 'Monster'];
+        count = 5 + Math.floor(Math.random() * 2); // 5-6
+        if (wave === 12) triggerDialog('nuevos', 'Work-Bombot', 'Recursos/img/Towers/Evolutions/Work_Bombot.png', {
+          es: "Han aparecido nuevos enemigos... No pertenecen a este lugar. Mantente alerta.",
+          en: "New enemies have appeared... They don't belong here. Stay alert."
+        });
+      } else if (wave >= 20 && wave <= 22) {
+        pool = ['Lenistal', 'Cristalized_Monster', 'ByteGB1'];
+        count = 5 + Math.floor(Math.random() * 2); // 5-6
+        if (wave === 20) triggerDialog('cristales_int', 'Work-Bombot', 'Recursos/img/Towers/Evolutions/Work_Bombot.png', {
+          es: "Esa energía cristalina... Cada vez es más intensa...",
+          en: "That crystal energy... It's getting more intense..."
+        });
+      } else if (wave === 23) {
+        isBossWave = true;
+        bossesToSpawn.push('Crystal_Bombot');
+        for (let i = 0; i < 4; i++) spawnList.push(Math.random() > 0.5 ? 'Lenistal' : 'Cristalized_Monster');
+        triggerDialog('wb_corrupted', 'Work-Bombot', 'Recursos/img/Towers/Evolutions/Work_Bombot.png', {
+          es: "¿Qué...? N-no... puedo... controlarlo...",
+          en: "What...? I-I can't... control it..."
+        });
+      } else if (wave === 24) {
+        pool = ['Lenistal', 'Cristalized_Monster', 'ByteGB1'];
+        count = 5 + Math.floor(Math.random() * 2); // 5-6
+      } else if (wave === 25) {
+        isBossWave = true;
+        bossesToSpawn.push('AstrorbOrbe');
+        triggerDialog('astrorb_intro', 'Astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+          es: "La cristalización... apenas ha comenzado.",
+          en: "The crystallization... has barely begun."
+        });
+      } else if (wave === 26) {
+        // ── OLEADA 26: NOeye aparece ───────────────────────────────────
+        pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
+        count = 5 + Math.floor(Math.random() * 2);
+        triggerDialog('noeye_w26', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
+          es: "Escúchame.", en: "Listen to me."
+        });
+      } else if (wave === 27) {
+        // ── OLEADA 27: NOeye da órdenes ───────────────────────────────
+        pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
+        count = 5 + Math.floor(Math.random() * 2);
+        triggerDialog('noeye_w27', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
+          es: "Defiende ese frente.", en: "Defend that front."
+        });
+      } else if (wave === 28) {
+        // ── OLEADA 28: Silencio ────────────────────────────────────────
+        pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
+        count = 5 + Math.floor(Math.random() * 2);
+      } else if (wave === 29) {
+        // ── OLEADA 29: NOeye avisa de recursos ───────────────────────
+        pool = ['Spyware', 'Leni_the_big_Hammer', 'Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
+        count = 5 + Math.floor(Math.random() * 2);
+        triggerDialog('noeye_w29', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
+          es: "No desperdicies recursos.", en: "Don't waste resources."
+        });
+      } else if (wave === 30) {
+        // ── OLEADA 30: Jefe CrystArky / NOeye reacciona ──────────────
+        isBossWave = true;
+        bossesToSpawn.push('CrystArky');
+        triggerDialog('noeye_w30', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
+          es: "Ese... ya no es él.", en: "That... is no longer him."
+        });
+      } else if (wave >= 31 && wave <= 34) {
+        // ── OLEADAS 31-34: Tensión / Oleada 32 tiene diálogo ─────────
+        pool = ['Spyware', 'Lenistal', 'Cristalized_Monster', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer'];
+        count = 5 + Math.floor(Math.random() * 2);
+        if (wave === 32) triggerDialog('noeye_w32', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
+          es: "Ese no es el verdadero peligro.", en: "That is not the real danger."
+        });
+      } else if (wave === 35) {
+        // ── OLEADA 35: Jefe NO_CrystEye_CB / NOeye corrompido ────────
+        isBossWave = true;
+        bossesToSpawn.push('NO_CrystEye_CB');
+        for (let i = 0; i < 3; i++) spawnList.push(Math.random() > 0.5 ? 'Lenistal' : 'Cristalized_Monster');
+        triggerDialog('noeye_w35', 'NOeye', 'Recursos/img/NOeye_Pyce.png', {
+          es: "...No.", en: "...No."
+        });
+      } else if (wave === 36) {
+        // ── OLEADA 36: Astrorb toma la palabra ───────────────────────
+        pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
+        count = 6 + Math.floor(Math.random() * 2);
+        triggerDialog('astrorb_w36', 'Astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+          es: "Todo acabará cristalizado.", en: "Everything will end up crystallized."
+        });
+      } else if (wave === 37) {
+        // ── OLEADA 37: Astrorb amenaza ───────────────────────────────
+        pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
+        count = 6 + Math.floor(Math.random() * 2);
+        triggerDialog('astrorb_w37', 'Astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+          es: "La resistencia es inútil.", en: "Resistance is futile."
+        });
+      } else if (wave === 38) {
+        // ── OLEADA 38: Silencio ────────────────────────────────────────
+        pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
+        count = 6 + Math.floor(Math.random() * 2);
+      } else if (wave === 39) {
+        // ── OLEADA 39: Astrorb reclama el cielo ──────────────────────
+        pool = ['Lenistal', 'Cristalized_Monster', 'Spyware', 'ByteGB1', 'Fireflies'];
+        count = 6 + Math.floor(Math.random() * 2);
+        triggerDialog('astrorb_w39', 'Astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+          es: "El cielo me pertenece.", en: "The sky belongs to me."
+        });
+      } else if (wave === 40) {
+        // ── OLEADA 40: Combate final — Astrorb True Form ─────────────
+        isBossWave = true;
+        bossesToSpawn.push('AstrorbOrbe');
+        triggerDialog('astrorb_w40', 'Astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', {
+          es: "Ya no queda nadie capaz de detenerme.", en: "There is no one left capable of stopping me."
+        });
+      }
+
+      if (pool.length > 0) {
+        const interstellarCount = wave <= 5
+          ? 2
+          : wave <= 11
+            ? 3
+            : wave <= 19
+              ? 4
+              : wave <= 22
+                ? 5
+                : wave <= 25
+                  ? 6
+                  : 6 + Math.floor((wave - 25) / 5);
+        count = interstellarCount + Math.floor(Math.random() * 2);
+        if (wave % 5 === 0 && !isBossWave) {
+          let highestHPEnemy = pool[0];
+          let maxHP = 0;
+          pool.forEach(e => {
+            if (ENEMY_TYPES[e] && ENEMY_TYPES[e].health > maxHP && !ENEMY_TYPES[e].boss) {
+              maxHP = ENEMY_TYPES[e].health;
+              highestHPEnemy = e;
+            }
+          });
+          for (let i = 0; i < count; i++) spawnList.push(highestHPEnemy);
+        } else {
+          for (let i = 0; i < count; i++) spawnList.push(pool[Math.floor(Math.random() * pool.length)]);
+        }
+      }
+    } else if (mode === 'infinito') {
+      const infinitePlan = getInfiniteWavePlan(mapKey, wave);
+      spawnList.push(...infinitePlan.spawnList);
+      bossesToSpawn.push(...infinitePlan.bossesToSpawn);
+      isBossWave = infinitePlan.isBossWave;
+    } else {
+      // UNIFIED WAVE BRACKET SYSTEM FOR ALL MAPS
+      const MAP_POOLS = {
+        gelatin_lake: {
+          regular: ['Stupid_Pyce', 'Pyce2'],
+          medium: ['Guest_Pyce', 'Symbol_Pyce', 'Noob_Pyce'],
+          hard: ['4motions_Pyce', 'Flower_Pyce', 'SO_Pyce'],
+          special: ['Flower_Pyce', 'SO_Pyce']
+        },
+        urbanistic_road: {
+          regular: ['HoloPyce', 'Rebel_Pyce', 'BitY1', 'BitG2', 'BitP3', 'BitB4'],
+          medium: ['Strechy_Pyce', 'Bomb_Pyce', 'Fireflies', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'],
+          hard: ['Cannon_Pycer', 'Knight_Pyce', 'Spyware1', 'Spyware2', 'Spyware3'],
+          special: ['Spyware1', 'Spyware2', 'Spyware3', 'Bomb_Pyce', 'Cannon_Pycer']
+        },
+        sunlight_seaside: {
+          regular: ['Piz', 'Baby_Shrum', 'Ren', 'Pysh'],
+          medium: ['Axolotl_Pyce', 'Treeper', 'Thunren', 'Shrum', 'Clown_Pysh', 'Umbrella_Pyce'],
+          hard: ['Shark_Pyce', 'Big_Treeper', 'Renibig', 'Stacked_Treepers', 'Followishers', 'Creamplet'],
+          special: ['Thunren', 'Renibig', 'Shrum', 'Old_Fungus', 'Umbrella_Pyce', 'Followishers']
+        },
+        spooktacular_ruins: {
+          regular: ['Broksp', 'RIPslide', 'ZomPyce'],
+          medium: ['Blood_Taker', 'Pumpitch', 'Sneekmy', 'Ghost_Pyce', 'SkeleBone_Pyce'],
+          hard: ['Pumpitch', 'Ghost_Pyce'],
+          special: ['SkeleBone_Pyce', 'Ghost_Pyce']
+        },
+        frosty_christmas: {
+          regular: ['Festive_Pyce'],
+          medium: ['ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Wingel_Pyce', 'Puz', 'Zle', 'Bomb_Pyce'],
+          hard: ['Giftbox_Pyce', 'Puz_Zle', 'Cannon_Pycer', 'Creamplet'],
+          special: ['ToyBomb_Pyce', 'Giftbox_Pyce', 'Puz_Zle', 'Wingel_Pyce', 'Creamplet']
+        }
+      };
+
+      const mapPool = MAP_POOLS[mapKey] || MAP_POOLS.gelatin_lake;
+      const mapTankPool = (ENEMY_BALANCE[mapKey] && ENEMY_BALANCE[mapKey].tank) || mapPool.hard;
+
+      if (mapKey === 'sunlight_seaside' && mode === 'facil') {
+         let count = 2 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+         let wPool = [];
+         if (wave === 1) wPool = ['Piz', 'Baby_Shrum'];
+         else if (wave === 2) wPool = ['Axolotl_Pyce', 'Ren'];
+         else if (wave === 3) wPool = ['Baby_Shrum', 'Treeper', 'Piz'];
+         else if (wave === 4) wPool = ['Ren', 'Pysh', 'Shrum'];
+         else if (wave === 5) wPool = ['Thunren', 'Treeper', 'Axolotl_Pyce'];
+         else if (wave === 6) wPool = ['Shrum', 'Pysh', 'Shark_Pyce'];
+         else if (wave === 7) wPool = ['Big_Treeper', 'Ren', 'Baby_Shrum'];
+         else if (wave === 8) wPool = ['Renibig', 'Shrum', 'Clown_Pysh'];
+         else if (wave === 9) wPool = ['Big_Treeper', 'Shark_Pyce', 'Old_Fungus'];
+         else if (wave === 10) { wPool = ['Piz', 'Baby_Shrum', 'Pysh', 'Thunren']; count = 6; }
+         
+         for(let i=0; i<count; i++) spawnList.push(wPool[Math.floor(Math.random() * wPool.length)]);
+      } else {
+        let count = 5;
+        let comp = { regular: 1.0, medium: 0, hard: 0, special: 0 };
+        
+        if (mode === 'facil') {
+            count = 2 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 5) comp = { regular: 1.0, medium: 0, hard: 0, special: 0 };
+            else comp = { regular: 0.8, medium: 0.2, hard: 0, special: 0 };
+        } 
+        else if (mode === 'normal') {
+            count = 3 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 5) comp = { regular: 1, medium: 0, hard: 0, special: 0 };
+            else if (wave <= 10) comp = { regular: 0.8, medium: 0.2, hard: 0, special: 0 };
+            else comp = { regular: 0.5, medium: 0.4, hard: 0.1, special: 0 };
+        }
+        else if (mode === 'dificil') {
+            count = 4 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 5) comp = { regular: 0.85, medium: 0.15, hard: 0, special: 0 };
+            else if (wave <= 10) comp = { regular: 0.5, medium: 0.4, hard: 0.1, special: 0 };
+            else comp = { regular: 0.25, medium: 0.5, hard: 0.25, special: 0 };
+        }
+        else if (mode === 'extremo') {
+            count = 5 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 8) comp = { regular: 0.6, medium: 0.3, hard: 0.1, special: 0 };
+            else if (wave <= 15) comp = { regular: 0.4, medium: 0.4, hard: 0.2, special: 0.1 };
+            else comp = { regular: 0.2, medium: 0.5, hard: 0.3, special: 0.1 };
+        }
+        else if (mode === 'corrupto') {
+            count = 6 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 7) comp = { regular: 0.5, medium: 0.4, hard: 0.1, special: 0 };
+            else if (wave <= 14) comp = { regular: 0.3, medium: 0.4, hard: 0.3, special: 0.1 };
+            else comp = { regular: 0.15, medium: 0.4, hard: 0.45, special: 0.2 };
+        }
+        else if (mode === 'antiNormal') {
+            count = 7 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+            if (wave <= 5) comp = { regular: 0.6, medium: 0.3, hard: 0.1, special: 0 };
+            else if (wave <= 10) comp = { regular: 0.4, medium: 0.4, hard: 0.2, special: 0.1 };
+            else comp = { regular: 0.15, medium: 0.45, hard: 0.4, special: 0.2 };
+        }
+        else { // infinito
+            count = 8 + Math.floor(wave / 10) + Math.floor(Math.random() * 2);
+           comp = { regular: 0.2, medium: 0.3, hard: 0.5, special: 0.2 };
+        }
+
+        if (mapKey === 'urbanistic_road') {
+          count += 1 + Math.floor(wave / 10);
+        } else if (mapKey === 'sunlight_seaside') {
+          count += 2 + Math.floor(wave / 10);
+        }
+
+        const rCount = Math.floor(count * comp.regular);
+        const mCount = Math.floor(count * comp.medium);
+        const hCount = Math.floor(count * comp.hard);
+        const sCount = Math.floor(count * comp.special);
+
+        const pushRandom = (catPool, n) => {
+          if (!catPool || catPool.length === 0) return;
+          for (let i = 0; i < n; i++) spawnList.push(catPool[Math.floor(Math.random() * catPool.length)]);
+        };
+
+        pushRandom(mapPool.regular, rCount);
+        pushRandom(mapPool.medium, mCount);
+        pushRandom(mapPool.hard, hCount);
+        pushRandom(mapPool.special, sCount);
+        while (spawnList.length < count) {
+          pushRandom(mapPool.regular, 1);
+        }
+
+        const spikeWaves = mode === 'normal' ? [8, 13] : mode === 'dificil' ? [6, 12, 18] : mode === 'extremo' ? [5, 10, 15, 20] : mode === 'infinito' ? [5, 10, 15] : [];
+        if (spikeWaves.includes(wave) && mapTankPool.length > 0) {
+          const spikeCount = mode === 'normal' ? 2 : 3;
+          pushRandom(mapTankPool, spikeCount);
+        }
+        
+        if (mode !== 'facil' && wave >= 5 && Math.random() < 0.15) {
+           spawnList.push('Stupid_GoldPyce');
+        }
+      }
+
+      // 3. Jefes Finales Universales
+      if (wave === maxWaves && mode !== 'infinito') {
+         isBossWave = true;
+         if (mapKey === 'gelatin_lake') {
+            if (mode === 'facil') isBossWave = false; 
+            else if (mode === 'corrupto') bossesToSpawn.push('NOeye_Pyce');
+            else if (mode === 'antiNormal') bossesToSpawn.push('MoonStar_Pyce');
+            else bossesToSpawn.push('1x1x1x1_Pyce');
+         } else if (mapKey === 'urbanistic_road') {
+            if (mode === 'facil') isBossWave = false;
+            else if (mode === 'corrupto') bossesToSpawn.push('ArkyVoid');
+            else if (mode === 'antiNormal') bossesToSpawn.push('CrystArky');
+            else bossesToSpawn.push('Arky');
+         } else if (mapKey === 'sunlight_seaside') {
+            if (mode === 'corrupto') bossesToSpawn.push('GlitchKeeper');
+            else if (mode === 'antiNormal') bossesToSpawn.push('DarkSpirit');
+            else bossesToSpawn.push('PhantKeeper'); 
+         } else if (mapKey === 'spooktacular_ruins') {
+             if (mode === 'antiNormal') bossesToSpawn.push('Curse_Boneker');
+             else isBossWave = false;
+         } else if (mapKey === 'frosty_christmas') {
+             // NOeye gobierna los modos base; NOsense (Corrupto) y NOIRrupt (Anti-Normal).
+             if (mode === 'facil') isBossWave = false;
+             else if (mode === 'corrupto') bossesToSpawn.push('NOsense_Pyce');
+             else if (mode === 'antiNormal') bossesToSpawn.push('NOIRrupt_Pyce');
+             else bossesToSpawn.push('NOeye_Pyce');
+         }
+      }
+      
+      // Jefes intermedios (cada 10 oleadas)
+      if (wave % 10 === 0 && wave < maxWaves && mapKey === 'gelatin_lake' && mode !== 'facil') {
+         isBossWave = true;
+         bossesToSpawn.push('1x1x1x1_Pyce');
+      }
+
+      // Pyces Cristalizados (Apariciones tardías globales)
+      if (wave >= 20) {
+        const crystalCount = Math.floor(wave * 0.15);
+        for (let i = 0; i < crystalCount; i++) spawnList.push('Crystal_Pyce');
+      }
+      if (wave >= 30) {
+        const dreamyCount = Math.floor(wave * 0.1);
+        for (let i = 0; i < dreamyCount; i++) spawnList.push('Dreamy_SPyce');
+      }
+      if (wave >= 35) {
+        const astralCount = Math.floor(wave * 0.1);
+        for (let i = 0; i < astralCount; i++) spawnList.push('Astral_BPyce');
+      }
+
+      // Limpiar Jefes únicos
+      const UNIQUE_BOSSES = ['NOeye_Pyce', 'MoonStar_Pyce'];
+      if (mode !== 'infinito') {
+        UNIQUE_BOSSES.forEach(b => {
+          if (gameState.uniquesBossSpawned && gameState.uniquesBossSpawned[b]) {
+            let idx;
+            while ((idx = spawnList.indexOf(b)) !== -1) spawnList.splice(idx, 1);
+            const bi = bossesToSpawn.indexOf(b);
+            if (bi !== -1) bossesToSpawn.splice(bi, 1);
+          }
+        });
+      }
+      
+      if (bossesToSpawn.length === 0 && isBossWave) isBossWave = false;
+    }
+
+    const replaceRandomWaveEnemy = (rareType) => {
+      const replaceableIndices = spawnList
+        .map((type, index) => ({ type, index }))
+        .filter(({ type }) =>
+          ENEMY_TYPES[type] &&
+          !ENEMY_TYPES[type].boss &&
+          type !== 'Mimic_Pyce' &&
+          type !== 'Bushi_Brella'
+        )
+        .map(({ index }) => index);
+      if (replaceableIndices.length === 0) return false;
+      const replaceIndex = replaceableIndices[Math.floor(Math.random() * replaceableIndices.length)];
+      spawnList[replaceIndex] = rareType;
+      return true;
+    };
+
+    if (
+      wave >= 10 &&
+      mode !== 'interstellar' &&
+      !(gameState.rareEnemiesSpawned?.Mimic_Pyce > 0) &&
+      Math.random() < RARE_ENEMY_WAVE_SPAWN_CHANCE
+    ) {
+      replaceRandomWaveEnemy('Mimic_Pyce');
+    }
+
+    if (
+      wave >= 10 &&
+      mode !== 'interstellar' &&
+      mapKey === 'sunlight_seaside' &&
+      (gameState.rareEnemiesSpawned?.Bushi_Brella || 0) < BUSHI_BRELLA_MAX_SPAWNS &&
+      Math.random() < RARE_ENEMY_WAVE_SPAWN_CHANCE
+    ) {
+      replaceRandomWaveEnemy('Bushi_Brella');
+    }
+
+    for (let i = spawnList.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [spawnList[i], spawnList[j]] = [spawnList[j], spawnList[i]];
+    }
+
+    // A tutorial boss must not also be selected as a regular enemy.
+    if (mode === 'tutorial' && bossesToSpawn.length > 0) {
+      bossesToSpawn.forEach(bossType => {
+        let duplicateIndex;
+        while ((duplicateIndex = spawnList.indexOf(bossType)) !== -1) {
+          spawnList.splice(duplicateIndex, 1);
+        }
+      });
+    }
+
+    // 4. Anteponer los jefes a la lista de spawn para que entren primero en combate
+    if (isBossWave && bossesToSpawn.length > 0) {
+      spawnList.unshift(...bossesToSpawn);
+    }
+
+    // Aviso de Mimics en la oleada. Dos tipos:
+    //  - Skin Mimic (Mimic_Pyce, Bushi_Brella): sueltan skins → aviso amarillo
+    //    + diálogo de Work-Bombot advirtiendo del impostor.
+    //  - Resources Mimic (Stupid_GoldPyce): solo da recursos → aviso amarillo,
+    //    sin diálogo (no se "delata" como mimic especial).
+    if (mode !== 'tutorial') {
+      const SKIN_MIMICS = ['Mimic_Pyce', 'Bushi_Brella'];
+      const RESOURCE_MIMICS = ['Stupid_GoldPyce'];
+      const fullWaveList = [...bossesToSpawn, ...spawnList];
+      const hasSkinMimic = fullWaveList.some(t => SKIN_MIMICS.includes(t));
+      const hasResourceMimic = fullWaveList.some(t => RESOURCE_MIMICS.includes(t));
+      if (hasSkinMimic || hasResourceMimic) {
+        const es = currentLanguage !== 'en';
+        showMessage(
+          es ? '🎁 ¡Enemigo especial en esta oleada!' : '🎁 Special enemy in this wave!',
+          'warning'
+        );
+        if (hasSkinMimic && typeof showNarratorMsg === 'function' && NARRATOR_DATA?.bombot) {
+          setTimeout(() => {
+            showNarratorMsg(
+              'bombot',
+              NARRATOR_DATA.bombot.img,
+              NARRATOR_DATA.bombot[currentLanguage].name,
+              es
+                ? '¡Alerta! Detecto un Mimic infiltrado entre los Pyces. ¡Derrótalo para llevarte su recompensa!'
+                : "Alert! I'm detecting a Mimic hiding among the Pyces. Take it down to claim its reward!"
+            );
+          }, 900);
+        }
+      }
+    }
+
+    // 5. Iniciar secuencia de generación con temporizador
+    const mobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    gameState.waveSpawnQueue = [...spawnList];
+    gameState.waveSpawnIndex = 0;
+    gameState.waveSpawnIsBoss = isBossWave;
+    gameState.waveBossTypes = [...bossesToSpawn];
+    gameState.waveSpawnIntervalMs = mobileDevice
+      ? Math.max(240, 650 - Math.min(420, wave * 22))
+      : Math.max(300, 800 - Math.min(500, wave * 25));
+    startWaveSpawnInterval();
+  }
+
+  function updateEnemyStatusUI(e) {
+    if (!e.el || !e.hpFill || !e.statusIcons) return;
+
+    const icons = [];
+    if (e.stealth) icons.push('🫥');
+    if (e.ghost) icons.push('👻');
+    if (e.fireImmune) icons.push('🔥🚫');
+    if (e.fireWeakMultiplier > 1) icons.push('🔥⬆️');
+    if (e.poisonImmune) icons.push('☠️🚫');
+    if (e.stunImmune) icons.push('⚡🚫');
+    if (e.shield > 0) icons.push('🛡️');
+    if (e.enemySlowTimer > 0) icons.push('❄️');
+    if (e.burnTimer > 0) icons.push('🔥');
+    if (e.toxicTimer > 0) icons.push('🤢');
+    if (e.poisonTimer > 0) icons.push('🍄');
+    if (e.stunned > 0) icons.push('⚡');
+
+    e.statusIcons.textContent = icons.join(' ');
+    e.hpValue.textContent = `${Math.max(0, Math.ceil(e.health))}/${Math.ceil(e.maxHealth)}`;
+    e.hpFill.style.backgroundColor = e.shield > 0
+      ? '#ffd700'
+      : e.fireImmune
+        ? '#8b0000'
+        : e.stealth
+          ? '#355c3a'
+          : '#ff4444';
+  }
+
+  function spawnEnemy(type, boss = false, forcedPath = null, synchronized = false) {
+    const rareEnemyTypes = ['Mimic_Pyce', 'Bushi_Brella'];
+    const rareEnemiesSpawned = gameState.rareEnemiesSpawned || (gameState.rareEnemiesSpawned = {});
+    const mapKey = gameState.map || 'gelatin_lake';
+    let rareEnemyToRecord = null;
+
+    const chooseRareFallback = () => {
+      const basicEnemies = ENEMY_BALANCE[mapKey]?.basic
+        ?.filter(enemyType => ENEMY_TYPES[enemyType] && !rareEnemyTypes.includes(enemyType));
+      return basicEnemies?.[Math.floor(Math.random() * basicEnemies.length)] || 'Stupid_Pyce';
+    };
+
+    if (!synchronized && (type === 'Mimic_Pyce' || type === 'Bushi_Brella')) {
+      const isAvailableOnMap = gameState.mode !== 'interstellar' &&
+        (type !== 'Bushi_Brella' || mapKey === 'sunlight_seaside');
+      const spawnLimitReached = type === 'Mimic_Pyce'
+        ? (rareEnemiesSpawned[type] || 0) >= 1
+        : (rareEnemiesSpawned[type] || 0) >= BUSHI_BRELLA_MAX_SPAWNS;
+      if (!isAvailableOnMap || spawnLimitReached) {
+        type = chooseRareFallback();
+      } else {
+        rareEnemyToRecord = type;
+      }
+    }
+
+    if (!type) {
+      const wave = gameState.wave || 1;
+      const pool = ['Stupid_Pyce'];
+      if (wave >= 2) pool.push('Pyce2', 'Pyce2');
+      if (wave >= 4) pool.push('Guest_Pyce', 'Symbol_Pyce');
+      if (wave >= 6) pool.push('Noob_Pyce', 'Noob_Pyce');
+      if (wave >= 9) pool.push('4motions_Pyce');
+      if (wave >= 11) pool.push('Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce');
+
+      if (gameState.map === 'urbanistic_road') {
+        const bitPool = ['BitY1', 'BitG2', 'BitP3', 'BitB4'];
+        const bytePool = ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'];
+        if (wave >= 1) pool.push(...bitPool);
+        if (wave >= 3) pool.push(...bytePool);
+        if (wave >= 5) pool.push('Bomb_Pyce');
+        if (wave >= 6) pool.push('Spyware');
+        if (wave >= 7) pool.push('Knight_Pyce');
+        if (wave >= 9) pool.push('Cannon_Pycer');
+      } else if (gameState.map === 'frosty_christmas') {
+        if (wave >= 1) pool.push('Festive_Pyce');
+        if (wave >= 3) pool.push('Elf_Pyce', 'SnowCapsule_Pyce');
+        if (wave >= 5) pool.push('ToyBomb_Pyce', 'Bomb_Pyce');
+        if (wave >= 7) pool.push('Giftbox_Pyce', 'Creamplet');
+        if (wave >= 9) pool.push('Cannon_Pycer');
+      }
+      type = pool[Math.floor(Math.random() * pool.length)] || 'Stupid_Pyce';
+    }
+
+    const currentWave = gameState.wave || 1;
+    const selectedType = ENEMY_TYPES[type];
+    if (selectedType?.timeAttackOnly && gameState.mode !== 'acrossTheTime' &&
+        !synchronized && !isOwnerDebugUser()) {
+      console.warn(`Enemigo exclusivo de Across the Time bloqueado fuera del evento: ${type}`);
+      return;
+    }
+    if (!boss && currentWave < 10 && selectedType?.stealth) {
+      const mapBalance = ENEMY_BALANCE[gameState.map || 'gelatin_lake'];
+      const earlyPool = (mapBalance?.basic || ['Stupid_Pyce'])
+        .filter(enemyType => ENEMY_TYPES[enemyType] && !ENEMY_TYPES[enemyType].stealth);
+      const fallbackType = earlyPool[Math.floor(Math.random() * earlyPool.length)] || 'Stupid_Pyce';
+      console.warn(`Enemigo invisible bloqueado antes de la oleada 10: ${type}. Se reemplaza por ${fallbackType}.`);
+      type = fallbackType;
+    }
+
+    const t = ENEMY_TYPES[type];
+    if (!t) return console.warn("Enemy type missing:", type);
+    const mapBalance = ENEMY_BALANCE[gameState.map || 'gelatin_lake'];
+    const tier = boss ? 'boss' : Object.keys(mapBalance || {}).find(key => mapBalance[key].includes(type)) || ((t.health || 0) >= 400 ? 'tank' : (t.health || 0) >= 150 ? 'medium' : 'basic');
+    const chosenPath = forcedPath || ENEMY_PATHS[Math.floor(Math.random() * ENEMY_PATHS.length)];
+    const enemyMotionClass = boss ? ' enemy-boss' : tier === 'tank' ? ' enemy-tank' : tier === 'medium' ? ' enemy-medium' : ' enemy-basic';
+    const el = document.createElement('div'); el.className = 'enemy' + enemyMotionClass + (t.isCrystallized ? ' enemy-crystal' : '') + ' spawning';
+    el.style.left = `${chosenPath[0].x}px`; el.style.top = `${chosenPath[0].y}px`;
+    el.style.setProperty('--enemy-delay', `${-(Math.random() * 1.8).toFixed(2)}s`);
+    // La clase "spawning" reproduce la entrada; se retira para dejar paso al idle.
+    setTimeout(() => el.classList.remove('spawning'), 340);
+    if (HALLOWEEN_ENEMY_TYPES.has(type)) {
+      el.addEventListener('click', event => {
+        event.stopPropagation();
+        triggerHalloweenJumpscare(type, el);
+      });
+    }
+
+    let imgStr = t.image;
+    if (type === 'Spyware') {
+      const spywareImages = [IMAGE_PATHS.Spyware1, IMAGE_PATHS.Spyware2, IMAGE_PATHS.Spyware3];
+      imgStr = spywareImages[Math.floor(Math.random() * spywareImages.length)];
+    } else if (t.imageVariants?.length) {
+      imgStr = t.imageVariants[Math.floor(Math.random() * t.imageVariants.length)];
+    }
+    if (imgStr) el.style.backgroundImage = `url('${imgStr}')`;
+    if (type === 'GODs_Shadow') {
+      el.classList.add('enemy-gods-shadow');
+      el.style.setProperty('--gods-shadow-image', `url("${getAbsoluteAssetUrl(imgStr)}")`);
+      el.style.backgroundImage = 'none';
+    }
+    const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
+    const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
+    const hpValue = document.createElement('div'); hpValue.className = 'enemy-hp-value';
+    const statusIcons = document.createElement('div'); statusIcons.className = 'enemy-status-icons';
+    hpBg.appendChild(hpFill); el.appendChild(hpValue); el.appendChild(hpBg); el.appendChild(statusIcons);
+    const gameArea = document.getElementById('game-area') || document.getElementById('map') || document.body;
+    gameArea.appendChild(el);
+
+    const name = (typeof translate === 'function' && translate('enemy_' + type + '_name')) || type;
+
+    checkEnemyDialogues(type);
+
+    // NOeye y MoonStar son únicos: marcarlos para no repetir
+    if (type === 'NOeye_Pyce' || type === 'MoonStar_Pyce') {
+      gameState.uniquesBossSpawned[type] = true;
+    }
+
+    let mult = 1.0;
+    if (gameState.mode === 'facil') mult = 0.7;
+    else if (gameState.mode === 'normal') mult = 1.0;
+    else if (gameState.mode === 'dificil') mult = 1.3;
+    else if (gameState.mode === 'extremo') mult = 1.6;
+    else if (gameState.mode === 'corrupto') mult = 1.8;
+    else if (gameState.mode === 'pesadilla') mult = 2.0;
+    else if (gameState.mode === 'infinito') mult = 1.3 + (gameState.wave || 1) * 0.014;
+    else if (gameState.mode === 'acrossTheTime') mult = 1.6;
+
+    let healthScaled = Math.max(1, (t.health || 10) * (1 + (gameState.wave || 1) * 0.15) * mult);
+    if (gameState.mode === 'tutorial' && !boss) {
+      const tutorialBossHealthCap = getTutorialBossHealthCap();
+      if (tutorialBossHealthCap > 0) healthScaled = Math.min(healthScaled, tutorialBossHealthCap);
+    }
+    if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace === 3 &&
+        gameState.wave === 15 && type === '1x1x1x1_Pyce') {
+      healthScaled *= 2;
+    }
+    const shieldVal = t.shieldRatio ? healthScaled * t.shieldRatio : (t.shield || 0) * (t.health || 10);
+    const baseDamage = boss ? 10 : (ENEMY_TIER_DAMAGE[tier] || 2);
+    const enemyObj = {
+      ...t, name, tier, baseDamage, el, x: chosenPath[0].x, y: chosenPath[0].y,
+      pathIndex: 0, currentPath: chosenPath, health: healthScaled, maxHealth: healthScaled,
+      hpFill, hpValue, statusIcons, shield: shieldVal, shieldMax: shieldVal, type, boss,
+      networkId: `${socket?.id || 'offline'}-${++gameState.networkEntityCounter}`
+    };
+    el.title = `${name} | HP: ${Math.ceil(healthScaled)}`;
+    gameState.enemies.push(enemyObj);
+    if (rareEnemyToRecord) {
+      rareEnemiesSpawned[rareEnemyToRecord] = (rareEnemiesSpawned[rareEnemyToRecord] || 0) + 1;
+    }
+  }
+
+  function serializeMultiplayerEntity(entity) {
+    return JSON.parse(JSON.stringify(entity, (key, value) => {
+      if (['el', 'rangeEl', 'hpFill', 'hpValue', 'statusIcons'].includes(key) || typeof value === 'function') {
+        return undefined;
+      }
+      return value;
+    }));
+  }
+
+  let synchronizedMatchKey = null;
+
+  function getMultiplayerGameState(allowLocalMatch = false) {
+    if ((!currentSeed && !allowLocalMatch) || !gameState.modeConfirmed) return null;
+    return {
+      seed: currentSeed,
+      map: gameState.map,
+      mode: gameState.mode,
+      maxWaves: gameState.maxWaves,
+      health: gameState.health,
+      wave: gameState.wave,
+      waveActive: gameState.waveActive,
+      spawningActive: gameState.spawningActive,
+      paused: gameState.paused,
+      gameOver: gameState.gameOver,
+      globetines: gameState.globetines,
+      multiplayerEnabled: multiplayerPlayerCount > 1,
+      towerLimits: { ...gameState.towerLimits },
+      players: multiplayerPlayers,
+      towers: gameState.towers.map(serializeMultiplayerEntity),
+      enemies: gameState.enemies.map(serializeMultiplayerEntity),
+      waveSpawnQueue: [...(gameState.waveSpawnQueue || [])],
+      waveSpawnIndex: gameState.waveSpawnIndex || 0,
+      waveSpawnIsBoss: Boolean(gameState.waveSpawnIsBoss),
+      waveBossTypes: [...(gameState.waveBossTypes || [])],
+      waveSpawnIntervalMs: gameState.waveSpawnIntervalMs || 0,
+      matchStats: {
+        totalDamage: gameState.totalDamage,
+        moneySpentThisGame: gameState.moneySpentThisGame,
+        baseTookDamage: gameState.baseTookDamage,
+        rareEnemiesSpawned: gameState.rareEnemiesSpawned || {},
+        uniquesBossSpawned: gameState.uniquesBossSpawned || {},
+        roundKills: gameState.roundKills || [],
+        roundIExExplosions: gameState.roundIExExplosions || 0,
+        blockQuestStarted: gameState.blockQuestStarted,
+        blockQuestPending: gameState.blockQuestPending,
+        interstellarStory: gameState.interstellarStory || {},
+        interstellarParacristalQuest: gameState.interstellarParacristalQuest,
+        paracristalActive: gameState.paracristalActive,
+        paracristalEnergy: gameState.paracristalEnergy,
+        paracristalAstrorbSeen: gameState.paracristalAstrorbSeen,
+        paracristalFinal: gameState.paracristalFinal,
+        infiniteCompleted: gameState.infiniteCompleted,
+        acrossTheTimeProgress: gameState.acrossTheTimeProgress,
+        acrossTheTimeSpace: gameState.acrossTheTimeSpace,
+        acrossTimeCrystals: gameState.acrossTimeCrystals,
+        acrossTimePuzzleSpots: gameState.acrossTimePuzzleSpots,
+        acrossTimeBossReturns: gameState.acrossTimeBossReturns,
+        acrossTimeTowerAttackTimer: gameState.acrossTimeTowerAttackTimer,
+        acrossTimeTowerCaps: gameState.acrossTimeTowerCaps
+      }
+    };
+  }
+
+  function initializeMultiplayerMatch(snapshot) {
+    const localAcrossTimeRestore = snapshot.mode === 'acrossTheTime' &&
+      canPlayAcrossTimeSolo() &&
+      (!Array.isArray(snapshot.players) || snapshot.players.length <= 1) &&
+      snapshot.matchStats?.acrossTheTimeProgress?.started === true;
+    if (!MAPS[snapshot.map] || typeof snapshot.mode !== 'string' ||
+        (snapshot.mode === 'acrossTheTime' && !localAcrossTimeRestore)) return false;
+    const matchKey = `${snapshot.seed || currentSeed}:${snapshot.map}:${snapshot.mode}`;
+    if (synchronizedMatchKey === matchKey) return true;
+
+    gameState.map = snapshot.map;
+    gameState.mode = snapshot.mode;
+    gameState.modeConfirmed = true;
+    gameState.maxWaves = Number(snapshot.maxWaves) || 15;
+    const island = MAP_ISLANDS.find(item => item.zones.some(zone => zone.mapId === snapshot.map));
+    gameState.selectedIsland = island?.id || null;
+
+    generateSpots();
+    createMap();
+    retryGame();
+
+    clearLoginVisualEffects();
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('map-selection').style.display = 'none';
+    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('game-container').style.display = 'flex';
+    document.getElementById('meta-controls').style.display = 'flex';
+    renderMultiplayerPlayerList(multiplayerPlayers);
+    applyScale();
+    synchronizedMatchKey = matchKey;
+    return true;
+  }
+
+  function applyMultiplayerGameState(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object' ||
+        !Array.isArray(snapshot.towers) || !Array.isArray(snapshot.enemies) ||
+        !initializeMultiplayerMatch(snapshot)) return;
+
+    const oldCapacityState = `${multiplayerEnabled}:${JSON.stringify(multiplayerTowerLimits)}`;
+    const oldTowerLayout = gameState.towers.map(tower =>
+      `${tower.spotId}:${tower.type}:${tower.ownerId || ''}`
+    ).join('|');
+    multiplayerEnabled = Boolean(snapshot.multiplayerEnabled);
+    multiplayerTowerLimits = snapshot.towerLimits && typeof snapshot.towerLimits === 'object'
+      ? snapshot.towerLimits
+      : multiplayerTowerLimits;
+    if (Array.isArray(snapshot.players)) {
+      multiplayerPlayers = snapshot.players;
+      multiplayerPlayerCount = Math.min(4, Math.max(1, Number(snapshot.playerCount) || snapshot.players.length || 1));
+    }
+    gameState.health = Number(snapshot.health) || 0;
+    gameState.wave = Number(snapshot.wave) || 0;
+    gameState.waveActive = Boolean(snapshot.waveActive);
+    gameState.spawningActive = Boolean(snapshot.spawningActive);
+    gameState.paused = Boolean(snapshot.paused);
+    gameState.gameOver = Boolean(snapshot.gameOver);
+    gameState.globetines = Number(snapshot.globetines) || 0;
+    gameState.maxWaves = Number(snapshot.maxWaves) || gameState.maxWaves;
+    gameState.modeConfirmed = true;
+    gameState.waveSpawnQueue = Array.isArray(snapshot.waveSpawnQueue) ? [...snapshot.waveSpawnQueue] : [];
+    gameState.waveSpawnIndex = Math.max(0, Number(snapshot.waveSpawnIndex) || 0);
+    gameState.waveSpawnIsBoss = Boolean(snapshot.waveSpawnIsBoss);
+    gameState.waveBossTypes = Array.isArray(snapshot.waveBossTypes) ? [...snapshot.waveBossTypes] : [];
+    gameState.waveSpawnIntervalMs = Math.max(0, Number(snapshot.waveSpawnIntervalMs) || 0);
+    if (snapshot.matchStats && typeof snapshot.matchStats === 'object') {
+      Object.assign(gameState, snapshot.matchStats);
+    }
+
+    const towerStates = new Map(snapshot.towers.map(tower => [Number(tower.spotId), tower]));
+    gameState.towers = gameState.towers.filter(tower => {
+      if (towerStates.has(Number(tower.spotId))) return true;
+      tower.el.remove();
+      if (tower.rangeEl) tower.rangeEl.remove();
+      return false;
+    });
+    gameState.towerSpots.forEach(spot => { spot.occupied = false; });
+
+    snapshot.towers.forEach(towerState => {
+      const towerType = TOWER_TYPES[towerState.type];
+      const spotId = Number(towerState.spotId);
+      if (!towerType || !Number.isInteger(spotId) || !gameState.towerSpots[spotId]) return;
+
+      let tower = gameState.towers.find(item => Number(item.spotId) === spotId);
+      if (!tower) {
+        const el = document.createElement('div');
+        el.className = `tower ${getTowerIdleClass(towerState.type)}`;
+        el.style.setProperty('--idle-delay', '0s');
+        el.onerror = function () {
+          el.style.backgroundColor = '#9b59b6';
+          el.style.backgroundImage = 'none';
+        };
+        document.getElementById('map').appendChild(el);
+        tower = { ...towerType, el };
+        tower.el.onclick = event => {
+          event.stopPropagation();
+          selectTower(tower);
+        };
+        gameState.towers.push(tower);
+      }
+
+      const previousType = tower.type;
+      Object.assign(tower, towerState);
+      tower.el.style.left = `${tower.x}px`;
+      tower.el.style.top = `${tower.y}px`;
+      if (previousType !== tower.type || !tower.el.style.backgroundImage) {
+        tower.el.style.backgroundImage = `url('${encodeURI(getTowerImage(tower.type))}')`;
+        applyTowerEffects(tower.el, tower.type);
+      }
+      gameState.towerSpots[spotId].occupied = true;
+    });
+
+    const enemyStates = new Map(snapshot.enemies.map(enemy => [enemy.networkId, enemy]));
+    gameState.enemies = gameState.enemies.filter(enemy => {
+      if (enemyStates.has(enemy.networkId)) return true;
+      enemy.el.remove();
+      return false;
+    });
+    snapshot.enemies.forEach(enemyState => {
+      if (typeof enemyState.networkId !== 'string' || !ENEMY_TYPES[enemyState.type]) return;
+      let enemy = gameState.enemies.find(item => item.networkId === enemyState.networkId);
+      if (!enemy) {
+        spawnEnemy(enemyState.type, Boolean(enemyState.boss), enemyState.currentPath, true);
+        enemy = gameState.enemies[gameState.enemies.length - 1];
+        if (!enemy || enemy.type !== enemyState.type) return;
+      }
+      Object.assign(enemy, enemyState);
+      enemy.el.style.left = `${enemy.x}px`;
+      enemy.el.style.top = `${enemy.y}px`;
+      enemy.el.title = `${enemy.name} | HP: ${Math.ceil(enemy.health)}`;
+      updateEnemyStatusUI(enemy);
+    });
+
+    updateAllTowerRanges();
+    updateUI();
+    const newTowerLayout = gameState.towers.map(tower =>
+      `${tower.spotId}:${tower.type}:${tower.ownerId || ''}`
+    ).join('|');
+    if (oldCapacityState !== `${multiplayerEnabled}:${JSON.stringify(multiplayerTowerLimits)}` ||
+        oldTowerLayout !== newTowerLayout) {
+      drawTowerShop();
+    }
+    if (gameState.paused || gameState.gameOver) {
+      const modal = document.getElementById('game-over');
+      if (modal) modal.style.display = 'flex';
+    } else if (!gameState.gameOver) {
+      const modal = document.getElementById('game-over');
+      if (modal) modal.style.display = 'none';
+    }
+    return true;
+  }
+
+  function applyMultiplayerAction(action) {
+    if (multiplayerSpectator || !action || typeof action.type !== 'string') return;
+    applyingMultiplayerAction = true;
+    multiplayerActionOwner = action.playerId || null;
+    try {
+      if (action.type === 'place-tower') {
+        placeTower(action.spotId, action.towerType);
+      } else if (action.type === 'evolve-tower') {
+        const tower = gameState.towers.find(item => item.spotId === action.spotId);
+        if (tower) evolveTower(tower, action.towerType, action.cost);
+      } else if (action.type === 'sell-tower') {
+        const tower = gameState.towers.find(item => item.spotId === action.spotId);
+        if (tower) sellTower(tower);
+      } else if (action.type === 'start-wave') {
+        startWave();
+      } else if (action.type === 'pause') {
+        pauseGame();
+      } else if (action.type === 'resume') {
+        resumeGame();
+      } else if (action.type === 'retry') {
+        retryGame();
+      }
+    } finally {
+      applyingMultiplayerAction = false;
+      multiplayerActionOwner = null;
+      if (['place-tower', 'evolve-tower', 'sell-tower'].includes(action.type)) {
+        drawTowerShop();
+      }
+    }
+  }
+
+  function checkpointActiveRound() {
+    if (!gameState.modeConfirmed || gameState.gameOver || multiplayerSpectator ||
+        (currentSeed && !isSeedHost)) return false;
+    const snapshot = getMultiplayerGameState(true);
+    if (!snapshot) return false;
+    snapshot.paused = false;
+    snapshot.gameOver = false;
+    snapshot.savedAt = Date.now();
+    gameState.savedRoundSnapshot = snapshot;
+    saveProgress();
+    return true;
+  }
+
+  function restoreSavedRoundSnapshot(snapshot) {
+    if (!snapshot || !MAPS[snapshot.map] ||
+        typeof snapshot.mode !== 'string' ||
+        !Array.isArray(snapshot.towers) ||
+        !Array.isArray(snapshot.enemies) ||
+        !Array.isArray(snapshot.waveSpawnQueue) ||
+        !Number.isFinite(Number(snapshot.wave)) ||
+        (snapshot.mode === 'interstellar' && !hasInterstellarEntryAccess()) ||
+        (snapshot.mode === 'acrossTheTime' &&
+          (!canPlayAcrossTimeSolo() || !snapshot.matchStats?.acrossTheTimeProgress?.started))) return false;
+
+    const restoredSnapshot = {
+      ...snapshot,
+      seed: null,
+      multiplayerEnabled: false,
+      players: [],
+      paused: false,
+      gameOver: false
+    };
+    if (!applyMultiplayerGameState(restoredSnapshot)) return false;
+
+    if (gameState.mode === 'acrossTheTime') {
+      if (gameState.acrossTheTimeSpace === 1 && gameState.acrossTimeCrystals > 0) {
+        renderAcrossTimeCrystals(gameState.acrossTimeCrystals, gameState.wave);
+      }
+      if (gameState.acrossTheTimeSpace === 2) createAcrossTimePuzzleMarkers();
+      refreshAcrossTimeAppearance();
+    }
+    gameState.paused = false;
+    gameState.gameOver = false;
+    gameState.savedRoundSnapshot = null;
+    if (gameState.waveActive && gameState.spawningActive) {
+      startWaveSpawnInterval();
+    } else {
+      gameState.spawningActive = false;
+    }
+    if (gameState.waveActive && roundCheckpointInterval === null) {
+      roundCheckpointInterval = setInterval(checkpointActiveRound, 5000);
+    }
+    lastGameFrameTime = performance.now();
+    clearLoginVisualEffects();
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('map-selection').style.display = 'none';
+    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('game-container').style.display = 'flex';
+    document.getElementById('meta-controls').style.display = 'flex';
+    renderMultiplayerPlayerList([]);
+    applyScale();
+    return true;
+  }
+
+  window._getMultiplayerGameState = getMultiplayerGameState;
+  window._applyMultiplayerGameState = applyMultiplayerGameState;
+  window._applyMultiplayerAction = applyMultiplayerAction;
+  window._checkpointActiveRound = checkpointActiveRound;
+  window._restoreSavedRoundSnapshot = restoreSavedRoundSnapshot;
+  window._showMultiplayerNotice = text => showMessage(text, 'info');
+  window._exitToLoginAfterModeration = () => exitToLogin(false);
+  window._showMultiplayerServerClosed = () => {
+    gameState.gameOver = true;
+    gameState.paused = false;
+    gameState.spawningActive = false;
+    const modal = document.getElementById('game-over');
+    const title = modal?.querySelector('h2');
+    const message = document.getElementById('game-over-msg');
+    const actions = modal?.querySelector('.game-over-actions');
+    if (!modal || !title || !message || !actions) {
+      console.error('No se pudo mostrar el cierre del servidor: faltan elementos del diálogo.');
+      return;
+    }
+    title.textContent = currentLanguage === 'en' ? 'SERVER CLOSED' : 'SERVIDOR CERRADO';
+    message.textContent = currentLanguage === 'en'
+      ? 'The host left or the server stopped. This match is lost and cannot be recovered. Restarting starts a new match.'
+      : 'El anfitrión se ha ido o el servidor se ha detenido. Esta partida se ha perdido y no se puede recuperar. Reiniciar empezará una partida nueva.';
+    modal.querySelector('.modal-content')?.classList.remove('paused', 'victory');
+    actions.querySelectorAll('button').forEach(button => {
+      button.style.display = button.classList.contains('exit-btn') || button.id === 'multiplayer-restart-btn'
+        ? 'inline-flex'
+        : 'none';
+    });
+    const exitButton = actions.querySelector('.exit-btn');
+    if (exitButton) exitButton.textContent = currentLanguage === 'en' ? '🚪 Exit' : '🚪 Salir';
+    const restartButton = document.getElementById('multiplayer-restart-btn');
+    if (restartButton) restartButton.textContent = currentLanguage === 'en' ? '🔄 Restart from scratch' : '🔄 Reiniciar desde cero';
+    modal.style.display = 'flex';
+  };
+  window._refreshMultiplayerUI = drawTowerShop;
+
+  function spawnBoat(tower) {
+    const typeDef = TOWER_TYPES[tower.type];
+    if (!typeDef || !typeDef.summonType) return;
+    const summonType = typeDef.summonType;
+    let imagePath = IMAGE_PATHS[summonType];
+    const equippedSkin = gameState.equippedSkins[tower.family];
+    const skinSet = equippedSkin && SKINS_DATA[tower.family]
+      ? SKINS_DATA[tower.family].find(skin => skin.id === equippedSkin)
+      : null;
+    const hasCustomSummonSkin = Boolean(
+      skinSet?.isSpecial &&
+      skinSet.skins &&
+      Object.prototype.hasOwnProperty.call(skinSet.skins, summonType)
+    );
+    const hasCustomSummons = Boolean(
+      skinSet?.isSpecial &&
+      skinSet.skins &&
+      Object.keys(skinSet.skins).some(key => key.startsWith('Boat_'))
+    );
+    if (hasCustomSummonSkin) {
+      imagePath = skinSet.skins[summonType];
+    } else if (hasCustomSummons) {
+      imagePath = IMAGE_PATHS[summonType];
+      console.warn(`La skin ${equippedSkin} no tiene summon para ${summonType}; se usa el summon base como fallback.`);
+    }
+    
+    if (!hasCustomSummonSkin && summonType === 'Boat_S1' && Math.random() < 0.3) {
+      imagePath = IMAGE_PATHS['Boat_S1_Broken'];
+    } else if (!hasCustomSummonSkin && summonType === 'Boat_S2' && Math.random() < 0.3) {
+      imagePath = IMAGE_PATHS['Boat_S2_Destroyed'];
+    }
+
+    const chosenPath = ENEMY_PATHS[Math.floor(Math.random() * ENEMY_PATHS.length)];
+    const startPoint = chosenPath[chosenPath.length - 1]; // Start at allied base
+
+    const el = document.createElement('div');
+    el.className = 'boat projectile';
+    el.style.position = 'absolute';
+    el.style.width = '60px';
+    el.style.height = '60px';
+    el.style.left = startPoint.x + 'px';
+    el.style.top = startPoint.y + 'px';
+    el.style.transform = 'translate(-50%, -50%)';
+    el.style.backgroundImage = `url('${encodeURI(imagePath)}')`;
+    el.style.backgroundSize = 'contain';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.backgroundPosition = 'center';
+    el.style.zIndex = '6';
+
+    const mapElement = document.getElementById('map') || document.getElementById('game-area');
+    if (!mapElement) {
+      console.error('No se pudo crear el summon de Marina: no existe el contenedor del mapa.');
+      return;
+    }
+    mapElement.appendChild(el);
+
+    const boat = {
+      el: el,
+      x: startPoint.x,
+      y: startPoint.y,
+      pathIndex: chosenPath.length - 1,
+      currentPath: chosenPath,
+      speed: { Boat_S1: 35, Boat_S2: 45, Boat_S3: 60, Boat_S4: 75 }[summonType] || 35,
+      summonType: summonType,
+      damage: tower.damage * ({ Boat_S1: 1, Boat_S2: 1.4, Boat_S3: 2, Boat_S4: 3 }[summonType] || 1),
+      health: summonType === 'Boat_S4'
+        ? 450 + Math.floor(Math.random() * 51)
+        : ({ Boat_S1: 50, Boat_S2: 120, Boat_S3: 250 }[summonType] || 50),
+      maxHealth: summonType === 'Boat_S4'
+        ? 0
+        : ({ Boat_S1: 50, Boat_S2: 120, Boat_S3: 250 }[summonType] || 50),
+      shooter: tower,
+      isBoat: true,
+      hitEntities: new Set(),
+      cooldownTimer: 2.0,
+      normalShotsCount: 2
+    };
+    boat.maxHealth = boat.health;
+
+    gameState.boats = gameState.boats || [];
+    gameState.boats.push(boat);
+  }
+
+  let seenEnemyDialogues = {};
+
+  function isBossDialogueAllowed(type) {
+    if (type === 'Arky') return !['corrupto', 'antiNormal'].includes(gameState.mode);
+    if (type === 'ArkyVoid') return gameState.mode === 'corrupto';
+    if (type === 'CrystArky') return gameState.mode === 'antiNormal';
+    return true;
+  }
+
+  function checkEnemyDialogues(type) {
+    const dialogueKey = type === 'GODs_Shadow'
+      ? `${type}_${gameState.acrossTheTimeSpace}`
+      : type;
+    if (seenEnemyDialogues[dialogueKey] || document.getElementById('narrator-bubble')) return;
+    if (!isBossDialogueAllowed(type)) return;
+
+    const triggers = {
+      'Guest_Pyce': { speaker: 'bombot', index: 1 },
+      'Noob_Pyce': { speaker: 'glob', index: 3 },
+      'Symbol_Pyce': { speaker: 'bombot', index: 4 },
+      'SO_Pyce': { speaker: 'bombot', index: 5 }
+    };
+
+    if (triggers[type]) {
+      seenEnemyDialogues[type] = true;
+      const t = triggers[type];
+      const data = NARRATOR_DATA[t.speaker];
+      const text = data[currentLanguage].msgs[t.index];
+      showNarratorMsg(t.speaker, data.img, data[currentLanguage].name, text);
+    } else if (type === 'Mimic_Pyce' || type === 'Stupid_GoldPyce') {
+      seenEnemyDialogues['Mimic_Pyce'] = true;
+      const data = NARRATOR_DATA.bombot;
+      showNarratorMsg('bombot', data.img, data[currentLanguage].name, data[currentLanguage].mimicWarning);
+    } else if (type === '1x1x1x1_Pyce') {
+      seenEnemyDialogues[type] = true;
+      const data = NARRATOR_DATA.one_x;
+      showNarratorMsg('one_x', data.img, data[currentLanguage].name, data[currentLanguage].msgs[0]);
+    } else if (type === 'NOeye_Pyce') {
+      seenEnemyDialogues[type] = true;
+      if ((gameState.map || 'gelatin_lake') === 'urbanistic_road') {
+        const data = NARRATOR_DATA.arky;
+        const msg = data[currentLanguage].msgs[Math.floor(Math.random() * data[currentLanguage].msgs.length)];
+        showNarratorMsg('arky', data.img, data[currentLanguage].name, msg);
+      } else {
+        const data = NARRATOR_DATA.noeye;
+        showNarratorMsg('noeye', data.img, data[currentLanguage].name, data[currentLanguage].msgs[0], 'enemy-voice');
+      }
+    } else if (type === 'DarkSpirit') {
+      seenEnemyDialogues[type] = true;
+      showNarratorMsg(
+        'darkspirit',
+        IMAGE_PATHS.DarkSpirit,
+        'DarkSpirit',
+        pickRandom(DARKSPIRIT_COMBAT_LINES[currentLanguage] || DARKSPIRIT_COMBAT_LINES.es),
+        'enemy-voice'
+      );
+    } else if (type === 'MoonStar_Pyce' &&
+               gameState.mode === 'acrossTheTime' &&
+               gameState.acrossTheTimeSpace === 2 &&
+               gameState.wave === 15) {
+      seenEnemyDialogues[dialogueKey] = true;
+      showAcrossTimeNarration('across_time_moonstar');
+    } else if (type === 'MoonStar_Pyce') {
+      seenEnemyDialogues[type] = true;
+      if ((gameState.map || 'gelatin_lake') === 'urbanistic_road') {
+        const data = NARRATOR_DATA.crystarky;
+        const msg = data[currentLanguage].msgs[Math.floor(Math.random() * data[currentLanguage].msgs.length)];
+        showNarratorMsg('crystarky', data.img, data[currentLanguage].name, msg);
+      } else {
+        const data = NARRATOR_DATA.moonstar;
+        showNarratorMsg('moonstar', data.img, data[currentLanguage].name, data[currentLanguage].msgs[0]);
+      }
+    } else if (type === 'Arky') {
+      seenEnemyDialogues[type] = true;
+      const data = NARRATOR_DATA.arky;
+      const msg = data[currentLanguage].msgs[Math.floor(Math.random() * data[currentLanguage].msgs.length)];
+      showNarratorMsg('arky', data.img, data[currentLanguage].name, msg);
+    } else if (type === 'CrystArky') {
+      seenEnemyDialogues[type] = true;
+      const data = NARRATOR_DATA.crystarky;
+      const msg = data[currentLanguage].msgs[Math.floor(Math.random() * data[currentLanguage].msgs.length)];
+      showNarratorMsg('crystarky', data.img, data[currentLanguage].name, msg);
+    } else if (type === 'ArkyVoid') {
+      seenEnemyDialogues[type] = true;
+      const data = NARRATOR_DATA.arkyvoid;
+      const msg = data[currentLanguage].msgs[Math.floor(Math.random() * data[currentLanguage].msgs.length)];
+      showNarratorMsg('arkyvoid', data.img, data[currentLanguage].name, msg);
+    } else if (type === 'GODs_Shadow') {
+      seenEnemyDialogues[dialogueKey] = true;
+      showAcrossTimeNarration('across_time_final_intro');
+    }
+  }
+
+  function checkWaveDialogues() {
+    if (document.getElementById('narrator-bubble')) return;
+
+    // Base chance of 15% + 1% per wave
+    const waveChance = 0.15 + ((gameState.wave || 1) * 0.01);
+    if (Math.random() < waveChance) {
+      const mode = gameState.mode;
+      let speakers = [];
+
+      let maxWaves = gameState.maxWaves || 20;
+      if (mode === 'pesadilla') maxWaves = 50;
+      const isCutoff = gameState.wave >= maxWaves - 10;
+
+      const isUrbanMap = (gameState.map || 'gelatin_lake') === 'urbanistic_road';
+
+      if (isUrbanMap) {
+        // En Urbanistic Road, los Arkys solo hablan cuando el jefe correspondiente está presente.
+        speakers = isCutoff ? [] : ['bombot', 'glob'];
+      } else if (mode === 'corrupto') {
+        speakers = isCutoff ? ['moonstar'] : ['bombot_corrupto', 'moonstar'];
+      } else if (mode === 'antiNormal') {
+        speakers = isCutoff ? ['glob', 'noeye'] : ['bombot_antiNormal', 'glob', 'noeye'];
+      } else {
+        speakers = ['bombot', 'glob', 'stupid', 'pyce2'];
+      }
+
+      if (gameState.enemies.some(e => e.type === 'DarkSpirit')) speakers.push('darkspirit');
+
+      if (!isUrbanMap) {
+        if (gameState.enemies.some(e => e.type === '1x1x1x1_Pyce')) speakers.push('one_x');
+        if (gameState.enemies.some(e => e.type === 'NOeye_Pyce') && mode !== 'antiNormal') speakers.push('noeye');
+        if (gameState.enemies.some(e => e.type === 'MoonStar_Pyce') && mode !== 'corrupto') speakers.push('moonstar');
+      } else {
+        if (gameState.enemies.some(e => e.type === 'Arky' && isBossDialogueAllowed('Arky'))) speakers.push('arky');
+        if (gameState.enemies.some(e => e.type === 'CrystArky' && isBossDialogueAllowed('CrystArky'))) speakers.push('crystarky');
+        if (gameState.enemies.some(e => e.type === 'ArkyVoid' && isBossDialogueAllowed('ArkyVoid'))) speakers.push('arkyvoid');
+      }
+
+      if (speakers.length === 0) return;
+      const sId = speakers[Math.floor(Math.random() * speakers.length)];
+
+      if (sId === 'bombot_corrupto') {
+        const data = NARRATOR_DATA.bombot;
+        const msgsArray = data[currentLanguage].corruptMsgs;
+        const text = msgsArray[Math.floor(Math.random() * msgsArray.length)];
+        showNarratorMsg('bombot', data.img, data[currentLanguage].name, text);
+      } else if (sId === 'bombot_antiNormal') {
+        const data = NARRATOR_DATA.bombot;
+        const msgsArray = data[currentLanguage].antiNormalMsgs;
+        const text = msgsArray[Math.floor(Math.random() * msgsArray.length)];
+        showNarratorMsg('bombot', data.img, data[currentLanguage].name, text);
+      } else if (sId === 'darkspirit') {
+        showNarratorMsg(
+          'darkspirit',
+          IMAGE_PATHS.DarkSpirit,
+          'DarkSpirit',
+          pickRandom(DARKSPIRIT_COMBAT_LINES[currentLanguage] || DARKSPIRIT_COMBAT_LINES.es),
+          'enemy-voice'
+        );
+      } else {
+        const data = NARRATOR_DATA[sId];
+        if (data) {
+          const msgs = data[currentLanguage].msgs;
+          const text = msgs[Math.floor(Math.random() * msgs.length)];
+          showNarratorMsg(sId, data.img, data[currentLanguage].name, text, sId === 'noeye' ? 'enemy-voice' : '');
+        }
+      }
+    }
+  }
+
+  let narratorTimeout = null;
+  const narratorQueue = [];
+  function showNarratorMsg(speakerId, imgSrc, speakerName, text, variant = '') {
+    const old = document.getElementById('narrator-bubble');
+    if (old && (
+      old.querySelector('.narrator-close')?.disabled ||
+      old.dataset.closing === 'true' ||
+      narratorQueue.length > 0
+    )) {
+      narratorQueue.push([speakerId, imgSrc, speakerName, text, variant]);
+      return;
+    }
+    if (old) old.remove();
+    if (narratorTimeout) clearTimeout(narratorTimeout);
+
+    const language = currentLanguage === 'en' ? 'en' : 'es';
+    const isEnemyVoice = variant === 'enemy-voice';
+    const renderedText = isEnemyVoice && speakerId === 'noeye'
+      ? formatNoeyeText(text)
+      : isEnemyVoice && speakerId === 'darkspirit'
+        ? `${language === 'en' ? 'The darkness has found you...' : 'La oscuridad te ha encontrado...'} ${text}`
+        : text;
+    const isBlackedOut = imgSrc.endsWith('|blacked-out');
+    const renderedImgSrc = isBlackedOut ? imgSrc.replace(/\|blacked-out$/, '') : imgSrc;
+    const bubble = document.createElement('div');
+    bubble.id = 'narrator-bubble';
+    const themeClass = typeof getNarratorThemeClass === 'function'
+      ? getNarratorThemeClass(speakerId, renderedImgSrc, variant)
+      : '';
+    bubble.className = `narrator-bubble narrator-enter speaker-${speakerId}${isBlackedOut ? ' image-blacked-out' : ''}${variant ? ` ${variant}` : ''}${themeClass ? ` ${themeClass}` : ''}`;
+    bubble.innerHTML = `
+    <img src="${renderedImgSrc}" class="narrator-portrait" onerror="this.style.display='none'">
+    <div class="narrator-text-box">
+      <div class="narrator-name">${speakerName}</div>
+      <div class="narrator-text" aria-live="polite"></div>
+    </div>
+    <button class="narrator-close" onclick="closeNarratorMsg()">✕</button>
+  `;
+    document.body.appendChild(bubble);
+    const textElement = bubble.querySelector('.narrator-text');
+    const closeButton = bubble.querySelector('.narrator-close');
+    let characterIndex = 0;
+    if (closeButton) closeButton.disabled = true;
+    const finishTyping = () => {
+      if (closeButton) closeButton.disabled = false;
+      narratorTimeout = setTimeout(() => { closeNarratorMsg(); }, 6000);
+    };
+    const typeCharacter = () => {
+      if (!textElement || !bubble.isConnected) return;
+      textElement.textContent = renderedText.slice(0, characterIndex);
+      if (characterIndex >= renderedText.length) {
+        finishTyping();
+        return;
+      }
+      characterIndex += 1;
+      setTimeout(typeCharacter, textElement.textContent.endsWith(' ') ? 18 : 28);
+    };
+    typeCharacter();
+
+    setTimeout(() => {
+      if (bubble.parentNode) {
+        bubble.classList.remove('narrator-enter');
+        bubble.classList.add('narrator-float');
+      }
+    }, 500); // 500ms after enter animation finishes
+
+  }
+  window._showNarratorMsg = showNarratorMsg;
+
+  function closeNarratorMsg() {
+    const bubble = document.getElementById('narrator-bubble');
+    if (!bubble || bubble.querySelector('.narrator-close')?.disabled) return;
+    if (narratorTimeout) {
+      clearTimeout(narratorTimeout);
+      narratorTimeout = null;
+    }
+    bubble.dataset.closing = 'true';
+    bubble.classList.remove('narrator-float');
+    bubble.classList.add('narrator-exit');
+    setTimeout(() => {
+      if (bubble.parentNode) bubble.remove();
+      const nextMessage = narratorQueue.shift();
+      if (nextMessage) showNarratorMsg(...nextMessage);
+    }, 500); // match exit animation duration
+  }
+
+  let lastGameFrameTime = 0;
+  let frameCount = 0;
+  const MAX_PROJECTILES = 120; // Límite de proyectiles activos en pantalla
+
+  // Vida maxima de la base segun el modo/mejoras, usada para calcular los topes
+  // de dano por impacto. Debe reflejar el mismo valor con el que arranca la base.
+  function getBaseMaxHealth() {
+    if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace >= 3) return 300;
+    if (gameState.mode === 'tutorial') return 100;
+    return 100 + ((gameState.baseHealthLevel || 0) * 20);
+  }
+
+  // MEC-02: el dano a la base es la vida restante del enemigo (vida + escudo),
+  // no un valor fijo por tier. Ej.: Pyce con 50 de vida -> la base pierde 50.
+  // Los cristalizados reutilizan su antiguo "golpe reforzado": aplican un
+  // recargo del 50% sobre su vida restante. Para que un solo enemigo filtrado
+  // nunca borre la base de golpe, el dano se limita a una fraccion de la vida
+  // maxima de la base por impacto (mas alta para los cristalizados).
+  function damageBaseFromEnemy(enemy) {
+    const vitality = Math.max(0, (Number(enemy.health) || 0) + (Number(enemy.shield) || 0));
+    const crystallized = Boolean(enemy.isCrystallized);
+    const rawDamage = crystallized ? vitality * 1.5 : vitality;
+    const baseMax = Math.max(1, getBaseMaxHealth());
+    const cap = Math.ceil(baseMax * (crystallized ? 0.75 : 0.5));
+    const damage = Math.max(1, Math.min(cap, Math.ceil(rawDamage)));
+    gameState.health = Math.max(0, gameState.health - damage);
+    gameState.baseTookDamage = true;
+    showEffect(enemy.x, enemy.y, `-${damage}`);
+    updateUI();
+    if (gameState.health <= 0) endGame();
+  }
+
+  function gameLoop(timestamp = performance.now()) {
+    if (multiplayerSpectator || gameState.gameOver || gameState.paused) {
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+    try {
+      const elapsed = lastGameFrameTime ? (timestamp - lastGameFrameTime) / 1000 : 1 / 60;
+      const dt = Math.min(0.05, Math.max(1 / 120, elapsed));
+      const movementScale = dt * 60;
+      lastGameFrameTime = timestamp;
+      frameCount++;
+      gameState.simultaneousExplosions = 0;
+
+      // === ANTI-LAG: Eliminar proyectiles en exceso (los más viejos, no jefes ni piercing) ===
+      if (gameState.projectiles.length > MAX_PROJECTILES) {
+        let toRemove = gameState.projectiles.length - MAX_PROJECTILES;
+        for (let i = 0; i < gameState.projectiles.length && toRemove > 0; i++) {
+          const p = gameState.projectiles[i];
+          if (!p.piercing && !p.boomerang && !p.isEnemy) {
+            p.el.remove();
+            gameState.projectiles.splice(i, 1);
+            i--; toRemove--;
+          }
+        }
+      }
+
+      if (gameState.paracristalActive && gameState.waveActive && Math.random() < 0.012) {
+        spawnParacristal();
+      }
+      if (gameState.paracristalActive && gameState.health < 120) {
+        gameState.paracristalActive = false;
+        gameState.paracristalEnergy = Math.max(0, gameState.paracristalEnergy - 20);
+        document.querySelectorAll('.paracristal').forEach(crystal => crystal.remove());
+      }
+      const crystalEnergy = document.getElementById('paracristal-energy');
+      if (crystalEnergy && gameState.paracristalActive) {
+        crystalEnergy.textContent = `${currentLanguage === 'es' ? '💎 Energía cristalina' : '💎 Crystal energy'}: ${Math.ceil(gameState.paracristalEnergy)}%`;
+      }
+
+      function isTowerProtected(tower) {
+        if (!gameState.duckgrades.dg_Grey) return false;
+        return gameState.towers.some(grey => {
+          if (grey.family === 'Grey' || grey.family === 'Old_Glob' || grey.type === 'Old_Glob' || grey.type === 'Pyce_Glob') {
+            return Math.hypot(grey.x - tower.x, grey.y - tower.y) < 150;
+          }
+          return false;
+        });
+      }
+
+      for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+        const e = gameState.enemies[i];
+        const next = e.currentPath[e.pathIndex + 1];
+        const currentVitality = (e.health || 0) + (e.shield || 0);
+        if (e._visualVitality !== undefined && currentVitality < e._visualVitality && e.el) {
+          e.el.classList.remove('hit-flash');
+          void e.el.offsetWidth;
+          e.el.classList.add('hit-flash');
+          setTimeout(() => e.el && e.el.classList.remove('hit-flash'), 260);
+        }
+        e._visualVitality = currentVitality;
+
+        let currentEnemySpeed = e.speed;
+        if (e.stunned && e.stunned > 0) {
+          e.stunned -= dt;
+          currentEnemySpeed = 0;
+        }
+
+        if (next) {
+          const dx = next.x - e.x, dy = next.y - e.y, dist = Math.hypot(dx, dy);
+          const movementStep = currentEnemySpeed * movementScale;
+          if (dist < movementStep) e.pathIndex++;
+          else { e.x += (dx / dist) * movementStep; e.y += (dy / dist) * movementStep; }
+          if (frameCount % 2 === 0) {
+            e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
+          }
+        } else {
+          if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace === 4 &&
+              gameState.wave === 50 && e.type === 'GODs_Shadow') {
+            if (e.acrossTimeReturning) {
+              e.currentPath = [...e.currentPath].reverse();
+              e.pathIndex = 0;
+              e.acrossTimeReturning = false;
+            } else {
+              gameState.acrossTimeBossReturns = (gameState.acrossTimeBossReturns || 0) + 1;
+              if (gameState.acrossTimeBossReturns >= 3) {
+                gameState.baseTookDamage = true;
+                gameState.health = 0;
+                endGame();
+                return;
+              }
+              e.currentPath = [...e.currentPath].reverse();
+              e.pathIndex = 0;
+              e.acrossTimeReturning = true;
+              showMessage(translate('across_time_final_opportunity', {
+                count: 3 - gameState.acrossTimeBossReturns
+              }), 'warning');
+            }
+            continue;
+          }
+          if (e.tripleLap) {
+            // NOIRrupt: da 3 vueltas. En las dos primeras no ataca la base y
+            // vuelve al spawn; en la tercera ataca segun la vida que le quede
+            // (mucha vida = destruye la base; poca vida = solo la debilita).
+            e.lapCount = (e.lapCount || 0) + 1;
+            if (e.lapCount < 3) {
+              e.pathIndex = 0;
+              showMessage(
+                currentLanguage === 'es'
+                  ? `¡${e.name} regresa! Vuelta ${e.lapCount} de 3...`
+                  : `${e.name} returns! Lap ${e.lapCount} of 3...`,
+                'warning'
+              );
+              continue;
+            }
+            // Tercera vuelta: impacto final proporcional a su vida restante.
+            gameState.baseTookDamage = true;
+            const vitality = Math.max(0, (e.health || 0) + (e.shield || 0));
+            const maxVitality = Math.max(1, (e.maxHealth || 1) + (e.shieldMax || 0));
+            const ratio = Math.min(1, vitality / maxVitality);
+            e.el.remove();
+            gameState.enemies.splice(i, 1);
+            if (ratio >= 0.6) {
+              // Llega con fuerza: destruye la base.
+              gameState.health = 0;
+              endGame();
+              return;
+            }
+            // Llega debilitado: deja la base tocada pero con vida.
+            const damage = Math.max(1, Math.ceil(gameState.health * (0.4 + ratio)));
+            gameState.health = Math.max(1, gameState.health - damage);
+            showMessage(
+              currentLanguage === 'es'
+                ? `${e.name} golpea la base, pero llegó demasiado débil para destruirla.`
+                : `${e.name} strikes the base, but arrived too weak to destroy it.`,
+              'error'
+            );
+            updateUI();
+            continue;
+          }
+          if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
+          if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
+          e.el.remove(); gameState.enemies.splice(i, 1);
+          damageBaseFromEnemy(e);
+          continue;
+        }
+
+        if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace === 4 &&
+            gameState.wave === 50 && e.type === 'GODs_Shadow') {
+          e.acrossTimeTowerAttackTimer = (e.acrossTimeTowerAttackTimer || 0) + dt;
+          if (e.acrossTimeTowerAttackTimer >= 20) {
+            e.acrossTimeTowerAttackTimer = 0;
+            gameState.towers
+              .filter(tower => Math.hypot(tower.x - e.x, tower.y - e.y) <= 240)
+              .forEach(tower => {
+                tower.stunTimer = Math.max(tower.stunTimer || 0, 3);
+                showEffect(tower.x, tower.y - 20, '⏳', '#8a68d8');
+              });
+          }
+        }
+
+        const totalCurrent = e.health + (e.shield || 0);
+        const totalMax = e.maxHealth + (e.shieldMax || 0);
+        const pct = Math.max(0, (totalCurrent / totalMax) * 100);
+        e.hpFill.style.width = pct + '%';
+        e.el.title = `${e.name} | HP: ${Math.max(0, Math.ceil(e.health))}/${Math.ceil(e.maxHealth)}`;
+
+        if (e.type === 'Arky' || e.type === 'CrystArky' || e.type === 'ArkyVoid') {
+          e.arkyTimer = (e.arkyTimer || 0) + dt;
+          if (e.arkyTimer >= 15) {
+            e.arkyTimer = 0;
+            e.arkyImmunity = null;
+          } else if (e.arkyTimer >= 10 && !e.arkyImmunity) {
+            const immunities = ['fire', 'poison', 'slow'];
+            e.arkyImmunity = immunities[Math.floor(Math.random() * immunities.length)];
+            showFloatingText(currentLanguage === 'es' ? "¡INMUNIDAD!" : "IMMUNITY!", e.x, e.y - 30, "#ffd700");
+          }
+
+          if (e.arkyImmunity === 'fire') {
+            e.hpFill.style.backgroundColor = '#ff8c00';
+            e.burnTimer = 0;
+          } else if (e.arkyImmunity === 'poison') {
+            e.hpFill.style.backgroundColor = '#9b59b6';
+            e.poisonTimer = 0;
+            e.toxicTimer = 0;
+          } else if (e.arkyImmunity === 'slow') {
+            e.hpFill.style.backgroundColor = '#3498db';
+            e.enemySlowTimer = 0;
+            e.stunned = 0;
+          }
+        }
+
+        if (e.type === 'ArkyVoid') {
+          e.arkyVoidTimer = (e.arkyVoidTimer || 0) + dt;
+          if (e.arkyVoidTimer >= 15) {
+            e.arkyVoidTimer = 0;
+            e.arkyVoidTriggered = false;
+          } else if (e.arkyVoidTimer >= 5 && !e.arkyVoidTriggered) {
+            e.arkyVoidTriggered = true;
+            const activeTowers = gameState.towers.filter(t => !t.arkyVoidReduced);
+            if (activeTowers.length > 0) {
+              const targetTowers = activeTowers.sort(() => 0.5 - Math.random()).slice(0, 3);
+              targetTowers.forEach(t => {
+                t.arkyVoidReduced = true;
+                t.originalRange = t.range;
+                t.arkyVoidTimer = 10;
+                t.range = t.range * 0.9;
+                if (t.el) t.el.style.filter = "drop-shadow(0 0 10px #ff69b4) hue-rotate(-50deg)";
+                showEffect(t.x, t.y - 20, currentLanguage === 'es' ? "-10% Rango" : "-10% Range");
+              });
+            }
+          }
+        }
+
+
+        if (e.enemySlowTimer && e.enemySlowTimer > 0) {
+          e.enemySlowTimer -= dt;
+          const factor = e.enemySlowFactor || 0.4;
+          currentEnemySpeed = e.speed * (1 - factor);
+          e.el.style.filter = 'brightness(0.8) contrast(1.2) saturate(1.5) hue-rotate(100deg)';
+        } else {
+          e.el.style.filter = '';
+        }
+
+        let brownAuraMax = 0;
+        gameState.towers.forEach(t => {
+          const typeCfg = TOWER_TYPES[t.type];
+          if (typeCfg && typeCfg.slowAura) {
+            const dist = Math.hypot(t.x - e.x, t.y - e.y);
+            if (dist <= typeCfg.range) {
+              brownAuraMax = Math.max(brownAuraMax, typeCfg.slowAura);
+            }
+          }
+        });
+        if (brownAuraMax > 0 && currentEnemySpeed > 0) {
+          currentEnemySpeed *= (1 - brownAuraMax);
+          e.el.style.filter = (e.el.style.filter || '') + ' sepia(0.8) hue-rotate(30deg) brightness(0.8)';
+        }
+
+        if (e.burnTimer && e.burnTimer > 0) {
+          e.burnTimer -= dt;
+          const dmg = (e.burnDamage || 5) * (e.fireWeakMultiplier || 1) * dt;
+          if (e.type === 'Fireflies') {
+            e.health = Math.min(e.maxHealth, e.health + dmg);
+            e.el.classList.add('burning');
+          } else {
+            e.health -= dmg;
+            e.el.classList.add('burning');
+          }
+        } else {
+          e.el.classList.remove('burning');
+        }
+
+        if (e.burnTimer > 0 && e.enemySlowTimer > 0 && e.stunned > 0 && e.toxicTimer > 0 && e.poisonTimer > 0) {
+          unlockBadge('epicEffects');
+        }
+
+        if (e.acidImmune) e.toxicTimer = 0;
+        if (e.toxicTimer && e.toxicTimer > 0) {
+          e.toxicTimer -= dt;
+          const dmg = 25 * dt;
+          e.health -= dmg;
+        }
+
+        if (gameState.traps && gameState.traps.length > 0) {
+          for (let j = gameState.traps.length - 1; j >= 0; j--) {
+            let trap = gameState.traps[j];
+            // DJ_Trap is NOT contact-based — it has its own active loop below
+            if (trap.parentType === 'DJ_Glob') continue;
+            if (trap.active &&
+                canTowerHitEnemy({ type: trap.parentType }, e) &&
+                Math.hypot(e.x - trap.x, e.y - trap.y) <= (trap.radius || 40)) {
+              let dmg = trap.damage;
+              e.health -= dmg;
+              // Deberia ser como las demas vallas, pero que vaya atacando mientras tengs un enemigo cerca, como una torreta (COD-637)
+              if (trap.parentType === 'Police_Glob') {
+                e.enemySlowTimer = 2;
+                e.enemySlowFactor = 0.5;
+              } else if (trap.parentType === 'Planked_Glob') {
+                gameState.enemies.forEach(otherE => {
+                  if (otherE !== e &&
+                      canTowerHitEnemy({ type: trap.parentType }, otherE) &&
+                      Math.hypot(otherE.x - trap.x, otherE.y - trap.y) <= 80) {
+                    otherE.health -= trap.damage * 0.5;
+                  }
+                });
+              }
+              if (trap.whiteSupport) {
+                applyEnemyStun(e, 1.5);
+              }
+
+              showEffect(trap.x, trap.y, "TRAP! 💥", "#f39c12");
+
+              if (gameState.duckgrades && gameState.duckgrades.dg_Worker_Glob && !trap.triggeredOnce) {
+                trap.triggeredOnce = true;
+                trap.ignoreEnemyId = e.id || Math.random();
+              } else {
+                // wall_garden: check if enemy slowed by Brown family when trap destroyed
+                let brownSlowing = false;
+                gameState.towers.forEach(bt => {
+                  if (TOWER_TYPES[bt.type] && TOWER_TYPES[bt.type].slowAura) {
+                    if (Math.hypot(bt.x - e.x, bt.y - e.y) <= TOWER_TYPES[bt.type].range) brownSlowing = true;
+                  }
+                });
+                if (brownSlowing) unlockBadge('wall_garden');
+                if (trap.el && trap.el.parentNode) trap.el.parentNode.removeChild(trap.el);
+                gameState.traps.splice(j, 1);
+              }
+            }
+          }
+        }
+
+        // Stun immunity countdown
+        if (e.stunImmuneTimer && e.stunImmuneTimer > 0) e.stunImmuneTimer -= dt;
+
+        if (!e.poisonImmune && e.poisonTimer && e.poisonTimer > 0) {
+          e.poisonTimer -= dt;
+          const dmg = 12 * dt;
+          e.health -= dmg;
+
+          gameState.enemies.forEach(other => {
+            if (other !== e && !other.poisonImmune && !other.poisonTimer &&
+                Math.hypot(other.x - e.x, other.y - e.y) < 40) {
+              other.poisonTimer = 3;
+            }
+          });
+        }
+
+        updateEnemyStatusUI(e);
+
+        if (e.health <= 0) {
+          die(e, i);
+          continue;
+        }
+
+        if (e.healer) {
+          e.healTimer = (e.healTimer || 0) + dt;
+          if (e.healTimer >= (e.healCooldown || 2)) {
+            e.healTimer = 0;
+            let healed = false;
+            gameState.enemies.forEach(ally => {
+              if (ally !== e && Math.hypot(ally.x - e.x, ally.y - e.y) <= (e.healRange || 100)) {
+                if (ally.health < ally.maxHealth) {
+                  ally.health = Math.min(ally.maxHealth, ally.health + (e.healAmount || 10));
+                  healed = true;
+                }
+              }
+            });
+            if (healed) showEffect(e.x, e.y, "✨ HEAL", "#2ecc71");
+          }
+        }
+
+        if (e.type === '1x1x1x1_Pyce' || e.type === 'MoonStar_Pyce') {
+          e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+          if (e.attackTimer1 > 5) {
+            e.attackTimer1 = 0;
+            let targetTower = null;
+            let minDist = Infinity;
+            gameState.towers.forEach(t => {
+              const d = Math.hypot(t.x - e.x, t.y - e.y);
+              if (d < minDist) { minDist = d; targetTower = t; }
+            });
+            if (targetTower) shoot(e, targetTower, { isEnemy: true, projectile: 'binary_code', speed: 2, slow: 3 });
+          }
+        }
+        if (e.type === 'NOeye_Pyce' || e.type === 'MoonStar_Pyce') {
+          e.attackTimer2 = (e.attackTimer2 || 0) + dt;
+          if (e.attackTimer2 > 8) {
+            e.attackTimer2 = 0;
+            if (gameState.towers.length > 0) {
+              const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
+              shoot(e, targetTower, { isEnemy: true, projectile: 'laser_purple', speed: 5, stun: 2 });
+            }
+          }
+        }
+        if (e.type === 'Crystal_Bombot') {
+          e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+          if (e.attackTimer1 > 5) {
+            e.attackTimer1 = 0;
+            if (gameState.towers.length > 0) {
+              const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
+              shoot(e, targetTower, { isEnemy: true, image: 'Recursos/img/Proyectiles/Crystal Metor.png', speed: 3, stun: 3 });
+            }
+          }
+        }
+        if (e.type === 'AstrorbTF') {
+          e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+          if (e.attackTimer1 > 4) {
+            e.attackTimer1 = 0;
+            if (gameState.towers.length > 0) {
+              const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
+              shoot(e, targetTower, { isEnemy: true, image: 'Recursos/img/Proyectiles/Crystal Metor.png', speed: 4, stun: 4 });
+            }
+            if (Math.random() < 0.3 && gameState.mode === 'interstellar') {
+              const msgs = [
+                { es: "Nada escapará a las estrellas.", en: "Nothing will escape the stars." },
+                { es: "Todo será eterno.", en: "Everything will be eternal." }
+              ];
+              const r = msgs[Math.floor(Math.random() * msgs.length)];
+              showNarratorMsg('astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? r.es : r.en);
+            }
+          }
+        }
+        if (['NO_CrystEye_CB', 'AstrorbOrbe', 'AstrorbContenida', 'Crystalic_Orb'].includes(e.type)) {
+          e.crystalMeteorTimer = (e.crystalMeteorTimer || 0) + dt;
+          const attackInterval = e.type === 'NO_CrystEye_CB' ? 8 : 5;
+          if (e.crystalMeteorTimer > attackInterval) {
+            e.crystalMeteorTimer = 0;
+            if (gameState.towers.length > 0) {
+              const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
+              const isFinalAstrorb = e.type === 'Crystalic_Orb';
+              shoot(e, targetTower, {
+                isEnemy: true,
+                image: 'Recursos/img/Proyectiles/Crystal Metor.png',
+                speed: isFinalAstrorb ? 4 : e.type === 'NO_CrystEye_CB' ? 3.5 : 3,
+                stun: isFinalAstrorb ? 4 : e.type === 'NO_CrystEye_CB' ? 2.5 : 3
+              });
+            }
+          }
+        }
+        if (e.honeySlow || e.blueHoneySlow) {
+          e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+          if (e.attackTimer1 > 4) {
+            e.attackTimer1 = 0;
+            if (gameState.towers.length > 0) {
+              const targetTowers = gameState.towers.sort(() => 0.5 - Math.random()).slice(0, 3);
+              targetTowers.forEach(targetTower => {
+                const slowVal = e.blueHoneySlow ? 5 : 3;
+                shoot(e, targetTower, { isEnemy: true, projectile: 'stone_small', speed: 2, slow: slowVal });
+              });
+            }
+          }
+        }
+        if (e.type === 'Guest_Pyce' || e.type === 'Blood_Taker') {
+          e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+          const attackInterval = e.type === 'Blood_Taker' ? 5 : 3;
+          const attackRange = e.type === 'Blood_Taker' ? 100 : 80;
+          if (e.attackTimer1 > attackInterval) {
+            let targetTower = null;
+            gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < attackRange) targetTower = t; });
+            if (targetTower) {
+              e.attackTimer1 = 0;
+              if (isTowerProtected(targetTower)) {
+                showEffect(targetTower.x, targetTower.y - 20, "IMMUNE! 🛡️", "#00ffcc");
+              } else {
+                targetTower.stunTimer = (targetTower.stunTimer || 0) + (e.type === 'Blood_Taker' ? 2 : 1.5);
+                showEffect(targetTower.x, targetTower.y - 20, "STUNNED!", "#ff0000");
+              }
+            }
+          }
+        }
+        if (e.type === 'Noob_Pyce') {
+          e.attackTimer1 = (e.attackTimer1 || 0) + dt;
+          if (e.attackTimer1 > 6) {
+            let targetTower = null;
+            gameState.towers.forEach(t => { if (Math.hypot(t.x - e.x, t.y - e.y) < 200) targetTower = t; });
+            if (targetTower) shoot(e, targetTower, { isEnemy: true, projectile: 'stone_red', speed: 3, stun: 1.5 });
+          }
+        }
+        if (e.type === 'SkeleBone_Pyce') {
+          e.boneThrowTimer = (e.boneThrowTimer || 0) + dt;
+          if (e.boneThrowTimer >= 4.5 && gameState.towers.length > 0) {
+            e.boneThrowTimer = 0;
+            const targetTower = gameState.towers.reduce((nearest, tower) =>
+              !nearest || Math.hypot(tower.x - e.x, tower.y - e.y) < Math.hypot(nearest.x - e.x, nearest.y - e.y)
+                ? tower
+                : nearest,
+              null
+            );
+            if (targetTower) {
+              shoot(e, targetTower, { isEnemy: true, image: IMAGE_PATHS.SkeleBone_Bone, speed: 7, stun: 0.75 });
+            }
+          }
+        }
+        if (e.type === 'Curse_Boneker') {
+          e.boneVolleyTimer = (e.boneVolleyTimer || 0) + dt;
+          if (e.boneVolleyTimer >= 6 && gameState.towers.length > 0) {
+            e.boneVolleyTimer = 0;
+            const targetCount = Math.min(
+              gameState.towers.length,
+              2 + Math.floor(Math.random() * 4)
+            );
+            const targetTowers = [...gameState.towers]
+              .sort(() => Math.random() - 0.5)
+              .slice(0, targetCount);
+            targetTowers.forEach(targetTower => {
+              shoot(e, targetTower, {
+                isEnemy: true,
+                image: IMAGE_PATHS.SkeleBone_Bone,
+                speed: 6,
+                stun: 2
+              });
+            });
+          }
+        }
+
+        if (e.health <= 0) die(e, i);
+      }
+
+      if (gameState.globalRangeBuffTimer && gameState.globalRangeBuffTimer > 0) {
+        gameState.globalRangeBuffTimer -= dt;
+        if (gameState.globalRangeBuffTimer <= 0) {
+          gameState.globalRangeBuffTimer = 0;
+          updateBuffs();
+        }
+      }
+
+      gameState.towers.forEach(t => {
+        if (t.arkyVoidReduced) {
+          t.arkyVoidTimer = Math.max(0, (t.arkyVoidTimer || 0) - dt);
+          if (t.arkyVoidTimer === 0) {
+            t.arkyVoidReduced = false;
+            t.range = t.originalRange;
+            delete t.originalRange;
+            if (t.el) t.el.style.filter = '';
+            showEffect(t.x, t.y - 20, currentLanguage === 'es' ? "Rango Restaurado" : "Range Restored");
+          }
+        }
+        if (t.gTackCooldown && t.gTackCooldown > 0) {
+          t.gTackCooldown -= dt;
+          if (t.gTackCooldown < 0) t.gTackCooldown = 0;
+          if (gameState.selectedTower === t) updateEvolveButtons(t);
+        }
+        if (t.marineGtackTimer && t.marineGtackTimer > 0) {
+          t.marineGtackTimer -= dt;
+          if (t.marineGtackTimer < 0) t.marineGtackTimer = 0;
+        }
+        if (t.whiteSupportTimer && t.whiteSupportTimer > 0) {
+          t.whiteSupportTimer -= dt;
+          if (t.whiteSupportTimer < 0) t.whiteSupportTimer = 0;
+        }
+        if (t.pinkGtackTimer && t.pinkGtackTimer > 0) {
+          t.pinkGtackTimer -= dt;
+          if (t.pinkGtackTimer < 0) t.pinkGtackTimer = 0;
+        }
+        if (t.summonCooldown && t.summonCooldown > 0) {
+          const summonCooldownRate = t.marineGtackTimer > 0 ? 0.8 : 1;
+          t.summonCooldown -= dt * summonCooldownRate;
+          if (t.summonCooldown < 0) t.summonCooldown = 0;
+        }
+        if (t.toxicTimer && t.toxicTimer > 0) {
+          t.toxicTimer -= dt;
+          if (t.toxicTimer < 0) t.toxicTimer = 0;
+        }
+        if (t.contagioTimer && t.contagioTimer > 0) {
+          t.contagioTimer -= dt;
+          if (t.contagioTimer < 0) t.contagioTimer = 0;
+        }
+
+        if (t.stunned > 0) { t.stunned -= dt; t.el.classList.add('stunned'); return; }
+        t.el.classList.remove('stunned');
+        if (t.family === 'Ducky_Glob' || t.type === 'Ducky_Glob' || t.type === 'Golden_Ducky_Glob') {
+          let interval = ['Golden_Ducky_Glob', 'Rick_Duck_Glob'].includes(t.type) ? 5 : 8;
+          if (gameState.duckgrades.dg_Ducky_Glob) {
+            const enemiesInRange = gameState.enemies.filter(e =>
+              canTowerHitEnemy(t, e) && Math.hypot(e.x - t.x, e.y - t.y) <= (t.range || 100)
+            );
+            if (enemiesInRange.length > 0) {
+              interval *= 0.5;
+              enemiesInRange.forEach(e => {
+                e.health -= 0.5 * dt * (gameState.wave + 1);
+              });
+              if (Math.random() < 0.1) showEffect(t.x, t.y, "🦆💥", "#ffd700");
+            }
+          }
+
+          const baseAmount = 10 + Math.floor(gameState.wave * 1.5);
+          const amount = t.type === 'Rick_Duck_Glob' ? Math.ceil(baseAmount * 1.25) : baseAmount;
+          if (t.type === 'Rick_Duck_Glob' && multiplayerEnabled) {
+            t.teammateBonusTimer += dt;
+            if (t.teammateBonusTimer >= 15) {
+              t.teammateBonusTimer %= 15;
+              const teammateBonus = Math.round(amount * 0.25) * Math.max(0, multiplayerPlayerCount - 1);
+              if (teammateBonus > 0) {
+                gameState.globetines += teammateBonus;
+                showEffect(t.x, t.y - 20, `+${teammateBonus} 🤝`);
+                updateUI();
+              }
+            }
+          }
+
+          t.moneyTimer += dt;
+          if (t.moneyTimer >= interval) {
+            t.moneyTimer = 0;
+            gameState.globetines += amount;
+            showEffect(t.x, t.y, `+${amount} 💰`);
+
+            const rand = Math.random();
+            if (rand < 0.05) {
+              const mult = getPycoinMultiplier();
+              const earned = Math.round(1 * mult);
+              gameState.pycoins += earned;
+              showEffect(t.x, t.y - 25, `+${earned} 💎`);
+            } else if (rand < 0.005) {
+              const mult = getDuckpassMultiplier();
+              const earned = Math.round(1 * mult);
+              gameState.duckPassCurrency += earned;
+              showEffect(t.x, t.y - 25, `+${earned} 🦆`);
+              showMessage(translate('level_duckpass', { level: 'SPECIAL' }), 'success');
+            }
+            updateUI(); updateMetaUI();
+          }
+        }
+        let currentSpeed = t.speed;
+        if (gameState.enemies.some(e => e.darkAura)) {
+          currentSpeed *= 0.6; // DarkSpirit ralentiza
+        }
+        const freezingEnemy = gameState.enemies.find(e =>
+          e.coldAura && Math.hypot(t.x - e.x, t.y - e.y) <= (e.coldAuraRange || 125)
+        );
+        if (freezingEnemy) currentSpeed *= freezingEnemy.coldAuraSlow || 0.65;
+
+        if (t.brownBuffTimer && t.brownBuffTimer > 0) {
+          t.brownBuffTimer -= dt;
+          currentSpeed *= 1.5;
+        }
+        if (t.slowTimer > 0) {
+          t.slowTimer -= dt;
+          currentSpeed *= 0.5;
+        }
+
+        if (t.stunTimer > 0) {
+          t.stunTimer -= dt;
+          if (!t.el.classList.contains('stunned-spin')) t.el.classList.add('stunned-spin');
+          if (t.stunTimer <= 0) t.el.classList.remove('stunned-spin');
+          return;
+        }
+
+        if (gameState.duckgrades.dg_Glob && (t.family === 'Glob' || t.type === 'Glob')) {
+          const nearDuck = gameState.towers.some(d => (d.family === 'Ducky_Glob' || d.type === 'Ducky_Glob') && Math.hypot(d.x - t.x, d.y - t.y) < 150);
+          if (nearDuck) currentSpeed *= 1.5;
+        }
+
+        t.cooldown -= dt;
+        if (t.attackAnim && t.attackAnim > 0) {
+          t.attackAnim -= dt;
+          if (t.attackAnim <= 0 && t.family === 'Special' && t.type === 'Work_Bombot' && gameState.equippedSkins['Special'] === 'cuby_bombot') {
+            t.el.style.backgroundImage = `url('${encodeURI(IMAGE_PATHS['Cuby_BombotA1'])}')`;
+          }
+        }
+
+        if (t.iexBuffTimer && t.iexBuffTimer > 0) {
+          t.iexBuffTimer -= dt;
+          currentSpeed *= 2;
+        }
+
+        if (t.family === 'IEx') {
+          const targets = gameState.enemies.filter(e =>
+            canTowerHitEnemy(t, e) && Math.hypot(e.x - t.x, e.y - t.y) <= t.range
+          );
+          if (targets.length > 0 || t.forceExplode) {
+            showEffect(t.x, t.y, "BOOM!", "#ff0000");
+            
+            gameState.simultaneousExplosions++;
+            if (gameState.simultaneousExplosions >= 3) {
+              unlockBadge('chain_reaction');
+            }
+            
+            let expImg = 'Recursos/img/Proyectiles/Explosion Effect.png';
+            if (gameState.equippedSkins['IEx'] === 'fracstal_set') {
+              if (t.type === 'Bomb_Glob') expImg = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystal Explosion (1).png';
+              else if (t.type === 'TNT_Glob') expImg = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystor Kaboom (2).png';
+              else if (t.type === 'Nuclear_Glob') expImg = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Nuclear Crystal (3).png';
+            }
+            
+            const expEl = document.createElement('div');
+            expEl.style.position = 'absolute';
+            expEl.style.left = t.x + 'px';
+            expEl.style.top = t.y + 'px';
+            let size = Math.max(120, t.range * 1.5);
+            if (gameState.equippedSkins['IEx'] === 'fracstal_set' && t.type === 'Nuclear_Glob') {
+              size *= 2.5;
+            }
+            expEl.style.width = size + 'px';
+            expEl.style.height = size + 'px';
+            expEl.style.transform = 'translate(-50%, -50%) scale(0.2)';
+            expEl.style.backgroundImage = `url('${encodeURI(expImg)}')`;
+            expEl.style.backgroundSize = 'contain';
+            if (gameState.equippedSkins['IEx'] === 'froggy_set') {
+              expEl.style.filter = 'hue-rotate(120deg) saturate(1.5)';
+            }
+            expEl.style.backgroundRepeat = 'no-repeat';
+            expEl.style.backgroundPosition = 'center';
+            expEl.style.zIndex = '35';
+            expEl.style.pointerEvents = 'none';
+            expEl.style.transition = 'transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out 0.15s';
+            document.getElementById('map').appendChild(expEl);
+            
+            setTimeout(() => { expEl.style.transform = 'translate(-50%, -50%) scale(1)'; }, 10);
+            setTimeout(() => { expEl.style.opacity = '0'; }, 150);
+            setTimeout(() => { expEl.remove(); }, 500);
+
+            gameState.roundIExExplosions = (gameState.roundIExExplosions || 0) + 1;
+            if (gameState.roundIExExplosions >= 100) unlockBadge('explosiones_por_doquier');
+
+            if (targets.length > 0) {
+              targets.forEach(e => {
+                const wasAlive = e.health > 0;
+                const damageMultiplier = ['Bomb_Glob', 'TNT_Glob'].includes(t.type)
+                  ? (e.fireWeakMultiplier || 1)
+                  : 1;
+                e.health -= t.damage * damageMultiplier;
+                if (wasAlive && e.health <= 0 && !e.nonIExDamage) {
+                  const baseHealth = ENEMY_TYPES[e.type] ? ENEMY_TYPES[e.type].health : 0;
+                  const isTank = ['Armored_Pyce', 'Iron_Pyce', 'Titan_Pyce', 'Titan_Pyce2', 'King_Pyce', 'Cristalized_Monster', 'Lenistal'].includes(e.type) || 
+                                 (baseHealth >= 1500 && !(ENEMY_TYPES[e.type] && ENEMY_TYPES[e.type].boss));
+                  if (isTank) {
+                    const inTrap = gameState.traps && gameState.traps.some(trap => trap.active && Math.hypot(e.x - trap.x, e.y - trap.y) <= (trap.radius || 40));
+                    if (inTrap) {
+                      unlockBadge('fenced_kaboom');
+                    }
+                  }
+                }
+                if (gameState.duckgrades.dg_IEx) {
+                  if ((t.type === 'Bomb_Glob' || t.type === 'TNT_Glob') && !e.fireImmune) {
+                    e.burnTimer = 3;
+                    e.burnDamage = 5;
+                  } else if (t.type === 'Nuclear_Glob') {
+                    e.toxicTimer = 5;
+                  }
+                }
+              });
+            }
+
+            const idx = gameState.towers.indexOf(t);
+            if (idx > -1) {
+              gameState.towers.splice(idx, 1);
+              if (t.spotId !== undefined && gameState.towerSpots[t.spotId]) {
+                gameState.towerSpots[t.spotId].occupied = false;
+              }
+              if (t.el && t.el.parentNode) t.el.parentNode.removeChild(t.el);
+              updateUI();
+            }
+          }
+          return;
+        }
+
+        if (t.family === 'Worker_Glob') {
+          t.cooldown -= dt;
+          let workerSpeed = t.speed || 0.5;  // usa la velocidad propia de la torre
+          if (t.trapSpeedBuffTimer && t.trapSpeedBuffTimer > 0) {
+            t.trapSpeedBuffTimer -= dt;
+            workerSpeed *= 2;
+          }
+          if (t.cooldown <= 0) {
+            if (!gameState.traps) gameState.traps = [];
+
+            let potentialSpots = [];
+            // Combine all available paths on the map
+            const allPaths = ENEMY_PATHS && ENEMY_PATHS.length > 0 ? ENEMY_PATHS : [];
+            allPaths.forEach(path => {
+              if (path && path.length > 0) {
+                for (let i = 0; i < path.length; i++) {
+                  let pt = path[i];
+                  if (Math.hypot(pt.x - t.x, pt.y - t.y) <= t.range) {
+                    // Colisión: ninguna trampa activa a menos de 50px (de cualquier evo)
+                    const occupied = gameState.traps.some(tr =>
+                      tr.active && Math.hypot(tr.x - pt.x, tr.y - pt.y) < 50
+                    );
+                    if (!occupied) potentialSpots.push({ x: pt.x, y: pt.y, index: i });
+                  }
+                }
+              }
+            });
+
+            const isDJ = t.type === 'DJ_Glob';
+            const trapRadius = isDJ ? 80 : 40;
+            const trapSize = isDJ ? 50 : 40;
+            const mapEl = document.getElementById('map');
+
+            if (potentialSpots.length > 0) {
+              // Coloca UNA valla por tick (el cooldown rápido llena el rango progresivamente)
+              // DJ_Glob tiene cooldown x3: tarda más pero su trampa es más poderosa
+              potentialSpots.sort((a, b) => b.index - a.index);
+              const spot = potentialSpots[0];
+              const trapType = t.trap;
+              const trap = {
+                x: spot.x, y: spot.y,
+                damage: t.damage,
+                trapType,
+                parentType: t.type,
+                whiteSupport: !!(t.whiteSupportTimer && t.whiteSupportTimer > 0),
+                active: true,
+                radius: trapRadius,
+                el: document.createElement('div')
+              };
+              trap.el.className = 'trap-entity';
+              trap.el.style.cssText =
+                `position:absolute;` +
+                `left:${spot.x}px;top:${spot.y}px;` +
+                `width:${trapSize}px;height:${trapSize}px;` +
+                `transform:translate(-50%,-50%);` +
+                `background:url('${encodeURI(getTowerSkinSet(t.family)?.traps?.[trapType] || IMAGE_PATHS[trapType])}') center/contain no-repeat;` +
+                `z-index:5;`;
+              mapEl.appendChild(trap.el);
+              gameState.traps.push(trap);
+            }
+            // Cooldown: DJ Glob x3 más lento
+            t.cooldown = (1 / workerSpeed) * (isDJ ? 3 : 1) * (t.pinkGtackTimer > 0 ? 1.25 : 1);
+          }
+          return;
+        }
+
+        if (t.cooldown <= 0 && t.family !== 'Ducky_Glob') {
+          const isEvo1 = !Object.values(TOWER_TYPES).some(typeDef => typeDef.evolution === t.type);
+          const isEvo2 = Object.values(TOWER_TYPES).some(typeDef => typeDef.evolution === t.type) && !Object.values(TOWER_TYPES).some(typeDef => typeDef.evolution === Object.values(TOWER_TYPES).find(td => td.evolution === t.type)?.type);
+
+          const isEvo1Or2 = t.type === 'Bomb_Glob' || t.type === 'TNT_Glob' || t.type === 'Worker_Glob' || t.type === 'Police_Glob' || t.type === 'SpyGlob' || isEvo1 || isEvo2;
+
+          const targets = gameState.enemies.filter(e => {
+            if (!canTowerHitEnemy(t, e)) return false;
+            if (e.holo && isEvo1) return false;
+            if (e.mechanic_key === 'mechanic_spyware' && isEvo1Or2) return false;
+            return Math.hypot(e.x - t.x, e.y - t.y) <= t.range;
+          });
+          if (targets.length || (t.isSummoner && gameState.enemies.length > 0)) {
+            // Trigger attack animation on the tower element
+            const performsAttack = !t.isSummoner || !t.summonCooldown || t.summonCooldown <= 0;
+            if (t.el && performsAttack) {
+              // Guardar el idle actual (cualquiera de los nuevos) para restaurarlo
+              // tras la animación de ataque.
+              const idleClasses = ['idle-jump', 'idle-wobble', 'idle-float', 'idle-glow-purple',
+                'idle-shimmer', 'idle-sway', 'idle-pulse-blue', 'idle-bob-static', 'idle-spin-soft'];
+              const prevIdle = idleClasses.find(cls => t.el.classList.contains(cls));
+              t.el.classList.remove(...idleClasses);
+              t.el.classList.add('attacking');
+              setTimeout(() => {
+                if (t.el) {
+                  t.el.classList.remove('attacking');
+                  if (prevIdle) t.el.classList.add(prevIdle);
+                }
+              }, 260);
+            }
+            let dmg = t.damage;
+            if (gameState.duckgrades.dg_Red_Glob && t.family === 'Red_Glob') {
+              const redCount = gameState.towers.filter(rt => rt.family === 'Red_Glob').length;
+              dmg *= (1 + (redCount * 0.1));
+            }
+
+            const marineGtackActive = t.family === 'Pirate_Glob' && t.marineGtackTimer > 0;
+            if (marineGtackActive) {
+              const useIexGlob = Math.random() < 0.2;
+              const specialType = useIexGlob ? 'TNT_Glob' : 'Bomb_Glob';
+              const bombShooter = { ...t, aoe: true, projectile: 'tumble_bomb' };
+              const attackTarget = targets[0] || gameState.enemies[0];
+              if (attackTarget) {
+                shoot(bombShooter, attackTarget, {
+                  damage: dmg * (useIexGlob ? 2 : 1.25),
+                  projectile: 'tumble_bomb',
+                  image: 'Recursos/img/Proyectiles/Proyectil_Bomba.png',
+                  boatBomb: true,
+                  bombType: specialType
+                });
+              }
+            }
+            if (t.isSummoner) {
+              if (!t.summonCooldown || t.summonCooldown <= 0) {
+                spawnBoat(t);
+                const baseSummonCooldown = { Boat_S1: 3.5, Boat_S2: 3, Boat_S3: 2.5, Boat_S4: 2 }[t.summonType] || 3;
+                t.summonCooldown = baseSummonCooldown;
+              }
+            } else if (t.type === 'SpyGlob') {
+              let baseAngle = Math.atan2(targets[0].y - t.y, targets[0].x - t.x);
+              const angles = [-0.3, 0, 0.3];
+              angles.forEach(a => {
+                const tx = targets[0].x + Math.cos(baseAngle + a) * 60;
+                const ty = targets[0].y + Math.sin(baseAngle + a) * 60;
+                const fakeTarget = gameState.enemies.length > 0 ? targets[Math.floor(Math.random() * Math.min(targets.length, 3))] : targets[0];
+                shoot(t, fakeTarget, { damage: dmg * 0.8 });
+              });
+            } else if (gameState.duckgrades.dg_Grey && t.type === 'Pyce_Glob' && Math.random() < 0.2) {
+              for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                const radialTarget = { x: t.x + Math.cos(a) * 100, y: t.y + Math.sin(a) * 100, health: 999 };
+                const specialAttack = getSpecialAttack(t, radialTarget, dmg);
+                if (!specialAttack) shoot(t, radialTarget, { damage: dmg });
+              }
+            } else {
+              const specialAttack = getSpecialAttack(t, targets[0], dmg);
+              if (!specialAttack) shoot(t, targets[0], { damage: dmg });
+            }
+            t.cooldown = (1 / currentSpeed) * (t.pinkGtackTimer > 0 ? 1.25 : 1);
+          }
+        }
+      });
+
+      function applyProjectileHit(p, target) {
+        if (p.isEnemy) {
+          if (isTowerProtected(target)) {
+            showEffect(target.x, target.y - 20, "IMMUNE! 🛡️", "#00ffcc");
+            return;
+          }
+          if (target.type === 'Haunted_Pirate_Glob') {
+            showEffect(target.x, target.y - 20, "IMMUNE! 👻", "#666666");
+            return;
+          }
+          if (p.meta && p.meta.stun) {
+            target.stunTimer = (target.stunTimer || 0) + p.meta.stun;
+            showEffect(target.x, target.y - 20, "STUNNED!", "#ff0000");
+          }
+          if (p.meta && p.meta.slow) {
+            target.slowTimer = (target.slowTimer || 0) + p.meta.slow;
+            showEffect(target.x, target.y - 20, "SLOWED!", "#ffaa00");
+          }
+          return;
+        }
+        if (p.shooter && !canTowerHitEnemy(p.shooter, target)) return;
+
+        let dmg = p.damage;
+        if (p.meta) {
+          if (p.meta.slow) {
+            target.enemySlowTimer = 3.0;
+            target.enemySlowFactor = p.meta.slow;
+          }
+          if (p.meta.burn) {
+            if (!target.fireImmune) {
+              target.burnTimer = 3.0;
+              target.burnDamage = p.meta.burnDamage || 5;
+            }
+          }
+          if (p.meta.toxic) {
+            target.toxicTimer = (target.toxicTimer || 0) + 3.0;
+          }
+          if (p.meta.poison && !target.poisonImmune) {
+            target.poisonTimer = (target.poisonTimer || 0) + 5.0;
+          }
+          if (p.meta.stunStrike) {
+            applyEnemyStun(target, 3.0);
+          }
+          if (p.meta.stun) {
+            applyEnemyStun(target, p.meta.stun, 'max');
+          }
+          if (p.meta.knockback && Math.random() < p.meta.knockback) {
+            target.pathIndex = Math.max(0, target.pathIndex - 1);
+            const retreatPoint = target.currentPath[target.pathIndex];
+            if (retreatPoint) {
+              target.x = retreatPoint.x;
+              target.y = retreatPoint.y;
+            }
+          }
+        }
+        if (gameState.duckgrades.dg_Comet_Glob && p.family === 'Comet_Glob') {
+          if (Math.random() < 0.15) { dmg *= 2; showEffect(target.x, target.y, "CRIT! 💥"); }
+        }
+        if (gameState.duckgrades.dg_Soap_Glob && p.family === 'Soap_Glob') {
+          if (Math.random() < 0.2) applyEnemyStun(target, 1.0, 'replace');
+        }
+        if (gameState.duckgrades.dg_White && p.family === 'White' && Math.random() < 0.15) {
+          target.pathIndex = Math.max(0, target.pathIndex - 1);
+          const retreatPoint = target.currentPath[target.pathIndex];
+          if (retreatPoint) {
+            target.x = retreatPoint.x;
+            target.y = retreatPoint.y;
+          }
+        }
+        if (p.projectile === 'glitch' || p.type === 'Pyce_Glob') {
+          target.speed = Math.max(0.5, target.speed * 0.9);
+          if (Math.random() < 0.2) applyEnemyStun(target, 0.5, 'replace');
+          target.el.classList.add('glitch-shake');
+          setTimeout(() => { if (target && target.el) target.el.classList.remove('glitch-shake'); }, 500);
+        }
+        if (p.meta && p.meta.corruption) {
+          target.speed = Math.max(0.5, target.speed * 0.7);
+          target.el.classList.add('glitch-shake');
+          setTimeout(() => { if (target && target.el) target.el.classList.remove('glitch-shake'); }, 800);
+        }
+
+        if (p.meta?.burn) dmg *= target.fireWeakMultiplier || 1;
+        if (target.shield > 0) {
+          const abs = Math.min(target.shield, dmg);
+          target.shield -= abs;
+          dmg -= abs;
+        }
+        if (dmg > 0) {
+          target.health -= dmg;
+          if (p.family !== 'IEx') target.nonIExDamage = true;
+        }
+        if (p.meta?.boatBomb) {
+          showBoatBombExplosion(target.x, target.y, p.meta.bombType);
+        }
+        gameState.totalDamage += p.damage;
+
+        if (p.bounceOnHit && p.bounces < p.bounceLimit) {
+          p.bounces++;
+          p.hitEntities.add(target);
+          const nextTarget = gameState.enemies
+            .filter(e => !p.hitEntities.has(e))
+            .sort((a, b) => Math.hypot(a.x - target.x, a.y - target.y) - Math.hypot(b.x - target.x, b.y - target.y))[0];
+          p.target = nextTarget || null;
+        } else if (gameState.duckgrades.dg_Work_Bombot && p.type === 'Work_Bombot' && !p.bounced) {
+          p.bounced = true;
+          p.x = target.x; p.y = target.y;
+          const nextTarget = gameState.enemies.find(e => e !== target && Math.hypot(e.x - p.x, e.y - p.y) < 100);
+          if (nextTarget) { p.target = nextTarget; }
+        }
+        if (gameState.duckgrades.dg_Grey && p.type === 'Old_Glob' && !p.isSpin) {
+          for (let a = 0; a < Math.PI * 2; a += Math.PI / 2) {
+            shoot({ ...p, projectile: 'stone_small', damage: p.damage * 0.3 }, { x: p.x + Math.cos(a) * 50, y: p.y + Math.sin(a) * 50, health: 999 }, { size: 8 });
+          }
+        }
+      }
+
+      if (gameState.boats) {
+        for (let i = gameState.boats.length - 1; i >= 0; i--) {
+          const b = gameState.boats[i];
+          if (b.pathIndex <= 0) {
+            b.el.remove();
+            gameState.boats.splice(i, 1);
+            continue;
+          }
+          const targetPoint = b.currentPath[b.pathIndex - 1];
+          const dx = targetPoint.x - b.x;
+          const dy = targetPoint.y - b.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 5) {
+            b.pathIndex--;
+          } else {
+            b.x += (dx / dist) * b.speed * dt;
+            b.y += (dy / dist) * b.speed * dt;
+            b.el.style.left = b.x + 'px';
+            b.el.style.top = b.y + 'px';
+            const angle = Math.atan2(dy, dx);
+            b.el.style.transform = `translate(-50%, -50%) rotate(${angle + Math.PI}rad)`;
+          }
+
+          let destroyedOnImpact = false;
+          gameState.enemies.forEach(e => {
+            if (destroyedOnImpact) return;
+            if (!b.hitEntities.has(e) && Math.hypot(e.x - b.x, e.y - b.y) < 40) {
+              b.hitEntities.add(e);
+              let dmg = b.damage;
+              if (e.shield > 0) {
+                const abs = Math.min(e.shield, dmg);
+                e.shield -= abs;
+                dmg -= abs;
+              }
+              if (dmg > 0) e.health -= dmg;
+              if (b.summonType === 'Boat_S4') {
+                b.health -= Math.max(1, e.baseDamage || ENEMY_TIER_DAMAGE[e.tier] || 2);
+              } else {
+                destroyedOnImpact = true;
+              }
+              showEffect(e.x, e.y, "CRASH! 💥", "#ff0000");
+            }
+          });
+
+          if (destroyedOnImpact || b.health <= 0) {
+            b.el.remove();
+            gameState.boats.splice(i, 1);
+            continue;
+          }
+
+          if (b.summonType === 'Boat_S3' || b.summonType === 'Boat_S4') {
+            b.cooldownTimer -= dt;
+            if (b.cooldownTimer <= 0) {
+              const targets = gameState.enemies.filter(e =>
+                canTowerHitEnemy(b.shooter, e) && Math.hypot(e.x - b.x, e.y - b.y) <= 150
+              );
+              if (targets.length) {
+                b.cooldownTimer = 2.0;
+                let isSpecial = false;
+                let projImg = null;
+                let specialDmg = 50;
+                let specialType = 'Bomb_Glob';
+                
+                if (b.normalShotsCount >= 2) {
+                  const r = Math.random();
+                  if (r < (b.summonType === 'Boat_S4' ? 0.01 : 0)) {
+                    specialType = 'Nuclear_Glob';
+                    isSpecial = true;
+                  } else if (r < (b.summonType === 'Boat_S4' ? 0.06 : 0.05)) {
+                    specialType = 'TNT_Glob';
+                    isSpecial = true;
+                  } else if (r < (b.summonType === 'Boat_S4' ? 0.21 : 0.20)) {
+                    specialType = 'Bomb_Glob';
+                    isSpecial = true;
+                  }
+                  if (isSpecial) {
+                    projImg = IMAGE_PATHS[specialType];
+                    specialDmg = TOWER_TYPES[specialType].damage;
+                  }
+                }
+
+                if (isSpecial) {
+                  b.normalShotsCount = 0;
+                  const bombProjectileImage = 'Recursos/img/Proyectiles/Proyectil_Bomba.png';
+                  let pOpts = { image: bombProjectileImage, boatBomb: true, bombType: specialType };
+                  if (gameState.equippedSkins['Pirate_Glob'] === 'froggy_set') {
+                    pOpts.filter = 'hue-rotate(120deg) saturate(1.5)';
+                  }
+                  shoot({
+                    x: b.x, y: b.y, damage: specialDmg, speed: 2, projectile: 'tumble_bomb',
+                    family: b.shooter.family, type: b.shooter.type, aoe: true
+                  }, targets[0], { ...pOpts, bounceOnHit: gameState.duckgrades.dg_Pirate_Glob && (b.summonType === 'Boat_S3' || b.summonType === 'Boat_S4') });
+                } else {
+                  b.normalShotsCount++;
+                  shoot({ x: b.x, y: b.y, damage: b.damage * 0.5, speed: 4, projectile: 'stone' }, targets[0]);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
+        const p = gameState.projectiles[i];
+
+        if (p.projectile === 'laser_red') {
+          const collidesWithDemonic = gameState.projectiles.some(other =>
+            other !== p && other.projectile === 'laser_purple' && Math.hypot(other.x - p.x, other.y - p.y) < 25
+          );
+          if (collidesWithDemonic) {
+            unlockBadge('letsGoGambling');
+          }
+        }
+
+        if (p.boomerang) {
+          const homeX = p.shooter.x;
+          const homeY = p.shooter.y;
+          if (!p.returnPhase) {
+            const targetDist = Math.hypot(p.target.x - p.x, p.target.y - p.y);
+            if (targetDist < 10 || (!p.target.health && targetDist < 50)) {
+              p.returnPhase = true;
+              p.hitEntities.clear();
+            } else {
+              p.x += p.vx * dt;
+              p.y += p.vy * dt;
+            }
+          } else {
+            const dx = homeX - p.x, dy = homeY - p.y, hDist = Math.hypot(dx, dy);
+            if (hDist < 15) {
+              p.el.remove(); gameState.projectiles.splice(i, 1); continue;
+            }
+            p.vx = (dx / hDist) * p.speed;
+            p.vy = (dy / hDist) * p.speed;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+          }
+        } else if (p.piercing) {
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          if (p.x < -100 || p.x > 2000 || p.y < -100 || p.y > 1000) {
+            p.el.remove(); gameState.projectiles.splice(i, 1); continue;
+          }
+        } else {
+          const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;
+          if (!p.target || !targetArray.includes(p.target)) {
+            if (p.projectile === 'void_tracker') {
+              const nextTarget = targetArray.find(e =>
+                (p.isEnemy || !p.shooter || canTowerHitEnemy(p.shooter, e)) &&
+                Math.hypot(e.x - p.x, e.y - p.y) < 300
+              );
+              if (nextTarget) { p.target = nextTarget; }
+              else { p.el.remove(); gameState.projectiles.splice(i, 1); continue; }
+            } else {
+              p.el.remove(); gameState.projectiles.splice(i, 1); continue;
+            }
+          }
+          const dx = p.target.x - p.x, dy = p.target.y - p.y, dist = Math.hypot(dx, dy);
+          if (dist < 10) {
+            applyProjectileHit(p, p.target);
+            if (p.bounceOnHit && p.target && p.bounces < p.bounceLimit) continue;
+            if (!p.isEnemy) spawnProjectileImpact(p.x, p.y, p);
+            p.el.remove(); gameState.projectiles.splice(i, 1); continue;
+          } else {
+            p.vx = (dx / dist) * p.speed;
+            p.vy = (dy / dist) * p.speed;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+          }
+        }
+
+        // Throttle DOM: solo actualizar posición visual cada 2 frames (la física es siempre precisa)
+        if (frameCount % 2 === 0) {
+          p.el.style.left = p.x + 'px';
+          p.el.style.top = p.y + 'px';
+        }
+
+        if (p.piercing || p.boomerang) {
+          const targetArray = p.isEnemy ? gameState.towers : gameState.enemies;
+          targetArray.forEach(e => {
+            if (!p.hitEntities.has(e) && Math.hypot(e.x - p.x, e.y - p.y) < 20) {
+              p.hitEntities.add(e);
+              applyProjectileHit(p, e);
+            }
+          });
+        }
+      }
+      // ── DJ_Trap active update loop ──
+      // DJ_Trap acts like a mini-tower: shoots stun waves periodically;
+      // on destruction it fires a final paralyzing pulse.
+      if (gameState.traps) {
+        for (let j = gameState.traps.length - 1; j >= 0; j--) {
+          const trap = gameState.traps[j];
+          if (!trap.active || trap.parentType !== 'DJ_Glob') continue;
+
+          // Init HP y cooldown de onda
+          if (trap.health === undefined) trap.health = 120 + gameState.wave * 8;
+          if (trap.waveCooldown === undefined) trap.waveCooldown = 0;
+
+          // Enemigos en radio dañan la valla (la destruyen al atacarla)
+          const inRange = gameState.enemies.filter(e =>
+            canTowerHitEnemy({ type: trap.parentType }, e) &&
+            Math.hypot(e.x - trap.x, e.y - trap.y) <= trap.radius
+          );
+          if (inRange.length > 0) {
+            // Cada enemigo hace ~15 de daño por segundo a la valla
+            trap.health -= inRange.length * 15 * dt;
+          }
+
+          // Onda periódica de ataque mientras la valla sigue en pie
+          trap.waveCooldown -= dt;
+          if (trap.waveCooldown <= 0) {
+            // Siempre lanza la onda visual (aunque no haya enemigos cerca),
+            // para que se vea que la trampa está "sonando" periódicamente.
+            spawnDJSoundWave(trap, false);
+            if (inRange.length > 0) {
+              inRange.forEach(e => {
+                e.health -= trap.damage * 0.4;
+                if (!e.stunImmuneTimer || e.stunImmuneTimer <= 0) {
+                  applyEnemyStun(e, 1.2);
+                  e.enemySlowTimer = 2;
+                  e.enemySlowFactor = 0.55;
+                  e.stunImmuneTimer = 10;
+                }
+              });
+              showEffect(trap.x, trap.y, "♫", "#9b59b6");
+            }
+            trap.waveCooldown = 2.0;
+          }
+
+          // Destrucción: HP agotada → pulso final paralizador
+          if (trap.health <= 0) {
+            gameState.enemies.forEach(e => {
+              if (canTowerHitEnemy({ type: trap.parentType }, e) &&
+                  Math.hypot(e.x - trap.x, e.y - trap.y) <= trap.radius * 1.5) {
+                e.health -= trap.damage * 0.8;
+                // wall_garden: check if enemy was being slowed by a Brown family tower
+                let brownSlowing = false;
+                gameState.towers.forEach(bt => {
+                  if (TOWER_TYPES[bt.type] && TOWER_TYPES[bt.type].slowAura) {
+                    if (Math.hypot(bt.x - e.x, bt.y - e.y) <= TOWER_TYPES[bt.type].range) {
+                      brownSlowing = true;
+                    }
+                  }
+                });
+                if (brownSlowing) unlockBadge('wall_garden');
+                if (!e.stunImmuneTimer || e.stunImmuneTimer <= 0) {
+                  applyEnemyStun(e, 3.0);
+                  e.enemySlowFactor = 0.0;
+                  e.enemySlowTimer = 3;
+                  e.stunImmuneTimer = 10;
+                }
+              }
+            });
+            spawnDJSoundWave(trap, true); // pulso final más grande
+            showEffect(trap.x, trap.y, "♫ BOOM!", "#8e44ad");
+            if (trap.el && trap.el.parentNode) trap.el.parentNode.removeChild(trap.el);
+            gameState.traps.splice(j, 1);
+          }
+        }
+      }
+
+
+      if (gameState.waveActive && !gameState.spawningActive && !gameState.enemies.length &&
+          !(gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace === 1 && gameState.acrossTimeCrystals > 0)) {
+        gameState.waveActive = false;
+        gameState.savedRoundSnapshot = null;
+        gameState.waveSpawnQueue = [];
+        gameState.waveSpawnIndex = 0;
+        gameState.waveSpawnIsBoss = false;
+        gameState.waveBossTypes = [];
+        // Aviso de oleada superada (no en el tutorial).
+        if (gameState.mode !== 'tutorial' && typeof showMessage === 'function') {
+          const clearedMsg = (typeof translate === 'function')
+            ? translate('waveCompleted', { wave: gameState.wave })
+            : `✓ ¡Oleada ${gameState.wave} superada!`;
+          showMessage(clearedMsg, 'success');
+        }
+        if (roundCheckpointInterval !== null) {
+          clearInterval(roundCheckpointInterval);
+          roundCheckpointInterval = null;
+        }
+        const earnsNormalRewards = gameState.mode !== 'tutorial';
+        if (earnsNormalRewards) {
+          gameState.globetines += 50 + gameState.wave * 10;
+          const earnedPy = Math.round(10 * getPycoinMultiplier());
+          gameState.pycoins += earnedPy;
+        }
+        let xpAmount = 20;
+        if (gameState.mode === 'dificil') xpAmount = 25;
+        else if (gameState.mode === 'extremo') xpAmount = 30;
+        else if (gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') xpAmount = 40;
+        else if (gameState.mode === 'pesadilla') xpAmount = 50;
+        if (earnsNormalRewards) {
+          addXP(xpAmount);
+          showXPPopup(xpAmount);
+        }
+        if (gameState.mode === 'acrossTheTime') {
+          handleAcrossTimeWaveCleared();
+        }
+        // Badge: mimic3 (Aura de Cristal) - finish wave with 1 health
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.health === 1) unlockBadge('mimic3');
+        // Badge: mimic4 (Economía de Guerra) - 10 ducky towers on map
+        const duckyCount = gameState.towers.filter(t => t.family === 'Ducky_Glob').length;
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && duckyCount >= 10) unlockBadge('mimic4');
+        // Badge: survivor - reach wave 10
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.wave >= 10) unlockBadge('survivor');
+        // Badge: millionaire - have over 20000 money
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.globetines >= 20000) unlockBadge('millionaire');
+        // Badge: inf wave badges
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.wave >= 100) unlockBadge('inf100');
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.wave >= 500) unlockBadge('inf500');
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.wave >= 999) unlockBadge('inf999');
+        if (gameState.mode === 'infinito' && gameState.wave >= 999) {
+          gameState.wave = 999;
+          gameState.infiniteCompleted = true;
+          gameState.autoWave = false;
+          showInfiniteCompletionDucky();
+        }
+        // Badge: titaniumBuilding - no base damage
+        if (!gameState.baseTookDamage && gameState.wave >= gameState.maxWaves &&
+            !['infinito', 'acrossTheTime', 'tutorial'].includes(gameState.mode)) unlockBadge('titaniumBuilding');
+        // Badge: deepSavings - 1500 pycoins and duckpasses
+        if (!['acrossTheTime', 'tutorial'].includes(gameState.mode) && gameState.pycoins >= 1500 && gameState.duckPassCurrency >= 1500) unlockBadge('deepSavings');
+        updateUI(); updateMetaUI(); saveProgress();
+        if (gameState.mode === 'tutorial' && gameState.wave >= 5) {
+          awardTutorialCompletion();
+          setTutorialStage('complete');
+          saveProgress();
+          endGame(true);
+        } else if (gameState.autoWave) setTimeout(startWave, 2000);
+      }
+
+      // Anti-Normal random glitch mechanic
+      if (gameState.mode === 'antiNormal' && gameState.waveActive && Math.random() < 0.005) {
+        const gameArea = document.getElementById('game-area');
+        if (gameArea && !gameArea.classList.contains('game-glitch-event')) {
+          gameArea.classList.add('game-glitch-event');
+
+          // Glitch gives Pyces a shield equal to half their max health (excluding Bosses)
+          gameState.enemies.forEach(e => {
+            if (!e.frozen && e.type !== 'NOeye_Pyce' && e.type !== 'MoonStar_Pyce') {
+              const baseHealth = ENEMY_TYPES[e.type] ? ENEMY_TYPES[e.type].health : e.health;
+              e.shield = (e.shield || 0) + (baseHealth / 2);
+              if (e.el) {
+                e.el.style.boxShadow = "0 0 15px #00ffff"; // Cyan shield visual
+                e.el.style.border = "2px solid #00ffff";
+                e.el.style.borderRadius = "50%";
+              }
+            }
+          });
+
+          showFloatingText(translate('glitch_shields'), window.innerWidth / 2, 200, "#00ffff");
+          setTimeout(() => gameArea.classList.remove('game-glitch-event'), 300);
+        }
+      }
+    } catch (err) {
+      console.error("Error en gameLoop (el juego continúa):", err);
+    }
+    requestAnimationFrame(gameLoop);
+  }
+
+  // Onda visible de la trampa DJ. Sin skin: anillo de "sonido" morado que
+  // se expande. Con la skin navideña (santa_workshop_set): una onda de
+  // regalos que salen disparados en todas direcciones (imagen custom).
+  function spawnDJSoundWave(trap, isFinal) {
+    const layer = document.getElementById('map') || document.getElementById('game-area');
+    if (!layer) return;
+    const radius = (trap.radius || 80) * (isFinal ? 1.5 : 1);
+    const christmasSkin = gameState.equippedSkins?.['Worker_Glob'] === 'santa_workshop_set';
+    const giftImg = christmasSkin ? IMAGE_PATHS.Santa_Workshop_Gift_Projectile : null;
+
+    if (christmasSkin && giftImg) {
+      // Onda de regalos: N imágenes repartidas en círculo que vuelan hacia afuera.
+      const count = isFinal ? 12 : 8;
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const gift = document.createElement('img');
+        gift.className = 'dj-gift-wave';
+        gift.src = encodeURI(giftImg);
+        gift.alt = '';
+        gift.setAttribute('aria-hidden', 'true');
+        gift.style.left = `${trap.x}px`;
+        gift.style.top = `${trap.y}px`;
+        gift.style.setProperty('--dj-gift-x', `${Math.cos(angle) * radius}px`);
+        gift.style.setProperty('--dj-gift-y', `${Math.sin(angle) * radius}px`);
+        if (isFinal) gift.classList.add('dj-gift-wave-final');
+        layer.appendChild(gift);
+        setTimeout(() => gift.remove(), 700);
+      }
+    } else {
+      // Anillo de sonido: un círculo que se expande y se desvanece.
+      const ring = document.createElement('div');
+      ring.className = 'dj-sound-wave' + (isFinal ? ' dj-sound-wave-final' : '');
+      ring.setAttribute('aria-hidden', 'true');
+      ring.style.left = `${trap.x}px`;
+      ring.style.top = `${trap.y}px`;
+      ring.style.setProperty('--dj-wave-size', `${radius * 2}px`);
+      layer.appendChild(ring);
+      setTimeout(() => ring.remove(), 700);
+    }
+  }
+
+  // Pequeño destello al impactar un proyectil. Puramente visual: se autodestruye.
+  // Paleta de impacto por familia y por tipo (misma lógica que el tintado
+  // de proyectiles) para que el golpe sea ACORDE al tipo de Glob.
+  const IMPACT_FAMILY_COLOR = {
+    'Glob': '#5fe07a', 'Red_Glob': '#ff6a4d', 'Soap_Glob': '#5bc6ff',
+    'Ducky_Glob': '#ffe066', 'Comet_Glob': '#b89bff', 'Grey': '#cfd6dd',
+    'Special': '#ffb24d', 'Worker_Glob': '#e6c34d', 'Brown': '#c8975a',
+    'White': '#ffffff', 'Pink': '#ff8ad1', 'IEx': '#ff8a3d'
+  };
+  const IMPACT_TYPE_COLOR = {
+    'Golden_Glob': '#ffd700', 'Molten_Glob': '#ff7a24', 'Robotic_Glob': '#ff4d4d',
+    'Demglob': '#c394fc', 'Void_Glob': '#7a4dff', 'Pyce_Glob': '#49ffb0',
+    'ElectroClean_Glob': '#6fe0ff'
+  };
+
+  // Destello al impactar un proyectil. Toma el color del Glob que disparó y
+  // su forma según el tipo de ataque (láser alargado, boomerang, bala). Las
+  // bombas/AOE tienen su propia explosión, así que aquí se omiten.
+  function spawnProjectileImpact(x, y, projectile) {
+    const layer = document.getElementById('map') || document.getElementById('game-area');
+    if (!layer) return;
+
+    const meta = projectile?.meta || {};
+    // No duplicar sobre explosiones de bomba/AOE: esas ya tienen su efecto.
+    if (meta.aoe || projectile?.aoe || meta.boatBomb) return;
+
+    const projClass = projectile?.projectile || '';
+    const isLaser = typeof projClass === 'string' && (projClass.includes('laser') || projClass === 'void');
+    const isBoomerang = typeof projClass === 'string' && projClass.includes('boomerang');
+
+    // Color acorde: color explícito del disparo > por tipo > por familia > blanco
+    let color = IMPACT_TYPE_COLOR[projectile?.type] ||
+                IMPACT_FAMILY_COLOR[projectile?.family] ||
+                '#ffffff';
+    if (typeof meta.color === 'string' && meta.color.startsWith('#')) color = meta.color;
+
+    const burst = document.createElement('div');
+    burst.className = 'projectile-impact';
+    if (isLaser) burst.classList.add('impact-laser');
+    else if (isBoomerang) burst.classList.add('impact-boomerang');
+    burst.style.left = x + 'px';
+    burst.style.top = y + 'px';
+    burst.style.setProperty('--impact-color', color);
+    layer.appendChild(burst);
+    setTimeout(() => burst.remove(), 320);
+  }
+
+  function shoot(shooter, target, opts = {}) {
+    const typeCfg = TOWER_TYPES[shooter.type];
+    if (!opts.image) {
+      opts.image = getTowerSkinSet(shooter.family)?.projectiles?.[shooter.type];
+    }
+    if (typeCfg) {
+      if (typeCfg.slow) opts.slow = typeCfg.slow;
+      if (typeCfg.stun) opts.stun = typeCfg.stun;
+      if (typeCfg.knockback) opts.knockback = typeCfg.knockback;
+      if (typeCfg.burn) opts.burn = typeCfg.burn;
+      if (typeCfg.burnDamage) opts.burnDamage = typeCfg.burnDamage;
+    }
+    if (shooter.toxicTimer && shooter.toxicTimer > 0) {
+      opts.toxic = true;
+    }
+    if (shooter.contagioTimer && shooter.contagioTimer > 0) {
+      opts.poison = true;
+    }
+    if (shooter.stunStrikeActive) {
+      opts.stunStrike = true;
+      shooter.stunStrikeActive = false;
+    }
+    if (shooter.whiteSupportTimer && shooter.whiteSupportTimer > 0 && shooter.family === 'Soap_Glob') {
+      opts.stunStrike = true;
+    }
+
+    const el = document.createElement('div');
+    el.className = `projectile`;
+
+    let projClass = opts.projectile || shooter.projectile;
+    if (opts.image) {
+      el.style.backgroundImage = `url('${encodeURI(opts.image)}')`;
+      el.style.backgroundSize = 'contain';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundPosition = 'center';
+      el.style.width = '30px';
+      el.style.height = '30px';
+    }
+    if (opts.filter) {
+      el.style.filter = opts.filter;
+    }
+    if (!opts.image && gameState.equippedSkins[shooter.family] === 'corrupt_swords_set') {
+      projClass = 'slash';
+      if (shooter.type === 'Glob') opts.color = '#00FFFF';
+      else if (shooter.type === 'Poop_Glob') opts.color = '#39FF14';
+      else if (shooter.type === 'Golden_Glob') opts.color = 'multicolor';
+      else if (shooter.type === 'Rainbow_Glob') opts.color = 'gradient';
+    } else if (gameState.equippedSkins[shooter.family] === 'mimic_set') {
+      projClass = 'laser';
+      if (shooter.type === 'Comet_Glob') opts.color = '#007BFF'; // Azul
+      else if (shooter.type === 'Dark_Glob') opts.color = '#8B4513'; // Marrón
+      else if (shooter.type === 'Demglob') opts.color = '#000000'; // Negro
+    } else if (gameState.equippedSkins[shooter.family] === 'starjump_set') {
+      if (shooter.type === 'Old_Glob') { projClass = 'star_yellow'; opts.color = '#FFD700'; }
+      else if (shooter.type === 'Pyce_Glob') { projClass = 'star_celeste'; opts.color = '#00FFFF'; opts.size = 14; }
+    }
+    if (projClass) el.classList.add(projClass);
+
+    const dx = target.x - shooter.x;
+    const dy = target.y - shooter.y;
+    const angle = Math.atan2(dy, dx);
+    const dist = Math.hypot(dx, dy) || 1;
+    const speed = (opts.speed || shooter.speed || 3) * 300;
+    const vx = (dx / dist) * speed;
+    const vy = (dy / dist) * speed;
+
+    el.style.position = 'absolute';
+    el.style.left = shooter.x + 'px'; el.style.top = shooter.y + 'px';
+    // Como las imágenes base de proyectiles miran hacia la izquierda, 
+    // tenemos que sumarle Math.PI (180 grados) al ángulo para que apunten bien al moverse
+    el.style.transform = `rotate(${angle + Math.PI}rad)`;
+
+    // ========== SISTEMA DE PROYECTILES 3D TINTADOS ==========
+    const isEnemy = !!opts.isEnemy;
+    const isBomb = (shooter.type === 'Work_Bombot' || shooter.aoe);
+    const isLaser = projClass && (projClass.includes('laser') || projClass === 'void');
+    const isBoomerang = projClass && (projClass.includes('boomerang'));
+    const isSpecialProj = projClass === 'binary_code' || projClass === 'stone_red' || projClass === 'star_yellow' || projClass === 'star_celeste' || projClass === 'slash' || projClass === 'none';
+
+    // Determine projectile image and size
+    let projImg = 'Recursos/img/Proyectiles/Proyectil_Base.png';
+    let projSize = 16;
+
+    if (isBomb) {
+      projImg = 'Recursos/img/Proyectiles/Proyectil_Bomba.png';
+      projSize = 24;
+    } else if (isLaser) {
+      projImg = 'Recursos/img/Proyectiles/Proyectil_Laser.png';
+      projSize = 20;
+    } else if (isBoomerang) {
+      projImg = 'Recursos/img/Proyectiles/Proyectil_Base.png';
+      projSize = 18;
+    }
+
+    el.style.width = projSize + 'px';
+    el.style.height = projSize + 'px';
+
+    // Color mapping per tower family/type for tinting
+    const FAMILY_COLORS = {
+      'Glob': '#4CAF50',        // Verde
+      'Red_Glob': '#e74c3c',    // Rojo
+      'Soap_Glob': '#3498db',   // Azul
+      'Ducky_Glob': '#f1c40f',  // Amarillo
+      'Comet_Glob': '#2c2c2c',  // Negro/oscuro
+      'Grey': '#95a5a6',        // Gris
+      'Special': '#ff8c00'      // Naranja (Bombot)
+    };
+
+    // Specific tower type overrides
+    const TYPE_COLORS = {
+      'Glob': '#4CAF50',
+      'Dark_Glob': 'Recursos/img/Dark_Glob.png',
+      'Demglob': 'Recursos/img/Demglob.png',
+      'Void_Glob': 'Recursos/img/Void Glob.png',
+      'Pyce_Glob': '#00ff88',
+      'Poop_Glob': '#8B4513',
+      'Golden_Glob': '#ffd700',
+      'Rainbow_Glob': null,      // special: rainbow gradient
+      'Red_Glob': '#e74c3c',
+      'Molten_Glob': '#ff4500',
+      'Robotic_Glob': '#e74c3c',
+      'Soap_Glob': '#3498db',
+      'Cotton_Glob': '#87CEEB',
+      'Comet_Glob': '#555555',
+      'Dark_Glob': '#1a1a2e',
+      'Demglob': '#c394fc',      // Lila obligatorio
+      'Old_Glob': '#808080',
+      'Pyce_Glob': '#00ff88',
+      'Work_Bombot': null        // Bomba negra sin tintado
+    };
+
+    // ===== 3D TINTED PROJECTILE SYSTEM PARA TODOS =====
+    const tintColor = opts.color || TYPE_COLORS[shooter.type] || FAMILY_COLORS[shooter.family] || (isEnemy ? '#ff4444' : '#FFFFFF');
+    const imgUrl = `url('${projImg}')`;
+
+    if (opts.image) {
+      el.style.backgroundImage = `url('${encodeURI(opts.image)}')`;
+      el.style.backgroundSize = 'contain';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundColor = 'transparent';
+      el.style.maskImage = 'none';
+      el.style.webkitMaskImage = 'none';
+    } else if (isBomb) {
+      el.style.backgroundImage = imgUrl;
+      el.style.backgroundSize = '100% 100%';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundPosition = 'center';
+    } else if (!isEnemy && shooter.type === 'Rainbow_Glob' && !opts.color) {
+      el.style.maskImage = imgUrl;
+      el.style.webkitMaskImage = imgUrl;
+      el.style.maskSize = '100% 100%';
+      el.style.webkitMaskSize = '100% 100%';
+      el.style.maskRepeat = 'no-repeat';
+      el.style.webkitMaskRepeat = 'no-repeat';
+      el.style.maskPosition = 'center';
+      el.style.webkitMaskPosition = 'center';
+      el.style.background = 'linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000)';
+      el.style.backgroundSize = '200% 100%';
+      el.style.animation = 'rainbowShift 1s linear infinite';
+      el.style.backgroundImage = imgUrl + ', ' + el.style.background;
+      el.style.backgroundBlendMode = 'multiply, normal';
+    } else {
+      if (opts.color === 'multicolor') {
+        el.style.backgroundImage = imgUrl + `, conic-gradient(#FFEA00,#00B4FF,#C58ED3,#8B0000)`;
+      } else if (opts.color === 'gradient') {
+        el.style.backgroundImage = imgUrl + `, linear-gradient(45deg, ${opts.from || '#FF7F00'}, ${opts.to || '#001F5B'})`;
+      } else if (opts.color === 'blackwhite') {
+        el.style.backgroundImage = imgUrl + `, radial-gradient(circle at 30% 30%, #fff 0%, #000 60%)`;
+      } else if (tintColor) {
+        el.style.backgroundColor = tintColor;
+        el.style.backgroundImage = imgUrl;
+      } else {
+        el.style.backgroundImage = imgUrl;
+      }
+
+      el.style.backgroundSize = '100% 100%';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundBlendMode = 'multiply';
+
+      // Mask for cropping properly
+      el.style.maskImage = imgUrl;
+      el.style.webkitMaskImage = imgUrl;
+      el.style.maskSize = '100% 100%';
+      el.style.webkitMaskSize = '100% 100%';
+      el.style.maskRepeat = 'no-repeat';
+      el.style.webkitMaskRepeat = 'no-repeat';
+      el.style.maskPosition = 'center';
+      el.style.webkitMaskPosition = 'center';
+    }
+
+    if (projClass === 'binary_code') {
+      el.textContent = Math.random() < 0.5 ? '0' : '1';
+    }
+
+    const mapEl = document.getElementById('map') || document.getElementById('game-area') || document.body;
+    mapEl.appendChild(el);
+    gameState.projectiles.push({
+      x: shooter.x,
+      y: shooter.y,
+      startX: shooter.x,
+      startY: shooter.y,
+      target,
+      vx,
+      vy,
+      speed,
+      damage: opts.damage || shooter.damage || 1,
+      el,
+      meta: opts,
+      family: shooter.family,
+      type: shooter.type,
+      bounceOnHit: !!opts.bounceOnHit,
+      bounces: 0,
+      bounceLimit: opts.bounceOnHit ? 1 : 0,
+      projectile: projClass,
+      piercing: shooter.piercing || opts.piercing || false,
+      boomerang: shooter.boomerang || opts.boomerang || false,
+      returnPhase: false,
+      hitEntities: new Set(),
+      shooter: shooter
+    });
+  }
+
+  function getPyceKillTarget(type) {
+    if (type === 'Spyware') return 150;
+    if (type.startsWith('Bit')) return 560;
+    if (type.startsWith('Byte')) return 500;
+    const targets = {
+      'Crystal_Pyce': 450, 'Dreamy_SPyce': 350, 'Astral_BPyce': 250,
+      'Stupid_Pyce': 560, 'Pyce2': 560, 'Symbol_Pyce': 500,
+      'Guest_Pyce': 450, 'Noob_Pyce': 400,
+      '4motions_Pyce': 225, 'Flower_Pyce': 225, 'SO_Pyce': 225,
+      '1x1x1x1_Pyce': 6, 'NOeye_Pyce': 5, 'MoonStar_Pyce': 4,
+      'GODs_Shadow': 1, 'Roborb': 3, 'Clockwork_Titan': 225,
+      'DIY_Bot': 250, 'Hatspy': 250, 'Local_Engines': 450,
+      'Untimed_Atoms': 450,
+      'Stupid_GoldPyce': 15, 'Mimic_Pyce': 3,
+      'Bomb_Pyce': 450, 'Knight_Pyce': 250, 'Cannon_Pycer': 250,
+      'Arky': 5, 'CrystArky': 3, 'ArkyVoid': 3, 'Fireflies': 250,
+      'HoloPyce': 350, 'Strechy_Pyce': 250, 'Rebel_Pyce': 350,
+      'Leni_the_big_Hammer': 400, 'Monster': 250, 'Cristalized_Monster': 300,
+      'Lenistal': 300, 'Crystal_Bombot': 3, 'NO_CrystEye_CB': 3,
+      'AstrorbOrbe': 3, 'AstrorbContenida': 3, 'AstrorbTF': 3,
+      'Sharowd': 3, 'Crystalic_Orb': 3,
+      // Nuevos enemigos de Sunlight Seaside (Leafy Beach Party)
+      'Axolotl_Pyce': 250, 'Shark_Pyce': 250, 'Umbrella_Pyce': 250,
+      // Spooks in the Desert (UPD4)
+      'Broksp': 450, 'Pumpitch': 250, 'RIPslide': 300, 'SkeleBone_Pyce': 275,
+      'Curse_Boneker': 5, 'Blood_Taker': 325, 'Sneekmy': 350, 'Ghost_Pyce': 375, 'ZomPyce': 475,
+      'Piz': 500, 'Followishers': 250, 'Creamplet': 150,
+      'Festive_Pyce': 550, 'ToyBomb_Pyce': 350, 'SnowCapsule_Pyce': 350,
+      'Elf_Pyce': 250, 'Giftbox_Pyce': 250,
+      'NOsense_Pyce': 3, 'NOIRrupt_Pyce': 3,
+      'Puz_Zle': 200, 'Puz': 250, 'Zle': 250, 'Wingel_Pyce': 250
+    };
+    return targets[type] || 9999;
+  }
+  window._getPyceKillTarget = getPyceKillTarget;
+  window._isEnemyFramed = function(type) {
+    if (!ENEMY_TYPES[type]) return false;
+    if (type.startsWith('Bit')) {
+      return ['BitY1', 'BitB4', 'BitG2', 'BitP3']
+        .reduce((sum, bit) => sum + (gameState.pycesKilled[bit] || 0), 0) >= getPyceKillTarget(type);
+    }
+    if (type.startsWith('Byte')) {
+      return ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4']
+        .reduce((sum, byte) => sum + (gameState.pycesKilled[byte] || 0), 0) >= getPyceKillTarget(type);
+    }
+    return (gameState.pycesKilled[type] || 0) >= getPyceKillTarget(type);
+  };
+
+  function checkPyceMorphUnlock() {
+    if (!gameState.unlockedSkins.includes('pyce_morph')) {
+      const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'];
+      let allMaxed = true;
+      for (const t of types) {
+        if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
+          allMaxed = false; break;
+        }
+      }
+      if (allMaxed) {
+        gameState.unlockedSkins.push('pyce_morph');
+        showMessage(translate('skin_unlocked_pyce_randomizer'), 'success');
+        saveProgress();
+      }
+    }
+    checkEncyclopediaMaster();
+    checkSpecialSkinUnlocks();
+  }
+
+  function checkSpecialSkinUnlocks() {
+    if (!gameState.unlockedSkins.includes('crystal_bombot')) {
+      const bosses = Object.keys(ENEMY_TYPES).filter(k => ENEMY_TYPES[k].boss);
+      let allBossesMaxed = true;
+      for (const b of bosses) {
+        if ((gameState.pycesKilled[b] || 0) < getPyceKillTarget(b)) {
+          allBossesMaxed = false; break;
+        }
+      }
+      if (allBossesMaxed && bosses.length > 0) {
+        gameState.unlockedSkins.push('crystal_bombot');
+        showMessage(translate('skin_unlocked_crystal_bombot'), 'success');
+        saveProgress();
+      }
+    }
+
+    if (!gameState.unlockedSkins.includes('astrorb_set')) {
+      const updateEnemies = [
+        'Leni_the_big_Hammer', 'Monster', 'Cristalized_Monster', 'Lenistal',
+        'NO_CrystEye_CB', 'AstrorbOrbe', 'AstrorbContenida', 'AstrorbTF',
+        'Crystal_Bombot'
+      ];
+      let allUpdateMaxed = true;
+      for (const e of updateEnemies) {
+        if ((gameState.pycesKilled[e] || 0) < getPyceKillTarget(e)) {
+          allUpdateMaxed = false; break;
+        }
+      }
+      if (allUpdateMaxed) {
+        gameState.unlockedSkins.push('astrorb_set');
+        showMessage(translate('skin_unlocked_astrorb'), 'success');
+        saveProgress();
+      }
+    }
+  }
+
+  function checkEncyclopediaMaster() {
+    if (BADGES.encyclopediaMaster && BADGES.encyclopediaMaster.unlocked) {
+      checkCollectionMasterDialogue();
+      return;
+    }
+    const types = ['Stupid_Pyce', 'Pyce2', 'Symbol_Pyce', 'Guest_Pyce', 'Noob_Pyce', '4motions_Pyce', 'Flower_Pyce', 'SO_Pyce', '1x1x1x1_Pyce', 'NOeye_Pyce', 'MoonStar_Pyce', 'Stupid_GoldPyce', 'Mimic_Pyce', 'Bomb_Pyce', 'Knight_Pyce', 'Cannon_Pycer', 'HoloPyce', 'Strechy_Pyce', 'Rebel_Pyce', 'Crystal_Pyce', 'Dreamy_SPyce', 'Astral_BPyce', 'Axolotl_Pyce', 'Shark_Pyce', 'Umbrella_Pyce', 'SkeleBone_Pyce', 'Festive_Pyce', 'ToyBomb_Pyce', 'SnowCapsule_Pyce', 'Elf_Pyce', 'Giftbox_Pyce'];
+    let allPycesMaxed = true;
+    for (const t of types) {
+      if ((gameState.pycesKilled[t] || 0) < getPyceKillTarget(t)) {
+        allPycesMaxed = false; break;
+      }
+    }
+    
+    // Check new badges: all crystals maxed, all 'other' maxed
+    let allCrystalsMaxed = true;
+    let allOthersMaxed = true;
+    let hasCrystals = false;
+    let hasOthers = false;
+    for (const key of Object.keys(ENEMY_TYPES)) {
+      const t = ENEMY_TYPES[key];
+      const kills = gameState.pycesKilled[key] || 0;
+      const target = getPyceKillTarget(key);
+      if (t.isCrystallized) {
+        hasCrystals = true;
+        if (kills < target) allCrystalsMaxed = false;
+      }
+      if (t.category === 'other') {
+        hasOthers = true;
+        if (kills < target) allOthersMaxed = false;
+      }
+    }
+    if (hasCrystals && allCrystalsMaxed) unlockBadge('crystalizing_break');
+    if (hasOthers && allOthersMaxed) unlockBadge('extended_marc');
+
+    const reqFamilies = ['Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Grey', 'Special'];
+    let allFamiliesMaxed = true;
+    for (const f of reqFamilies) {
+      if (!gameState.maxedFamilies.includes(f)) {
+        allFamiliesMaxed = false; break;
+      }
+    }
+    if (allPycesMaxed && allFamiliesMaxed) {
+      unlockBadge('encyclopediaMaster');
+    }
+    checkCollectionMasterDialogue();
+  }
+
+  function checkCollectionMasterDialogue() {
+    const framedGroups = new Set();
+    const allEnemiesFramed = Object.keys(ENEMY_TYPES).every(type => {
+      if (type.startsWith('Bit')) {
+        if (framedGroups.has('bits')) return true;
+        framedGroups.add('bits');
+        return ['BitY1', 'BitB4', 'BitG2', 'BitP3']
+          .reduce((sum, bit) => sum + (gameState.pycesKilled[bit] || 0), 0) >= getPyceKillTarget(type);
+      }
+      if (type.startsWith('Byte')) {
+        if (framedGroups.has('bytes')) return true;
+        framedGroups.add('bytes');
+        return ['ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4']
+          .reduce((sum, byte) => sum + (gameState.pycesKilled[byte] || 0), 0) >= getPyceKillTarget(type);
+      }
+      return (gameState.pycesKilled[type] || 0) >= getPyceKillTarget(type);
+    });
+    const allBadgesUnlocked = Object.values(BADGES).every(badge => badge.unlocked);
+
+    if (!gameState.collectionMasterDialogueShown && allEnemiesFramed && allBadgesUnlocked) {
+      gameState.collectionMasterDialogueShown = true;
+      showCollectionMasterDialogue();
+      saveProgress();
+    }
+  }
+
+
+  function die(e, idx) {
+    triggerHalloweenJumpscare(e.type, e.el, null, true);
+    if (e.type === 'Sharowd') {
+      finishBlockQuest();
+    }
+
+    if (e.type === 'AstrorbTF' && gameState.mode === 'interstellar' && gameState.paracristalActive && !gameState.paracristalFinal) {
+      gameState.paracristalFinal = true;
+      gameState.paracristalAstrorbSeen = true;
+      gameState.paracristalActive = false;
+      document.querySelectorAll('.paracristal').forEach(crystal => crystal.remove());
+      setTimeout(() => {
+        showMessage(currentLanguage === 'es' ? '💎 ¡Crystalic Orb ha tomado forma!' : '💎 Crystalic Orb has taken shape!', 'warning');
+        spawnEnemy('Crystalic_Orb', true);
+      }, 700);
+    }
+
+    if (e.type === 'Crystalic_Orb') {
+      gameState.paracristalFinal = false;
+      gameState.paracristalActive = false;
+      unlockBadge('paracristal_dimension');
+      gameState.unlockedSkins.push('fracstal_set');
+      gameState.unlockedSkins = [...new Set(gameState.unlockedSkins)];
+      showMessage(currentLanguage === 'es' ? '🌌 ¡Dimensión Paralecristal completada! Set Fracstral desbloqueado.' : '🌌 Paralecrystal Dimension complete! Fracstral Set unlocked.', 'success');
+      saveProgress();
+      setTimeout(() => endGame(true), 100);
+    }
+
+    if (e.type === 'AstrorbOrbe') {
+      showEffect(e.x, e.y, translate('effect_broken_crystal'), "#ff00ff");
+      spawnEnemy('AstrorbContenida', true, e.currentPath);
+      const contenida = gameState.enemies[gameState.enemies.length - 1];
+      if (contenida) {
+        contenida.x = e.x;
+        contenida.y = e.y;
+        contenida.pathIndex = e.pathIndex;
+      }
+    }
+
+    if (e.type === 'AstrorbContenida') {
+      if (gameState.wave === 40) {
+        // Oleada 40: Transformación a True Form
+        showEffect(e.x, e.y, "TRUE FORM AWAKENED!", "#ff00ff");
+        showNarratorMsg('astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? "Contemplad... la perfección celestial." : "Behold... celestial perfection.");
+        spawnEnemy('AstrorbTF', true, e.currentPath);
+        const tf = gameState.enemies[gameState.enemies.length - 1];
+        if (tf) {
+          tf.x = e.x;
+          tf.y = e.y;
+          tf.pathIndex = e.pathIndex;
+        }
+      } else if (gameState.mode === 'interstellar' && gameState.wave === 25) {
+        // Oleada 25: Astrorb es derrotado por primera vez
+        showNarratorMsg('astrorb', 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Grey/Astrorb/AstrorbOrbe.png', 'Astrorb', currentLanguage === 'es' ? "...Interesante... Aún no es mi momento." : "...Interesting... It is not my time yet.");
+      }
+    }
+
+    if (e.type === 'AstrorbTF') {
+      if (!gameState.unlockedSkins.includes('cuby_bombot')) {
+        gameState.unlockedSkins.push('cuby_bombot');
+        showMessage(translate('skin_unlocked_cuby'), 'success');
+      }
+    }
+
+    if (e.type === 'Bomb_Pyce' || e.explosive) {
+      showEffect(e.x, e.y, translate('effect_boom'), "#ff4d4d");
+      if (gameState.towers) {
+        gameState.towers.forEach(t => {
+          if (Math.hypot(t.x - e.x, t.y - e.y) < 150) {
+            t.stunTimer = (t.stunTimer || 0) + 3;
+            showEffect(t.x, t.y - 20, translate('effect_stunned'), "#ff0000");
+          }
+        });
+      }
+    }
+
+    if (e.type === 'Astral_BPyce') {
+      showEffect(e.x, e.y, translate('effect_boom'), "#ff00ff");
+      if (gameState.towers && gameState.towers.length > 0) {
+        const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
+        if (typeof shoot === 'function') {
+           shoot(e, targetTower, { isEnemy: true, image: 'Recursos/img/Proyectiles/Crystal Metor.png', speed: 3, stun: 3 });
+        }
+      }
+    }
+
+    if (!e.poisonImmune && e.poisonTimer && e.poisonTimer > 0) {
+      gameState.enemies.forEach(other => {
+        if (other !== e && !other.poisonImmune && !other.poisonTimer &&
+            Math.hypot(other.x - e.x, other.y - e.y) < 100) {
+          other.poisonTimer = 3;
+          showEffect(other.x, other.y - 10, translate('effect_contagion'), "#9b59b6");
+        }
+      });
+    }
+    gameState.globetines += e.reward;
+    if (e.mimic) {
+      const earnedPy = Math.round(5 * getPycoinMultiplier());
+      gameState.pycoins += earnedPy;
+      showMessage(translate('plus_pycoins', { amount: earnedPy }), 'success');
+      if (e.type === 'Mimic_Pyce') {
+        gameState.consecutiveMimics++;
+        unlockBadge('mimic1');
+        if (gameState.consecutiveMimics >= 2) unlockBadge('mimic2');
+        if (gameState.mode === 'corrupto') unlockBadge('corruptMimic');
+        if (!gameState.unlockedSkins.includes('mimic_set')) {
+          gameState.unlockedSkins.push('mimic_set');
+          showMessage(translate('skin_unlocked_mimic'), 'success');
+          saveProgress();
+        }
+      }
+    }
+    if (e.type === 'Bushi_Brella') {
+      const eligibleSkins = Object.values(SKINS_DATA)
+        .flat()
+        .filter(skin => {
+          if (gameState.unlockedSkins.includes(skin.id)) return false;
+          if (REWAMPED_SKIN_IDS.includes(skin.id)) return true;
+          return skin.type === 'pycoin' &&
+            skin.cost > 0 &&
+            !skin.duckpass_cost &&
+            !skin.unlockCondition &&
+            !skin.isSpecial &&
+            !skin.isCommunity &&
+            !skin.category;
+        });
+
+      if (eligibleSkins.length > 0 && Math.random() < BUSHI_BRELLA_SKIN_DROP_CHANCE) {
+        const skin = eligibleSkins[Math.floor(Math.random() * eligibleSkins.length)];
+        gameState.unlockedSkins.push(skin.id);
+        showMessage(
+          currentLanguage === 'es'
+            ? `🎁 ¡Bushi-Brella te ha dejado una skin: ${translate(skin.name)}!`
+            : `🎁 Bushi-Brella dropped a skin for you: ${translate(skin.name)}!`,
+          'success'
+        );
+        saveProgress();
+        if (currentShopTab === 'skins') drawShop();
+      }
+    }
+    // Retirada con animación de muerte: la lógica (splice) sigue siendo
+    // inmediata; solo el elemento del DOM se desvanece con un pequeño "pop".
+    if (e.el) {
+      const dyingEl = e.el;
+      dyingEl.classList.add('dying');
+      setTimeout(() => dyingEl.remove(), 240);
+    }
+    if (e.boss) unlockBadge('bossKiller');
+    gameState.enemies.splice(idx, 1);
+    const previousKills = gameState.pycesKilled[e.type] || 0;
+    gameState.pycesKilled[e.type] = previousKills + 1;
+    // Pase de invierno: ganar XP al derrotar enemigos (solo durante el evento).
+    if (typeof addWinterPassXP === 'function') {
+      addWinterPassXP(getWinterPassXPForEnemy(e));
+    }
+    const frameTarget = getPyceKillTarget(e.type);
+    if (previousKills < frameTarget && gameState.pycesKilled[e.type] >= frameTarget) {
+      showEncyclopediaPopup({ ...e, key: e.type });
+    }
+
+    if (gameState.roundKills) {
+      gameState.roundKills.push(e.type);
+      if (['BitY1', 'BitB4', 'BitG2', 'BitP3', 'ByteGB1', 'ByteYP2', 'BytePG3', 'ByteYB4'].every(bit => gameState.roundKills.includes(bit))) {
+        unlockBadge('una_por_cada');
+      }
+    }
+
+    checkPyceMorphUnlock();
+    updateUI();
+  }
+
+  // Actualiza un valor de stat y da un "pop" cuando sube y un tinte cuando
+  // baja (feedback económico/salud). Solo cosmético.
+  function setStatValue(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const prev = parseFloat(el.dataset.prevValue);
+    const next = Number(value);
+    el.textContent = value;
+    if (!Number.isNaN(prev) && next !== prev) {
+      const cls = next > prev ? 'stat-bump-up' : 'stat-bump-down';
+      el.classList.remove('stat-bump-up', 'stat-bump-down');
+      void el.offsetWidth; // reinicia la animación
+      el.classList.add(cls);
+      setTimeout(() => el.classList.remove(cls), 420);
+    }
+    el.dataset.prevValue = String(next);
+  }
+
+  function updateUI() {
+    setStatValue('health', Math.max(0, gameState.health));
+    setStatValue('money', Math.floor(gameState.globetines));
+    document.getElementById('wave-count').textContent = gameState.wave;
+    if (gameState.settings.showTotalDamage) document.getElementById('total-damage').textContent = Math.floor(gameState.totalDamage);
+
+    if (gameState.health >= 300) {
+      unlockBadge('angelicFortress');
+    }
+
+    if (gameState.towers.length > 0 && gameState.equippedTowers && gameState.equippedTowers.length > 0) {
+      let allMaxed = true;
+      for (const tKey of gameState.equippedTowers) {
+        if (TOWER_TYPES[tKey]) {
+          const limit = gameState.towerLimits[tKey] || 3;
+          const count = gameState.towerCounts[tKey] || 0;
+          if (count < limit) {
+            allMaxed = false;
+            break;
+          }
+        }
+      }
+      // Require equipping at least 5 towers (or all available slots up to 5)
+      const expectedSlots = Math.min(5, Object.keys(TOWER_TYPES).length);
+      if (allMaxed && gameState.equippedTowers.length >= expectedSlots) {
+        unlockBadge('maxGlobs');
+      }
+    }
+
+    if (gameState.mode === 'interstellar') {
+      const mapEl = document.getElementById('map');
+      if (mapEl) {
+        let overlay = document.getElementById('interstellar-overlay');
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.id = 'interstellar-overlay';
+          overlay.style.position = 'absolute';
+          overlay.style.top = '0';
+          overlay.style.left = '0';
+          overlay.style.width = '100%';
+          overlay.style.height = '100%';
+          overlay.style.pointerEvents = 'none';
+          overlay.style.transition = 'background-color 2s ease';
+          overlay.style.zIndex = '0';
+          mapEl.insertBefore(overlay, mapEl.firstChild);
+        }
+        const maxW = gameState.maxWaves || 45;
+        if (gameState.wave >= maxW - 5) {
+          const progress = (gameState.wave - (maxW - 5)) / 5;
+          overlay.style.backgroundColor = `rgba(255, 0, 255, ${0.2 + 0.3 * progress})`;
+        } else {
+          const progress = gameState.wave / Math.max(1, (maxW - 5));
+          overlay.style.backgroundColor = `rgba(0, 0, 255, ${0.4 * progress})`;
+        }
+      }
+    }
+
+    updateMetaUI();
+  }
+
+  function getRandomizerEnemyKeys() {
+    return Object.keys(ENEMY_TYPES).filter(key => {
+      const enemy = ENEMY_TYPES[key];
+      return enemy && enemy.image && !enemy.isCrystallized && !enemy.astrorbGroup;
+    });
+  }
+
+  function translate(key, params = {}) {
+    if (key.startsWith('tower_') && key.endsWith('_name') && gameState.equippedSkins && gameState.equippedSkins['Global'] === 'pyce_morph') {
+      const type = key.substring(6, key.length - 5);
+      const pyceKeys = getRandomizerEnemyKeys();
+      if (pyceKeys.length === 0) return key;
+      let hash = 0;
+      for (let i = 0; i < type.length; i++) hash += type.charCodeAt(i);
+      const pyceId = pyceKeys[hash % pyceKeys.length];
+      const e = ENEMY_TYPES[pyceId];
+      return (TRANSLATIONS[currentLanguage][e.name] || e.name || pyceId);
+    }
+
+    let text = TRANSLATIONS[currentLanguage][key] || key;
+    for (const [p, v] of Object.entries(params)) text = text.replace(`{${p}}`, v);
+    return text;
+  }
+
+  function updateLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const attr = el.getAttribute('data-i18n-attr');
+      if (attr) {
+        el.setAttribute(attr, translate(key));
+      } else {
+        if (key === 'level_label' && el.firstChild && el.firstChild.nodeType === 3) {
+          el.firstChild.textContent = translate(key) + " ";
+        } else {
+          el.textContent = translate(key);
+        }
+      }
+    });
+    window.refreshOwnerDebugLanguage?.();
+
+    document.querySelectorAll('.btn-text').forEach(el => {
+      const parent = el.parentElement;
+      if (parent.id === 'start-wave') el.textContent = translate('startWave');
+      if (parent.id === 'auto-wave') el.textContent = translate('autoWave');
+      if (parent.id === 'deselect-tower') el.textContent = translate('cancel');
+      if (parent.classList.contains('back-btn')) el.textContent = translate('back_to_modes');
+      if (parent.id === 'resume-game') el.textContent = currentLanguage === 'en' ? 'Resume' : 'Reanudar';
+      else if (parent.classList.contains('retry-btn')) el.textContent = translate('playAgain');
+    });
+    const profileButton = document.getElementById('open-profile');
+    if (profileButton) {
+      profileButton.innerHTML = `👤 <span class="meta-btn-text">${currentLanguage === 'en' ? 'Profile' : 'Perfil'}</span>`;
+    }
+    if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+    const resumeButton = document.getElementById('resume-game');
+    if (resumeButton) resumeButton.innerHTML = `▶️ ${currentLanguage === 'en' ? 'Resume' : 'Reanudar'}`;
+    const pauseSaveLabels = currentLanguage === 'en'
+      ? ['💾 Save game', '💾 Save and log out', '🚪 Save and exit']
+      : ['💾 Guardar partida', '💾 Guardar y cerrar sesión', '🚪 Guardar y salir'];
+    ['save-paused-game', 'save-and-login', 'save-and-close'].forEach((id, index) => {
+      const button = document.getElementById(id);
+      if (button) button.textContent = pauseSaveLabels[index];
+    });
+
+    const shopTitle = document.getElementById('shop-title');
+    if (shopTitle) shopTitle.innerHTML = `🛒 ${translate('shop_title').replace('🛒 ', '')}`;
+    const shopBtn = document.getElementById('open-shop');
+    if (shopBtn) shopBtn.innerHTML = `🛒 ${translate('shop_title').replace('🛒 ', '')}`;
+    const passTitle = document.getElementById('pass-title');
+    if (passTitle) passTitle.innerHTML = `🦆 ${translate('pass_title').replace('🦆 ', '')}`;
+    const storyTitle = document.getElementById('story-logs-title');
+    if (storyTitle) storyTitle.innerHTML = `📖 ${translate('story_logs_btn')}`;
+
+    const storyBtn = document.getElementById('open-story-logs');
+    if (storyBtn) storyBtn.innerHTML = `📖 ${translate('story_logs_btn')}`;
+
+    const mechBtn = document.getElementById('tab-mechanics-btn');
+    if (mechBtn) mechBtn.innerHTML = `⚙️ ${translate('story_tab_mechanics')}`;
+
+    const loreBtn = document.getElementById('tab-lore-btn');
+    if (loreBtn) loreBtn.innerHTML = `📖 ${translate('story_tab_lore')}`;
+
+    const logsBtn = document.getElementById('tab-logs-btn');
+    if (logsBtn) logsBtn.innerHTML = `📋 ${translate('story_tab_logs')}`;
+
+    const loadingTipBtn = document.getElementById('loading-tip-btn');
+    if (loadingTipBtn) loadingTipBtn.textContent = currentLanguage === 'es' ? 'Ver todos los tips' : 'View all tips';
+    updateLoadSavedRoundButton();
+    updateSeedUiLanguage();
+    renderMultiplayerPlayerList(multiplayerPlayers);
+
+    const encBtn = document.getElementById('open-encyclopedia-btn');
+    if (encBtn) encBtn.innerHTML = translate('btn_encyclopedia');
+
+    const encTitle = document.querySelector('#encyclopedia-modal h2');
+    if (encTitle) encTitle.innerHTML = translate('btn_encyclopedia');
+
+    const encTabGlobs = document.getElementById('enc-tab-globs');
+    if (encTabGlobs) encTabGlobs.innerHTML = translate('enc_tab_globs');
+
+    const encTabPyces = document.getElementById('enc-tab-pyces');
+    if (encTabPyces) encTabPyces.innerHTML = translate('enc_tab_pyces');
+
+    const encTabBadges = document.getElementById('enc-tab-badges');
+    if (encTabBadges) encTabBadges.innerHTML = translate('enc_tab_badges');
+
+    const tutorialModeButton = document.querySelector('.mode-btn[data-mode="tutorial"]');
+    if (tutorialModeButton) {
+      tutorialModeButton.textContent = translate('tutorial_mode_name');
+      tutorialModeButton.title = translate('tutorial_mode_desc');
+    }
+    if (gameState.mode === 'tutorial' && gameState.tutorialStage) {
+      setTutorialStage(gameState.tutorialStage);
+    }
+
+    updateAchievementsBtnUI();
+
+    const evolveTitle = document.querySelector('#evolve-panel h3');
+    if (evolveTitle) evolveTitle.textContent = translate('evolve_title');
+    const sellBtn = document.getElementById('sell-tower-btn');
+    if (sellBtn) sellBtn.textContent = translate('sell');
+    const evolveClose = document.querySelector('#evolve-panel .close-btn');
+    if (evolveClose) evolveClose.textContent = translate('close');
+
+    const portTitle = document.querySelector('#portrait-overlay h2');
+    if (portTitle) portTitle.textContent = translate('rotate_device');
+    const portMsg = document.querySelector('#portrait-overlay p');
+    if (portMsg) portMsg.textContent = translate('landscape_msg');
+
+    const goHeader = document.querySelector('#game-over h2');
+    const isVictory = document.querySelector('#game-over .modal-content.victory');
+    if (goHeader && !isVictory) goHeader.textContent = translate('gameOver');
+    const goBtn = document.querySelector('#game-over .retry-btn');
+    if (goBtn) goBtn.textContent = translate('playAgain');
+  }
+
+  function showMessage(text, type) {
+    const el = document.createElement('div'); el.className = `game-message ${type}`; el.textContent = text;
+    document.getElementById('game-messages').appendChild(el); setTimeout(() => el.remove(), 3000);
+  }
+
+  // Banner de oleada con personalidad. kind: 'normal' | 'boss' | 'final'.
+  // Es puramente visual y accesible (role=status, aria-live). Se autodestruye.
+  function showWaveBanner(wave, kind, mode) {
+    const host = document.getElementById('game-area') || document.body;
+    if (!host) return;
+    // Evita banners solapados
+    host.querySelector('.wave-banner')?.remove();
+
+    const es = currentLanguage !== 'en';
+    let kicker, title;
+    if (kind === 'final') {
+      kicker = es ? 'OLEADA FINAL' : 'FINAL WAVE';
+      title = es ? '¡El último empuje!' : 'The last push!';
+    } else if (kind === 'boss') {
+      kicker = es ? '⚠ OLEADA DE JEFE ⚠' : '⚠ BOSS WAVE ⚠';
+      title = es ? `¡Empieza la oleada ${wave}!` : `Boss wave ${wave} begins!`;
+    } else if (mode === 'tutorial') {
+      kicker = es ? 'ENTRENAMIENTO' : 'TRAINING';
+      title = es ? `Empieza la oleada ${wave}` : `Wave ${wave} begins`;
+    } else {
+      kicker = es ? 'NUEVA OLEADA' : 'NEW WAVE';
+      title = es ? `¡Empieza la oleada ${wave}!` : `Wave ${wave} begins!`;
+    }
+
+    const banner = document.createElement('div');
+    banner.className = `wave-banner wave-banner-${kind}`;
+    banner.setAttribute('role', 'status');
+    banner.setAttribute('aria-live', 'polite');
+    banner.innerHTML =
+      `<span class="wave-banner-kicker"></span>` +
+      `<span class="wave-banner-title"></span>`;
+    banner.querySelector('.wave-banner-kicker').textContent = kicker;
+    banner.querySelector('.wave-banner-title').textContent = title;
+    host.appendChild(banner);
+    setTimeout(() => banner.remove(), 2600);
+  }
+
+  // Toast con icono (imagen real). Usado por los popups de XP para poder
+  // mostrar el token XPgiver/CandyLove en vez de un emoji.
+  function showIconMessage(iconSrc, text, type = 'success') {
+    const container = document.getElementById('game-messages');
+    if (!container) return;
+    const el = document.createElement('div');
+    el.className = `game-message ${type} game-message-icon`;
+    const icon = document.createElement('img');
+    icon.src = encodeURI(iconSrc);
+    icon.alt = '';
+    icon.className = 'game-message-token';
+    const label = document.createElement('span');
+    label.textContent = text;
+    el.append(icon, label);
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  function showEffect(x, y, text) {
+    const el = document.createElement('div'); el.className = 'money-popup'; el.style.left = x + 'px'; el.style.top = y + 'px'; el.textContent = text;
+    document.getElementById('map').appendChild(el); setTimeout(() => el.remove(), 1000);
+  }
+
+  function showBoatBombExplosion(x, y, bombType) {
+    let image = 'Recursos/img/Proyectiles/Explosion Effect.png';
+    let size = 110;
+    if (gameState.equippedSkins['IEx'] === 'fracstal_set') {
+      if (bombType === 'Bomb_Glob') {
+        image = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystal Explosion (1).png';
+        size = 110;
+      } else if (bombType === 'TNT_Glob') {
+        image = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystor Kaboom (2).png';
+        size = 140;
+      } else if (bombType === 'Nuclear_Glob') {
+        image = 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Nuclear Crystal (3).png';
+        size = 190;
+      }
+    } else if (bombType === 'TNT_Glob') {
+      size = 140;
+    } else if (bombType === 'Nuclear_Glob') {
+      size = 190;
+    }
+
+    const map = document.getElementById('map');
+    if (!map) return;
+    const explosion = document.createElement('div');
+    explosion.style.cssText = [
+      'position:absolute',
+      `left:${x}px`,
+      `top:${y}px`,
+      `width:${size}px`,
+      `height:${size}px`,
+      'transform:translate(-50%,-50%) scale(0.2)',
+      `background:url('${encodeURI(image)}') center/contain no-repeat`,
+      'z-index:35',
+      'pointer-events:none',
+      'transition:transform 0.15s cubic-bezier(0.175,0.885,0.32,1.275),opacity 0.3s ease-out 0.15s'
+    ].join(';');
+    map.appendChild(explosion);
+    setTimeout(() => { explosion.style.transform = 'translate(-50%,-50%) scale(1)'; }, 10);
+    setTimeout(() => { explosion.style.opacity = '0'; }, 150);
+    setTimeout(() => { explosion.remove(); }, 500);
+  }
+
+  function getTowerSkinSet(family) {
+    const skinId = gameState.equippedSkins?.[family];
+    return skinId && skinId !== 'default'
+      ? SKINS_DATA[family]?.find(skin => skin.id === skinId)
+      : null;
+  }
+
+  function getTowerImage(type) {
+    const cfg = TOWER_TYPES[type];
+    const family = cfg.family || type;
+
+    if (gameState.equippedSkins && gameState.equippedSkins['Global'] === 'pyce_morph') {
+      const pyceKeys = getRandomizerEnemyKeys();
+      if (pyceKeys.length === 0) return cfg.image;
+      const towerKeys = Object.keys(TOWER_TYPES);
+      const idx = towerKeys.indexOf(type);
+      return ENEMY_TYPES[pyceKeys[idx % pyceKeys.length]].image;
+    }
+
+    const skinSet = getTowerSkinSet(family);
+    if (skinSet?.skins?.[type]) return skinSet.skins[type];
+    return cfg.image;
+  }
+
+  function getTowerBackgroundImage(type) {
+    if (type === 'Work_Bombot' &&
+        gameState.equippedSkins.Special === PERSONALIZABLE_BOMBOT_SKIN_ID) {
+      return getBombotRenderBackground(
+        getTowerImage(type),
+        gameState.equippedBombotAccessories || {}
+      );
+    }
+    return `url("${encodeURI(getTowerImage(type))}")`;
+  }
+
+  function applyTowerEffects(el, type) {
+    const cfg = TOWER_TYPES[type];
+    el.style.backgroundImage = getTowerBackgroundImage(type);
+    el.className = 'tower';
+    // Conservar el idle de reposo correspondiente al tipo tras resetear clases.
+    el.classList.add(getTowerIdleClass(type));
+    const globalSkin = gameState.equippedSkins['Global'];
+    if (globalSkin !== 'default') {
+      const data = SKINS_DATA['Global'].find(s => s.id === globalSkin);
+      if (data?.class) el.classList.add(data.class);
+    }
+    const family = cfg.family || type;
+    // Acento de color del Glob: usado por el fogonazo de disparo para que
+    // el destello sea acorde al tipo (verde, rojo, azul, lila...).
+    const accent = IMPACT_TYPE_COLOR[type] || IMPACT_FAMILY_COLOR[family] || '#ffd700';
+    el.style.setProperty('--tower-accent', accent);
+    const equippedSkin = gameState.equippedSkins[family];
+    const skinSet = SKINS_DATA[family]?.find(skin => skin.id === equippedSkin);
+    // Cada efecto es su propia skin: la skin RGB pinta RGB y las skins de
+    // efecto (fxEffect) pintan el suyo sobre la imagen Rewamp de la familia.
+    const hasRgbSkin = skinSet?.rgbTypes?.includes(type) &&
+      isRgbRewampSkin(skinSet);
+    const fxEffect = skinSet?.fxEffect && skinSet.fxTypes?.includes(type) ? skinSet.fxEffect : '';
+
+    let rgbEffect = '';
+    if (globalSkin !== 'pyce_morph') {
+      if (hasRgbSkin) rgbEffect = 'rgb-rewamp';
+      else if (fxEffect) rgbEffect = fxEffect;
+    }
+
+    if (rgbEffect === 'rainbow-fuel') {
+      el.classList.add('rainbow-fuel');
+      el.style.setProperty('--rainbow-fuel-mask-image', `url("${getAbsoluteAssetUrl(getTowerImage(type))}")`);
+      el.style.removeProperty('--rgb-rewamp-mask-image');
+    } else if (rgbEffect === 'rgb-rewamp') {
+      el.classList.add('rgb-rewamp');
+      el.style.setProperty('--rgb-rewamp-mask-image', `url("${getAbsoluteAssetUrl(getTowerImage(type))}")`);
+      el.style.removeProperty('--rainbow-fuel-mask-image');
+    } else if (isRgbRecolorEffect(rgbEffect)) {
+      el.classList.add(`tower-rgb-${rgbEffect}`);
+      el.style.removeProperty('--rgb-rewamp-mask-image');
+      el.style.removeProperty('--rainbow-fuel-mask-image');
+    } else {
+      el.style.removeProperty('--rgb-rewamp-mask-image');
+      el.style.removeProperty('--rainbow-fuel-mask-image');
+    }
+    // Capa RGB en canvas (funciona también con file://; ver createRgbOverlayCanvas).
+    syncRgbOverlay(
+      el,
+      rgbEffect === 'rainbow-fuel' ? 'fuel'
+        : rgbEffect === 'rgb-rewamp' ? 'rgb'
+          : rgbEffect === 'alternate' ? 'alternate' : '',
+      getAbsoluteAssetUrl(getTowerImage(type))
+    );
+    const enemyBasedSkins = ['pyce_morph', 'mimic_set', 'astrorb_set', 'crystal_bombot'];
+    if (enemyBasedSkins.includes(globalSkin) || enemyBasedSkins.includes(equippedSkin)) {
+      el.classList.add('enemy-skin-flipped');
+    } else {
+      el.classList.remove('enemy-skin-flipped');
+    }
+    if ((gameState.hypermutatedUnlocked || gameState.debugState === 'unlocked') &&
+        gameState.settings.hypermutatedEffect) {
+      el.classList.add('hypermutated');
+    }
+    const glitchEnabled = (gameState.glitchUnlocked || gameState.debugState === 'unlocked') &&
+      gameState.settings.glitchEffect;
+    setTowerGlitchEffect(el, glitchEnabled);
+  }
+
+  function drawRangePreview(x, y, range) {
+    let p = document.getElementById('range-preview') || document.createElement('div');
+    p.id = 'range-preview'; p.className = 'range-indicator';
+    p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.width = p.style.height = (range * 2) + 'px';
+    document.getElementById('map').appendChild(p);
+  }
+
+  function updateAllTowerRanges() {
+    const map = document.getElementById('map');
+    if (!map) return;
+
+    gameState.towers.forEach(t => {
+      if (!t.rangeEl) {
+        t.rangeEl = document.createElement('div');
+        t.rangeEl.className = 'range-indicator';
+        map.appendChild(t.rangeEl);
+      }
+      const r = t.range || 100;
+      t.rangeEl.style.width = (r * 2) + 'px';
+      t.rangeEl.style.height = (r * 2) + 'px';
+      t.rangeEl.style.left = t.x + 'px';
+      t.rangeEl.style.top = t.y + 'px';
+
+      if (gameState.settings.showRanges) {
+        t.rangeEl.style.display = 'block';
+      } else {
+        t.rangeEl.style.display = 'none';
+      }
+    });
+  }
+
+  function retryGame(preserveSavedRound = false) {
+    if (!preserveSavedRound && gameState.mode === 'acrossTheTime' &&
+        gameState.acrossTheTimeProgress?.completed) {
+      restartAcrossTimeEvent();
+      return;
+    }
+    const savedRoundSnapshot = preserveSavedRound ? gameState.savedRoundSnapshot : null;
+    stopWaveSpawnInterval();
+    if (roundCheckpointInterval !== null) {
+      clearInterval(roundCheckpointInterval);
+      roundCheckpointInterval = null;
+    }
+    gameState.savedRoundSnapshot = savedRoundSnapshot;
+    gameState.waveSpawnQueue = [];
+    gameState.waveSpawnIndex = 0;
+    gameState.waveSpawnIsBoss = false;
+    gameState.waveBossTypes = [];
+    gameState.waveSpawnIntervalMs = 0;
+    gameState.paused = false;
+    if (gameState.mode === 'interstellar') {
+      gameState.health = 200;
+    } else if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace >= 3) {
+      gameState.health = 300;
+    } else if (gameState.mode === 'tutorial') {
+      gameState.health = 100;
+    } else {
+      gameState.health = 100 + (gameState.baseHealthLevel * 20);
+    }
+    gameState.interstellarStory = {};
+    gameState.wave = 0;
+    gameState.globetines = 500;
+    gameState.towers.forEach(t => t.el.remove());
+    gameState.towers = [];
+    gameState.enemies.forEach(e => e.el.remove());
+    gameState.enemies = [];
+    gameState.projectiles.forEach(p => p.el.remove());
+    gameState.projectiles = [];
+    (gameState.boats || []).forEach(b => b.el.remove());
+    gameState.boats = [];
+    gameState.towerSpots.forEach(s => s.occupied = false);
+    gameState.towerCounts = {};
+    gameState.gameOver = false;
+    gameState.waveActive = false;
+    gameState.spawningActive = false;
+    gameState.totalDamage = 0;
+    gameState.moneySpentThisGame = 0;
+    gameState.usedGTackRed = false;
+    gameState.usedGTackGrey = false;
+    gameState.baseTookDamage = false;
+    gameState.rareEnemiesSpawned = {};
+    gameState.consecutiveMimics = 0;
+    gameState.uniquesBossSpawned = {};
+    gameState.blockQuestStarted = false;
+    gameState.blockQuestPending = false;
+    gameState.wallGardenSoapMessageShown = false;
+    document.querySelectorAll('.block-quest-marker, .paracristal, .across-time-crystal').forEach(el => el.remove());
+    gameState.acrossTimeCrystals = 0;
+    const crystalEnergy = document.getElementById('paracristal-energy');
+    if (crystalEnergy && gameState.mode !== 'interstellar') crystalEnergy.style.display = 'none';
+    if (gameState.mode !== 'interstellar') gameState.paracristalActive = false;
+    deselectTower();
+    updateUI();
+    drawTowerShop();
+    const content = document.querySelector('#game-over .modal-content');
+    if (content) content.classList.remove('victory', 'paused');
+    const resumeButton = document.getElementById('resume-game');
+    if (resumeButton) resumeButton.style.display = 'none';
+    const serverRestartButton = document.getElementById('multiplayer-restart-btn');
+    if (serverRestartButton) serverRestartButton.style.display = 'none';
+    document.querySelector('#game-over .mode-select-btn')?.style.removeProperty('display');
+    document.querySelector('#game-over .map-select-btn')?.style.removeProperty('display');
+    document.querySelector('#game-over .retry-btn:not(#resume-game)')?.style.removeProperty('display');
+    setPauseSaveActionsVisible(false);
+    document.getElementById('game-over').style.display = 'none';
+    if (gameState.mode === 'tutorial') initializeTutorialRun();
+    else setTutorialStage(null);
+  }
+
+  function setPauseSaveActionsVisible(visible) {
+    const canSave = visible && !multiplayerSpectator && (!currentSeed || isSeedHost);
+    document.querySelectorAll('#game-over .pause-save-action').forEach(button => {
+      button.style.display = canSave ? 'inline-flex' : 'none';
+    });
+    const retryButton = document.querySelector('#game-over .retry-btn:not(#resume-game):not(.pause-save-action)');
+    const exitButton = document.querySelector('#game-over .exit-btn');
+    if (retryButton) retryButton.style.display = visible ? 'none' : '';
+    if (exitButton) exitButton.style.display = visible ? 'none' : '';
+    if (visible) {
+      document.querySelector('#game-over .mode-select-btn')?.style.setProperty('display', 'none');
+      document.querySelector('#game-over .map-select-btn')?.style.setProperty('display', 'none');
+    } else {
+      document.querySelector('#game-over .mode-select-btn')?.style.removeProperty('display');
+      document.querySelector('#game-over .map-select-btn')?.style.removeProperty('display');
+    }
+  }
+
+  function pauseGame() {
+    if (gameState.gameOver || gameState.paused) return;
+    gameState.paused = true;
+    sendMultiplayerAction({ type: 'pause' });
+    const modal = document.getElementById('game-over');
+    const content = modal?.querySelector('.modal-content');
+    const title = modal?.querySelector('h2');
+    const message = document.getElementById('game-over-msg');
+    if (content) content.classList.add('paused');
+    if (title) title.textContent = currentLanguage === 'es' ? '⏸️ JUEGO EN PAUSA' : '⏸️ GAME PAUSED';
+    if (message) message.textContent = currentLanguage === 'es'
+      ? `Partida detenida en la oleada ${gameState.wave}.`
+      : `Game paused on wave ${gameState.wave}.`;
+    const resumeButton = document.getElementById('resume-game');
+    resumeButton.innerHTML = `▶️ ${currentLanguage === 'en' ? 'Resume' : 'Reanudar'}`;
+    resumeButton.style.display = 'inline-flex';
+    modal.querySelector('.mode-select-btn').style.display = 'none';
+    modal.querySelector('.map-select-btn').style.display = 'none';
+    setPauseSaveActionsVisible(true);
+    modal.style.display = 'flex';
+  }
+
+  function resumeGame() {
+    if (!gameState.paused) return;
+    gameState.paused = false;
+    sendMultiplayerAction({ type: 'resume' });
+    lastGameFrameTime = performance.now();
+    document.getElementById('game-over').style.display = 'none';
+    const content = document.querySelector('#game-over .modal-content');
+    if (content) content.classList.remove('paused');
+    setPauseSaveActionsVisible(false);
+  }
+
+  async function savePausedRound() {
+    if (!gameState.paused) return false;
+    if (!checkpointActiveRound()) {
+      const message = currentLanguage === 'en'
+        ? 'This round cannot be saved from this session.'
+        : 'No se puede guardar esta partida desde esta sesión.';
+      document.getElementById('game-over-msg').textContent = message;
+      return false;
+    }
+
+    try {
+      await flushCloudProgressSave();
+      const message = currentLanguage === 'en'
+        ? (activeCloudUserId ? 'Round saved on this device and in the cloud.' : 'Round saved on this device.')
+        : (activeCloudUserId ? 'Partida guardada en este dispositivo y en la nube.' : 'Partida guardada en este dispositivo.');
+      document.getElementById('game-over-msg').textContent = message;
+      return true;
+    } catch (error) {
+      console.error('No se pudo completar el guardado de la partida:', error);
+      document.getElementById('game-over-msg').textContent = currentLanguage === 'en'
+        ? `Saved on this device, but cloud saving failed: ${error.message}`
+        : `Guardada en este dispositivo, pero falló el guardado en la nube: ${error.message}`;
+      return false;
+    }
+  }
+
+  async function savePausedRoundAndLogout() {
+    if (await savePausedRound()) exitToLogin(true);
+  }
+
+  async function savePausedRoundAndClose() {
+    if (!await savePausedRound()) return;
+    window.close();
+    window.setTimeout(() => {
+      if (window.closed) return;
+      document.getElementById('game-over-msg').textContent = currentLanguage === 'en'
+        ? 'The game was saved, but this browser blocked closing the window. You can close this tab manually.'
+        : 'La partida se ha guardado, pero el navegador bloqueó el cierre. Puedes cerrar esta pestaña manualmente.';
+    }, 100);
+  }
+
+  function chooseModeAfterGame() {
+    if (gameState.mode === 'acrossTheTime') {
+      gameState.mode = null;
+      gameState.acrossTheTimeSpace = 0;
+      refreshAcrossTimeAppearance();
+    } else if (gameState.mode === 'tutorial') {
+      gameState.mode = null;
+      setTutorialSkinsEnabled(false);
+      setTutorialProgressionEnabled(false);
+    }
+    updateBuffs();
+    retryGame();
+    document.getElementById('map-selection').style.display = 'none';
+    showModeSelection();
+  }
+
+  function chooseMapAfterGame() {
+    if (gameState.mode === 'acrossTheTime') {
+      gameState.mode = null;
+      gameState.acrossTheTimeSpace = 0;
+      refreshAcrossTimeAppearance();
+    } else if (gameState.mode === 'tutorial') {
+      gameState.mode = null;
+      setTutorialSkinsEnabled(false);
+      setTutorialProgressionEnabled(false);
+    }
+    updateBuffs();
+    retryGame();
+    gameState.modeConfirmed = false;
+    setMultiplayerSpectator(false);
+    renderMultiplayerPlayerList([]);
+    document.getElementById('mode-selection').style.display = 'none';
+    gameState.selectedIsland = null;
+    renderMapSelection();
+    document.getElementById('map-selection').style.display = 'flex';
+  }
+
+  function exitToLogin(preserveSavedRound = false) {
+    if (tutorialEquippedSkinsBackup) setTutorialSkinsEnabled(false);
+    if (tutorialProgressionBackup) setTutorialProgressionEnabled(false);
+    stopSessionClock();
+    gameState.paused = false;
+    retryGame(preserveSavedRound);
+    currentSeed = null;
+    isSeedHost = false;
+    multiplayerEnabled = false;
+    if (multiplayerSyncInterval !== null) {
+      clearInterval(multiplayerSyncInterval);
+      multiplayerSyncInterval = null;
+    }
+    socket?.disconnect();
+    socket = null;
+    multiplayerServerClosed = false;
+    document.getElementById('seed-display').style.display = 'none';
+    gameState.mode = null;
+    updateBuffs();
+    gameState.map = null;
+    gameState.modeConfirmed = false;
+    renderMultiplayerPlayerList([]);
+    document.getElementById('game-over').style.display = 'none';
+    document.getElementById('map-selection').style.display = 'none';
+    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('meta-controls').style.display = 'none';
+    spawnDecorations('login-decorations');
+    document.body.classList.remove('role-owner', 'role-admin', 'role-debug');
+    document.getElementById('admin-indicator').style.display = 'none';
+  }
+
+  function endGame(victory = false) {
+    if (multiplayerSpectator) return;
+    setPauseSaveActionsVisible(false);
+    gameState.gameOver = true;
+    gameState.paused = false;
+    gameState.spawningActive = false;
+    gameState.savedRoundSnapshot = null;
+    stopWaveSpawnInterval();
+    if (roundCheckpointInterval !== null) {
+      clearInterval(roundCheckpointInterval);
+      roundCheckpointInterval = null;
+    }
+    const modal = document.getElementById('game-over');
+    if (!modal) return;
+    modal.style.display = 'flex';
+
+    const title = modal.querySelector('h2');
+    const msg = document.getElementById('game-over-msg');
+    const content = modal.querySelector('.modal-content');
+    content?.classList.remove('paused');
+    const resumeButton = document.getElementById('resume-game');
+    if (resumeButton) resumeButton.style.display = 'none';
+
+    if (!victory && gameState.mode === 'acrossTheTime') {
+      if (title) title.textContent = currentLanguage === 'en'
+        ? 'THE TIMELINE HAS COLLAPSED'
+        : 'LA LÍNEA TEMPORAL HA COLAPSADO';
+      if (msg) msg.textContent = currentLanguage === 'en'
+        ? 'Retrying from this space checkpoint. Previously completed spaces remain complete.'
+        : 'Se reintentará desde el checkpoint de este espacio. Los espacios anteriores completados se conservan.';
+      modal.querySelectorAll('.game-over-actions button').forEach(button => {
+        button.style.display = button.classList.contains('exit-btn') ? 'inline-flex' : 'none';
+      });
+      window.setTimeout(() => {
+        if (gameState.mode === 'acrossTheTime' && gameState.gameOver &&
+            !gameState.acrossTheTimeProgress?.completed) {
+          restartAcrossTimeEvent();
+        }
+      }, 2500);
+      return;
+    }
+
+    if (victory) {
+      if (gameState.mode === 'tutorial') {
+        awardTutorialCompletion();
+        setTutorialStage('complete');
+        if (content) content.classList.add('victory');
+        if (title) {
+          title.removeAttribute('data-i18n');
+          title.textContent = currentLanguage === 'en' ? 'TUTORIAL COMPLETE!' : '¡TUTORIAL COMPLETADO!';
+        }
+        if (msg) msg.textContent = translate('tutorial_guide_complete');
+        showNarratorMsg(
+          'bombot',
+          NARRATOR_DATA.bombot.img,
+          NARRATOR_DATA.bombot[currentLanguage].name,
+          translate('tutorial_guide_complete')
+        );
+        drawBadges();
+        saveProgress();
+        return;
+      }
+      recordAdventCalendarVictory();
+      if (isChristmasEventActive() && unlockProfileBorderReward('elf')) {
+        showMessage(
+          currentLanguage === 'en'
+            ? '🎄 Elf profile frame unlocked for winning a map during Christmas!'
+            : '🎄 ¡Borde de perfil Elfo desbloqueado por superar un mapa durante Navidad!',
+          'success'
+        );
+      }
+      unlockBombotAccessoriesForVictory();
+      const baseModes = ['facil', 'normal', 'dificil', 'extremo'];
+
+      // Emblemas por modo de Spooktacular Ruins y Frosty Christmas.
+      // Anti-Normal se comprueba primero porque se juega sobre otro modo base.
+      const MAP_MODE_BADGE_PREFIX = { spooktacular_ruins: 'spooktacular', frosty_christmas: 'frosty' };
+      const mapModeBadgePrefix = MAP_MODE_BADGE_PREFIX[gameState.map];
+      if (mapModeBadgePrefix) {
+        const modeKey = gameState.antiNormalActive ? 'anti_normal' : gameState.mode;
+        unlockBadge(`${mapModeBadgePrefix}_${modeKey}`);
+      }
+
+      if (gameState.map === 'spooktacular_ruins') {
+        if (baseModes.includes(gameState.mode) && !gameState.unlockedSkins.includes('pumpking_set')) {
+          gameState.unlockedSkins.push('pumpking_set');
+          showMessage(
+            currentLanguage === 'es'
+              ? '🎃 ¡Pumpkin Set desbloqueado! Has ganado un modo base en Aridez Escalofriante.'
+              : '🎃 Pumpkin Set unlocked! You won a base mode on Spooktacular Ruins.',
+            'success'
+          );
+        }
+        if (gameState.antiNormalActive && !gameState.unlockedSkins.includes('skelebones_set')) {
+          gameState.unlockedSkins.push('skelebones_set');
+          showMessage(
+            currentLanguage === 'es'
+              ? '💀 ¡SkeleBones Set desbloqueado! Has vencido Aridez Escalofriante en Anti-Normal.'
+              : '💀 SkeleBones Set unlocked! You beat Spooktacular Ruins in Anti-Normal.',
+            'success'
+          );
+        }
+        if (gameState.mode === 'corrupto' && !gameState.unlockedSkins.includes('wicked_set')) {
+          gameState.unlockedSkins.push('wicked_set');
+          showMessage(
+            currentLanguage === 'es'
+              ? '🧙 ¡Wicked Set desbloqueado! Has vencido Aridez Escalofriante en Corrupto.'
+              : '🧙 Wicked Set unlocked! You beat Spooktacular Ruins in Corrupt.',
+            'success'
+          );
+        }
+        if (['dificil', 'extremo'].includes(gameState.mode) &&
+            !gameState.unlockedSkins.includes('rewamped_black_set')) {
+          gameState.unlockedSkins.push('rewamped_black_set');
+          showMessage(
+            currentLanguage === 'es'
+              ? '🌑 ¡Rewamp Negro desbloqueado! Has vencido Aridez Escalofriante en Difícil o Extremo.'
+              : '🌑 Black Rewamp unlocked! You beat Spooktacular Ruins in Hard or Extreme.',
+            'success'
+          );
+        }
+      }
+      if (gameState.map === 'gelatin_lake' && baseModes.includes(gameState.mode) && !gameState.unlockedSkins.includes('ducky_rewamp_set')) {
+        gameState.unlockedSkins.push('ducky_rewamp_set');
+        showMessage(
+          currentLanguage === 'es'
+            ? '🦆 ¡Ducky Rewamp desbloqueado! Has superado Gelatin Lake en un modo base.'
+            : '🦆 Ducky Rewamp unlocked! You beat Gelatin Lake in a base mode.',
+          'success'
+        );
+      }
+
+      if (PROFILE_MAP_MODES.includes(gameState.mode) && gameState.profileMapModeWins[gameState.map]) {
+        if (!gameState.profileMapModeWins[gameState.map].includes(gameState.mode)) {
+          gameState.profileMapModeWins[gameState.map].push(gameState.mode);
+        }
+      } else if (PROFILE_MAP_MODES.includes(gameState.mode) && gameState.map) {
+        gameState.profileMapModeWins[gameState.map] = [gameState.mode];
+      }
+      if (content) content.classList.add('victory');
+      if (title) {
+        if (gameState.mode === 'interstellar') {
+          title.setAttribute('data-i18n', 'interstellar_victory_title');
+          title.textContent = translate('interstellar_victory_title');
+        } else {
+          title.setAttribute('data-i18n', 'victory_title');
+          title.textContent = translate('victory_title');
+        }
+      }
+      if (msg) {
+        if (gameState.mode === 'interstellar') {
+          msg.innerHTML = translate('interstellar_victory_msg');
+        } else {
+          msg.innerHTML = translate('victory_msg', { mode: gameState.mode.toUpperCase() });
+        }
+      }
+
+      if (gameState.antiNormalActive) {
+        unlockBadge('antiNormal');
+        gameState.unlockedAntiNormal = true;
+        // Sunlight Seaside Anti-Normal badge & froggy_set
+        if ((gameState.map || '') === 'sunlight_seaside') {
+          unlockBadge('sunlight_anti_normal');
+          if (!gameState.unlockedSkins.includes('froggy_set')) {
+            gameState.unlockedSkins.push('froggy_set');
+            const msg = currentLanguage === 'es'
+              ? '🐸 ¡Froggy Set desbloqueado gratis! Superaste Sunlight Seaside en Anti-Normal.'
+              : '🐸 Froggy Set unlocked for free! You beat Sunlight Seaside in Anti-Normal.';
+            showMessage(msg, 'success');
+          }
+        }
+      } else {
+        if (gameState.mode === 'dificil' && Object.prototype.hasOwnProperty.call(gameState.globlandHardWins, gameState.map)) {
+          gameState.globlandHardWins[gameState.map] = true;
+          checkFutureVoyageBadge();
+        }
+
+        // Sunlight Seaside specific badges
+        const isSunlightMap = (gameState.map || '') === 'sunlight_seaside';
+        if (isSunlightMap) {
+          if (gameState.mode === 'facil') unlockBadge('sunlight_facil');
+          else if (gameState.mode === 'normal') unlockBadge('sunlight_normal');
+          else if (gameState.mode === 'dificil') unlockBadge('sunlight_dificil');
+          else if (gameState.mode === 'extremo') unlockBadge('sunlight_extremo');
+        }
+
+        if (gameState.mode === 'facil') unlockBadge('winFacil');
+        else if (gameState.mode === 'normal') unlockBadge('winNormal');
+        else if (gameState.mode === 'dificil') unlockBadge('winDificil');
+        else if (gameState.mode === 'extremo') unlockBadge('winExtremo');
+        else if (gameState.mode === 'corrupto') {
+          gameState.corruptWins++;
+          unlockBadge('winCorrupto');
+          if (gameState.corruptWins >= 1) unlockBadge('corrupt1');
+          if (gameState.corruptWins >= 2) unlockBadge('corrupt2');
+          if (gameState.corruptWins >= 3) unlockBadge('corrupt3');
+          if (gameState.corruptWins >= 4) unlockBadge('corrupt4');
+          if (gameState.corruptWins >= 5) unlockBadge('corrupt5');
+        }
+
+        const hasBlockTalesSkin = gameState.blockQuestHadBlockTales ||
+          gameState.unlockedSkins.includes('corrupt_swords_set');
+        if (gameState.mode === 'dificil' && hasBlockTalesSkin) {
+          unlockBadge('block_city');
+        }
+        if (gameState.blockQuestCompleted && hasBlockTalesSkin) {
+          unlockBadge('old_blox_city');
+        }
+
+        // --- Skin unlock by victory condition ---
+        const isUrbanMap = (gameState.map || '') === 'urbanistic_road';
+
+        // Rewamped Green Set: free on winning Easy on Urbanistic Road
+        if (gameState.mode === 'facil' && isUrbanMap) {
+          if (!gameState.unlockedSkins.includes('rewamped_green_set')) {
+            gameState.unlockedSkins.push('rewamped_green_set');
+            const msg = currentLanguage === 'es'
+              ? '🎁 Set Verde Remasterizado desbloqueado y aplicado gratis! (Urbanistic Road - Fácil)'
+              : '🎁 Remastered Green Set unlocked for free! (Urbanistic Road - Easy)';
+            showMessage(msg, 'success');
+          }
+        }
+
+        // Rewamped Red Set: free on winning Easy on Urbanistic Road
+        if (gameState.mode === 'facil' && isUrbanMap) {
+          if (!gameState.unlockedSkins.includes('rewamped_red_set')) {
+            gameState.unlockedSkins.push('rewamped_red_set');
+            const msg = currentLanguage === 'es'
+              ? '🎁 Set Rojo Remasterizado desbloqueado y aplicado gratis! (Urbanistic Road - Fácil)'
+              : '🎁 Remastered Red Set unlocked for free! (Urbanistic Road - Easy)';
+            showMessage(msg, 'success');
+          }
+        }
+
+        if (gameState.mode === 'facil' && isUrbanMap) {
+          if (!gameState.unlockedSkins.includes('rewamped_blue_set')) {
+            gameState.unlockedSkins.push('rewamped_blue_set');
+            const msg = currentLanguage === 'es'
+              ? '🎁 Set Azul Remasterizado desbloqueado y aplicado gratis! (Urbanistic Road - Fácil)'
+              : '🎁 Remastered Blue Set unlocked for free! (Urbanistic Road - Easy)';
+            showMessage(msg, 'success');
+          }
+        }
+
+        // Spanish-Bombot: unlocked (but not free) on winning Normal or above
+        const modesNormalOrAbove = ['normal', 'dificil', 'extremo', 'corrupto', 'antiNormal'];
+        if (modesNormalOrAbove.includes(gameState.mode)) {
+          if (!gameState.unlockedSkins.includes('spanish_bombot')) {
+            gameState.unlockedSkins.push('spanish_bombot');
+            const msg = currentLanguage === 'es'
+              ? '🔓 Skin Spanish-Bombot desbloqueada! Ahora puedes comprarla en la tienda.'
+              : '🔓 Spanish-Bombot skin unlocked! You can now purchase it in the shop.';
+            showMessage(msg, 'success');
+          }
+        }
+
+        // Judicial Set: unlocked (but not free) on winning Extremo or above
+        const modesExtremoOrAbove = ['extremo', 'corrupto', 'antiNormal'];
+        if (modesExtremoOrAbove.includes(gameState.mode)) {
+          if (!gameState.unlockedSkins.includes('judicial_set')) {
+            gameState.unlockedSkins.push('judicial_set');
+            const msg = currentLanguage === 'es'
+              ? '🔓 Set Judicial desbloqueado! Ahora puedes comprarlo (400 PyCoins / 150 DuckPass).'
+              : '🔓 Judicial Set unlocked! You can now purchase it (400 PyCoins / 150 DuckPass).';
+            showMessage(msg, 'success');
+          }
+        }
+        // -----------------------------------------
+      }
+
+      if ((gameState.mode === 'corrupto' || gameState.mode === 'antiNormal') && victory === true) {
+        if (TOWER_TYPES['Work_Bombot'] && !TOWER_TYPES['Work_Bombot'].unlocked) {
+          TOWER_TYPES['Work_Bombot'].unlocked = true;
+          ensurePersonalizableBombotUnlocked();
+          showMessage("🤖 ¡TORRE WORK-BOMBOT DESBLOQUEADA!", 'success');
+          saveProgress();
+        }
+      }
+
+      if (gameState.mode === 'antiNormal' && victory === true) {
+        gameState.pycoins += 500;
+        gameState.duckPassCurrency += 450;
+        // XP equivalent to a high difficulty mode
+        addXP(500);
+        const rewardMsg = currentLanguage === 'es'
+          ? '🌑 +500 PyCoins / +450 DuckPass + XP por superar Anti-Normal!'
+          : '🌑 +500 PyCoins / +450 DuckPass + XP for beating Anti-Normal!';
+        showMessage(rewardMsg, 'success');
+        // Sunlight Seaside: also give 50 DuckPasses extra for the badge
+        if ((gameState.map || '') === 'sunlight_seaside') {
+          gameState.duckPassCurrency += 50;
+          const sunMsg = currentLanguage === 'es' ? '🌑 +50 DuckPass bonus por Sunlight Seaside Anti-Normal!' : '🌑 +50 DuckPass bonus for Sunlight Seaside Anti-Normal!';
+          showMessage(sunMsg, 'success');
+        }
+        updateMetaUI();
+        saveProgress();
+      }
+
+      if (gameState.mode === 'interstellar' && victory === true && gameState.wave >= 40) {
+        unlockBadge('unmenaced');
+        unlockBadge('urban_crystals');
+        if (!gameState.unlockedInterstellar) {
+          gameState.unlockedInterstellar = true;
+          gameState.pycoins += 400;
+          gameState.duckPassCurrency += 500;
+          showMessage("⭐ +400 PyCoins / +500 DuckPass", 'success');
+          publishMultiplayerProfile();
+        } else {
+          gameState.pycoins += 250;
+          gameState.duckPassCurrency += 350;
+          showMessage("⭐ +250 PyCoins / +350 DuckPass", 'success');
+        }
+        updateMetaUI();
+        saveProgress();
+      }
+
+      if (gameState.towers.length > 0) {
+        const allGreenOrBlack = gameState.towers.every(t => t.family === 'Glob' || t.family === 'Comet_Glob');
+        if (allGreenOrBlack) {
+          unlockBadge('deepArtillery');
+        }
+      }
+
+      if (gameState.towers.length > 0) {
+        const allRedOrBlue = gameState.towers.every(t => t.family === 'Red_Glob' || t.family === 'Soap_Glob');
+        if (allRedOrBlue) {
+          unlockBadge('meleeBlueRed');
+        }
+      }
+
+      checkTowerCombinationBadges();
+
+      if (!gameState.baseTookDamage) {
+        unlockBadge('titaniumBuilding');
+      }
+
+      if (gameState.unlockedSkins && gameState.unlockedSkins.length >= 7) {
+        unlockBadge('skinllector');
+      }
+
+      checkGlitchEffectUnlock();
+      saveProgress();
+    } else {
+      if (content) content.classList.remove('victory');
+      if (title) {
+        title.setAttribute('data-i18n', 'gameOver');
+        title.textContent = translate('gameOver');
+      }
+      const finalWave = Math.max(1, Number(gameState.wave) || 1);
+      const finalWaveEl = document.getElementById('final-wave');
+      if (finalWaveEl) finalWaveEl.textContent = finalWave;
+      if (msg) msg.textContent = translate('gameOverWave', { wave: finalWave });
+      saveProgress();
+    }
+
+    updateLanguage();
+    publishMultiplayerProfile();
+  }
+
+  function getTowerName(t) {
+    const family = t.family || t.type;
+    const equipped = gameState.equippedSkins[family];
+    if (equipped) {
+      const skinSet = SKINS_DATA[family]?.find(s => s.id === equipped);
+      if (skinSet?.isSpecial && skinSet.names?.[t.type]) {
+        const val = skinSet.names[t.type];
+        if (val && typeof val === 'object') {
+          return val[currentLanguage] || val['es'] || val['en'];
+        }
+        return val;
+      }
+    }
+    return translate(t.name);
+  }
+
+  function getSpecialAttack(t, target, dmg) {
+    const family = t.family || t.type;
+    const equipped = gameState.equippedSkins[family];
+    if (!equipped) return false;
+    const skinSet = SKINS_DATA[family]?.find(s => s.id === equipped);
+    if (!skinSet?.isSpecial) return false;
+
+
+
+    if (skinSet.id === 'mimic_set') {
+      if (t.type === 'Comet_Glob') {
+        shoot({ ...t, projectile: 'gold' }, target, { damage: dmg }); return true;
+      }
+      if (t.type === 'Dark_Glob') {
+        shoot(t, target, { damage: dmg }); target.speed *= 0.8; return true;
+      }
+      if (t.type === 'Demglob') {
+        shoot(t, target, { damage: dmg });
+        if (Math.random() < 0.1) { gameState.globetines += 1; showEffect(t.x, t.y, "+1 💰"); updateUI(); }
+        return true;
+      }
+      if (t.type === 'Void_Glob') {
+        shoot(t, target, { damage: dmg * 1.5, projectile: 'gold' });
+        if (Math.random() < 0.2) { gameState.globetines += 3; showEffect(t.x, t.y, "+3 💰"); updateUI(); }
+        return true;
+      }
+    }
+
+    if (skinSet.id === 'astrorb_set' || skinSet.id === 'crystal_bombot') {
+      shoot(t, target, { damage: dmg, image: 'Recursos/img/Proyectiles/Crystal Metor.png' });
+      return true;
+    }
+
+    if (skinSet.id === 'wicked_set') {
+      if (t.type === 'Comet_Glob' || t.type === 'Dark_Glob') {
+        shoot(t, target, { damage: dmg, image: 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Magic Shoot (1-2).png' });
+        return true;
+      }
+      if (t.type === 'Demglob' || t.type === 'Void_Glob') {
+        shoot(t, target, { damage: dmg, image: 'Recursos/Spooks in the Desert (UPD4)/Skins/Wicked Set (NEGRO)/Proyectiles-Exclusivos/Sparkle Shoot (3-4).png' });
+        return true;
+      }
+    }
+
+    if (skinSet.id === 'starjump_set') {
+      if (t.type === 'Old_Glob') {
+        shoot(t, target, { projectile: 'star_yellow', damage: dmg }); return true;
+      }
+      if (t.type === 'Pyce_Glob') {
+        shoot(t, target, { projectile: 'star_celeste', damage: dmg }); return true;
+      }
+    }
+
+    return false;
+  }
+
+  let currentStoryTab = 'lore';
+
+  function openStoryLogs() {
+    closeModal('shop-modal');
+    closeModal('pass-modal');
+    document.getElementById('story-logs-modal').style.display = 'flex';
+    drawStoryLogs();
+  }
+
+  function switchStoryTab(tab) {
+    currentStoryTab = tab;
+    document.querySelectorAll('.story-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.id === `tab-${tab}-btn`);
+    });
+    drawStoryLogs();
+  }
+
+  function drawStoryLogs() {
+    const container = document.getElementById('story-logs-body');
+    if (!container) return;
+
+    if (currentStoryTab === 'lore') {
+      if (currentLanguage === 'es') {
+        container.innerHTML = `
+        <h3>📖 La historia de Glob Defenders</h3>
+        <p><strong>Glob Defenders</strong> transcurre en un mundo habitado por criaturas y seres muy diferentes entre sí. En una de sus regiones, <strong>Gelatin Lake</strong>, viven los <strong>Globs</strong>, criaturas de gelatina creadas y criadas por el propio lago para defenderse de las amenazas que aparecen en sus alrededores.</p>
+        <p>Los Globs no son un ejército tradicional. Cada uno pertenece a una <strong>familia</strong> con características, habilidades y formas de evolucionar diferentes. Con el tiempo, han aprendido a trabajar juntos y a utilizar sus distintas capacidades para proteger sus territorios.</p>
+        <p>Una de las principales amenazas son los <strong>Pyces</strong>. Aunque algunos Pyces son enemigos, la situación es bastante más complicada que una simple guerra entre dos especies. Existen diferentes grupos, individuos y entidades con sus propios objetivos, y no todos los Pyces actúan de la misma manera.</p>
+        <p>Para ayudar a los Globs está <strong>Work-Bombot</strong>, un robot que actúa como guía y aliado durante sus aventuras. Gracias a él, los Globs conocen otros lugares y terminan involucrándose en conflictos que van mucho más allá de Gelatin Lake.</p>
+        <p>La aventura comienza principalmente en <strong>Gelatin Lake</strong>, pero poco a poco se extiende hacia otras regiones.</p>
+        <p>Una de ellas es <strong>Urbanistic Road</strong>, una zona mucho más desarrollada, con carreteras, ríos y zonas urbanas. Allí los Globs deben adaptarse a un entorno diferente mientras aparecen nuevas amenazas, nuevos personajes y nuevas formas de combatir.</p>
+        <p>Más adelante, los Globs también llegan a <strong>Sunlight Seaside</strong>, una zona costera y portuaria que conecta con otros lugares del mundo. Defender sus instalaciones se vuelve importante para poder continuar explorando y ayudar a otras zonas que también están siendo atacadas.</p>
+        <p>A medida que los Globs avanzan, los conflictos empiezan a involucrar fenómenos cada vez más extraños: corrupción, tecnología, dimensiones, energía desconocida y fuerzas que parecen estar muy por encima de los enemigos normales.</p>
+        <p>Esto alcanza uno de sus puntos más importantes con <strong>Interstellar Menace</strong>, donde los acontecimientos dejan de limitarse a los problemas habituales de los Globs y empiezan a relacionarse con fenómenos de escala mucho mayor.</p>
+        <p>Aun así, <strong>Glob Defenders no trata únicamente sobre salvar el mundo</strong>. También trata sobre descubrir nuevos lugares, conocer a sus habitantes, enfrentarse a personajes extraños, encontrar secretos y entender poco a poco cómo está conectado todo lo que rodea a los Globs.</p>
+        <p>Y cuanto más avanzan...</p>
+        <p><strong>más evidente se vuelve que el mundo en el que viven es mucho más grande de lo que parecía al principio.</strong></p>
+
+        <div style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px;">
+          <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">Ver familias</button>
+          <button type="button" style="background:#3a6ea5; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('enemies'), 30);">Ver enemigos</button>
+        </div>
+      `;
+      } else {
+        container.innerHTML = `
+        <h3>🌎 The story of Glob Defenders</h3>
+        <p><strong>Glob Defenders</strong> takes place in a world filled with very different creatures and beings. In one of its regions, <strong>Gelatin Lake</strong>, live the <strong>Globs</strong>, gelatin creatures created and raised by the lake itself to defend themselves against the threats that appear around them.</p>
+        <p>The Globs are not a traditional army. Each one belongs to a <strong>family</strong> with different traits, abilities, and ways of evolving. Over time, they have learned to work together and use their different capabilities to protect their territories.</p>
+        <p>One of the main threats is the <strong>Pyces</strong>. Although some Pyces are enemies, the situation is far more complicated than a simple war between two species. There are different groups, individuals, and entities with their own goals, and not all Pyces behave the same way.</p>
+        <p>To help the Globs stands <strong>Work-Bombot</strong>, a robot who acts as a guide and ally on their adventures. Thanks to him, the Globs discover other places and end up getting involved in conflicts that go far beyond Gelatin Lake.</p>
+        <p>The adventure begins mainly in <strong>Gelatin Lake</strong>, but little by little it expands to other regions.</p>
+        <p>One of them is <strong>Urbanistic Road</strong>, a much more developed area with roads, rivers, and urban zones. There, the Globs must adapt to a different environment while new threats, new characters, and new ways of fighting appear.</p>
+        <p>Later, the Globs also reach <strong>Sunlight Seaside</strong>, a coastal and port area connected to other places in the world. Defending its installations becomes important in order to continue exploring and helping other zones that are also under attack.</p>
+        <p>As the Globs advance, the conflicts begin to involve stranger phenomena: corruption, technology, dimensions, unknown energy, and forces that seem far above ordinary enemies.</p>
+        <p>This reaches one of its most important points with <strong>Interstellar Menace</strong>, where events stop being limited to ordinary Glob problems and begin to connect to much larger-scale phenomena.</p>
+        <p>Even so, <strong>Glob Defenders is not only about saving the world</strong>. It is also about discovering new places, meeting their inhabitants, facing strange characters, finding secrets, and gradually understanding how everything around the Globs is connected.</p>
+        <p>And the more they advance...</p>
+        <p><strong>the clearer it becomes that the world they live in is much bigger than it seemed at first.</strong></p>
+
+        <div style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px;">
+          <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">View families</button>
+          <button type="button" style="background:#3a6ea5; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('enemies'), 30);">View enemies</button>
+        </div>
+      `;
+      }
+    } else if (currentStoryTab === 'mechanics') {
+      if (currentLanguage === 'es') {
+        container.innerHTML = `
+        <h3>⚙️ Mecánicas de Juego</h3>
+        <p>Glob Defenders combina defensa por oleadas, economía de partida y progreso permanente. Aquí tienes un resumen útil para entender cómo funciona todo el juego.</p>
+
+        <h4>💰 Economía y recursos</h4>
+        <ul>
+          <li><img src="Recursos/img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globetines</strong>: moneda de partida para comprar y mejorar torres durante la defensa.</li>
+          <li><img src="Recursos/img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: moneda permanente usada en la tienda meta para mejoras de base, límites y skins.</li>
+          <li><img src="Recursos/img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: moneda especial para Duckgrades, mejoras pasivas y objetos exclusivos.</li>
+        </ul>
+
+        <h4>🛡️ Cómo se juega</h4>
+        <ul>
+          <li><strong>Coloca torres</strong> en puntos estratégicos del mapa para defender la base de los Pyces.</li>
+          <li><strong>Mejora o evoluciona</strong> tus Globs para subir su daño, rango y utilidad.</li>
+          <li><strong>Protege la base</strong> y evita que los enemigos lleguen al punto de entrada.</li>
+          <li><strong>Sobrevive oleada tras oleada</strong> y adapta tu estrategia según el tipo de enemigo.</li>
+        </ul>
+
+        <h4>🏪 Progreso permanente</h4>
+        <ul>
+          <li><strong>Mejoras de base</strong>: aumentan la salud inicial y tu resistencia general.</li>
+          <li><strong>Límites de torres</strong>: limitan cuántas torres de cada tipo puedes tener activas.</li>
+          <li><strong>Duckgrades</strong>: habilidades pasivas definitivas de cada familia.</li>
+          <li><strong>G-Tacks</strong>: habilidades activas poderosas para torres de nivel máximo.</li>
+          <li><strong>Skins</strong>: cambios visuales y especiales para familias, mapas y personajes.</li>
+        </ul>
+
+        <h4>⌨️ Controles rápidos</h4>
+        <ul>
+          <li><strong>U</strong>: evolucionar todas las torres posibles, priorizando las más evolucionadas.</li>
+          <li><strong>D</strong>: vender todas las torres de la familia seleccionada.</li>
+          <li><strong>V</strong>: vender solo la torre seleccionada.</li>
+          <li><strong>C</strong>: cancelar selección o cerrar menús.</li>
+        </ul>
+
+        <h4>📚 Si quieres profundizar</h4>
+        <p>Si quieres saber más sobre cada familia o enemigo, sigue con la enciclopedia correspondiente:</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+          <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">Familias</button>
+          <button type="button" style="background:#3a6ea5; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('enemies'), 30);">Enemigos</button>
+        </div>
+        <div style="margin-top: 18px;">
+          <button type="button" style="background:rgba(255,255,255,0.08); color:#edf6ff; border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openLoadingTipsModal()">📘 Ver todos los tips</button>
+        </div>
+      `;
+      } else {
+        container.innerHTML = `
+        <h3>⚙️ Game Mechanics</h3>
+        <p>Glob Defenders combines wave defense, match economy, and permanent progression. Here is a useful summary of how the game works.</p>
+
+        <h4>💰 Economy and resources</h4>
+        <ul>
+          <li><img src="Recursos/img/Tokens/Globetin.png" width="16" style="vertical-align: middle;"> <strong>Globets</strong>: in-match currency used to buy and upgrade towers during the defense.</li>
+          <li><img src="Recursos/img/Tokens/PyCoin.png" width="16" style="vertical-align: middle;"> <strong>PyCoins</strong>: permanent currency used in the meta shop for base upgrades, limits, and skins.</li>
+          <li><img src="Recursos/img/Tokens/DuckPass.png" width="16" style="vertical-align: middle;"> <strong>Duckpasses</strong>: special currency for Duckgrades, passive upgrades, and exclusive items.</li>
+        </ul>
+
+        <h4>🛡️ How to play</h4>
+        <ul>
+          <li><strong>Place towers</strong> on strategic map points to defend the base from Pyces.</li>
+          <li><strong>Upgrade or evolve</strong> your Globs to increase damage, range, and utility.</li>
+          <li><strong>Protect the base</strong> and prevent enemies from reaching the entrance.</li>
+          <li><strong>Survive wave after wave</strong> and adapt your strategy to the enemy type.</li>
+        </ul>
+
+        <h4>🏪 Permanent progression</h4>
+        <ul>
+          <li><strong>Base upgrades</strong>: increase starting health and overall durability.</li>
+          <li><strong>Tower limits</strong>: control how many towers of each type can be active at once.</li>
+          <li><strong>Duckgrades</strong>: ultimate passive abilities for each family.</li>
+          <li><strong>G-Tacks</strong>: powerful active skills for max-level towers.</li>
+          <li><strong>Skins</strong>: visual and special changes for families, maps, and characters.</li>
+        </ul>
+
+        <h4>⌨️ Quick controls</h4>
+        <ul>
+          <li><strong>U</strong>: evolve every affordable tower, prioritizing the most evolved.</li>
+          <li><strong>D</strong>: sell every tower from the selected family.</li>
+          <li><strong>V</strong>: sell only the selected tower.</li>
+          <li><strong>C</strong>: cancel selection or close menus.</li>
+        </ul>
+
+        <h4>📚 If you want to go deeper</h4>
+        <p>If you want to know more about each family or enemy, jump into the corresponding encyclopedia section:</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+          <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">Families</button>
+          <button type="button" style="background:#3a6ea5; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('enemies'), 30);">Enemies</button>
+        </div>
+        <div style="margin-top: 18px;">
+          <button type="button" style="background:rgba(255,255,255,0.08); color:#edf6ff; border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openLoadingTipsModal()">📘 View all tips</button>
+        </div>
+      `;
+      }
+    } else if (currentStoryTab === 'logs') {
+      if (currentLanguage === 'es') {
+        container.innerHTML = `
+        <h3 style="color:#ff6f91;">📋 Historial de Actualizaciones (GlD V6.1-0 — Frosty Calendar · GlD Christmas PART 1)</h3>
+        <p style="color:#8fd0ff;">¡Comienza la primera parte del evento de invierno! Del 1 de noviembre al 8 de enero, el frío trae nuevos jefes, enemigos, efectos y un Pase de Invierno con sus propias recompensas.</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>❄️ <strong style="color:#8fd0ff;">Pase de Invierno</strong>: Un pase nuevo con su propia XP (CandyLove). Gánala derrotando Pyces y enemigos navideños; el mapa <strong>Frosty Christmas</strong> renta el doble. Recompensas de momento: filtros y Duckpasses (se ampliarán con skins y accesorios). Acceso desde el botón <strong>Pase de Invierno</strong>, desde el <strong>Duck Pass</strong> y desde el <strong>Calendario de Adviento</strong>. Antes de noviembre se muestra como "ABRE PRÓXIMAMENTE".</li>
+          <li>👻 <strong style="color:#ff6f91;">Jefes fantasma</strong>: <strong>NOsense Pyce</strong> (jefe de Corrupto) y <strong>NOIRrupt Pyce</strong> (jefe de Anti-Normal), creados a partir del odio de NOeye. NOIRrupt es velocísimo y da 3 vueltas al mapa antes de atacar la base. En estos modos, NOeye actúa como guía aliado. 3 bajas para enmarcarlos.</li>
+          <li>🎁 <strong>Nuevos enemigos</strong>: <strong>Wingel Pyce</strong> (Pyce alado veloz, inmune a parálisis, veneno y ácido, pero débil al fuego, y difícil de alcanzar al volar) y <strong>Puz & Zle</strong> (dúo de I.D. que se separa al ser derrotado).</li>
+          <li>🌈 <strong>Efecto RGB renovado + RAINBOW FUEL</strong>: El RGB ahora recorre la imagen de izquierda a derecha. Consigue el <strong>Rainbow Fuel</strong> (arcoíris pleno) tocando 100 Globs de una familia en el login. Disponible también para las familias Naranja (Worker) e IEx (Bomb), que estrenan su skin RGB.</li>
+          <li>💬 <strong>Diálogos con personalidad</strong>: Fondos de diálogo propios para enemigos navideños (candy/nevado) y para hablantes oscuros (negro, lila y niebla).</li>
+          <li>✨ <strong>Vida en reposo</strong>: Los Globs ahora tienen animaciones idle según su familia (flotar, brillar, mecerse...), y en el login reaccionan al pasar el ratón y al tocarlos.</li>
+          <li>🖼️ <strong>Experiencia navideña</strong>: Nuevo icono de XP <strong>CandyLove</strong> durante el evento. El contenido navideño permanece disponible hasta el 8 de enero.</li>
+        </ul>
+        <button type="button" class="advent-entry-btn" onclick="openWinterPass()">❄️ Abrir Pase de Invierno</button>
+
+        <h3 style="color:#69e5ff;">📋 Historial de Actualizaciones (GlD v6.0.0 — Frozen Calendar Christmas)</h3>
+        <p style="color:#80edb0;">¡Llega el Calendario de Adviento! Del 1 al 25 de diciembre, supera cualquier mapa para reclamar el premio de ese día: PyCoins, Duckpasses, XP, accesorios y el set SnowGlob. Los días omitidos se recuperan con Duckpasses; el primero cuesta 637 y cada recuperación posterior añade 100. Si el reloj retrocede, los premios pendientes pasan a ser de pago. Esta comprobación local es disuasoria, no una validación segura del servidor.</p>
+        <button type="button" class="advent-entry-btn" onclick="openAdventCalendar()">🎄 Abrir Calendario de Adviento</button>
+        <p>Canjea <code>FESTIVE_XMAS</code> para obtener el borde Festivo. En diciembre, gana cualquier mapa para conseguir el borde Elfo; reclama 13 recompensas del calendario para el borde Santa. Los bordes Candy, Bomb, Ice y Gift están en la tienda de perfiles.</p>
+
+        <h3 style="color:#b58cff;">📋 Historial de Actualizaciones (Parche reciente — Personalización, online y moderación)</h3>
+        <p style="color:#b58cff;">Más formas de personalizar tu experiencia, compartir partidas y mantener el chat agradable.</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>☀️ <strong style="color:#b58cff;">Modo claro</strong>: Activa el fondo claro desde el icono de bombilla junto a Ajustes; funciona tanto en el login como durante la partida.</li>
+          <li>🏝️ <strong>Islas rediseñadas</strong>: Sunlight Seaside ahora tiene islas redondas, cada una con un único espacio para colocar una torre.</li>
+          <li>🔗 <strong>Comparte el juego</strong>: Los enlaces incluyen el logo y una breve descripción en español e inglés en las vistas previas compatibles, como Discord.</li>
+          <li>☁️ <strong>Guardado de cuenta más claro</strong>: El progreso se sincroniza automáticamente con Supabase al guardar mientras tienes sesión y conexión. Las rondas individuales pueden reanudarse desde un punto de guardado; el historial de acciones y las partidas cooperativas no se guardan como partidas recuperables.</li>
+          <li>👤 <strong>Perfiles y recompensas</strong>: El personal con permisos de administración puede equipar Omnipresent Glob. La opción de depuración para desbloquear todo también aplica las recompensas cosméticas correspondientes.</li>
+          <li>💬 <strong>Chat online con dos modos</strong>: Usa frases predefinidas en el chat seguro o escribe en el chat libre. Los mensajes ofensivos se bloquean y se reemplazan localmente por la imagen de Omnipresent Glob; el intento solo afecta a quien lo envió.</li>
+          <li>🛡️ <strong>Moderación progresiva</strong>: Los intentos ofensivos en el login y el chat activan un jumpscare cada tres intentos. En el chat, las infracciones de cuentas autenticadas pueden registrarse en Supabase; la eliminación automática al alcanzar 25 requiere desplegar la Edge Function de moderación.</li>
+          <li>👁️ <strong>Voces de NOeye y DarkSpirit</strong>: NOeye usa leetspeak en sus diálogos generales y DarkSpirit tiene un tono más terrorífico y un borde rojo. NOeye mantiene su voz normal como héroe de Interstellar.</li>
+          <li>🪲 <strong>Identidad de ???</strong>: Los avisos de moderación de ??? muestran a Omnipresent Glob, no a MysteryBug.</li>
+          <li>🧩 <strong>Login más pulido</strong>: Las imágenes decorativas se reponen al quitarlas, y alternar muchas veces entre los temas activa el easter egg de glitch hasta reiniciar la página.</li>
+          <li>🎃 <strong>Sets de Halloween</strong>: Gana Aridez Escalofriante en Anti-Normal para desbloquear SkeleBones Set, en Corrupto para Wicked Set, o en Fácil, Normal, Difícil o Extremo para Pumpkin Set. Son recompensas independientes. SkeleBones, Wicked (EVO 1 y 3) y PumpGlob pueden aparecer en el login y dar un jumpscare al pulsarlos. En octubre son más frecuentes; en diciembre pueden aparecer, pero con menos frecuencia.</li>
+        </ul>
+
+        <h3 style="color:#ff9f43;">📋 Historial de Actualizaciones (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
+        <p style="color:#ff9f43;">¡Empieza una nueva aventura! Esta primera parte prepara el juego con nuevas formas de jugar, guardar tu progreso y descubrir secretos.</p>
+        <h4>Novedades de la PT1:</h4>
+        <ul>
+          <li>💾 <strong style="color:#ff9f43;">Guardar y reanudar partidas</strong>: Guarda una ronda desde el menú de pausa y cárgala desde las islas. La partida guardada muestra el mapa, el modo y la oleada; también puedes guardar y cerrar sesión o guardar y salir.</li>
+          <li>🌐 <strong>Semillas más fáciles de compartir</strong>: Copia la seed o la invitación desde sus opciones, o descarga la seed como archivo de texto.</li>
+          <li>👤 <strong>Perfiles en partidas online</strong>: Consulta el progreso, los logros, las familias maximizadas y las victorias de otros jugadores de la partida.</li>
+          <li>🎨 <strong>Perfil persistente</strong>: Tu imagen y tu marco elegidos se conservan al volver a iniciar sesión.</li>
+          <li>🎃 <strong>Halloween te sigue a la partida</strong>: Los enemigos de Halloween, incluido Curse Boneker, pueden lanzarte un jumpscare al hacer clic en ellos o al derrotarlos.</li>
+          <li>💀 <strong>Nuevo jefe Anti-Normal</strong>: En la última oleada de Spooktacular Ruins, Curse Boneker lanza de 2 a 5 huesos malditos contra tus torres para aturdirlas.</li>
+          <li>✨ <strong>Efectos secretos</strong>: Descubre Hipermutado y Glitch en Ajustes → Especial. Puedes equiparlos juntos, y también afectan a Work-Bombot.</li>
+          <li>🕒 <strong>Reloj y recordatorios</strong>: Consulta la hora y el tiempo de juego; cada cierto tiempo aparecerá un mensaje que te recordará descansar o comprobar si sigues ahí.</li>
+          <li>🖼️ <strong>Mejoras visuales y correcciones</strong>: Los logos ahora dan una respuesta visual clara al hacer clic; el login usa el logo Rewamp y Omnipresent Glob sirve de respaldo cuando no se puede cargar una imagen.</li>
+        </ul>
+
+        <h3 style="color:#75df9a;">📋 Historial de Actualizaciones (GlD v4.3.0 - ONLINE &amp; AVATARES)</h3>
+        <p style="color:#75df9a;">¡Tus partidas, tu identidad y tu estilo Glob se conectan como nunca!</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🎃 <strong>Enemigos de Halloween</strong>: Añadidos Brokspider, Pumpitch, RIPslide, Curse Boneker, SkeleBone Pyce, Blood-Taker, Sneekmy, Ghost Pyce y ZomPyce a Spooktacular Ruins, con sus requisitos de bajas para enmarcarlos.</li>
+          <li>🦆 <strong>Nueva evolución de Ducky Glob</strong>: Highlight Glob genera un 25% más que Golden Ducky. En multijugador, cada compañero añade a la bolsa compartida un 25% de esa recompensa; Ducky Rewamp se desbloquea al ganar en Spooktacular Ruins y su versión RGB requiere completar los retratos.</li>
+          <li>🌐 <strong style="color:#75df9a;">Multijugador online con Supabase</strong>: Crea una seed e invita a otras personas desde sus propios ordenadores. La partida se sincroniza en tiempo real mientras el anfitrión siga conectado.</li>
+          <li>🔐 <strong>Cuentas y progreso en la nube</strong>: Inicia sesión con usuario y contraseña; el progreso de cuenta, compras, emblemas y personalización se guarda asociado a tu cuenta. El modo offline mantiene su progreso local y no permite crear ni cargar seeds.</li>
+          <li>👤 <strong>Perfiles personalizables</strong>: Equipa retratos de Globs y enemigos enmarcados, y elige entre bordes de colores, bordes de mapas y estilos especiales. En las seeds verás los nombres, fotos y bordes del resto de jugadores, incluso en el aviso de entrada.</li>
+          <li>🖼️ <strong>Retratos originales y Rewamp</strong>: Glob y Glob Rojo incluyen gratis su arte original. Los retratos Rewamp requieren desbloquear la skin correspondiente; los retratos de evolución máxima se compran después de maxear la familia.</li>
+          <li>🎨 <strong>Nuevos bordes para coleccionar</strong>: Consigue bordes al avanzar por el Duck Pass, cómpralos con Duckpasses o desbloquea los especiales completando sus requisitos. Fantasmal y Calabaza cuestan 500 Duckpasses cada uno.</li>
+          <li>🌈 <strong>Rumores de coleccionista</strong>: Se dice que completar ciertas colecciones podría traer una recompensa especial, aunque nadie ha confirmado qué hay detrás.</li>
+          <li>🔑 <strong>Código nuevo</strong>: Canjea <code>ONLINE-AVATARS</code> para obtener el borde Coded.</li>
+        </ul>
+
+        <h3 style="color:#ff69b4;">📋 Historial de Actualizaciones (GlD v4.0.2 - Responvidad y Revision. (1))</h3>
+        <p style="color:#ff69b4;">Pequeños misterios, respuestas más expresivas y una revisión general de la experiencia.</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>💬 <strong style="color:#ff69b4;">??? tiene mucho que decir</strong>: El misterioso personaje del logo ahora responde con una frase aleatoria cada vez que se alcanza un múltiplo de cinco clics.</li>
+          <li>🎭 <strong>Más diálogos secretos</strong>: Se han añadido nuevas respuestas chistosas, amenazas pixeladas, referencias a la corporación mafiosa MadStars y quejas formales de WORK-BOMBOT.</li>
+          <li>🌸 <strong>Diálogo más visible</strong>: Las apariciones de ??? usan texto blanco y bordes rosas para que sus mensajes puedan leerse incluso sobre el fondo oscuro.</li>
+          <li>📱 <strong>Revisión de responsividad</strong>: Ajustes visuales para que los elementos importantes tengan más espacio en dispositivos móviles.</li>
+        </ul>
+        <p style="text-align:center; font-style:italic; color:#ff69b4; font-size:0.9rem; margin-top:20px;">Psst... prueba el código "BLOCK_QUEST" en Urbanistic Road, en Difícil o superior.</p>
+
+        <h3 style="color:#7ec850;">📋 Historial de Actualizaciones (GlD v4.0.1 - LEAFY BEACH PARTY HOTFIX)</h3>
+        <p style="color:#7ec850;">Correcciones, mejoras de animación y actualizaciones visuales sin nuevas salas.</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🐸 <strong style="color:#7ec850;">NUEVA SKIN — Froggy Set</strong>: Derrota el modo Anti-Normal en Sunlight Seaside para hacerte con esta skin de la familia Pirata. Ilustrada originalmente por <em>Victorillo</em> y redibujada por <em>KirByte_Bi</em>.</li>
+          <li>🎲 <strong>All-Stars Randomizer</strong>: La skin de la Enciclopedia ahora se llama All-Stars Randomizer y abarca <em>todos</em> los enemigos del juego, no solo los Pyces. Además, los sprites se voltean automáticamente para mirar en la dirección correcta.</li>
+          <li>🔓 <strong>Desequipar skins</strong>: Ya puedes desequipar cualquier skin desde la tienda o desde el DuckPass pulsando el nuevo botón <em>Desequipar</em>.</li>
+          <li>🌆 <strong>Urban Pass visible desde el DuckPass</strong>: Al llegar al final del DuckPass podrás ver el Urban Pass bloqueado y gris, con su aviso de desbloqueo.</li>
+          <li>✨ <strong>Animaciones de Globs</strong>: Los Globs ahora se animan en reposo (salto o balanceo según la familia) y parpadean al atacar.</li>
+          <li>⏳ <strong>Pantalla de carga en el login</strong>: Ahora hay una breve pantalla de carga animada con el logo del juego y un Glob girando antes de entrar al mapa.</li>
+          <li>🛠️ <strong>Corrección de rutas de imagen</strong>: Arreglados los 404 de AstrorbTF.png y Tadpole Glob (SK-EVO1).png al corregir las carpetas de los sets Astrorb y Froggy.</li>
+          <li>⚙️ <strong>Roles de usuario</strong>: Sistema de roles (OWNER / DEVBUILD / ADMIN) aplicado correctamente a las cuentas de desarrollo.</li>
+          <li>🎮 <strong>Recompensas Anti-Normal</strong>: Todos los modos Anti-Normal ahora dan 500 PyCoins, 450 DuckPasses y XP. En Sunlight Seaside, además, +50 DuckPasses extra.</li>
+        </ul>
+
+        <h3 style="color:#e3c08d;">📋 Historial de Actualizaciones (GlD v4.0.0 - LEAFY BEACH PARTY - BIG UPD4)</h3>
+        <p style="color:#e3c08d;">¡El verano llega con la gran playa soleada y una temática pirata inigualable!</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🏖️ <strong style="color:#e3c08d;">NUEVO MAPA</strong>: Sunlight Seaside. Disfruta de la brisa marina mientras defiendes el archipiélago de una oleada totalmente nueva.</li>
+          <li>👾 <strong style="color:#e3c08d;">NUEVOS ENEMIGOS (SEASIDE)</strong>:
+            <ul style="margin-top:6px;">
+              <li>🏖️ <strong>Playa Veraniega</strong>: Piz, Pysh, Ren y sus variantes gigantes, además de los Axolotl Pyce, Shark Pyce, Umbrella Pyce y otros seres estivales.</li>
+              <li>🌲🍄 <strong>Bosques y Setas</strong>: Shrum, Baby Shrum, Big Treeper, Treeper, Old Fungus y sus variantes gigantes.</li>
+            </ul>
+          </li>
+          <li>☠️ <strong style="color:#98fb98;">FAMILIA PIRATA (F. Marina)</strong>: ¡Pirate Glob atraca en la tienda! Invoca tu barco y navega por los caminos del mapa arrollando enemigos.</li>
+          <li>✨ <strong style="color:#e3c08d;">SISTEMA DE OLEADAS REHECHO</strong>: Hemos reemplazado el antiguo sistema de generación de enemigos y lo hemos mejorado para que la dificultad y la aparición de enemigos coincida con la dificultad del modo.</li>
+          <li>🏅 <strong style="color:#98fb98;">NUEVO CONTENIDO</strong>: Más secretos por descubrir, progreso extendido de skins y mucho más.</li>
+          <li>🛠️ <strong style="color:#98fb98;">BALANCE Y FIXES</strong>: Se han arreglado varios errores y buffeado dos Globs.</li>
+        </ul>
+        <p style="text-align:center; font-style:italic; color:#888; font-size:0.9rem; margin-top:20px;">Psst... intenta canjear el código "SUMMERS-OVER"</p>
+
+        <h3 style="color:#4fc3f7;">📋 Historial de Actualizaciones (GlD v3.0.0 - INTERSTELLAR MENACE)</h3>
+        <p style="color:#4fc3f7;">¡La amenaza cristalina ha llegado, y con ella una misión completamente nueva!</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🌌 <strong style="color:#4fc3f7;">NUEVA QUEST - PARTE 2</strong>: La segunda parte de la Quest está aquí. La amenaza cristalina se cierne sobre el universo Glob. ¡Prepárate para lo peor!</li>
+          <li>👾 <strong style="color:#4fc3f7;">NUEVOS ENEMIGOS</strong>: Llegan los Cristalizados: Crystal Pyce, Dreamy SPyce, Astral BPyce, Lenistal, Cristalized Monster, NO-CrystEye y el imponente Astrorb en todas sus formas.</li>
+          <li>🌱 <strong style="color:#4fc3f7;">FAMILIA MARRÓN (Sprout Glob)</strong>: Una nueva familia ha llegado al Meta-Shop. El Sprout Glob y sus evoluciones se unen a la batalla.</li>
+          <li>🎨 <strong style="color:#4fc3f7;">NUEVAS SKINS</strong>: Sets de recompensa por completar Urbanistic Road en distintas dificultades. Además, nuevas skins exclusivas del modo Interstellar.</li>
+          <li>🏅 <strong style="color:#4fc3f7;">NUEVOS EMBLEMAS</strong>: Desmenazado, Skinecionable, Descristalizando Amenazas y Enmarcación Extensa. ¡A por todos!</li>
+          <li>⚖️ <strong>Sistema de Oleadas Mejorado</strong>: Las oleadas ahora usan un sistema de presupuesto de HP para un desafío más balanceado y emocionante.</li>
+          <li>🎒 <strong>Ajustes de Progresión</strong>: Las familias de torres ya no tienen requisitos de desbloqueo especiales. Las skins ahora se desbloquean con victorias.</li>
+        </ul>
+        <p style="color:#ff69b4; font-size:0.82rem; margin-top:10px; font-style:italic;">🌐 Quizás para iniciar la misión necesites visitar cierto juego en agosto... <span id="interstellar-game-link"><a href="https://eithancrea.itch.io/cube-adventure" target="_blank" style="color:#4fc3f7;">Cube Adventure</a></span></p>
+
+        <h3>📋 Historial de Actualizaciones (GlD v2.0.1 - TACTICAL LOADOUT)</h3>
+        <p>¡El sistema de equipación ha llegado para cambiar la estrategia por completo!</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🎒 <strong>Sistema de Equipación</strong>: Se ha introducido una nueva pestaña "Equipación" en la tienda. Ahora, antes de entrar en combate, ¡deberás elegir tu mazo con un máximo de 5 torres!</li>
+          <li>⚙️ <strong>Menú Táctico</strong>: La barra de torres dentro del juego ahora se adapta para mostrar únicamente tu selección táctica.</li>
+        </ul>
+
+        <h3>📋 Historial de Actualizaciones (GlD v2.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
+        <div style="text-align:center; margin: 10px 0;">
+          <img src="Recursos/img/Urban Road_Reborn Logo.png" alt="Urban Road Reborn Logo" style="max-width:100%; max-height:220px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+        </div>
+        <p>¡Urbanistic Road, la nueva ciudad ha llegado!! Trayendo consigo varios Pyces, enemigos y Globs nuevos!!</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🏙️ <strong>NUEVOS PYCES</strong>: HoloPyce y Rebel Pyce (DESDE FtPy2 redibujados), Bomb Pyce, Knight Pyce, Cannon Pycer y Strechy Pyce.</li>
+          <li>👾 <strong>ENEMIGOS NUEVOS</strong>: Bits, Bytes, Spywares, Fireflies y la llegada de Arky a la ciudad, con sus variantes de corrupto y Anti-Normal.</li>
+          <li>🗼 <strong>Nuevos Globs</strong>: Han llegado Worker Glob (familia naranja), Balloon Glob (familia blanca), Streamer Glob (familia rosa) y un esperadísimo Bomb Glob, la primera torre instantánea del juego, que explotará cuando detecte un Pyce, todos ellos son criados en la ciudad y por ello necesitarás jugar dicho mapa para desbloquearlos... O desde el pase, una de dos.</li>
+          <li>📱 <strong>Mejoras</strong>: Cambios en los diálogos, bugs de la comunidad fixeados y una mayor responsividad en móvil, todo ello para garantizar su jugabilidad.</li>
+          <li>💎 <strong>Próximamente</strong>: Y quizás pronto lleguen las primeras skins para estas torres urbanas, pero démosle tiempo... Hay cristales en el horizonte que esperan caer muy pronto.</li>
+        </ul>
+
+        <h3>📋 Historial de Actualizaciones (GlD v1.2.0 - ENCICLOPEDIA DORADA Y ATAJOS)</h3>
+        <p>¡Más formas de jugar y recompensas por completar la enciclopedia!</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>⌨️ <strong>Atajos de Teclado</strong>: Ahora puedes usar <strong>U</strong> para mejorar/colocar, <strong>C</strong> para cancelar/cerrar y <strong>V</strong> para vender.</li>
+          <li>📖 <strong>Progreso en la Enciclopedia</strong>: Cada Pyce tiene ahora una barra de eliminaciones. Al completarlas todas, desbloquearás la skin global exclusiva <strong>All-Stars Randomizer</strong>.</li>
+          <li>🌑 <strong>Void Glob</strong>: La evolución final de la línea Negra ha llegado. Sus oscuros proyectiles te perseguirán sin descanso.</li>
+          <li>⚖️ <strong>Balanceo</strong>: Se ha reducido drásticamente la probabilidad de aparición del Stupid GoldPyce.</li>
+          <li>🎁 <strong>Nuevas Skins y Secretos</strong>: Añadido el "Set de Ensueño" y el "Set Judicial" (Colaboración comunitaria). Y quizás, algún código haya despertado de sus sueños...</li>
+          <li>📝 <strong>Lore y Créditos</strong>: Textos y descripciones de las skins ajustadas en la tienda para hacer honor a sus creadores y dar más contexto.</li>
+          <li>💬 <strong>Rehabilitación de Diálogos</strong>: ¡Hemos añadido nuevos diálogos y dado un poco de lore oculto a los NPCs! Presta atención a lo que dicen durante las oleadas o cuando aparecen jefes.</li>
+        </ul>
+
+        <h3>📋 Historial de Actualizaciones (GlD v1.1.0 - ENCICLOPEDIA VIVIENTE Y PERSONALIDAD DIALOGADA)</h3>
+        <p>¡Los enemigos cobran vida y los misterios del sistema se revelan!</p>
+        
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>📖 <strong>Enciclopedia Viviente</strong>: ¡Hemos añadido lore y descripciones únicas para todos los Pyces! Ahora podrás conocer la historia detrás de cada enemigo en la enciclopedia, junto con sus mecánicas resaltadas.</li>
+          <li>🌐 <strong>Traducción Total</strong>: La enciclopedia, los modos secretos y las descripciones de las mecánicas están 100% internacionalizados y adaptados perfectamente al inglés y al español.</li>
+          <li>👾 <strong>Un normal desnormalizado...</strong>: Quizas presionando algun logo- ¿Sabes que? No lo hagas, podrias estar ante un modo peligroso, mejor preparate antes de lanzarte al ataque.</li>
+          <li>🔧 <strong>Correcciones Menores</strong>: Los nombres y estadísticas se han estandarizado según los archivos originales del juego.</li>
+        </ul>
+
+        <h3>📋 Historial de Actualizaciones (GlD v1.0.0 - LANZAMIENTO)</h3>
+        <p>¡El esperado lanzamiento oficial con mejoras visuales y colaboraciones exclusivas!</p>
+
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>✨ <strong>Mejores Visuales</strong>: Nuevas <span style="color: #ffd700;">imágenes para proyectiles</span>, torres mejor pulidas y una opción nueva en ajustes para <strong>ver el rango de las torres</strong>.</li>
+          <li>🦈 <strong>Nuevas Skins</strong>: Demos la bienvenida a <strong>SharkBot (RoboTibu)</strong>, creada por <span style="color: #ff3333;">@Nitrogen</span> y rehecha por <span style="color: #ff69b4;">@KirByte_Bi</span>. También se ha creado una skin de "Among Us" un tanto singular... cada quien sus gustos, supongo.</li>
+          <li>⭐ <strong>COLLAB EXCLUSIVA</strong>: <strong>Star Jump</strong> (de <span style="color: #ff69b4;">@KirByte_Bi</span>) ha colaborado con Glob Defenders. ¡Ahora podrás comprar la skin de <strong>Starry</strong>, el protagonista de dicho juego, para la Familia Gris!</li>
+          <li>🎁 <strong>Muchos códigos nuevos</strong>: Encuéntralos por ahí ocultos o simplemente usa tu imaginación.</li>
+        </ul>
+
+        <h3>📋 Versiones Pre-Lanzamiento (v0.x.x y anteriores)</h3>
+        <p>Se realizaron múltiples pruebas durante la fase beta, añadiendo sistemas como G-Tacks, modos de historia, y reajustes del progreso general para dar forma a lo que hoy es Glob Defenders.</p>
+        <p style="text-align:center; font-style:italic; color:#888; font-size:0.9rem; margin-top:20px;">Psst... intenta canjear el código "GLOBS-ARE-AWESOME"</p>
+      `;
+      } else {
+        container.innerHTML = `
+        <h3 style="color:#69e5ff;">📋 Update Logs (GlD v6.0.0 — Frozen Calendar Christmas)</h3>
+        <p style="color:#80edb0;">The Advent Calendar has arrived! From December 1 to 25, beat any map to claim that day's reward: PyCoins, Duckpasses, XP, accessories, and the SnowGlob set. Missed days can be recovered with Duckpasses; the first costs 637 and each later recovery adds 100. If the clock moves backwards, unclaimed rewards become paid. This local check is deterrence, not secure server-side validation.</p>
+        <button type="button" class="advent-entry-btn" onclick="openAdventCalendar()">🎄 Open Advent Calendar</button>
+        <p>Redeem <code>FESTIVE_XMAS</code> for the Festive frame. During December, win any map for the Elf frame; claim 13 calendar rewards for the Santa frame. Candy, Bomb, Ice, and Gift frames are available in the profile shop.</p>
+
+        <h3 style="color:#b58cff;">📋 Update Logs (Recent Patch — Customization, Online &amp; Moderation)</h3>
+        <p style="color:#b58cff;">More ways to customize your experience, share matches, and keep chat friendly.</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🎃 <strong>Halloween enemies</strong>: Added Brokspider, Pumpitch, RIPslide, Curse Boneker, SkeleBone Pyce, Blood-Taker, Sneekmy, Ghost Pyce, and ZomPyce to Spooktacular Ruins, each with its framing kill target.</li>
+          <li>🦆 <strong>New Ducky Glob evolution</strong>: Highlight Glob earns 25% more than Golden Ducky. In multiplayer, each teammate adds 25% of that payout to the shared wallet; Ducky Rewamp unlocks by winning Spooktacular Ruins, and its RGB version requires completing the profile portraits.</li>
+          <li>☀️ <strong style="color:#b58cff;">Light mode</strong>: Switch to a light background with the bulb icon next to Settings, both on the login screen and during a match.</li>
+          <li>🏝️ <strong>Redesigned islands</strong>: Sunlight Seaside now has round islands, each with a single tower placement spot.</li>
+          <li>🔗 <strong>Share the game</strong>: Links include the game logo and a short description in English and Spanish on supported previews, such as Discord.</li>
+          <li>☁️ <strong>Clearer account saving</strong>: Progress syncs automatically with Supabase when saved while you are signed in and connected. Single-player rounds can be resumed from a checkpoint; action history and co-op matches are not stored as resumable games.</li>
+          <li>👤 <strong>Profiles and rewards</strong>: Staff with admin permissions can equip Omnipresent Glob. The debug unlock-all option also grants the corresponding cosmetic rewards.</li>
+          <li>💬 <strong>Two online chat modes</strong>: Use predefined phrases in Safe Chat or type in Free Chat. Offensive messages are blocked and replaced locally with Omnipresent Glob's image; only the sender is affected.</li>
+          <li>🛡️ <strong>Progressive moderation</strong>: Offensive attempts in login and chat trigger a jumpscare every three attempts. Authenticated chat violations can be recorded in Supabase; automatic deletion at 25 requires deploying the moderation Edge Function.</li>
+          <li>👁️ <strong>NOeye and DarkSpirit voices</strong>: NOeye uses leetspeak in general dialogue, while DarkSpirit has a more terrifying tone and a red border. NOeye keeps the normal voice when appearing as an Interstellar hero.</li>
+          <li>🪲 <strong>??? identity</strong>: Moderation notices from ??? show Omnipresent Glob, not MysteryBug.</li>
+          <li>🧩 <strong>Polished login</strong>: Decorative images refill as they are removed, and switching themes repeatedly triggers the glitch easter egg until the page is restarted.</li>
+          <li>🎃 <strong>Halloween sets</strong>: Beat Spooktacular Ruins in Anti-Normal for SkeleBones Set, in Corrupt for Wicked Set, or in Easy, Normal, Hard, or Extreme for Pumpkin Set. These rewards are independent. SkeleBones, Wicked (EVO 1 and 3), and PumpGlob can appear on the login screen and jumpscare when clicked. Halloween characters are more common in October and rarer in December.</li>
+        </ul>
+
+        <h3 style="color:#ff9f43;">📋 Update Logs (GlD v5.0.0 - SPOOKS IN THE DESERT — PT1: GETTING STARTED)</h3>
+        <p style="color:#ff9f43;">A new adventure begins! This first part prepares the game with new ways to play, save your progress, and uncover secrets.</p>
+        <h4>What's New in PT1:</h4>
+        <ul>
+          <li>💾 <strong style="color:#ff9f43;">Save and resume games</strong>: Save a round from the pause menu and load it from the island screen. Saved games show the map, mode, and wave; you can also save and log out or save and exit.</li>
+          <li>🌐 <strong>Easier seed sharing</strong>: Copy the seed or invitation from its options, or download the seed as a text file.</li>
+          <li>👤 <strong>Profiles in online matches</strong>: View other players' progress, badges, maxed families, and victories in the match.</li>
+          <li>🎨 <strong>Persistent profile</strong>: Your chosen portrait and frame are kept when you sign in again.</li>
+          <li>🎃 <strong>Halloween follows you into the match</strong>: Halloween enemies, including Curse Boneker, can jumpscare you when clicked or defeated.</li>
+          <li>💀 <strong>New Anti-Normal boss</strong>: In the final wave of Spooktacular Ruins, Curse Boneker hurls 2 to 5 cursed bones at your towers to stun them.</li>
+          <li>✨ <strong>Secret effects</strong>: Discover Hipermutado and Glitch in Settings → Special. Equip them together, and they also affect Work-Bombot.</li>
+          <li>🕒 <strong>Clock and reminders</strong>: Keep an eye on the time and your play session; a message will periodically remind you to rest or check if you're still there.</li>
+          <li>🖼️ <strong>Visual improvements and fixes</strong>: The logos now give clear visual feedback when clicked; the login uses the Rewamp logo, and Omnipresent Glob is used as a fallback when an image cannot load.</li>
+        </ul>
+
+        <h3 style="color:#75df9a;">📋 Update Logs (GlD v4.3.0 - ONLINE &amp; AVATARS)</h3>
+        <p style="color:#75df9a;">Your matches, identity and Glob style are more connected than ever!</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🌐 <strong style="color:#75df9a;">Supabase online multiplayer</strong>: Create a seed and invite other players from their own computers. Matches synchronize in real time while the host remains connected.</li>
+          <li>🔐 <strong>Accounts and cloud progress</strong>: Sign in with a username and password; account progress, purchases, badges and profile customization are saved to your account. Offline progress stays local, and offline play cannot create or join seeds.</li>
+          <li>👤 <strong>Custom profiles</strong>: Equip Glob portraits and framed-enemy portraits, then choose from colored, map-themed and special frames. Seeds show every player's name, portrait and frame, including the join notification.</li>
+          <li>🖼️ <strong>Original and Rewamp portraits</strong>: Glob and Red Glob include their original artwork for free. Rewamp portraits require the corresponding skin; max-evolution portraits can be purchased after maxing the family.</li>
+          <li>🎨 <strong>More frames to collect</strong>: Earn frames through Duck Pass levels, buy them with Duckpasses, or unlock special styles by completing their requirements. Spooky and Pumpkin each cost 500 Duckpasses.</li>
+          <li>🌈 <strong>Collector rumors</strong>: Some say completing certain collections may bring a special reward, though no one has confirmed what lies behind them.</li>
+          <li>🔑 <strong>New code</strong>: Redeem <code>ONLINE-AVATARS</code> to get the Coded frame.</li>
+        </ul>
+
+        <h3 style="color:#ff69b4;">📋 Update Logs (GlD v4.0.2 - Responvidad y Revision. (1))</h3>
+        <p style="color:#ff69b4;">Small mysteries, more expressive replies, and a general pass over the experience.</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>💬 <strong style="color:#ff69b4;">??? has a lot to say</strong>: The mysterious logo character now replies with a random line whenever a multiple of five clicks is reached.</li>
+          <li>🎭 <strong>More secret dialogue</strong>: New funny replies, pixelated threats, references to the mafia-like MadStars corporation, and formal complaints from WORK-BOMBOT have been added.</li>
+          <li>🌸 <strong>More readable dialogue</strong>: ??? now uses white text and pink borders so the messages remain visible against the dark background.</li>
+          <li>📱 <strong>Responsiveness review</strong>: Visual adjustments give important elements more room on mobile devices.</li>
+        </ul>
+        <p style="text-align:center; font-style:italic; color:#ff69b4; font-size:0.9rem; margin-top:20px;">Psst... try the code "BLOCK_QUEST" on Urbanistic Road, Hard difficulty or higher.</p>
+
+        <h3 style="color:#7ec850;">📋 Update Logs (GlD v4.0.1 - LEAFY BEACH PARTY HOTFIX)</h3>
+        <p style="color:#7ec850;">Fixes, animation improvements and visual updates — no new stages.</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🐸 <strong style="color:#7ec850;">NEW SKIN — Froggy Set</strong>: Beat Anti-Normal mode on Sunlight Seaside to unlock this Pirate family skin. Originally designed and drawn by <em>Victorillo</em>, redrawn by <em>KirByte_Bi</em>.</li>
+          <li>🎲 <strong>All-Stars Randomizer</strong>: The Encyclopedia skin has been renamed All-Stars Randomizer and now covers <em>every</em> enemy in the game, not just Pyces. Enemy sprites are also auto-flipped to face the correct direction.</li>
+          <li>🔓 <strong>Unequip skins</strong>: You can now unequip any skin directly from the Shop or the DuckPass using the new <em>Unequip</em> button.</li>
+          <li>🌆 <strong>Urban Pass preview in DuckPass</strong>: Scrolling past level 100 in the DuckPass now reveals the locked Urban Pass in greyscale with an unlock warning.</li>
+          <li>✨ <strong>Glob animations</strong>: Globs now animate while idle (jump or wobble depending on family) and flash when attacking.</li>
+          <li>⏳ <strong>Login loading screen</strong>: A short animated loading screen with the game logo and a spinning Glob now appears before entering the map.</li>
+          <li>🛠️ <strong>Image path fixes</strong>: Fixed 404 errors for AstrorbTF.png and Tadpole Glob (SK-EVO1).png by correcting the Astrorb and Froggy Set folder paths.</li>
+          <li>⚙️ <strong>User roles</strong>: Role system (OWNER / DEVBUILD / ADMIN) correctly applied to development accounts.</li>
+          <li>🎮 <strong>Anti-Normal rewards</strong>: All Anti-Normal modes now award 500 PyCoins, 450 DuckPasses and XP. On Sunlight Seaside an additional +50 DuckPasses are granted.</li>
+        </ul>
+
+        <h3 style="color:#e3c08d;">📋 Update Logs (GlD v4.0.0 - LEAFY BEACH PARTY - BIG UPD4)</h3>
+        <p style="color:#e3c08d;">Summer arrives with the great sunny beach and an unparalleled pirate theme!</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🏖️ <strong style="color:#e3c08d;">NEW MAP</strong>: Sunlight Seaside. Enjoy the sea breeze while defending the archipelago from a completely new wave of enemies.</li>
+          <li>👾 <strong style="color:#e3c08d;">NEW ENEMIES (SEASIDE)</strong>:
+            <ul style="margin-top:6px;">
+              <li>🏖️ <strong>Summer Beach</strong>: Piz, Pysh, Ren and their giant variants, plus the Axolotl Pyce, Shark Pyce, Umbrella Pyce, and other summer beings.</li>
+              <li>🌲🍄 <strong>Forests & Mushrooms</strong>: Shrum, Baby Shrum, , Big Treeper, Treeper, Old Fungus and their giant variants.</li>
+            </ul>
+          </li>
+          <li>☠️ <strong style="color:#98fb98;">PIRATE FAMILY (F. Marina)</strong>: Pirate Glob docks in the shop! Summon your ship and sail through the map's paths, crushing enemies.</li>
+          <li>✨ <strong style="color:#e3c08d;">WAVE SYSTEM REWORK</strong>: We have replaced the old enemy generation system and improved it so that the difficulty and enemy appearances match the selected game mode's difficulty.</li>
+          <li>🏅 <strong style="color:#98fb98;">NEW CONTENT</strong>: More secrets to discover, extended skin progression, and much more.</li>
+          <li>🛠️ <strong style="color:#98fb98;">BALANCE AND FIXES</strong>: Fixed several bugs and buffed two Globs.</li>
+        </ul>
+        <p style="text-align:center; font-style:italic; color:#888; font-size:0.9rem; margin-top:20px;">Psst... try redeeming the code "SUMMERS-OVER"</p>
+
+        <h3 style="color:#4fc3f7;">📋 Update Logs (GlD v3.0.0 - INTERSTELLAR MENACE)</h3>
+        <p style="color:#4fc3f7;">The crystal threat has arrived, and with it a brand new quest!</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🌌 <strong style="color:#4fc3f7;">NEW QUEST - PART 2</strong>: The second part of the Quest is here. The crystalline menace looms over the Glob universe. Prepare for the worst!</li>
+          <li>👾 <strong style="color:#4fc3f7;">NEW ENEMIES</strong>: The Crystallized arrive: Crystal Pyce, Dreamy SPyce, Astral BPyce, Lenistal, Cristalized Monster, NO-CrystEye, and the imposing Astrorb in all its forms.</li>
+          <li>🌱 <strong style="color:#4fc3f7;">BROWN FAMILY (Sprout Glob)</strong>: A new family has arrived in the Meta-Shop. Sprout Glob and its evolutions join the battle.</li>
+          <li>🎨 <strong style="color:#4fc3f7;">NEW SKINS</strong>: Reward sets for completing Urbanistic Road at different difficulties. Plus new exclusive Interstellar mode skins.</li>
+          <li>🏅 <strong style="color:#4fc3f7;">NEW BADGES</strong>: Unmenaced, Skinllector, Crystalizing Break, and Extended Marc. Go get them all!</li>
+          <li>⚖️ <strong>Improved Wave System</strong>: Waves now use an HP-budget system for a more balanced and exciting challenge.</li>
+          <li>🎒 <strong>Progression Tweaks</strong>: Tower families no longer have special unlock requirements. Skins are now unlocked with victories.</li>
+        </ul>
+        <p style="color:#ff69b4; font-size:0.82rem; margin-top:10px; font-style:italic;">🌐 Maybe to start the mission you'll need to visit a certain game in August... <span id="interstellar-game-link-en"><a href="https://eithancrea.itch.io/cube-adventure" target="_blank" style="color:#4fc3f7;">Cube Adventure</a></span></p>
+
+        <h3>📋 Update Logs (GlD v2.0.1 - TACTICAL LOADOUT)</h3>
+        <p>The equipment system has arrived to completely change the strategy!</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🎒 <strong>Equipment System</strong>: A new "Equip" tab has been introduced in the shop. Now, before going into battle, you must choose your loadout with a maximum of 5 towers!</li>
+          <li>⚙️ <strong>Tactical Menu</strong>: The in-game tower bar now adapts to show only your tactical selection.</li>
+        </ul>
+
+        <h3>📋 Update Logs (GlD v2.0.0 - URBAN REBORN: THE BIG UPDATE)</h3>
+        <div style="text-align:center; margin: 10px 0;">
+          <img src="Recursos/img/Urban Road_Reborn Logo.png" alt="Urban Road Reborn Logo" style="max-width:100%; max-height:220px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+        </div>
+        <p>Urbanistic Road, the new city has arrived!! Bringing with it several new Pyces, enemies, and Globs!!</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🏙️ <strong>NEW PYCES</strong>: HoloPyce and Rebel Pyce (redrawn FROM FtPy2), Bomb Pyce, Knight Pyce, Cannon Pycer, and Strechy Pyce.</li>
+          <li>👾 <strong>NEW ENEMIES</strong>: Bits, Bytes, Spywares, Fireflies, and the arrival of Arky to the city, along with his Corrupt and Anti-Normal variants.</li>
+          <li>🗼 <strong>New Globs</strong>: Worker Glob (orange family), Balloon Glob (white family), Streamer Glob (pink family), and a highly anticipated Bomb Glob have arrived! Bomb Glob is the first instant tower in the game, which will explode when it detects a Pyce. All of them are raised in the city, so you'll need to play that map to unlock them... Or get them from the pass, one of the two.</li>
+          <li>📱 <strong>Improvements</strong>: Dialogue changes, community bugs fixed, and greater mobile responsiveness, all to guarantee a better gameplay experience.</li>
+          <li>💎 <strong>Coming Soon</strong>: And maybe the first skins for these urban towers will arrive soon, but let's give it time... There are crystals on the horizon waiting to fall very soon.</li>
+        </ul>
+
+        <h3>📋 Update Logs (GlD v1.2.0 - GOLDEN ENCYCLOPEDIA & HOTKEYS)</h3>
+        <p>More ways to play and rewards for completing the encyclopedia!</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>⌨️ <strong>Keyboard Hotkeys</strong>: You can now use <strong>U</strong> to upgrade/place, <strong>C</strong> to cancel/close and <strong>V</strong> to sell.</li>
+          <li>📖 <strong>Encyclopedia Progress</strong>: Each Pyce now has a kill tracker bar. Completing all of them unlocks the exclusive global skin <strong>All-Stars Randomizer</strong>.</li>
+          <li>🌑 <strong>Void Glob</strong>: The final evolution of the Black family is here. Its dark projectiles will track you relentlessly.</li>
+          <li>⚖️ <strong>Balance</strong>: The spawn probability of the Stupid GoldPyce has been drastically reduced.</li>
+          <li>🎁 <strong>New Skins & Secrets</strong>: Added "Dreams Set" and "Judicial Set" (Community Collab). And maybe, a code has awakened from its dreams...</li>
+          <li>📝 <strong>Lore & Credits</strong>: Shop texts and skin descriptions have been adjusted to honor their creators and provide more context.</li>
+          <li>💬 <strong>Dialogue Rehabilitation</strong>: We added new dialogues and even some hidden lore from NPCs! Pay close attention to what they say during waves or when bosses appear.</li>
+        </ul>
+
+        <h3>📋 Update Logs (GlD v1.1.0 - LIVING ENCYCLOPEDIA AND DIALOGUED PERSONALITY)</h3>
+        <p>The enemies come to life and the system's mysteries are revealed!</p>
+        
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>📖 <strong>Living Encyclopedia</strong>: We've added lore and unique descriptions for all Pyces! Now you can learn the story behind each enemy in the encyclopedia, alongside their highlighted mechanics.</li>
+          <li>🌐 <strong>Full Translation</strong>: The encyclopedia, secret modes, and mechanic descriptions are 100% internationalized and perfectly adapted to English and Spanish.</li>
+          <li>👾 <strong>A desmesurated normal...</strong>: Maybe pressing some logo- You know what? Don't do it, you could be facing a dangerous mode, better prepare yourself before launching into the attack.</li>
+          <li>🔧 <strong>Minor Fixes</strong>: Names and stats have been standardized according to the original game files.</li>
+        </ul>
+
+        <h3>📋 Update Logs (GlD v1.0.0 - LAUNCH)</h3>
+        <p>The highly anticipated official launch featuring visual overhauls and exclusive collaborations!</p>
+
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>✨ <strong>Better Visuals</strong>: New <span style="color: #ffd700;">projectile images</span>, highly polished towers, and a new settings option to <strong>view tower ranges</strong>.</li>
+          <li>🦈 <strong>New Skins</strong>: Welcome <strong>SharkBot</strong>, created by <span style="color: #ff3333;">@Nitrogen</span> and remade by <span style="color: #ff69b4;">@KirByte_Bi</span>. We also added a somewhat peculiar "Among Us" skin... to each their own, I guess.</li>
+          <li>⭐ <strong>EXCLUSIVE COLLAB</strong>: <strong>Star Jump</strong> (by <span style="color: #ff69b4;">@KirByte_Bi</span>) has collaborated with Glob Defenders. You can now buy the <strong>Starry</strong> skin, the protagonist of that game, for the Grey Family!</li>
+          <li>🎁 <strong>Many new codes</strong>: Find them hidden around or simply use your imagination.</li>
+        </ul>
+
+        <h3>📋 Pre-Launch Versions (v0.x.x and older)</h3>
+        <p>Multiple tests were performed during the beta phase, adding systems like G-Tacks, story modes, and overall progression rebalances to shape Glob Defenders into what it is today.</p>
+        <p style="text-align:center; font-style:italic; color:#888; font-size:0.9rem; margin-top:20px;">Psst... try redeeming the code "GLOBS-ARE-AWESOME"</p>
+      `;
+      }
+    }
+  }
+
+  function initMusic() {
+    if (backgroundMusic) return;
+    try {
+      backgroundMusic = new Audio('Recursos/sounds/DefendersTheme.mp3');
+      backgroundMusic.loop = true;
+      backgroundMusic.volume = 0.4;
+
+      if (musicEnabled) {
+        const playPromise = backgroundMusic.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.log("Autoplay blocked, waiting for user gesture:", error);
+            const playOnGesture = () => {
+              if (musicEnabled && backgroundMusic) {
+                backgroundMusic.play().catch(e => console.log("Play failed on gesture:", e));
+              }
+              document.removeEventListener('click', playOnGesture);
+            };
+            document.addEventListener('click', playOnGesture);
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Error initializing background music:", e);
+    }
+  }
+
+  function toggleMusic() {
+    musicEnabled = !musicEnabled;
+    const btn = document.getElementById('music-toggle-btn');
+    if (btn) {
+      btn.textContent = musicEnabled ? (currentLanguage === 'es' ? '🎵 Música ON' : '🎵 Music ON') : (currentLanguage === 'es' ? '🎵 Música OFF' : '🎵 Music OFF');
+    }
+
+    if (backgroundMusic) {
+      if (musicEnabled) {
+        backgroundMusic.play().catch(e => console.log("Play failed:", e));
+      } else {
+        backgroundMusic.pause();
+      }
+    } else if (musicEnabled) {
+      initMusic();
+    }
+    saveProgress();
+  }
+
+  window.onload = init;
