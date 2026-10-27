@@ -7,6 +7,9 @@ Esta carpeta organiza el trabajo del proyecto Glob Defenders.
 - `pendientes.md` — Backlog: tareas por hacer, agrupadas por área.
 - `en-progreso.md` — Tareas que se están trabajando ahora mismo.
 - `completadas.md` — Registro de lo ya terminado.
+- `emergencias.md` — Runbook para incidencias que bloquean el trabajo
+  (p. ej. `index.lock` de Git y "archivos desaparecidos"). Incluye una bitácora
+  de incidencias al final.
 
 ## Cómo usarla
 
