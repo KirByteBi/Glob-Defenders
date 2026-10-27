@@ -88,11 +88,272 @@ function isRgbRewampSkin(skin) {
   return skin.rgbRewamp === true || RGB_REWAMP_SKIN_IDS.includes(skin.id);
 }
 
+// Las variables CSS con url() relativas se resuelven respecto a la hoja que
+// las usa (Vista/styles.css), no respecto a index.html. Desde que el CSS vive
+// en Vista/, 'Recursos/...' apuntaba a 'Vista/Recursos/...' (404) y las
+// máscaras RGB / Rainbow Fuel / GODs Shadow quedaban vacías. Por eso cualquier
+// imagen que se pase a una variable CSS debe ir como URL absoluta.
+function getAbsoluteAssetUrl(path) {
+  try {
+    return new URL(path, document.baseURI).href.replace(/'/g, '%27').replace(/"/g, '%22');
+  } catch (error) {
+    return encodeURI(path);
+  }
+}
+
+// --- RGB sin mask-image ------------------------------------------------------
+// mask-image carga la imagen en modo CORS: abriendo index.html como archivo
+// (file://) Chrome la bloquea y el arcoíris desaparece. En su lugar se dibuja
+// el mismo degradado RGB pre-Kiro en un <canvas>, recortado con la silueta del
+// PNG (destination-in). drawImage sí está permitido con file://, así que el
+// efecto funciona igual en local y publicado. Si el canvas falla, queda el
+// pseudo-elemento con máscara como respaldo.
+//
+// Dos looks distintos (como antes del rework 9868c72):
+// - RGB normal ('rgb'): arcoíris claro/pastel que barre la silueta de
+//   izquierda a derecha, con la imagen blanqueada en 'multiply' encima para
+//   conservar contornos negros y ojos.
+// - Rainbow Fuel ('fuel'): arcoíris vivo e intenso que cubre toda la silueta.
+const RGB_OVERLAY_COLORS = ['#ff0040', '#ff8c00', '#ffee00', '#28e04b', '#00c2ff', '#6a5cff', '#d138ff', '#ff0040'];
+const RGB_OVERLAY_HOST_SELECTOR = '.rgb-avatar-image, .rainbow-fuel-avatar, .skin-preview.rgb-rewamp-preview';
+const RGB_OVERLAY_STYLES = {
+  rgb: { stripFilter: 'saturate(0.8) brightness(1.3)', periodMs: 2600, ink: true },
+  fuel: { stripFilter: 'saturate(1.6) brightness(1.12)', periodMs: 2500, ink: false }
+};
+// El barrido RGB siempre se anima, como antes de Kiro (ver nota en styles.css
+// sobre reduced-motion).
+const RGB_OVERLAY_REDUCED_MOTION = false;
+const rgbOverlayRegistry = new Set();
+let rgbOverlayFrame = null;
+
+function canvasSupportsFilter(ctx) {
+  if (!ctx || typeof ctx.filter !== 'string') return false;
+  ctx.filter = 'brightness(1.5)';
+  const supported = ctx.filter === 'brightness(1.5)';
+  ctx.filter = 'none';
+  return supported;
+}
+
+// Franja de doble ancho con el degradado: se desplaza para el barrido y su
+// primer y último color coinciden, así que el bucle no tiene cortes.
+function buildRgbOverlayStrip(width, height, style) {
+  const raw = document.createElement('canvas');
+  raw.width = width * 2;
+  raw.height = height;
+  const rawCtx = raw.getContext('2d');
+  const gradient = rawCtx.createLinearGradient(0, 0, width * 2, 0);
+  RGB_OVERLAY_COLORS.forEach((color, index) =>
+    gradient.addColorStop(index / (RGB_OVERLAY_COLORS.length - 1), color));
+  rawCtx.fillStyle = gradient;
+  rawCtx.fillRect(0, 0, width * 2, height);
+  const strip = document.createElement('canvas');
+  strip.width = width * 2;
+  strip.height = height;
+  const stripCtx = strip.getContext('2d');
+  if (canvasSupportsFilter(stripCtx)) stripCtx.filter = style.stripFilter;
+  stripCtx.drawImage(raw, 0, 0);
+  return strip;
+}
+
+// Imagen blanqueada (grayscale + brightness + contrast): blanco donde hay
+// color y negro en los contornos. En 'multiply' deja pasar el arcoíris y
+// conserva las líneas negras. Sin ctx.filter se aproxima con modos de mezcla.
+function buildRgbOverlayInk(image, width, height) {
+  const ink = document.createElement('canvas');
+  ink.width = width;
+  ink.height = height;
+  const ctx = ink.getContext('2d');
+  if (canvasSupportsFilter(ctx)) {
+    ctx.filter = 'grayscale(1) brightness(1.9) contrast(1.5)';
+    ctx.drawImage(image, 0, 0, width, height);
+    ctx.filter = 'none';
+  } else {
+    ctx.drawImage(image, 0, 0, width, height);
+    ctx.globalCompositeOperation = 'saturation';
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, width, height);
+    ctx.globalCompositeOperation = 'color-dodge';
+    ctx.fillStyle = '#999999';
+    ctx.fillRect(0, 0, width, height);
+  }
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.drawImage(image, 0, 0, width, height);
+  return ink;
+}
+
+function drawRgbOverlayFrame(entry, now) {
+  const { ctx, image, strip, ink, width, height, style } = entry;
+  const phase = RGB_OVERLAY_REDUCED_MOTION ? 0 : (now % style.periodMs) / style.periodMs;
+  // Barrido de izquierda a derecha.
+  const offset = phase * width * 2;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.clearRect(0, 0, width, height);
+  ctx.drawImage(strip, offset, 0);
+  ctx.drawImage(strip, offset - width * 2, 0);
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.drawImage(image, 0, 0, width, height);
+  if (ink) {
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.drawImage(ink, 0, 0);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// Un único bucle (~30 fps) para todas las capas. Se saltan las ocultas y se
+// descartan las que ya no están en el DOM. Usa un temporizador en lugar de
+// requestAnimationFrame para que el barrido avance en todos los entornos; el
+// navegador ya lo ralentiza solo cuando la pestaña está en segundo plano.
+function tickRgbOverlays() {
+  rgbOverlayFrame = null;
+  const now = performance.now();
+  rgbOverlayRegistry.forEach(entry => {
+    if (!entry.canvas.isConnected) {
+      if (entry.wasConnected) rgbOverlayRegistry.delete(entry);
+      return;
+    }
+    entry.wasConnected = true;
+    if (!entry.canvas.getClientRects().length) return;
+    drawRgbOverlayFrame(entry, now);
+  });
+  if (rgbOverlayRegistry.size) rgbOverlayFrame = setTimeout(tickRgbOverlays, 33);
+}
+
+function createRgbOverlayCanvas(src, variant, onReady) {
+  const style = RGB_OVERLAY_STYLES[variant] || RGB_OVERLAY_STYLES.rgb;
+  const canvas = document.createElement('canvas');
+  canvas.className = variant === 'fuel' ? 'rgb-overlay rgb-overlay-fuel' : 'rgb-overlay';
+  canvas.dataset.src = src;
+  canvas.setAttribute('aria-hidden', 'true');
+  const image = new Image();
+  image.onload = () => {
+    const maxSide = 200;
+    const scale = Math.min(1, maxSide / Math.max(image.naturalWidth || 1, image.naturalHeight || 1));
+    const width = Math.max(1, Math.round((image.naturalWidth || 1) * scale));
+    const height = Math.max(1, Math.round((image.naturalHeight || 1) * scale));
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const entry = {
+      canvas, ctx, image, width, height, style,
+      strip: buildRgbOverlayStrip(width, height, style),
+      ink: style.ink ? buildRgbOverlayInk(image, width, height) : null,
+      wasConnected: canvas.isConnected
+    };
+    drawRgbOverlayFrame(entry, performance.now());
+    canvas.classList.add('ready');
+    if (typeof onReady === 'function') onReady();
+    if (RGB_OVERLAY_REDUCED_MOTION) return;
+    rgbOverlayRegistry.add(entry);
+    if (!rgbOverlayFrame) rgbOverlayFrame = setTimeout(tickRgbOverlays, 33);
+  };
+  image.src = src;
+  return canvas;
+}
+
+// Torres: añade, reutiliza o quita la capa RGB según el efecto activo.
+// variant: 'rgb' | 'fuel' | '' (sin efecto).
+function syncRgbOverlay(host, variant, src) {
+  if (!host) return;
+  const existing = host.querySelector(':scope > .rgb-overlay');
+  if (!variant || !src) {
+    existing?.remove();
+    host.classList.remove('rgb-canvas');
+    return;
+  }
+  const isFuel = existing?.classList.contains('rgb-overlay-fuel');
+  if (existing && existing.dataset.src === src && isFuel === (variant === 'fuel')) {
+    if (existing.classList.contains('ready')) host.classList.add('rgb-canvas');
+    return;
+  }
+  existing?.remove();
+  host.classList.remove('rgb-canvas');
+  host.appendChild(createRgbOverlayCanvas(src, variant, () => host.classList.add('rgb-canvas')));
+}
+
+// Avatares y previews: se generan con innerHTML en muchos sitios, así que se
+// hidratan automáticamente al entrar en el DOM.
+function hydrateRgbOverlays(root) {
+  if (!root || root.nodeType !== 1 && root !== document) return;
+  const hosts = [];
+  if (root.matches?.(RGB_OVERLAY_HOST_SELECTOR)) hosts.push(root);
+  root.querySelectorAll?.(RGB_OVERLAY_HOST_SELECTOR).forEach(host => hosts.push(host));
+  hosts.forEach(host => {
+    if (host.querySelector(':scope > .rgb-overlay')) return;
+    const image = host.querySelector(':scope > img');
+    if (!image?.src) return;
+    const variant = host.classList.contains('rainbow-fuel-avatar') ? 'fuel' : 'rgb';
+    image.after(createRgbOverlayCanvas(image.src, variant, () => host.classList.add('rgb-canvas')));
+  });
+}
+
+if (typeof MutationObserver !== 'undefined' && document.body) {
+  new MutationObserver(mutations => {
+    mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
+      // Las torres del mapa se gestionan en applyTowerEffects; se ignora el
+      // mapa para no procesar cada enemigo o proyectil que aparece.
+      if (node.nodeType !== 1 || node.classList.contains('rgb-overlay') || node.closest('#map')) return;
+      hydrateRgbOverlays(node);
+    }));
+  }).observe(document.body, { childList: true, subtree: true });
+  hydrateRgbOverlays(document);
+}
+
 // Variante por id: busca la skin por su id dentro de una familia y delega en
 // isRgbRewampSkin. Devuelve false si no la encuentra.
 function isRgbRewampSkinId(family, skinId) {
   const skin = SKINS_DATA[family]?.find(item => item.id === skinId);
   return isRgbRewampSkin(skin);
+}
+
+// Efectos del Pase de Invierno que se pueden equipar sobre una skin RGB/Rewamp.
+// RGB es el estado base (cadena vacía); Rainbow Fuel se desbloquea por familia
+// y tiene prioridad visual sobre estas variantes.
+const RGB_RECOLOR_EFFECT_IDS = Object.freeze(['monochrome', 'negative', 'snowy']);
+
+function isRgbRecolorEffect(effectId) {
+  return RGB_RECOLOR_EFFECT_IDS.includes(effectId);
+}
+
+function getUnlockedRgbRecolorEffects() {
+  const unlocked = Array.isArray(gameState?.unlockedRecolors)
+    ? gameState.unlockedRecolors
+    : [];
+  return [...new Set(unlocked.filter(isRgbRecolorEffect))];
+}
+
+function getActiveTowerRgbEffect() {
+  const effect = gameState?.towerRgbEffect;
+  return isRgbRecolorEffect(effect) && getUnlockedRgbRecolorEffects().includes(effect)
+    ? effect
+    : '';
+}
+
+function getProfileAvatarRgbFamily(avatar) {
+  if (avatar?.rgbFamily) return avatar.rgbFamily;
+  const match = /^glob:([^:]+):rgb-rewamp$/.exec(avatar?.id || '');
+  return match && TOWER_TYPES[match[1]] ? getTowerFamily(match[1]) : null;
+}
+
+// Resuelve un único efecto visual para un avatar RGB. Rainbow Fuel es un premio
+// de familia y prevalece; los recolores del Pase de Invierno sustituyen el RGB
+// estándar cuando están equipados.
+// Rainbow Fuel en el perfil es opcional: solo se usa si el jugador lo elige en
+// el selector de efecto y la familia del avatar lo tiene desbloqueado. Por
+// defecto se ve el RGB normal.
+function isProfileAvatarRainbowFuelAvailable(avatar) {
+  const family = avatar?.rgb ? getProfileAvatarRgbFamily(avatar) : null;
+  return Boolean(family && Array.isArray(gameState?.rainbowFuelUnlocked) &&
+    gameState.rainbowFuelUnlocked.includes(family));
+}
+
+function getProfileAvatarVisualEffect(avatar, applyRgbEffect = false) {
+  const isRgb = Boolean((avatar?.rgb || applyRgbEffect) && avatar?.id !== 'enemy:GODs_Shadow');
+  if (!isRgb) return '';
+  if (gameState?.profileRgbEffect === 'rainbow-fuel' && isProfileAvatarRainbowFuelAvailable(avatar)) {
+    return 'rainbow-fuel';
+  }
+  return getActiveProfileEffectVariant() || 'rgb';
 }
 const PROFILE_ENEMY_VARIANT_GROUPS = [
   { canonical: 'BitY1', types: ['BitY1', 'BitB4', 'BitG2', 'BitP3'] },
@@ -143,6 +404,9 @@ function getMultiplayerProfile() {
     avatarLayers: Array.isArray(avatar?.layers) ? avatar.layers : [],
     avatarLabel: avatar?.label || 'Glob',
     rgbAvatar: Boolean(avatar?.rgb || border?.rgb),
+    // Efecto ya resuelto para que los demás jugadores vean el mismo perfil:
+    // RGB, Rainbow Fuel o una variante del Pase de Invierno.
+    profileRgbEffect: getProfileAvatarVisualEffect(avatar, Boolean(border?.rgb)),
     border: gameState.profileBorder || 'default',
     borderStyle: border?.style || null,
     borderLabel: border?.label || (currentLanguage === 'en' ? 'Classic' : 'Clásico'),
@@ -237,11 +501,23 @@ function getSafeProfileColors(profile) {
   return safe.every(Boolean) ? safe : fallback;
 }
 
-function createProfileAvatarImage(avatar, size, alt = '') {
+function createProfileAvatarImage(avatar, size, alt = '', visualEffect = '') {
   const imageUrl = getSafeProfileImageUrl(avatar?.image);
+  const validEffects = ['rgb', 'rainbow-fuel', ...RGB_RECOLOR_EFFECT_IDS];
+  const effect = validEffects.includes(visualEffect)
+    ? visualEffect
+    : (avatar?.rgb ? 'rgb' : '');
+  const rgbClass = effect === 'rainbow-fuel'
+    ? ' rainbow-fuel-avatar'
+    : effect
+      ? ` rgb-avatar-image${effect === 'rgb' ? '' : ` ${effect}`}`
+      : '';
+  const maskProperty = effect === 'rainbow-fuel'
+    ? '--rainbow-fuel-mask-image'
+    : '--rgb-avatar-mask-image';
   if (Array.isArray(avatar?.layers) && avatar.layers.length > 0) {
     const layers = document.createElement('span');
-    layers.className = `profile-avatar-layers${avatar.rgb ? ' rgb-avatar-image' : ''}`;
+    layers.className = `profile-avatar-layers${rgbClass}`;
     layers.style.width = `${size}px`;
     layers.style.height = `${size}px`;
     const baseImage = document.createElement('img');
@@ -259,9 +535,7 @@ function createProfileAvatarImage(avatar, size, alt = '') {
       layer.height = size;
       layers.appendChild(layer);
     });
-    if (avatar.rgb) {
-      layers.style.setProperty('--rgb-avatar-mask-image', `url("${imageUrl}")`);
-    }
+    if (effect) layers.style.setProperty(maskProperty, `url("${imageUrl}")`);
     return layers;
   }
   const image = document.createElement('img');
@@ -274,16 +548,18 @@ function createProfileAvatarImage(avatar, size, alt = '') {
     image.src = fallbackUrl;
     if (image.parentElement?.classList.contains('rgb-avatar-image')) {
       image.parentElement.style.setProperty('--rgb-avatar-mask-image', `url("${fallbackUrl}")`);
+    } else if (image.parentElement?.classList.contains('rainbow-fuel-avatar')) {
+      image.parentElement.style.setProperty('--rainbow-fuel-mask-image', `url("${fallbackUrl}")`);
     }
   }, { once: true });
 
-  if (!avatar?.rgb) return image;
+  if (!effect) return image;
 
   const wrapper = document.createElement('span');
-  wrapper.className = 'rgb-avatar-image';
+  wrapper.className = rgbClass.trim();
   wrapper.style.width = `${size}px`;
   wrapper.style.height = `${size}px`;
-  wrapper.style.setProperty('--rgb-avatar-mask-image', `url("${imageUrl}")`);
+  wrapper.style.setProperty(maskProperty, `url("${imageUrl}")`);
   wrapper.appendChild(image);
   return wrapper;
 }
@@ -304,7 +580,7 @@ function createMultiplayerProfileBadge(profile, size = 38) {
     image: profile?.avatarImage,
     layers: Array.isArray(profile?.avatarLayers) ? profile.avatarLayers.slice(0, 4) : [],
     rgb: Boolean(profile?.rgbAvatar)
-  }, size - 10, typeof profile?.avatarLabel === 'string' ? profile.avatarLabel : 'Glob');
+  }, size - 10, typeof profile?.avatarLabel === 'string' ? profile.avatarLabel : 'Glob', profile?.profileRgbEffect);
   frame.appendChild(image);
   if (profile?.borderStyle === 'time-attack-b') {
     frame.insertAdjacentHTML('beforeend', getProfileClockHandsMarkup());
@@ -1635,8 +1911,9 @@ let gameState = {
   winterPassXP: 0,           // XP del pase de invierno (nivel sube cada 100)
   winterPassLevel: 1,
   winterPassClaimed: [],     // niveles de recompensa del pase de invierno ya reclamados
-  unlockedRecolors: [],      // efectos de perfil desbloqueados: 'monochrome', 'negative'
-  profileRgbEffect: '',      // efecto equipado sobre los Globs RGB: '' (arcoíris), 'monochrome', 'negative'
+  unlockedRecolors: [],      // efectos del Pase de Invierno desbloqueados
+  profileRgbEffect: '',      // efecto equipado sobre el avatar RGB
+  towerRgbEffect: '',        // efecto equipado sobre skins RGB/Rewamp
   monochromeRecolorEquipped: false, // (legacy) compat con el flag antiguo de Monochrome
   uniquesBossSpawned: {}  // Tracks NOeye_Pyce, MoonStar_Pyce (only 1 per game)
 };
@@ -1933,20 +2210,37 @@ function normalizeEquippedBombotAccessories(accessories = {}) {
   };
 }
 
-function getBombotAccessoryLayerIds(accessories = gameState.equippedBombotAccessories) {
+function getBombotAccessoryLayerIds(accessories = gameState.equippedBombotAccessories, includeReskin = true) {
   const normalized = normalizeEquippedBombotAccessories(accessories);
   const fronts = normalized.front;
   const glasses = fronts.filter(id =>
     BOMBOT_ACCESSORIES.find(accessory => accessory.id === id)?.frontType === 'glasses'
   );
   const otherFronts = fronts.filter(id => !glasses.includes(id));
+  // Las capas van de delante hacia atrás. Una reskin no es una capa: es el
+  // cuerpo que sustituye al Bombot base, por eso se puede excluir aquí.
   return [
     ...glasses,
     ...otherFronts,
     normalized.head,
     normalized.suit,
-    normalized.reskin
+    includeReskin ? normalized.reskin : null
   ].filter(Boolean);
+}
+
+function getBombotBodyImage(baseImage, accessories = gameState.equippedBombotAccessories) {
+  const reskinId = normalizeEquippedBombotAccessories(accessories).reskin;
+  return (reskinId && getBombotAccessoryImage(reskinId)) || baseImage;
+}
+
+function getBombotRenderBackground(baseImage, accessories = gameState.equippedBombotAccessories) {
+  const layers = getBombotAccessoryLayerIds(accessories, false)
+    .map(getBombotAccessoryImage)
+    .filter(Boolean)
+    .map(image => `url("${encodeURI(image)}")`);
+  const bodyImage = getBombotBodyImage(baseImage, accessories);
+  if (bodyImage) layers.push(`url("${encodeURI(bodyImage)}")`);
+  return layers.join(', ');
 }
 
 function ensurePersonalizableBombotUnlocked() {
@@ -2018,15 +2312,10 @@ function getBombotAccessoryImage(id) {
 
 function getBombotCustomizationPreviewBackground() {
   const accessories = gameState.equippedBombotAccessories;
-  const layers = getBombotAccessoryLayerIds(accessories)
-    .map(id => getBombotAccessoryImage(id))
-    .filter(Boolean)
-    .map(image => `url("${encodeURI(image)}")`);
   const baseImage = SKINS_DATA.Special.find(skin =>
     skin.id === PERSONALIZABLE_BOMBOT_SKIN_ID
   )?.skins.Work_Bombot;
-  if (baseImage) layers.push(`url("${encodeURI(baseImage)}")`);
-  return layers.join(', ');
+  return getBombotRenderBackground(baseImage, accessories);
 }
 
 function syncBombotAccessoryUnlocksFromProgress() {
@@ -2684,6 +2973,7 @@ function saveProgress() {
     winterPassClaimed: gameState.winterPassClaimed,
     unlockedRecolors: gameState.unlockedRecolors,
     profileRgbEffect: gameState.profileRgbEffect,
+    towerRgbEffect: gameState.towerRgbEffect,
     monochromeRecolorEquipped: gameState.monochromeRecolorEquipped
   };
   localStorage.setItem('glob_progress_' + user, JSON.stringify(progress));
@@ -2859,9 +3149,34 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.winterPassXP = Number(progress.winterPassXP) || 0;
       gameState.winterPassLevel = Number(progress.winterPassLevel) || 1;
       gameState.winterPassClaimed = Array.isArray(progress.winterPassClaimed) ? progress.winterPassClaimed : [];
-      gameState.unlockedRecolors = Array.isArray(progress.unlockedRecolors) ? progress.unlockedRecolors : [];
-      gameState.profileRgbEffect = typeof progress.profileRgbEffect === 'string' ? progress.profileRgbEffect : '';
-      gameState.monochromeRecolorEquipped = Boolean(progress.monochromeRecolorEquipped);
+      // Recupera efectos reclamados por partidas antiguas incluso si el array de
+      // desbloqueos no se llegó a guardar antes de cerrar el juego.
+      const claimedWinterRecolors = WINTER_PASS_REWARDS
+        .filter(entry => gameState.winterPassClaimed.includes(entry.level) && entry.reward?.type === 'recolor')
+        .map(entry => entry.reward.id);
+      gameState.unlockedRecolors = [...new Set([
+        ...(Array.isArray(progress.unlockedRecolors) ? progress.unlockedRecolors : []),
+        ...claimedWinterRecolors
+      ].filter(isRgbRecolorEffect))];
+      const savedProfileEffect = typeof progress.profileRgbEffect === 'string'
+        ? progress.profileRgbEffect
+        : '';
+      const savedFuelValid = savedProfileEffect === 'rainbow-fuel' &&
+        gameState.rainbowFuelUnlocked.length > 0;
+      gameState.profileRgbEffect = savedFuelValid ||
+        (isRgbRecolorEffect(savedProfileEffect) && gameState.unlockedRecolors.includes(savedProfileEffect))
+        ? savedProfileEffect
+        : (progress.monochromeRecolorEquipped && gameState.unlockedRecolors.includes('monochrome')
+          ? 'monochrome'
+          : '');
+      const savedTowerEffect = typeof progress.towerRgbEffect === 'string'
+        ? progress.towerRgbEffect
+        : '';
+      gameState.towerRgbEffect = isRgbRecolorEffect(savedTowerEffect) &&
+        gameState.unlockedRecolors.includes(savedTowerEffect)
+        ? savedTowerEffect
+        : '';
+      gameState.monochromeRecolorEquipped = gameState.profileRgbEffect === 'monochrome';
       musicEnabled = progress.musicEnabled !== undefined ? progress.musicEnabled : true;
       showHitbox = progress.showHitbox || false;
 
@@ -3005,23 +3320,28 @@ function unlockHypermutatedEffect() {
 }
 
 // --- Rainbow Fuel: 100 clics de Globs de una familia en el login desbloquean
-// el efecto arcoiris pleno para esa familia (skin + perfil). Elegibles: las
-// familias Rewamp + Worker_Glob + IEx (Bomb). ---
-const RAINBOW_FUEL_FAMILIES = new Set([
-  'Glob', 'Red_Glob', 'Soap_Glob', 'Comet_Glob', 'Ducky_Glob', 'Worker_Glob', 'IEx'
-]);
+// Rainbow Fuel se habilita automáticamente en cualquier familia que declare al
+// menos una skin RGB/Rewamp. Así las familias nuevas solo necesitan los mismos
+// datos declarativos de MEC-03 (`rgbRewamp: true` + `rgbTypes`).
 const RAINBOW_FUEL_TARGET = 100;
+
+function isRainbowFuelEligibleFamily(family) {
+  return Boolean(SKINS_DATA[family]?.some(isRgbRewampSkin));
+}
 
 function recordRainbowFuelClick(imagePath) {
   const type = getGlobDecorationType(imagePath);
   if (!type) return;
   const family = getTowerFamily(type);
-  if (!RAINBOW_FUEL_FAMILIES.has(family)) return;
+  if (!isRainbowFuelEligibleFamily(family)) return;
   if (!gameState.rainbowFuelClicks || typeof gameState.rainbowFuelClicks !== 'object') gameState.rainbowFuelClicks = {};
   if (!Array.isArray(gameState.rainbowFuelUnlocked)) gameState.rainbowFuelUnlocked = [];
   if (gameState.rainbowFuelUnlocked.includes(family)) return;
 
   gameState.rainbowFuelClicks[family] = (gameState.rainbowFuelClicks[family] || 0) + 1;
+  // Los clics intermedios también se guardan: no se pierde progreso al cerrar
+  // antes del clic número 100.
+  saveProgress();
   if (gameState.rainbowFuelClicks[family] >= RAINBOW_FUEL_TARGET) {
     gameState.rainbowFuelUnlocked.push(family);
     const familyName = translate(TOWER_TYPES[type]?.name || family);
@@ -6168,7 +6488,7 @@ function ownerUnlockEverything() {
   Object.keys(TOWER_TYPES).forEach(type => { TOWER_TYPES[type].unlocked = true; });
   gameState.rainbowFuelUnlocked = [...new Set([
     ...(Array.isArray(gameState.rainbowFuelUnlocked) ? gameState.rainbowFuelUnlocked : []),
-    ...RAINBOW_FUEL_FAMILIES
+    ...Object.keys(SKINS_DATA).filter(isRainbowFuelEligibleFamily)
   ])];
   gameState.unlockedBombotAccessories = [...new Set([
     ...(gameState.unlockedBombotAccessories || []),
@@ -8672,7 +8992,7 @@ const WINTER_PASS_REWARDS = [
   { level: 13, reward: { type: 'duckpass', amount: 70 } },
   { level: 14, reward: { type: 'duckpass', amount: 70 } },
   { level: 15, reward: { type: 'skin', id: 'rewamped_gray_set' } },
-  { level: 16, reward: { type: 'duckpass', amount: 70 } },
+  { level: 16, reward: { type: 'skin', id: 'toy_glomb_set' } },
   { level: 17, reward: { type: 'duckpass', amount: 80 } },
   { level: 18, reward: { type: 'duckpass', amount: 80 } },
   { level: 19, reward: { type: 'duckpass', amount: 80 } },
@@ -8706,7 +9026,7 @@ const WINTER_PASS_REWARDS = [
   { level: 47, reward: { type: 'duckpass', amount: 200 } },
   { level: 48, reward: { type: 'duckpass', amount: 220 } },
   { level: 49, reward: { type: 'duckpass', amount: 250 } },
-  { level: 50, reward: { type: 'skin', id: 'toy_glomb_set' } }
+  { level: 50, reward: { type: 'duckpass', amount: 70 } }
 ];
 
 // XP del pase de invierno que otorga un enemigo al morir.
@@ -9170,12 +9490,16 @@ function claimWinterPassReward(level) {
   } else if (r.type === 'filter') {
     // Placeholder: las recompensas de filtro se registran como reclamadas.
   } else if (r.type === 'recolor') {
-    // Efecto de perfil para los Globs RGB ('monochrome' | 'negative'). Se
-    // desbloquea y se equipa automáticamente; se puede alternar desde el perfil.
+    // Se desbloquea y se equipa en los dos destinos: perfil y skins RGB/Rewamp.
     if (!Array.isArray(gameState.unlockedRecolors)) gameState.unlockedRecolors = [];
     gameState.unlockedRecolors = [...new Set([...gameState.unlockedRecolors, r.id])];
     gameState.profileRgbEffect = r.id;
-    if (r.id === 'monochrome') gameState.monochromeRecolorEquipped = true;
+    gameState.towerRgbEffect = r.id;
+    gameState.monochromeRecolorEquipped = r.id === 'monochrome';
+    gameState.towers.forEach(tower => {
+      if (tower?.el) applyTowerEffects(tower.el, tower.type);
+    });
+    publishMultiplayerProfile();
   } else if (r.type === 'accessory') {
     if (!Array.isArray(gameState.unlockedBombotAccessories)) gameState.unlockedBombotAccessories = [];
     ensurePersonalizableBombotUnlocked();
@@ -9736,7 +10060,8 @@ function getAvailableProfileBorders() {
     borders.push({
       id: 'kirb',
       label: currentLanguage === 'en' ? 'Binary Love' : 'Amor Binario',
-      colors: ['#a8ef9c', '#ffb8dc']
+      colors: ['#38a853', '#f6bfd5'],
+      style: 'binary-love'
     });
   }
   if (gameState.profilePurchasedBorders.includes('placeholder')) {
@@ -9854,8 +10179,8 @@ function getProfileAvatarChoices() {
       avatars.push({
         id: 'special:personalizable-bombot',
         label: currentLanguage === 'en' ? 'Personalizable Bombot' : 'Bombot personalizable',
-        image: bombotImage,
-        layers: getBombotAccessoryLayerIds().map(getBombotAccessoryImage).filter(Boolean)
+        image: getBombotBodyImage(bombotImage),
+        layers: getBombotAccessoryLayerIds(undefined, false).map(getBombotAccessoryImage).filter(Boolean)
       });
     }
   }
@@ -10284,54 +10609,72 @@ function drawUserProfile() {
 function getProfileAvatarImageMarkup(avatar, applyRgbEffect = false) {
   const imageUrl = encodeURI(avatar.image);
   const isGodsShadow = avatar.id === 'enemy:GODs_Shadow';
-  const rgb = (avatar.rgb || applyRgbEffect) && !isGodsShadow;
-  // Variante de efecto del Winter Pass equipada (monochrome/negative) que
-  // reemplaza visualmente al arcoíris RGB. Solo se aplica cuando el avatar es
-  // RGB (o GLB Fever está activo).
-  const effectVariant = rgb ? getActiveProfileEffectVariant() : '';
-  const variantClass = effectVariant ? ` ${effectVariant}` : '';
-  const rgbClass = rgb ? ` rgb-avatar-image${variantClass}` : '';
+  const effect = getProfileAvatarVisualEffect(avatar, applyRgbEffect);
+  const isRainbowFuel = effect === 'rainbow-fuel';
+  const rgb = Boolean(effect) && !isGodsShadow;
+  const variantClass = rgb && !isRainbowFuel && effect !== 'rgb' ? ` ${effect}` : '';
+  const visualClass = isRainbowFuel ? 'rainbow-fuel-avatar' : 'rgb-avatar-image';
+  const maskProperty = isRainbowFuel ? '--rainbow-fuel-mask-image' : '--rgb-avatar-mask-image';
+  const visualStyle = rgb ? ` style="${maskProperty}:url('${getAbsoluteAssetUrl(avatar.image)}')"` : '';
   if (Array.isArray(avatar.layers) && avatar.layers.length > 0) {
     const layers = avatar.layers
       .map(layer => `<img src="${encodeURI(layer)}" alt="">`)
       .join('');
-    return `<span class="profile-avatar-layers${rgbClass}"${rgb ? ` style="--rgb-avatar-mask-image:url('${imageUrl}')"` : ''}><img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">${layers}</span>`;
+    return `<span class="profile-avatar-layers${rgb ? ` ${visualClass}${variantClass}` : ''}"${visualStyle}><img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">${layers}</span>`;
   }
   const shadowClass = isGodsShadow ? ' class="gods-shadow-portrait"' : '';
   const image = `<img${shadowClass} src="${imageUrl}" alt="${rgb ? '' : avatar.label}">`;
   return rgb
-    ? `<span class="rgb-avatar-image${variantClass}" style="--rgb-avatar-mask-image:url('${imageUrl}')">${image}</span>`
+    ? `<span class="${visualClass}${variantClass}"${visualStyle}>${image}</span>`
     : image;
 }
 
-// Variante de efecto de perfil equipada sobre los Globs RGB. Devuelve la clase
-// CSS ('monochrome' | 'negative' | 'snowy') o '' para el RGB por defecto.
-// Son efectos del Winter Pass (mutuamente excluyentes con el arcoíris).
+// Variante equipada del Pase de Invierno sobre el avatar RGB. Los recolores
+// sustituyen visualmente al arcoíris normal; Rainbow Fuel se resuelve antes y
+// conserva prioridad en getProfileAvatarVisualEffect.
 function getActiveProfileEffectVariant() {
   if (!gameState) return '';
   const effect = gameState.profileRgbEffect;
-  if (effect === 'monochrome' || effect === 'negative' || effect === 'snowy') return effect;
+  if (isRgbRecolorEffect(effect) && getUnlockedRgbRecolorEffects().includes(effect)) return effect;
   // Compatibilidad con el flag antiguo de Monochrome.
-  if (gameState.monochromeRecolorEquipped) return 'monochrome';
+  if (gameState.monochromeRecolorEquipped && getUnlockedRgbRecolorEffects().includes('monochrome')) {
+    return 'monochrome';
+  }
   return '';
 }
 
-// Selector de efecto para los Globs RGB (solo si hay efectos desbloqueados).
-// Permite alternar entre RGB (arcoíris), Monochrome y Negativo.
+function getRgbEffectLabel(effectId) {
+  const labels = {
+    rgb: 'RGB',
+    'rainbow-fuel': 'RAINBOW FUEL',
+    monochrome: 'Monochrome',
+    negative: currentLanguage === 'en' ? 'Negative' : 'Negativo',
+    snowy: currentLanguage === 'en' ? 'Snowy' : 'Nevado'
+  };
+  return labels[effectId] || effectId;
+}
+
+// Selector del efecto del avatar: RGB (por defecto), Rainbow Fuel si la
+// familia del avatar lo tiene desbloqueado, y los recolores del Pase de Invierno.
 function getProfileEffectSelectorMarkup() {
-  const unlocked = Array.isArray(gameState.unlockedRecolors) ? gameState.unlockedRecolors : [];
-  if (!unlocked.length) return '';
-  const current = getActiveProfileEffectVariant() || 'rgb';
+  const unlocked = getUnlockedRgbRecolorEffects();
+  const avatar = getProfileAvatarById(gameState.profileAvatar || 'glob:Glob');
+  const fuelAvailable = isProfileAvatarRainbowFuelAvailable(avatar);
   const options = [
-    { id: 'rgb', label: 'RGB', always: true },
-    { id: 'monochrome', label: 'Monochrome' },
-    { id: 'negative', label: currentLanguage === 'en' ? 'Negative' : 'Negativo' },
-    { id: 'snowy', label: currentLanguage === 'en' ? 'Snowy' : 'Nevado' }
-  ].filter(opt => opt.always || unlocked.includes(opt.id));
-  const title = currentLanguage === 'en' ? 'RGB Glob effect' : 'Efecto de Globs RGB';
+    { id: 'rgb', label: getRgbEffectLabel('rgb') },
+    ...(fuelAvailable ? [{ id: 'rainbow-fuel', label: getRgbEffectLabel('rainbow-fuel') }] : []),
+    ...RGB_RECOLOR_EFFECT_IDS
+      .filter(id => unlocked.includes(id))
+      .map(id => ({ id, label: getRgbEffectLabel(id) }))
+  ];
+  if (options.length < 2) return '';
+  const current = gameState.profileRgbEffect === 'rainbow-fuel'
+    ? (fuelAvailable ? 'rainbow-fuel' : 'rgb')
+    : (getActiveProfileEffectVariant() || 'rgb');
+  const title = currentLanguage === 'en' ? 'RGB profile effect' : 'Efecto RGB de perfil';
   return `
     <h3>${title}</h3>
-    <div class="profile-choice-grid">
+    <div class="profile-choice-grid rgb-effect-selector">
       ${options.map(opt => `
         <button class="profile-choice ${current === opt.id ? 'selected' : ''}" type="button"
           onclick="setProfileRgbEffect('${opt.id}')"><span>${opt.label}</span></button>`).join('')}
@@ -10339,15 +10682,59 @@ function getProfileEffectSelectorMarkup() {
 }
 
 window.setProfileRgbEffect = function(effectId) {
-  const valid = ['rgb', 'monochrome', 'negative', 'snowy'];
+  const valid = ['rgb', 'rainbow-fuel', ...RGB_RECOLOR_EFFECT_IDS];
   if (!valid.includes(effectId)) return;
-  if (effectId !== 'rgb' &&
-      !(gameState.unlockedRecolors || []).includes(effectId)) return;
+  if (effectId === 'rainbow-fuel') {
+    const avatar = getProfileAvatarById(gameState.profileAvatar || 'glob:Glob');
+    if (!isProfileAvatarRainbowFuelAvailable(avatar)) return;
+  } else if (effectId !== 'rgb' && !getUnlockedRgbRecolorEffects().includes(effectId)) {
+    return;
+  }
   gameState.profileRgbEffect = effectId === 'rgb' ? '' : effectId;
   gameState.monochromeRecolorEquipped = effectId === 'monochrome';
   saveProgress();
   drawUserProfile();
   publishMultiplayerProfile();
+};
+
+function getTowerRgbEffectSelectorMarkup() {
+  const unlocked = getUnlockedRgbRecolorEffects();
+  if (!unlocked.length) return '';
+  const current = getActiveTowerRgbEffect() || 'rgb';
+  const options = [
+    { id: 'rgb', label: getRgbEffectLabel('rgb') },
+    ...RGB_RECOLOR_EFFECT_IDS
+      .filter(id => unlocked.includes(id))
+      .map(id => ({ id, label: getRgbEffectLabel(id) }))
+  ];
+  const title = currentLanguage === 'en'
+    ? 'RGB/Rewamp skin effect'
+    : 'Efecto de skins RGB/Rewamp';
+  const hint = currentLanguage === 'en'
+    ? 'Applies to equipped RGB/Rewamp skins. Rainbow Fuel remains the family priority.'
+    : 'Se aplica a las skins RGB/Rewamp equipadas. RAINBOW FUEL conserva la prioridad por familia.';
+  return `
+    <section class="tower-rgb-effect-panel">
+      <h3>${title}</h3>
+      <p>${hint}</p>
+      <div class="profile-choice-grid rgb-effect-selector">
+        ${options.map(opt => `
+          <button class="profile-choice ${current === opt.id ? 'selected' : ''}" type="button"
+            onclick="setTowerRgbEffect('${opt.id}')"><span>${opt.label}</span></button>`).join('')}
+      </div>
+    </section>`;
+}
+
+window.setTowerRgbEffect = function(effectId) {
+  const valid = ['rgb', ...RGB_RECOLOR_EFFECT_IDS];
+  if (!valid.includes(effectId)) return;
+  if (effectId !== 'rgb' && !getUnlockedRgbRecolorEffects().includes(effectId)) return;
+  gameState.towerRgbEffect = effectId === 'rgb' ? '' : effectId;
+  gameState.towers.forEach(tower => {
+    if (tower?.el) applyTowerEffects(tower.el, tower.type);
+  });
+  saveProgress();
+  if (currentShopTab === 'skins') drawShop();
 };
 
 function getShopSkinDescription(skin) {
@@ -10942,6 +11329,7 @@ function drawShop() {
       filterDiv.appendChild(btn);
     });
     container.appendChild(filterDiv);
+    container.insertAdjacentHTML('beforeend', getTowerRgbEffectSelectorMarkup());
 
     function shouldShowSkin(skin, family, isUnlockableCat) {
       if (window.activeSkinFilter === 'all') return true;
@@ -11144,7 +11532,7 @@ function drawShop() {
           const conditionText = getUnlockConditionText(skin.id, skin.unlockCondition);
           const rgbPreviewClass = skin.rgbTypes ? 'rgb-rewamp-preview' : '';
           const rgbPreviewStyle = skin.rgbTypes
-            ? `--rgb-rewamp-mask-image:url('${encodeURI(previewImg)}')`
+            ? `--rgb-rewamp-mask-image:url('${getAbsoluteAssetUrl(previewImg)}')`
             : '';
 
           let costDisplay = '';
@@ -13132,7 +13520,7 @@ function activateGTack(t) {
     if (imgStr) el.style.backgroundImage = `url('${imgStr}')`;
     if (type === 'GODs_Shadow') {
       el.classList.add('enemy-gods-shadow');
-      el.style.setProperty('--gods-shadow-image', `url("${encodeURI(imgStr)}")`);
+      el.style.setProperty('--gods-shadow-image', `url("${getAbsoluteAssetUrl(imgStr)}")`);
       el.style.backgroundImage = 'none';
     }
     const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
@@ -16262,17 +16650,14 @@ function activateGTack(t) {
   }
 
   function getTowerBackgroundImage(type) {
-    const layers = [];
     if (type === 'Work_Bombot' &&
         gameState.equippedSkins.Special === PERSONALIZABLE_BOMBOT_SKIN_ID) {
-      const accessories = gameState.equippedBombotAccessories || {};
-      getBombotAccessoryLayerIds(accessories).forEach(accessoryId => {
-        const image = accessoryId && getBombotAccessoryImage(accessoryId);
-        if (image) layers.push(`url("${encodeURI(image)}")`);
-      });
+      return getBombotRenderBackground(
+        getTowerImage(type),
+        gameState.equippedBombotAccessories || {}
+      );
     }
-    layers.push(`url("${encodeURI(getTowerImage(type))}")`);
-    return layers.join(', ');
+    return `url("${encodeURI(getTowerImage(type))}")`;
   }
 
   function applyTowerEffects(el, type) {
@@ -16295,30 +16680,42 @@ function activateGTack(t) {
     const skinSet = SKINS_DATA[family]?.find(skin => skin.id === equippedSkin);
     const rainbowFuelUnlocked = Array.isArray(gameState.rainbowFuelUnlocked) &&
       gameState.rainbowFuelUnlocked.includes(family);
-    // El efecto se activa al equipar la skin RGB de la familia. Si la familia
-    // tiene Rainbow Fuel desbloqueado, se muestra el arcoiris pleno en su lugar.
-    // Cubre tanto las familias Rewamp como Worker (naranja) e IEx (sus skins RGB
-    // usan las imagenes base de Urbanistic Road).
+    const winterRecolor = getActiveTowerRgbEffect();
+    // La skin debe declararse RGB/Rewamp en sus datos. Rainbow Fuel siempre
+    // domina sobre los recolores del Pase de Invierno; en caso contrario se
+    // muestra el recolor equipado o el RGB animado estándar.
     const hasRgbSkin = skinSet?.rgbTypes?.includes(type) &&
       isRgbRewampSkin(skinSet);
 
     let rgbEffect = '';
     if (globalSkin !== 'pyce_morph' && hasRgbSkin) {
-      rgbEffect = rainbowFuelUnlocked ? 'rainbow-fuel' : 'rgb-rewamp';
+      rgbEffect = rainbowFuelUnlocked
+        ? 'rainbow-fuel'
+        : (winterRecolor || 'rgb-rewamp');
     }
 
     if (rgbEffect === 'rainbow-fuel') {
       el.classList.add('rainbow-fuel');
-      el.style.setProperty('--rainbow-fuel-mask-image', `url("${encodeURI(getTowerImage(type))}")`);
+      el.style.setProperty('--rainbow-fuel-mask-image', `url("${getAbsoluteAssetUrl(getTowerImage(type))}")`);
       el.style.removeProperty('--rgb-rewamp-mask-image');
     } else if (rgbEffect === 'rgb-rewamp') {
       el.classList.add('rgb-rewamp');
-      el.style.setProperty('--rgb-rewamp-mask-image', `url("${encodeURI(getTowerImage(type))}")`);
+      el.style.setProperty('--rgb-rewamp-mask-image', `url("${getAbsoluteAssetUrl(getTowerImage(type))}")`);
+      el.style.removeProperty('--rainbow-fuel-mask-image');
+    } else if (isRgbRecolorEffect(rgbEffect)) {
+      el.classList.add(`tower-rgb-${rgbEffect}`);
+      el.style.removeProperty('--rgb-rewamp-mask-image');
       el.style.removeProperty('--rainbow-fuel-mask-image');
     } else {
       el.style.removeProperty('--rgb-rewamp-mask-image');
       el.style.removeProperty('--rainbow-fuel-mask-image');
     }
+    // Capa RGB en canvas (funciona también con file://; ver createRgbOverlayCanvas).
+    syncRgbOverlay(
+      el,
+      rgbEffect === 'rainbow-fuel' ? 'fuel' : rgbEffect === 'rgb-rewamp' ? 'rgb' : '',
+      getAbsoluteAssetUrl(getTowerImage(type))
+    );
     const enemyBasedSkins = ['pyce_morph', 'mimic_set', 'astrorb_set', 'crystal_bombot'];
     if (enemyBasedSkins.includes(globalSkin) || enemyBasedSkins.includes(equippedSkin)) {
       el.classList.add('enemy-skin-flipped');

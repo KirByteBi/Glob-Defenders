@@ -37,3 +37,9 @@ validación de juego recogida en `pendientes.md`.
   por impacto se limita al 50 % de la vida máxima de la base (75 % para
   cristalizados). Nota: el x5 plano que se recordaba no existía ya en el código;
   esto recupera el espíritu de forma balanceada. `node --check` pasa sin errores.
+
+- [x] `VIS-01` Amor Binario / Binary Love usa borde verde y fondo rosa pastel.
+  GODs Shadow se refuerza visualmente como la silueta negra de Kirb (GOD),
+  reutilizando su mismo asset. El Pase de Invierno usa una paleta azul helada
+  en modal, nodos, botones y barra de XP (sin dorado/rosa heredado).
+  Validación estática: `node --check` y `git diff --check` correctos.

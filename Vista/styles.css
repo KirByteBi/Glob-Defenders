@@ -82,14 +82,11 @@
 }
 
 /* Respeta a quien prefiere menos movimiento (accesibilidad real). */
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.001ms !important;
-        scroll-behavior: auto !important;
-    }
-}
+/* Nota: no hay regla global de reduced-motion. La añadió el commit Kiro
+   3f822a8 y congelaba TODAS las animaciones (RGB, Glob giratorio de carga,
+   borde GLB Fever...) en equipos con las animaciones de Windows desactivadas.
+   Como antes de Kiro, solo se frenan los efectos bruscos (convulsión de
+   Hipermutado y glitches); ver el @media (prefers-reduced-motion) de las torres. */
 
 * { box-sizing: border-box; }
 
@@ -638,60 +635,58 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
     isolation: isolate;
 }
 
+/* RGB pre-Kiro (referencia del vídeo): un arcoíris completo recortado por la
+   silueta y animado mediante hue-rotate. El PNG base permanece visible; la
+   mezcla por color respeta sus contornos sin apagar las franjas. */
 .rgb-avatar-image > img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* La imagen va DEBAJO intacta; el arcoíris lo pinta el ::after encima. */
 }
 
-/* ===== EFECTO RGB (técnica screen + máscara, fiable) =======================
-   La imagen del Glob queda DEBAJO sin tocar. Encima, el ::after pinta un
-   arcoíris que se desliza, recortado a la silueta del Glob con mask, y
-   fundido con mix-blend-mode: screen. En screen: negro no cambia (los
-   contornos negros se conservan) y el color se ilumina en arcoíris. */
 .rgb-avatar-image::after {
     content: '';
     position: absolute;
     inset: 0;
-    z-index: 2;
-    pointer-events: none;
+    z-index: 1;
     background: linear-gradient(90deg,
-        red, orange, yellow, lime, cyan, blue, violet, red);
-    background-size: 200% 100%;
-    mix-blend-mode: screen;
-    animation: rgb-avatar-slide 3s linear infinite;
-    /* Solo se ve donde la imagen tiene silueta (la máscara es el propio PNG). */
+        #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
+    background-size: 100% 100%;
+    opacity: 0.9;
+    mix-blend-mode: color;
+    pointer-events: none;
+    animation: rgb-rewamp-shift 1.5s linear infinite;
     mask-image: var(--rgb-avatar-mask-image);
     -webkit-mask-image: var(--rgb-avatar-mask-image);
-    mask-size: contain;
-    -webkit-mask-size: contain;
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
     mask-repeat: no-repeat;
     -webkit-mask-repeat: no-repeat;
     mask-position: center;
     -webkit-mask-position: center;
 }
 
-/* Modo Monochrome (efecto de perfil): el Glob se ve en gris, sin arcoíris. */
+/* Las variantes del Pase de Invierno sustituyen el RGB pre-Kiro. */
 .rgb-avatar-image.monochrome > img {
     filter: grayscale(1) contrast(1.05);
+    mix-blend-mode: normal;
 }
 .rgb-avatar-image.monochrome::after {
     display: none;
 }
 
-/* Efecto Snowy (Winter Pass): el Glob se ve blanco/nevado (sin arcoíris). */
 .rgb-avatar-image.snowy > img {
     filter: grayscale(1) brightness(1.9) contrast(1.5);
+    mix-blend-mode: normal;
 }
 .rgb-avatar-image.snowy::after {
     display: none;
 }
 
-/* Modo Negativo (efecto de perfil): los colores de la imagen se invierten. */
 .rgb-avatar-image.negative > img {
     filter: invert(1);
+    mix-blend-mode: normal;
 }
 .rgb-avatar-image.negative::after {
     display: none;
@@ -1142,13 +1137,10 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
     height: 100%;
 }
 
-/* Efecto RGB (A+B potente): arcoiris recorriendo la imagen de izquierda a
-   derecha con blend "color" (respeta los contornos oscuros del dibujo), sobre
-   una base algo mas saturada. isolation:isolate hace que el arcoiris se funda
-   con la propia imagen y no con el fondo. */
+/* RGB pre-Kiro para torres y previews: el gradiente se recolorea completo,
+   igual que en el vídeo de referencia. */
 .tower.rgb-rewamp {
     isolation: isolate;
-    filter: saturate(1.4) drop-shadow(0 5px 10px rgba(0,0,0,0.4));
 }
 
 .tower.rgb-rewamp::before {
@@ -1156,11 +1148,13 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: linear-gradient(90deg, #ff0040, #ff8800, #ffe000, #22dd44, #00c3ff, #6a4bff, #ff0040);
-    background-size: 200% 100%;
+    background: linear-gradient(90deg,
+        #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
+    background-size: 100% 100%;
+    opacity: 0.9;
     mix-blend-mode: color;
     pointer-events: none;
-    animation: rgb-rewamp-shift 3s linear infinite;
+    animation: rgb-rewamp-shift 1.5s linear infinite;
     mask-image: var(--rgb-rewamp-mask-image);
     -webkit-mask-image: var(--rgb-rewamp-mask-image);
     mask-size: contain;
@@ -1173,8 +1167,6 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
 
 .skin-preview.rgb-rewamp-preview {
     position: relative;
-    isolation: isolate;
-    filter: saturate(1.4);
 }
 
 .skin-preview.rgb-rewamp-preview::after {
@@ -1182,11 +1174,13 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
     position: absolute;
     inset: 8px;
     z-index: 1;
-    background: linear-gradient(90deg, #ff0040, #ff8800, #ffe000, #22dd44, #00c3ff, #6a4bff, #ff0040);
-    background-size: 200% 100%;
+    background: linear-gradient(90deg,
+        #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
+    background-size: 100% 100%;
+    opacity: 0.9;
     mix-blend-mode: color;
     pointer-events: none;
-    animation: rgb-rewamp-shift 3s linear infinite;
+    animation: rgb-rewamp-shift 1.5s linear infinite;
     mask-image: var(--rgb-rewamp-mask-image);
     -webkit-mask-image: var(--rgb-rewamp-mask-image);
     mask-size: contain;
@@ -1198,6 +1192,11 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
 }
 
 @keyframes rgb-rewamp-shift {
+    to { filter: hue-rotate(360deg); }
+}
+
+/* Rainbow Fuel conserva su arcoíris que recorre la silueta de lado a lado. */
+@keyframes rainbow-fuel-shift {
     from { background-position: 0% 0; }
     to   { background-position: 200% 0; }
 }
@@ -1215,7 +1214,7 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
     background: linear-gradient(90deg, #ff0040, #ff8800, #ffe000, #22dd44, #00c3ff, #6a4bff, #ff0040);
     background-size: 200% 100%;
     filter: saturate(1.6) brightness(1.12);
-    animation: rgb-rewamp-shift 2.5s linear infinite;
+    animation: rainbow-fuel-shift 2.5s linear infinite;
     mask-image: var(--rainbow-fuel-mask-image);
     -webkit-mask-image: var(--rainbow-fuel-mask-image);
     mask-size: contain;
@@ -1244,7 +1243,7 @@ body.light-mode .remember-me-warning { color: #8a5a00; background: rgba(255, 220
     background: linear-gradient(90deg, #ff0040, #ff8800, #ffe000, #22dd44, #00c3ff, #6a4bff, #ff0040);
     background-size: 200% 100%;
     filter: saturate(1.6) brightness(1.12);
-    animation: rgb-rewamp-shift 2.5s linear infinite;
+    animation: rainbow-fuel-shift 2.5s linear infinite;
     mask-image: var(--rainbow-fuel-mask-image);
     -webkit-mask-image: var(--rainbow-fuel-mask-image);
     mask-size: 100% 100%;
@@ -2680,20 +2679,20 @@ button.active {
     filter: none !important;
 }
 
+/* Silueta negra de Kirb (GOD). Se pinta la propia imagen con brightness(0)
+   en lugar de usar mask-image: las máscaras se bloquean al abrir el juego
+   como archivo local (file://), y así funciona en local y publicado. El
+   filtro va en el pseudo-elemento para no ennegrecer la barra de vida. */
 .enemy-gods-shadow::before {
     content: '';
     position: absolute;
     inset: 0;
     z-index: 0;
-    background: #000;
-    mask-image: var(--gods-shadow-image);
-    mask-size: contain;
-    mask-repeat: no-repeat;
-    mask-position: center;
-    -webkit-mask-image: var(--gods-shadow-image);
-    -webkit-mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
+    background-image: var(--gods-shadow-image);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: brightness(0);
     pointer-events: none;
 }
 
@@ -2706,16 +2705,12 @@ button.active {
     z-index: 1;
     opacity: 0;
     box-shadow: none;
-    background: #000;
+    background-image: var(--gods-shadow-image);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: brightness(0);
     clip-path: polygon(0 8%, 100% 0, 100% 76%, 0 100%);
-    mask-image: var(--gods-shadow-image);
-    mask-size: contain;
-    mask-repeat: no-repeat;
-    mask-position: center;
-    -webkit-mask-image: var(--gods-shadow-image);
-    -webkit-mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
     animation: gods-shadow-glitch 6s steps(1, end) infinite;
 }
 
@@ -7239,7 +7234,7 @@ body.placing-tower .tower-spot {
 /* ==========================================================================
    REFACTOR UI/UX — Banner de oleadas, carga, feedback económico, evolución
    Todo sobre tokens --gd-*. Solo transform/opacity/filter (rápido en GPU).
-   Respeta prefers-reduced-motion (regla global ya definida arriba).
+   Animado siempre, como antes de Kiro (sin regla global de reduced-motion).
    ========================================================================== */
 
 /* ---------- B · BANNER DE OLEADAS -------------------------------------- */
@@ -8017,7 +8012,7 @@ body.placing-tower .tower-spot {
    BOTONES DE PARTIDA — fundido de entrada + tacto más "humano"
    Aditivo: no reemplaza las reglas de color de arriba, solo añade vida.
    Pensado para sentirse físico (se hunden, se elevan, brillan al pasar),
-   no genérico. Respeta prefers-reduced-motion (regla global).
+   no genérico.
    ========================================================================== */
 
 /* --- Fundido de entrada escalonado al aparecer la barra de controles ---- */
@@ -8099,3 +8094,232 @@ body.placing-tower .tower-spot {
 
 /* Los deshabilitados no reaccionan (sin brillo, sin elevación) */
 .controls button:disabled::before { display: none; }
+
+/* ========================================================================
+   EFECTOS RGB / PASE DE INVIERNO — perfil y skins
+   ======================================================================== */
+
+/* Rainbow Fuel usa la misma silueta en perfil, selector y perfiles remotos. */
+.profile-avatar-frame > .rainbow-fuel-avatar,
+.profile-choice > .rainbow-fuel-avatar,
+.profile-choice .rainbow-fuel-avatar,
+.profile-avatar-frame .rainbow-fuel-avatar,
+.multiplayer-profile-badge .rainbow-fuel-avatar {
+    border-radius: 50%;
+}
+
+.profile-avatar-frame > .rainbow-fuel-avatar,
+.profile-choice > .rainbow-fuel-avatar,
+.multiplayer-profile-badge .rainbow-fuel-avatar {
+    width: 100%;
+    height: 100%;
+}
+
+.profile-choice > .rainbow-fuel-avatar {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 7px;
+    background: #050505;
+}
+
+/* Variantes Winter Pass para skins RGB/Rewamp. Sustituyen el arcoíris base,
+   pero no Rainbow Fuel (que se decide con prioridad desde JavaScript). */
+.tower.tower-rgb-monochrome,
+.tower.tower-rgb-negative,
+.tower.tower-rgb-snowy {
+    isolation: isolate;
+}
+
+.tower.tower-rgb-monochrome {
+    filter: grayscale(1) contrast(1.08) drop-shadow(0 5px 10px rgba(0, 0, 0, 0.42));
+}
+
+.tower.tower-rgb-negative {
+    filter: invert(1) hue-rotate(180deg) contrast(1.06) drop-shadow(0 5px 10px rgba(0, 0, 0, 0.42));
+}
+
+.tower.tower-rgb-snowy {
+    filter: grayscale(1) brightness(1.9) contrast(1.45) drop-shadow(0 0 8px rgba(174, 227, 255, 0.72));
+}
+
+.tower.tower-rgb-monochrome::before,
+.tower.tower-rgb-negative::before,
+.tower.tower-rgb-snowy::before {
+    display: none;
+}
+
+.tower-rgb-effect-panel {
+    grid-column: 1 / -1;
+    margin: 2px 0 8px;
+    padding: 13px 15px 4px;
+    border: 1px solid rgba(104, 194, 255, 0.45);
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(13, 48, 100, 0.68), rgba(42, 140, 205, 0.16));
+    box-shadow: inset 0 0 20px rgba(95, 203, 255, 0.08);
+}
+
+.tower-rgb-effect-panel h3 {
+    margin: 0;
+    color: #c4edff;
+}
+
+.tower-rgb-effect-panel p,
+.rgb-effect-note {
+    margin: 7px 0 0;
+    color: #a9dfff;
+    font-size: 0.82rem;
+}
+
+.rgb-effect-selector {
+    margin-bottom: 12px;
+}
+
+/* ========================================================================
+   AMOR BINARIO — borde verde y fondo rosa pastel
+   ======================================================================== */
+.profile-avatar-frame.binary-love,
+.profile-border-swatch.binary-love,
+.profile-placeholder-sample.binary-love,
+.multiplayer-profile-badge.binary-love {
+    position: relative;
+    overflow: visible;
+    border-color: transparent;
+    outline-color: #2c9148;
+    background:
+        linear-gradient(var(--profile-border-end, #f6bfd5), var(--profile-border-end, #f6bfd5)) padding-box,
+        linear-gradient(135deg, #1d7438, #65d47b, #1d7438) border-box;
+    box-shadow: 0 0 10px rgba(73, 180, 98, 0.8), 0 0 20px rgba(246, 191, 213, 0.7);
+    animation: binary-love-halo 4.8s ease-in-out infinite;
+}
+
+.profile-avatar-frame.binary-love::before,
+.profile-border-swatch.binary-love::before,
+.profile-placeholder-sample.binary-love::before,
+.multiplayer-profile-badge.binary-love::before {
+    content: '✦ · ✧ · ✦';
+    position: absolute;
+    inset: -11px;
+    display: grid;
+    place-items: center;
+    z-index: -1;
+    border-radius: 50%;
+    color: #ffe8f2;
+    font-size: 0.6rem;
+    letter-spacing: 9px;
+    text-shadow: 0 0 5px #5bd274, 0 0 11px #f6bfd5;
+    pointer-events: none;
+    animation: binary-love-orbit 7s linear infinite;
+}
+
+@keyframes binary-love-halo {
+    0%, 100% { box-shadow: 0 0 10px rgba(73, 180, 98, 0.8), 0 0 20px rgba(246, 191, 213, 0.7); }
+    50% { box-shadow: 0 0 15px rgba(111, 221, 135, 0.95), 0 0 26px rgba(255, 217, 233, 0.9); }
+}
+
+@keyframes binary-love-orbit {
+    to { transform: rotate(360deg); }
+}
+
+/* GODs Shadow reutiliza Kirb (GOD) como origen: no es otro personaje, sino la
+   misma silueta consumida por sombra. El borde violeta solo deja leer su forma. */
+.gods-shadow-portrait,
+.narrator-bubble.speaker-gods_shadow .narrator-portrait {
+    filter: brightness(0) contrast(1.35) blur(0.5px) drop-shadow(0 0 5px rgba(118, 87, 176, 0.85));
+    opacity: 0.9;
+    background: radial-gradient(circle at 50% 45%, rgba(151, 130, 203, 0.42), rgba(44, 28, 73, 0.2) 70%, transparent 100%);
+}
+
+/* ========================================================================
+   PASE DE INVIERNO — identidad azul helada
+   ======================================================================== */
+#winter-pass-modal .pass-content {
+    border: 1px solid rgba(113, 211, 255, 0.7);
+    background: linear-gradient(145deg, rgba(7, 26, 71, 0.98), rgba(13, 73, 139, 0.94));
+    box-shadow: 0 0 34px rgba(76, 190, 255, 0.36), inset 0 0 38px rgba(199, 244, 255, 0.07);
+}
+
+#winter-pass-modal .modal-header {
+    border-bottom-color: rgba(125, 220, 255, 0.32);
+}
+
+#winter-pass-modal .pass-info {
+    border-color: rgba(106, 208, 255, 0.45);
+    background: rgba(5, 28, 75, 0.48);
+    box-shadow: inset 0 0 18px rgba(146, 224, 255, 0.08);
+}
+
+#winter-pass-modal .pass-node {
+    border-color: #69cfff;
+    background: linear-gradient(155deg, rgba(9, 43, 103, 0.96), rgba(18, 90, 153, 0.9));
+    box-shadow: 0 5px 17px rgba(2, 14, 48, 0.64), inset 0 0 14px rgba(210, 248, 255, 0.06);
+}
+
+#winter-pass-modal .pass-node:hover {
+    box-shadow: 0 8px 27px rgba(104, 211, 255, 0.55), inset 0 0 17px rgba(224, 249, 255, 0.13);
+}
+
+#winter-pass-modal .pass-node .pass-level-badge {
+    background: linear-gradient(135deg, #ddf9ff, #64c7ff);
+    color: #06235f;
+    border-color: #f0fdff;
+    box-shadow: 0 0 12px rgba(114, 215, 255, 0.78);
+}
+
+#winter-pass-modal .pass-node.locked {
+    border-color: #35567e;
+    background: rgba(13, 34, 69, 0.95);
+}
+
+#winter-pass-modal .meta-buy-btn:not(:disabled) {
+    background: linear-gradient(135deg, #1d7fc2, #5ccfff);
+    border-color: #c8f3ff;
+    color: #031b4c;
+    box-shadow: 0 0 11px rgba(99, 210, 255, 0.35);
+}
+
+/* ========================================================================
+   RGB en canvas (sin mask-image): funciona también abriendo el juego como
+   archivo local. El canvas ya trae el resultado final y lo anima por JS
+   (barrido de izquierda a derecha): RGB claro con contornos negros, o
+   Rainbow Fuel vivo. Aquí solo se coloca encima de la imagen.
+   ======================================================================== */
+.rgb-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.rgb-overlay.ready {
+    opacity: 1;
+}
+
+.rgb-avatar-image > .rgb-overlay,
+.rainbow-fuel-avatar > .rgb-overlay { object-fit: cover; }
+.profile-avatar-layers > .rgb-overlay,
+.tower > .rgb-overlay { object-fit: contain; }
+/* La preview tiene 8px de padding: el canvas debe cubrir solo la imagen. */
+.skin-preview > .rgb-overlay {
+    inset: 8px;
+    width: calc(100% - 16px);
+    height: calc(100% - 16px);
+    object-fit: fill;
+}
+
+/* Con el canvas listo se ocultan las capas con máscara para no duplicar. */
+.rgb-avatar-image.rgb-canvas::after,
+.rainbow-fuel-avatar.rgb-canvas::after,
+.skin-preview.rgb-canvas::after,
+.tower.rgb-rewamp.rgb-canvas::before,
+.tower.rainbow-fuel.rgb-canvas::before {
+    display: none;
+}
+
+/* Las variantes del Pase de Invierno sustituyen al arcoíris. */
+.rgb-avatar-image.monochrome > .rgb-overlay,
+.rgb-avatar-image.negative > .rgb-overlay,
+.rgb-avatar-image.snowy > .rgb-overlay {
+    display: none;
+}

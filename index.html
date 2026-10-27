@@ -20,7 +20,7 @@
     <meta name="twitter:title" content="Glob Defenders - VS. Pyces">
     <meta name="twitter:description" content="ES: Defiende las islas con tus Globs en este tower defense. EN: Defend the islands with your Globs in this tower defense.">
     <meta name="twitter:image" content="https://kirbytebi.github.io/Glob-Defenders/img/GlobDefendersLogoRewampedCropped.png">
-    <link rel="stylesheet" href="Vista/styles.css?v=20261024b">
+    <link rel="stylesheet" href="Vista/styles.css?v=20261027-effects10">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
@@ -623,7 +623,7 @@
             <div class="modal-header">
                 <h2 id="pass-title">🦆 Duck Pass</h2>
                 <div class="header-btns">
-                    <button id="duckpass-to-winter" class="back-btn" type="button" onclick="openWinterPass()" style="display:none; background:linear-gradient(135deg,#ff6f91,#8fd0ff);">❄️ <span class="btn-text">Pase de Invierno</span></button>
+                    <button id="duckpass-to-winter" class="back-btn" type="button" onclick="openWinterPass()" style="display:none; background:linear-gradient(135deg,#124a9c,#5ecbff);">❄️ <span class="btn-text">Pase de Invierno</span></button>
                     <button class="back-btn" onclick="backToModes()"><span class="btn-text">Volver a
                             Modos</span></button>
                     <button class="close-btn" onclick="smartClose('pass-modal')">✖</button>
@@ -658,7 +658,7 @@
                 <div class="pass-level-container">
                     <span>Nivel <span id="winter-pass-level">1</span></span>
                     <div class="xp-bar-bg" style="width: 100%; max-width: 300px; height: 15px; background: rgba(0,0,0,0.5); border-radius: 8px; overflow: hidden; margin: 10px 0;">
-                        <div id="winter-xp-fill" class="xp-bar-fill" style="height: 100%; background: linear-gradient(90deg,#ff6f91,#8fd0ff); width: 0%; transition: width 0.3s;"></div>
+                        <div id="winter-xp-fill" class="xp-bar-fill" style="height: 100%; background: linear-gradient(90deg,#1554a3,#69d9ff,#e4faff); width: 0%; transition: width 0.3s;"></div>
                     </div>
                     <span style="font-size: 0.9rem; color: #ccc;"><img src="Recursos/img/Tokens/CandyLove.png" width="16" style="vertical-align:middle;"> <span id="winter-pass-xp">0</span> / 100 XP</span>
                 </div>
@@ -741,11 +741,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
     <!-- El parámetro ?v= fuerza al navegador a descargar la versión nueva
          (evita que sirva archivos cacheados viejos). Súbelo en cada update. -->
-    <script src="Modelo/supabase-config.js?v=20261024b"></script>
-    <script src="Vista/traducciones.js?v=20261024b"></script>
-    <script src="Modelo/datos-del-juego.js?v=20261024b"></script>
-    <script src="Modelo/config.js?v=20261024b"></script>
-    <script src="Controlador/game.js?v=20261024b"></script>
+    <script src="Modelo/supabase-config.js?v=20261027-effects10"></script>
+    <script src="Vista/traducciones.js?v=20261027-effects10"></script>
+    <script src="Modelo/datos-del-juego.js?v=20261027-effects10"></script>
+    <script src="Modelo/config.js?v=20261027-effects10"></script>
+    <script src="Controlador/game.js?v=20261027-effects10"></script>
 </body>
 
 </html>
