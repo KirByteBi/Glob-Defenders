@@ -1,1 +1,0 @@
-﻿---SUPABASE/SERVER borrados que NO son node_modules---

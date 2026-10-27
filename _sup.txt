@@ -1,3 +1,0 @@
-﻿ M .gitignore
-?? _hist.txt
-?? _sup.txt
