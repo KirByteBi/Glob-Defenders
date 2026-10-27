@@ -1710,9 +1710,27 @@ body.touch-landscape .multiplayer-spectator-notice {
 
 .public-profile-achievements li > span:first-child {
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    overflow: hidden;
+}
+
+/* Iconos que son imágenes (tutorial, Fracstral, Across the Time): sin esto se
+   pintaban a su tamaño real y tapaban toda la cuadrícula de logros. */
+.public-profile-achievements li > span:first-child img {
+    width: 28px !important;
+    height: 28px !important;
+    max-width: 28px;
+    max-height: 28px;
+    object-fit: contain;
+    border-radius: 4px;
 }
 
 .public-profile-achievements li > span:last-child {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -8222,11 +8240,42 @@ body.placing-tower .tower-spot {
 
 /* GODs Shadow reutiliza Kirb (GOD) como origen: no es otro personaje, sino la
    misma silueta consumida por sombra. El borde violeta solo deja leer su forma. */
+/* El filtro ennegrece todo el elemento (también su fondo), así que la imagen
+   no lleva fondo: en el perfil el fondo lo pone .gods-shadow-avatar. */
 .gods-shadow-portrait,
 .narrator-bubble.speaker-gods_shadow .narrator-portrait {
-    filter: brightness(0) contrast(1.35) blur(0.5px) drop-shadow(0 0 5px rgba(118, 87, 176, 0.85));
-    opacity: 0.9;
-    background: radial-gradient(circle at 50% 45%, rgba(151, 130, 203, 0.42), rgba(44, 28, 73, 0.2) 70%, transparent 100%);
+    filter: brightness(0) contrast(1.35) blur(0.5px) drop-shadow(0 0 5px rgba(158, 120, 230, 0.95));
+    opacity: 0.95;
+    background: transparent !important;
+}
+
+.gods-shadow-avatar {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: middle;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 45%, #7a62b3 0%, #3a2766 55%, #150c26 100%);
+}
+
+.gods-shadow-avatar > .gods-shadow-portrait {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.profile-avatar-frame > .gods-shadow-avatar,
+.multiplayer-profile-badge .gods-shadow-avatar {
+    width: 100%;
+    height: 100%;
+}
+
+.profile-choice > .gods-shadow-avatar {
+    display: block;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 7px;
 }
 
 /* ========================================================================
@@ -8294,6 +8343,24 @@ body.placing-tower .tower-spot {
 
 .rgb-overlay.ready {
     opacity: 1;
+}
+
+/* Alternate: el canvas trae la imagen con el arcoíris mezclado por color;
+   aquí gira el tono (el RGB pre-Kiro, ahora como efecto propio). */
+.rgb-overlay.rgb-overlay-alternate.ready {
+    animation: rgb-rewamp-shift 1.5s linear infinite;
+}
+
+/* Previews de las skins de efecto en la tienda. */
+.skin-preview.rgb-fx-preview {
+    position: relative;
+}
+.skin-preview.fx-monochrome img { filter: grayscale(1) contrast(1.05); }
+.skin-preview.fx-negative img { filter: invert(1); }
+.skin-preview.fx-snowy img { filter: grayscale(1) brightness(1.9) contrast(1.5); }
+
+.profile-avatar-section-title {
+    margin-top: 18px;
 }
 
 .rgb-avatar-image > .rgb-overlay,

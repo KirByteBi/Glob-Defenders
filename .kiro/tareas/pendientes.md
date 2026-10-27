@@ -91,9 +91,37 @@ Tareas por hacer. Leyenda: `[ ]` por hacer · `[!]` bloqueada · P0/P1/P2 priori
   Glob giratorio de carga, GLB Fever...) en equipos con las animaciones de
   Windows desactivadas (este equipo: MinAnimate = 0). Eliminada; se conserva
   solo la regla pre-Kiro que frena Hipermutado y glitches.
-  **Perfil:** Rainbow Fuel ya no se impone sobre el RGB; es una opción del
-  selector "Efecto RGB de perfil" si la familia del avatar lo tiene. Las
-  torres mantienen la prioridad automática de Rainbow Fuel (comportamiento
-  pre-Kiro).
-  Pendiente: confirmación del usuario en su navegador y después implementar
-  Alternate como recompensa/selector del Pase de Invierno.
+  **Arreglo 5 (colores):** el blanqueado era demasiado fuerte y convertía los
+  Globs claros (Ducky, pasteles) en un bloque de arcoíris parecido a Rainbow
+  Fuel. Ahora es suave (`grayscale(1) brightness(1.3) contrast(1.15)`) y se
+  devuelve un 35 % del color original dentro de la silueta. Arcoíris del RGB
+  más claro y suave (`saturate(0.6) brightness(1.4)`).
+  **Sistema de efectos (2026-10-27):** cada efecto es un apartado propio.
+  - Efectos: RGB, Rainbow Fuel, Monochrome, Negativo, Nevado y Alternate.
+  - Perfil: al seleccionar una imagen Rewamp o RGB aparece "Efecto de la
+    imagen" con Original, RGB (si la skin RGB de la familia está
+    desbloqueada), Rainbow Fuel (de la familia) y los efectos del Pase de
+    Invierno ganados. Cada botón muestra la propia imagen con ese efecto. Se
+    guarda en `profileAvatarEffect` y se resetea al cambiar de imagen. Se
+    quitaron los apartados repetidos por efecto (las imágenes antiguas
+    `glob:<tipo>:fx-<efecto>` se migran). GLB Fever sigue poniendo RGB a
+    cualquier imagen; GODs Shadow queda siempre como sombra.
+  - Por decidir: aplicar el mismo selector a las skins de torre en lugar de
+    las 40 skins de efecto separadas de la tienda.
+  - Skins: 40 skins de efecto generadas (8 familias × 5 efectos) en la
+    categoría "✨ Efectos" de la tienda (`<skinRGB>__fx_<efecto>`). Requieren
+    el efecto y la Rewamp de la familia (Worker/IEx: tener la familia). Se
+    quitó el selector global de torres; Rainbow Fuel ya no se impone a la skin
+    RGB, es su propia skin.
+  - Alternate: RGB pre-Kiro (arcoíris completo mezclado por color, el tono
+    gira). Recompensa del nivel 50 del Pase de Invierno.
+  - Partidas antiguas: la elección del selector antiguo se migra a la imagen
+    o skin de efecto equivalente.
+  **GODs Shadow en el perfil:** salía como disco negro porque el filtro
+  ennegrecía también el fondo de la imagen. Ahora el fondo va en un
+  envoltorio (`.gods-shadow-avatar`), también en el perfil multijugador.
+  **Verificado** en Chrome headless (file://): secciones del perfil, Ducky RGB,
+  Dreamy SPyce y NOsense con GLB Fever, Alternate, Rainbow Fuel, Negativo y
+  GODs Shadow; sin errores de consola. Sin comprobar con captura: categoría
+  "Efectos" de la tienda y torres con skins de efecto.
+  Pendiente: confirmación del usuario y decidir el aspecto final de Alternate.

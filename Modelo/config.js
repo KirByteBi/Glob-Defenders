@@ -302,7 +302,23 @@ const BADGES = {
   sunlight_normal: { key: 'sunlight_normal', icon: '🌊', unlocked: false, reward: { pycoins: 300, xp: 200 }, category: 'modos' },
   sunlight_dificil: { key: 'sunlight_dificil', icon: '🔥', unlocked: false, reward: { pycoins: 500, xp: 400 }, category: 'modos' },
   sunlight_extremo: { key: 'sunlight_extremo', icon: '💀', unlocked: false, reward: { pycoins: 800, xp: 700 }, category: 'modos' },
-  sunlight_anti_normal: { key: 'sunlight_anti_normal', icon: '🌑', unlocked: false, reward: { duckpass: 50, xp: 1500 }, category: 'modos' }
+  sunlight_anti_normal: { key: 'sunlight_anti_normal', icon: '🌑', unlocked: false, reward: { duckpass: 50, xp: 1500 }, category: 'modos' },
+
+  // Spooktacular Ruins (Aridez Escalofriante): un emblema por modo
+  spooktacular_facil: { key: 'spooktacular_facil', icon: '🕯️', unlocked: false, reward: { pycoins: 150, xp: 100 }, category: 'modos' },
+  spooktacular_normal: { key: 'spooktacular_normal', icon: '🎃', unlocked: false, reward: { pycoins: 300, xp: 200 }, category: 'modos' },
+  spooktacular_dificil: { key: 'spooktacular_dificil', icon: '🦇', unlocked: false, reward: { pycoins: 500, xp: 400 }, category: 'modos' },
+  spooktacular_extremo: { key: 'spooktacular_extremo', icon: '💀', unlocked: false, reward: { pycoins: 800, xp: 700 }, category: 'modos' },
+  spooktacular_corrupto: { key: 'spooktacular_corrupto', icon: '🧙', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'modos' },
+  spooktacular_anti_normal: { key: 'spooktacular_anti_normal', icon: '⚰️', unlocked: false, reward: { duckpass: 50, xp: 1500 }, category: 'modos' },
+
+  // Frosty Christmas: un emblema por modo
+  frosty_facil: { key: 'frosty_facil', icon: '❄️', unlocked: false, reward: { pycoins: 150, xp: 100 }, category: 'modos' },
+  frosty_normal: { key: 'frosty_normal', icon: '⛄', unlocked: false, reward: { pycoins: 300, xp: 200 }, category: 'modos' },
+  frosty_dificil: { key: 'frosty_dificil', icon: '🎁', unlocked: false, reward: { pycoins: 500, xp: 400 }, category: 'modos' },
+  frosty_extremo: { key: 'frosty_extremo', icon: '🌨️', unlocked: false, reward: { pycoins: 800, xp: 700 }, category: 'modos' },
+  frosty_corrupto: { key: 'frosty_corrupto', icon: '👻', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'modos' },
+  frosty_anti_normal: { key: 'frosty_anti_normal', icon: '🌑', unlocked: false, reward: { duckpass: 50, xp: 1500 }, category: 'modos' }
 };
 
 const MAPS = {
@@ -1095,6 +1111,7 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "debug_max_resources": "Max recursos",
   "debug_unlock_all": "Desbloquear todo",
   "debug_grant_advent": "Dar recompensas de Adviento",
+  "debug_grant_winter_pass": "Dar Pase de Invierno",
   "debug_spawn_enemy_title": "Spawnear enemigo",
   "debug_enemy_search": "Busca: PY, BIT, ASTRORB...",
   "debug_spawn_selected": "Spawnear seleccionado",
@@ -1212,6 +1229,7 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "debug_max_resources": "Max resources",
   "debug_unlock_all": "Unlock everything",
   "debug_grant_advent": "Grant Advent rewards",
+  "debug_grant_winter_pass": "Grant Winter Pass",
   "debug_spawn_enemy_title": "Spawn enemy",
   "debug_enemy_search": "Search: PY, BIT, ASTRORB...",
   "debug_spawn_selected": "Spawn selected",
