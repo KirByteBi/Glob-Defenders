@@ -14,3 +14,18 @@ ATT BIGUPD.txt
 Thumbs.db
 .DS_Store
 *.tmp
+
+# Dependencias de npm (se regeneran con npm install, no van en git)
+node_modules/
+**/node_modules/
+
+# Vídeos (no forman parte del juego, no van en git)
+*.mov
+*.mp4
+*.webm
+*.avi
+*.mkv
+
+# Archivos temporales de diagnóstico
+_*.txt
+zz*.txt
