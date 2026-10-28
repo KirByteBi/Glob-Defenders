@@ -8554,6 +8554,12 @@ body.placing-tower .tower-spot {
     font-size: 0.72rem;
 }
 
+.pass-reward-layered {
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
 .pass-reward-kind {
     color: #a9dfff;
     font-size: 0.64rem;
