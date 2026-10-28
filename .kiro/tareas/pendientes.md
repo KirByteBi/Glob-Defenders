@@ -106,15 +106,15 @@ Tareas por hacer. Leyenda: `[ ]` por hacer · `[!]` bloqueada · P0/P1/P2 priori
     quitaron los apartados repetidos por efecto (las imágenes antiguas
     `glob:<tipo>:fx-<efecto>` se migran). GLB Fever sigue poniendo RGB a
     cualquier imagen; GODs Shadow queda siempre como sombra.
-  - Por decidir: aplicar el mismo selector a las skins de torre en lugar de
-    las 40 skins de efecto separadas de la tienda.
+  - Hecho (FX-02): selector de efecto para la skin Rewamp de torre, sin
+    quitar las 40 skins de efecto de la tienda.
   - Skins: 40 skins de efecto generadas (8 familias × 5 efectos) en la
     categoría "✨ Efectos" de la tienda (`<skinRGB>__fx_<efecto>`). Requieren
     el efecto y la Rewamp de la familia (Worker/IEx: tener la familia). Se
     quitó el selector global de torres; Rainbow Fuel ya no se impone a la skin
     RGB, es su propia skin.
   - Alternate: RGB pre-Kiro (arcoíris completo mezclado por color, el tono
-    gira). Recompensa del nivel 50 del Pase de Invierno.
+    gira). Recompensa del nivel 12 del Pase de Invierno.
   - Partidas antiguas: la elección del selector antiguo se migra a la imagen
     o skin de efecto equivalente.
   **GODs Shadow en el perfil:** salía como disco negro porque el filtro

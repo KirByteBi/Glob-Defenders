@@ -43,3 +43,33 @@ validación de juego recogida en `pendientes.md`.
   reutilizando su mismo asset. El Pase de Invierno usa una paleta azul helada
   en modal, nodos, botones y barra de XP (sin dorado/rosa heredado).
   Validación estática: `node --check` y `git diff --check` correctos.
+
+## Cambios de código (2026-10-27, tanda 2)
+
+- [x] `FX-02` Selector de efecto para la skin Rewamp de cada familia (tienda →
+  Skins → "✨ Efecto de la skin Rewamp"; Worker/IEx usan su aspecto base).
+  Opciones: Original, RGB Secreto, Rainbow Fuel, Negativo, Monochrome, Nevado y
+  Alternativo, cada una solo con la skin original y el efecto desbloqueados.
+  Las 40 skins de efecto existentes no cambian. Se guarda en `towerSkinEffects`.
+  El perfil ya tenía su selector ("Efecto de la imagen").
+- [x] `FX-03` Alternate se llama "Alternativo" en ES y destaca más allá del
+  recoloreado: brillo holográfico que cruza la silueta, destellos y halo
+  prismático. En el Pase de Invierno es el nivel 12 (antes el 50, que ahora
+  da 300 DuckPasses), con vista previa real y nodo "Efecto especial" con
+  borde prismático.
+- [x] `MEC-05` Las vallas de la familia naranja (Worker) se eliminan al
+  reintentar (`retryGame`) y al cambiar de mapa (`createMap`).
+- [x] `MEC-06` Ataques personalizados del Personalizable Bombot
+  (`BOMBOT_CUSTOM_ATTACKS` en config.js): Bomba clásica, Bomba Cúbica (200
+  PyCoins), Meteoro de Cristal (superar IM) y Bomb Glob (usar la familia Bomb
+  Glob más de 200 veces; explota con daño en área). Contador `iexFamilyUses`.
+- [x] `MEC-07` Ctrl + G activa todas las G-Tacks listas a la vez (las de
+  familia/mapa entero solo una vez).
+- [x] `MEC-08` Cristalizados solo en Interstellar Menace. Excepción: Dreamy
+  SPyce y Astral BPyce en Frosty Christmas (`isCrystallizedEnemyAllowed`).
+- [x] `DBG-01` Botón debug "Desbloquear todas las recompensas navideñas":
+  Calendario de Adviento + Pase de Invierno completos.
+- [x] `GEN-03` Vídeo movido a `Recursos/Videos/GlobDefendersLIST1.mov`.
+- [x] Emblemas: nombres de Sunlight Seaside (día → noche) y 12 nuevos de
+  Aridez Escalofriante y Frosty Christmas. Iconos-imagen de logros arreglados.
+  Verificado en Chrome headless (file://), sin errores de consola.

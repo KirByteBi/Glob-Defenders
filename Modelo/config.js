@@ -236,6 +236,19 @@ const ENEMY_BALANCE = {
 
 const ENEMY_TIER_DAMAGE = { basic: 1, medium: 2, tank: 3 };
 
+// Ataques personalizados del Personalizable Bombot. De momento son los de las
+// skins de su familia. Solo se usan con la skin Personalizable equipada.
+// - cost: se compra con PyCoins en el personalizador.
+// - unlock 'interstellar': al superar Interstellar Menace.
+// - unlock 'iex_uses': al usar la familia Bomb Glob (IEx) más de usesRequired veces.
+// - explosion / splashRadius / splashDamage: explota al impactar y daña alrededor.
+const BOMBOT_CUSTOM_ATTACKS = [
+  { id: 'default', name: { es: 'Bomba clásica', en: 'Classic Bomb' }, projectile: 'Recursos/img/Proyectiles/Proyectil_Bomba.png' },
+  { id: 'cubic_bomb', name: { es: 'Bomba Cúbica', en: 'Cubic Bomb' }, projectile: IMAGE_PATHS.Cube_Bomb_CB, cost: 200 },
+  { id: 'crystal_meteor', name: { es: 'Meteoro de Cristal', en: 'Crystal Meteor' }, projectile: 'Recursos/img/Proyectiles/Crystal Metor.png', unlock: 'interstellar' },
+  { id: 'bomb_glob', name: { es: 'Bomb Glob', en: 'Bomb Glob' }, projectile: IMAGE_PATHS.Bomb_Glob, unlock: 'iex_uses', usesRequired: 200, explosion: 'Bomb_Glob', splashRadius: 80, splashDamage: 0.5 }
+];
+
 const BADGES = {
   tutorial: { key: 'tutorial', icon: '<img src="Recursos/img/Work-Bombot.png" alt="Work-Bombot">', unlocked: false, reward: { pycoins: 50, duckpass: 1, xp: 25 }, category: 'misiones', colorGroup: 'mission' },
   survivor: { key: 'survivor', icon: '🛡️', unlocked: false, reward: { pycoins: 100, xp: 50 }, category: 'modos' },
@@ -1110,8 +1123,8 @@ TRANSLATIONS['es'] = Object.assign({}, TRANSLATIONS['es'] || {}, {
   "debug_add_resources": "+ Recursos",
   "debug_max_resources": "Max recursos",
   "debug_unlock_all": "Desbloquear todo",
-  "debug_grant_advent": "Dar recompensas de Adviento",
-  "debug_grant_winter_pass": "Dar Pase de Invierno",
+  "debug_grant_christmas": "Desbloquear todas las recompensas navideñas",
+  "debug_grant_christmas_notice": "👑 OWNER DEBUG: recompensas navideñas desbloqueadas ({advent} del Calendario de Adviento y {winter} del Pase de Invierno).",
   "debug_spawn_enemy_title": "Spawnear enemigo",
   "debug_enemy_search": "Busca: PY, BIT, ASTRORB...",
   "debug_spawn_selected": "Spawnear seleccionado",
@@ -1228,8 +1241,8 @@ TRANSLATIONS['en'] = Object.assign({}, TRANSLATIONS['en'] || {}, {
   "debug_add_resources": "+ Resources",
   "debug_max_resources": "Max resources",
   "debug_unlock_all": "Unlock everything",
-  "debug_grant_advent": "Grant Advent rewards",
-  "debug_grant_winter_pass": "Grant Winter Pass",
+  "debug_grant_christmas": "Unlock all Christmas rewards",
+  "debug_grant_christmas_notice": "👑 OWNER DEBUG: Christmas rewards unlocked ({advent} from the Advent Calendar and {winter} from the Winter Pass).",
   "debug_spawn_enemy_title": "Spawn enemy",
   "debug_enemy_search": "Search: PY, BIT, ASTRORB...",
   "debug_spawn_selected": "Spawn selected",

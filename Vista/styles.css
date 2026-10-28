@@ -8390,3 +8390,194 @@ body.placing-tower .tower-spot {
 .rgb-avatar-image.snowy > .rgb-overlay {
     display: none;
 }
+
+/* ========================================================================
+   ALTERNATE (Alternativo): además del arcoíris que gira lleva un brillo
+   holográfico y destellos (canvas) y un halo prismático que cambia de color.
+   ======================================================================== */
+/* El halo va en el propio canvas (no en .tower, para no pisar el idle): el
+   hue-rotate gira a la vez el arcoíris y el color del halo. */
+@keyframes alternate-prism-halo {
+    from { filter: drop-shadow(0 0 3px #ff3b7a) drop-shadow(0 0 8px rgba(255, 59, 122, 0.6)) hue-rotate(0deg); }
+    to   { filter: drop-shadow(0 0 3px #ff3b7a) drop-shadow(0 0 8px rgba(255, 59, 122, 0.6)) hue-rotate(360deg); }
+}
+
+.rgb-overlay.rgb-overlay-alternate.ready {
+    animation: alternate-prism-halo 1.5s linear infinite;
+}
+
+/* ========================================================================
+   PASE DE INVIERNO: vista previa de los efectos y nodo final (Alternativo)
+   ======================================================================== */
+.winter-pass-fx-preview {
+    display: inline-flex;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #0b1626;
+    box-shadow: 0 0 0 2px rgba(143, 208, 255, 0.55);
+}
+
+.winter-pass-fx-preview > img,
+.winter-pass-fx-preview > span {
+    width: 100%;
+    height: 100%;
+}
+
+.winter-pass-fx-preview.is-alternate {
+    width: 54px;
+    height: 54px;
+    overflow: visible;
+    box-shadow: none;
+    background: radial-gradient(circle, rgba(143, 208, 255, 0.25), transparent 70%);
+}
+
+.winter-pass-final-tag {
+    margin-bottom: 4px;
+    color: #c4edff;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.pass-node.winter-pass-alternate-node {
+    border: 2px solid transparent;
+    background:
+        linear-gradient(rgba(10, 30, 60, 0.95), rgba(10, 30, 60, 0.95)) padding-box,
+        conic-gradient(from 0deg, #ff3b7a, #ffe14d, #3bd4ff, #a66bff, #ff3b7a) border-box;
+    box-shadow: 0 0 16px rgba(143, 208, 255, 0.55);
+}
+
+/* ========================================================================
+   TIENDA: selector de efecto de la skin Rewamp
+   ======================================================================== */
+.tower-skin-effect-row {
+    margin: 12px 0;
+}
+
+.tower-skin-effect-row h4 {
+    margin: 0;
+    color: #e4f6ff;
+    font-size: 0.92rem;
+}
+
+.tower-skin-effect-status {
+    display: block;
+    margin: 2px 0 6px;
+    color: #a9dfff;
+    font-size: 0.74rem;
+}
+
+.tower-skin-effect-status.active {
+    color: #7dffa8;
+}
+
+.tower-skin-effect-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tower-skin-effect-choice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 84px;
+    padding: 7px 8px;
+    border: 1px solid rgba(104, 194, 255, 0.35);
+    border-radius: 10px;
+    background: rgba(8, 22, 42, 0.85);
+    color: #fff;
+    font-size: 0.72rem;
+    cursor: pointer;
+}
+
+.tower-skin-effect-choice:hover,
+.tower-skin-effect-choice:focus-visible {
+    border-color: #8fd0ff;
+    outline: none;
+}
+
+.tower-skin-effect-choice.selected {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.35);
+}
+
+.tower-skin-effect-choice .skin-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* ========================================================================
+   PERSONALIZABLE BOMBOT: ataques personalizados
+   ======================================================================== */
+.bombot-attack-note {
+    margin: -4px 0 8px;
+    color: #a9dfff;
+    font-size: 0.78rem;
+}
+
+.bombot-attack-card .bombot-accessory-img-box img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+}
+
+.bombot-attack-tag {
+    color: #ffb15c;
+    font-size: 0.68rem;
+}
+
+/* ========================================================================
+   PASES: cada recompensa con su imagen (tokens, skins, accesorios, efectos)
+   ======================================================================== */
+.pass-reward-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    margin-top: 6px;
+}
+
+.pass-reward-image {
+    display: block;
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+}
+
+.pass-reward-name {
+    font-size: 0.72rem;
+}
+
+.pass-reward-kind {
+    color: #a9dfff;
+    font-size: 0.64rem;
+    font-weight: normal;
+}
+
+.pass-reward-buff {
+    position: relative;
+    display: inline-block;
+}
+
+.pass-reward-buff-icon {
+    position: absolute;
+    right: -6px;
+    bottom: -4px;
+    font-size: 1.05rem;
+    filter: drop-shadow(0 1px 2px #000);
+}
+
+@keyframes pass-reward-rainbow-spin {
+    to { filter: hue-rotate(360deg) saturate(1.6); }
+}
+
+.pass-reward-image.pass-reward-rainbow {
+    filter: saturate(1.6);
+    animation: pass-reward-rainbow-spin 2s linear infinite;
+}

@@ -348,6 +348,24 @@ const TRANSLATIONS = {
     time_attack_progress_required: "Completa Across the Time para desbloquear TIME ATTACK.",
     badge_across_time_name: "Across the Time",
     badge_across_time_desc: "Completa Across the Time: GlD (EVENT).",
+    // Efecto de la skin Rewamp (tienda)
+    fx_effect_secret_rgb: "RGB Secreto",
+    tower_skin_effect_title: "✨ Efecto de la skin Rewamp",
+    tower_skin_effect_desc: "Elige qué efecto lleva la skin Rewamp de cada familia (en Worker e IEx, su aspecto base). Las skins de efecto de siempre siguen en la categoría Efectos.",
+    tower_skin_effect_active: "Skin equipada",
+    tower_skin_effect_equip_hint: "Al elegir un efecto se equipa {skin}.",
+    tower_skin_effect_base_look: "Aspecto base",
+    // Ataques personalizados del Personalizable Bombot
+    bombot_attack_title: "Ataque personalizado",
+    bombot_attack_intro: "Elige qué lanza el Personalizable Bombot. De momento, los ataques de sus otras skins.",
+    bombot_attack_explodes: "💥 Explota al impactar",
+    bombot_attack_use: "Usar",
+    bombot_attack_in_use: "En uso",
+    bombot_attack_unlock_interstellar: "💎 Supera Interstellar Menace",
+    bombot_attack_unlock_iex: "💣 Usa la familia Bomb Glob más de {limit} veces ({uses}/{limit})",
+    // Ctrl + G
+    gtack_all_activated: "⚡ {count} G-Tacks activadas a la vez.",
+    gtack_all_none: "No hay G-Tacks listas para activar.",
     // Emblemas de Sunlight Seaside: del día (Fácil) a la noche (Anti-Normal).
     badge_sunlight_facil_name: "Amanecer Costero",
     badge_sunlight_facil_desc: "Vence Sunlight Seaside en modo Fácil con los primeros rayos del sol.",
@@ -1024,6 +1042,24 @@ const TRANSLATIONS = {
     time_attack_progress_required: "Complete Across the Time to unlock TIME ATTACK.",
     badge_across_time_name: "Across the Time",
     badge_across_time_desc: "Complete Across the Time: GlD (EVENT).",
+    // Rewamp skin effect (shop)
+    fx_effect_secret_rgb: "Secret RGB",
+    tower_skin_effect_title: "✨ Rewamp skin effect",
+    tower_skin_effect_desc: "Choose the effect for each family's Rewamp skin (Worker and IEx use their base look). The usual effect skins are still in the Effects category.",
+    tower_skin_effect_active: "Skin equipped",
+    tower_skin_effect_equip_hint: "Choosing an effect equips {skin}.",
+    tower_skin_effect_base_look: "Base look",
+    // Personalizable Bombot custom attacks
+    bombot_attack_title: "Custom attack",
+    bombot_attack_intro: "Choose what Personalizable Bombot throws. For now, the attacks of its other skins.",
+    bombot_attack_explodes: "💥 Explodes on impact",
+    bombot_attack_use: "Use",
+    bombot_attack_in_use: "In use",
+    bombot_attack_unlock_interstellar: "💎 Beat Interstellar Menace",
+    bombot_attack_unlock_iex: "💣 Use the Bomb Glob family more than {limit} times ({uses}/{limit})",
+    // Ctrl + G
+    gtack_all_activated: "⚡ {count} G-Tacks activated at once.",
+    gtack_all_none: "No G-Tacks are ready to activate.",
     // Sunlight Seaside badges: from day (Easy) to night (Un-Normal).
     badge_sunlight_facil_name: "Coastal Dawn",
     badge_sunlight_facil_desc: "Win Sunlight Seaside in Easy mode under the first rays of sun.",
