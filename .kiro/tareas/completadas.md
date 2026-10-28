@@ -95,3 +95,23 @@ validación de juego recogida en `pendientes.md`.
 - [x] `FX-09` Shiny Rise es la recompensa del nivel 42 del Pase de Invierno
   (antes 150 DuckPasses), con la etiqueta "Efecto especial" y el borde
   prismático (que antes llevaba Alternativo).
+
+## Pase de Invierno, Bombot y Sandbox (2026-10-28)
+
+- [x] `FX-10` Efectos nuevos del Pase de Invierno (sustituyen niveles de
+  DuckPasses): Sangre (18), Sombra (28), Dorado (33, extra) y Cristalizado
+  (47, brillo pastel cian/rosa/amarillo con destellos; nodo "Efecto especial").
+- [x] `FX-11` El Personalizable Bombot cuenta como Rewamp: pestaña "Efectos" en
+  su personalizador; el efecto se aplica a lo que lleve puesto (cuerpo/reskin +
+  accesorios, canvas con varias capas). También en su imagen de perfil.
+- [x] `FX-12` Sincronizar / Desincronizar el efecto entre la imagen de perfil y
+  la skin de esa familia (`profileEffectSync`), en el perfil, la tienda y el
+  personalizador de Bombot.
+- [x] `VIS-02` Borde Amor Binario con alas azules que aletean.
+- [x] `MODE-01` Modo **Sandbox** (color arena): dinero infinito, la base no
+  cae, sin oleadas, todos los Globs en la barra de 5 en 5 con flechas (cada
+  flecha mueve un puesto), panel para spawnear enemigos (cantidad 1-50) y
+  quitar enemigos. No da recompensas, emblemas ni progreso, no se guarda como
+  partida y solo es individual. Se desbloquea teniéndolo todo (13 familias,
+  todos los emblemas y enmarcados) o siendo OWNER/ADMIN/DEVBUILD; botón debug
+  "Obtener modo Sandbox". Verificado en Chrome headless (file://).

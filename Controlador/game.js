@@ -131,10 +131,32 @@ const RGB_OVERLAY_STYLES = {
   // baja, ruido y parpadeo), solo dentro de la silueta.
   tv: { stripFilter: 'none', periodMs: 0, ink: false, colorKeep: 0, tv: true },
   // Nevado: la imagen nevada con copos de nieve cayendo hacia la skin.
-  snow: { stripFilter: 'none', periodMs: 0, ink: false, colorKeep: 0, snow: true }
-  // Alternate (Alternativo) no es un RGB: es una coloración alterna fija con
-  // filtro CSS (ver .tower.tower-rgb-alternate en styles.css).
+  snow: { stripFilter: 'none', periodMs: 0, ink: false, colorKeep: 0, snow: true },
+  // Cristalizado: brillo RGB solo en cian, rosa y amarillo pastel que recorre
+  // la silueta, con destellos de esos mismos colores.
+  crystalized: {
+    stripFilter: 'none', periodMs: 3200, ink: false, colorKeep: 0, crystal: true, sparkle: true,
+    colors: ['#7fe9ff', '#ffaee0', '#fff1a1', '#7fe9ff'],
+    sparkleColors: ['#c9f7ff', '#ffd2ee', '#fff6c4']
+  }
+  // Alternativo, Sombra, Sangre y Dorado no son RGB: son filtros CSS fijos
+  // (ver .tower.tower-rgb-<efecto> en styles.css).
 };
+// Efecto → capa canvas que lo dibuja. Los que no aparecen aquí son solo un
+// filtro CSS sobre la imagen (CSS_ONLY_EFFECT_IDS).
+const CANVAS_EFFECT_VARIANTS = Object.freeze({
+  'rainbow-fuel': 'fuel',
+  'shiny-rise': 'shiny-rise',
+  crystalized: 'crystalized',
+  monochrome: 'tv',
+  snowy: 'snow'
+});
+const CSS_ONLY_EFFECT_IDS = Object.freeze(['negative', 'alternate', 'shadow', 'blood', 'golden']);
+
+function getEffectCanvasVariant(effectId) {
+  if (effectId === 'rgb' || effectId === 'rgb-rewamp') return 'rgb';
+  return CANVAS_EFFECT_VARIANTS[effectId] || '';
+}
 // El barrido RGB siempre se anima, como antes de Kiro (ver nota en styles.css
 // sobre reduced-motion).
 const RGB_OVERLAY_REDUCED_MOTION = false;
@@ -157,8 +179,9 @@ function buildRgbOverlayStrip(width, height, style) {
   raw.height = height;
   const rawCtx = raw.getContext('2d');
   const gradient = rawCtx.createLinearGradient(0, 0, width * 2, 0);
-  RGB_OVERLAY_COLORS.forEach((color, index) =>
-    gradient.addColorStop(index / (RGB_OVERLAY_COLORS.length - 1), color));
+  const colors = style.colors || RGB_OVERLAY_COLORS;
+  colors.forEach((color, index) =>
+    gradient.addColorStop(index / (colors.length - 1), color));
   rawCtx.fillStyle = gradient;
   rawCtx.fillRect(0, 0, width * 2, height);
   const strip = document.createElement('canvas');
@@ -209,6 +232,10 @@ function drawRgbOverlayFrame(entry, now) {
   }
   if (style.snow) {
     drawSnowfallFrame(entry, now);
+    return;
+  }
+  if (style.crystal) {
+    drawCrystalizedFrame(entry, now);
     return;
   }
   if (style.colorBlend) {
@@ -321,10 +348,37 @@ function drawSnowfallFrame(entry, now) {
   ctx.globalAlpha = 1;
 }
 
+// Cristalizado: la imagen con un barrido pastel (cian, rosa, amarillo) mezclado
+// por color, que conserva luces, sombras y contornos, y destellos pastel.
+function drawCrystalizedFrame(entry, now) {
+  const { ctx, image, strip, width, height, style } = entry;
+  ctx.drawImage(image, 0, 0, width, height);
+  if (!entry.tint) {
+    entry.tint = document.createElement('canvas');
+    entry.tint.width = width;
+    entry.tint.height = height;
+  }
+  const tintCtx = entry.tint.getContext('2d');
+  tintCtx.globalCompositeOperation = 'source-over';
+  tintCtx.clearRect(0, 0, width, height);
+  const phase = RGB_OVERLAY_REDUCED_MOTION ? 0 : (now % style.periodMs) / style.periodMs;
+  const offset = phase * width * 2;
+  tintCtx.drawImage(strip, offset, 0);
+  tintCtx.drawImage(strip, offset - width * 2, 0);
+  tintCtx.globalCompositeOperation = 'destination-in';
+  tintCtx.drawImage(image, 0, 0, width, height);
+  ctx.globalAlpha = 0.85;
+  ctx.globalCompositeOperation = 'color';
+  ctx.drawImage(entry.tint, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  drawShinyRiseShine(entry, now, style.sparkleColors);
+}
+
 // Extras de Shiny Rise, siempre dentro de la silueta (source-atop): una banda
 // de brillo holográfico que la cruza en diagonal y destellos de cuatro puntas
 // que parpadean desfasados.
-function drawShinyRiseShine(entry, now) {
+function drawShinyRiseShine(entry, now, sparkleColors = null) {
   const { ctx, width, height } = entry;
   if (!entry.sparkles) {
     entry.sparkles = Array.from({ length: 5 }, (_, index) => ({
@@ -344,14 +398,14 @@ function drawShinyRiseShine(entry, now) {
   ctx.fillStyle = shine;
   ctx.fillRect(0, 0, width, height);
   const side = Math.min(width, height);
-  entry.sparkles.forEach(sparkle => {
+  entry.sparkles.forEach((sparkle, index) => {
     const glow = (Math.sin(now / 320 + sparkle.phase) + 1) / 2;
     if (glow < 0.3) return;
     const cx = sparkle.x * width;
     const cy = sparkle.y * height;
     const r = sparkle.size * side * (0.6 + glow * 0.6);
     ctx.globalAlpha = glow;
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = sparkleColors ? sparkleColors[index % sparkleColors.length] : '#ffffff';
     ctx.beginPath();
     ctx.moveTo(cx, cy - r);
     ctx.quadraticCurveTo(cx, cy, cx + r, cy);
@@ -383,20 +437,54 @@ function tickRgbOverlays() {
   if (rgbOverlayRegistry.size) rgbOverlayFrame = setTimeout(tickRgbOverlays, 33);
 }
 
+// Clave de una o varias imágenes (varias = capas de fondo a frente, p. ej. el
+// Personalizable Bombot con sus accesorios).
+function getOverlaySourceKey(src) {
+  return Array.isArray(src) ? src.join('|') : (src || '');
+}
+
+// Carga una imagen o varias capas y llama a onLoad con algo dibujable: la
+// imagen, o un canvas con las capas ya apiladas (mismo lienzo para todas).
+function loadOverlaySource(src, onLoad) {
+  const sources = (Array.isArray(src) ? src : [src]).filter(Boolean);
+  if (!sources.length) return;
+  const images = sources.map(() => new Image());
+  let pending = images.length;
+  const done = () => {
+    if (--pending > 0) return;
+    const loaded = images.filter(image => image.naturalWidth);
+    if (!loaded.length) return;
+    if (loaded.length === 1) {
+      onLoad(loaded[0], loaded[0].naturalWidth, loaded[0].naturalHeight);
+      return;
+    }
+    const base = loaded[0];
+    const stack = document.createElement('canvas');
+    stack.width = base.naturalWidth;
+    stack.height = base.naturalHeight;
+    const stackCtx = stack.getContext('2d');
+    loaded.forEach(image => stackCtx.drawImage(image, 0, 0, stack.width, stack.height));
+    onLoad(stack, stack.width, stack.height);
+  };
+  images.forEach((image, index) => {
+    image.onload = done;
+    image.onerror = done;
+    image.src = sources[index];
+  });
+}
+
 function createRgbOverlayCanvas(src, variant, onReady) {
   const style = RGB_OVERLAY_STYLES[variant] || RGB_OVERLAY_STYLES.rgb;
   const canvas = document.createElement('canvas');
-  canvas.className = variant === 'fuel' ? 'rgb-overlay rgb-overlay-fuel'
-    : variant === 'shiny-rise' ? 'rgb-overlay rgb-overlay-shiny-rise' : 'rgb-overlay';
-  canvas.dataset.src = src;
+  canvas.className = variant === 'rgb' ? 'rgb-overlay' : `rgb-overlay rgb-overlay-${variant}`;
+  canvas.dataset.src = getOverlaySourceKey(src);
   canvas.dataset.variant = variant;
   canvas.setAttribute('aria-hidden', 'true');
-  const image = new Image();
-  image.onload = () => {
+  loadOverlaySource(src, (image, naturalWidth, naturalHeight) => {
     const maxSide = 200;
-    const scale = Math.min(1, maxSide / Math.max(image.naturalWidth || 1, image.naturalHeight || 1));
-    const width = Math.max(1, Math.round((image.naturalWidth || 1) * scale));
-    const height = Math.max(1, Math.round((image.naturalHeight || 1) * scale));
+    const scale = Math.min(1, maxSide / Math.max(naturalWidth || 1, naturalHeight || 1));
+    const width = Math.max(1, Math.round((naturalWidth || 1) * scale));
+    const height = Math.max(1, Math.round((naturalHeight || 1) * scale));
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d');
@@ -414,22 +502,23 @@ function createRgbOverlayCanvas(src, variant, onReady) {
     if (RGB_OVERLAY_REDUCED_MOTION || (style.colorBlend && !style.sparkle)) return;
     rgbOverlayRegistry.add(entry);
     if (!rgbOverlayFrame) rgbOverlayFrame = setTimeout(tickRgbOverlays, 33);
-  };
-  image.src = src;
+  });
   return canvas;
 }
 
-// Torres: añade, reutiliza o quita la capa RGB según el efecto activo.
-// variant: 'rgb' | 'fuel' | 'alternate' | '' (sin efecto).
+// Torres: añade, reutiliza o quita la capa canvas según el efecto activo.
+// variant: valores de CANVAS_EFFECT_VARIANTS, 'rgb' o '' (sin capa).
+// src: una imagen o varias capas (de fondo a frente).
 function syncRgbOverlay(host, variant, src) {
   if (!host) return;
   const existing = host.querySelector(':scope > .rgb-overlay');
-  if (!variant || !src) {
+  const sourceKey = getOverlaySourceKey(src);
+  if (!variant || !sourceKey) {
     existing?.remove();
     host.classList.remove('rgb-canvas');
     return;
   }
-  if (existing && existing.dataset.src === src && existing.dataset.variant === variant) {
+  if (existing && existing.dataset.src === sourceKey && existing.dataset.variant === variant) {
     if (existing.classList.contains('ready')) host.classList.add('rgb-canvas');
     return;
   }
@@ -447,17 +536,19 @@ function hydrateRgbOverlays(root) {
   root.querySelectorAll?.(RGB_OVERLAY_HOST_SELECTOR).forEach(host => hosts.push(host));
   hosts.forEach(host => {
     if (host.querySelector(':scope > .rgb-overlay')) return;
-    // Los efectos de filtro (Monochrome, Negativo, Nevado, Alternativo) son solo CSS.
-    // (Lista directa: esto se ejecuta al cargar, antes de PROFILE_FILTER_EFFECT_IDS.)
-    if (['negative', 'alternate'].some(effect => host.classList.contains(effect))) return;
+    // Los efectos que son solo filtro CSS no llevan capa canvas.
+    if (CSS_ONLY_EFFECT_IDS.some(effect => host.classList.contains(effect))) return;
+    // data-rgb-sources: varias capas separadas por "|" (Bombot con accesorios).
+    const sources = host.dataset.rgbSources ? host.dataset.rgbSources.split('|') : null;
     const image = host.querySelector(':scope > img');
-    if (!image?.src) return;
+    if (!sources && !image?.src) return;
+    const classEffect = Object.keys(CANVAS_EFFECT_VARIANTS).find(effect => host.classList.contains(effect));
     const variant = host.dataset.rgbVariant ||
       (host.classList.contains('rainbow-fuel-avatar') ? 'fuel'
-        : host.classList.contains('shiny-rise') ? 'shiny-rise'
-          : host.classList.contains('monochrome') ? 'tv'
-            : host.classList.contains('snowy') ? 'snow' : 'rgb');
-    image.after(createRgbOverlayCanvas(image.src, variant, () => host.classList.add('rgb-canvas')));
+        : classEffect ? CANVAS_EFFECT_VARIANTS[classEffect] : 'rgb');
+    const overlay = createRgbOverlayCanvas(sources || image.src, variant, () => host.classList.add('rgb-canvas'));
+    if (image) image.after(overlay);
+    else host.appendChild(overlay);
   });
 }
 
@@ -494,12 +585,18 @@ const PROFILE_FX_EFFECTS = Object.freeze([
   { id: 'negative', es: 'Negativo', en: 'Negative', source: 'winter' },
   { id: 'snowy', es: 'Nevado', en: 'Snowy', source: 'winter' },
   { id: 'alternate', es: 'Alternativo', en: 'Alternate', source: 'winter' },
-  { id: 'shiny-rise', es: 'Shiny Rise', en: 'Shiny Rise', source: 'winter' }
+  { id: 'shiny-rise', es: 'Shiny Rise', en: 'Shiny Rise', source: 'winter' },
+  { id: 'crystalized', es: 'Cristalizado', en: 'Crystalized', source: 'winter' },
+  { id: 'shadow', es: 'Sombra', en: 'Shadow', source: 'winter' },
+  { id: 'blood', es: 'Sangre', en: 'Blood', source: 'winter' },
+  { id: 'golden', es: 'Dorado', en: 'Golden', source: 'winter' }
 ]);
-// Efectos que se guardan en unlockedRecolors (Pase de Invierno y especiales).
-const RGB_RECOLOR_EFFECT_IDS = Object.freeze(['monochrome', 'negative', 'snowy', 'alternate', 'shiny-rise']);
+// Efectos que se guardan en unlockedRecolors (todos los del Pase de Invierno).
+const RGB_RECOLOR_EFFECT_IDS = Object.freeze([
+  'monochrome', 'negative', 'snowy', 'alternate', 'shiny-rise', 'crystalized', 'shadow', 'blood', 'golden'
+]);
 // Efectos que son solo un filtro CSS sobre la imagen (sin capa canvas).
-const PROFILE_FILTER_EFFECT_IDS = Object.freeze(['monochrome', 'negative', 'snowy', 'alternate']);
+const PROFILE_FILTER_EFFECT_IDS = CSS_ONLY_EFFECT_IDS;
 // Orden de las familias en los apartados de efectos (selector de la tienda y
 // categoría "✨ Efectos"): Verde, Rojo, Ducky, Soap, Comet, Old, Worker, Bomb.
 const FX_FAMILY_ORDER = Object.freeze(['Glob', 'Red_Glob', 'Ducky_Glob', 'Soap_Glob', 'Comet_Glob', 'Grey', 'Worker_Glob', 'IEx']);
@@ -566,22 +663,43 @@ function isFxSkinUnlocked(skin) {
 // Worker e IEx, que no tienen Rewamp, se aplica a su aspecto base). Solo se
 // ofrece con la skin original desbloqueada y cada efecto con su desbloqueo.
 // Orden de los efectos en los selectores (tras Original y RGB Secreto).
-const REWAMP_FX_EFFECT_ORDER = Object.freeze(['rainbow-fuel', 'negative', 'monochrome', 'snowy', 'alternate', 'shiny-rise']);
+const REWAMP_FX_EFFECT_ORDER = Object.freeze([
+  'rainbow-fuel', 'negative', 'monochrome', 'snowy', 'alternate', 'blood', 'shadow', 'golden', 'shiny-rise', 'crystalized'
+]);
 const TOWER_SKIN_EFFECT_IDS = Object.freeze(['original', 'rgb', ...REWAMP_FX_EFFECT_ORDER]);
 
 // Skin sobre la que se aplica el efecto elegido: la Rewamp de la familia, o
 // 'default' en familias con skin RGB pero sin Rewamp (Worker e IEx).
+// El Personalizable Bombot (familia 'Special') cuenta como Rewamp: sus efectos
+// se aplican a lo que lleve puesto (cuerpo/reskin + accesorios).
+const BOMBOT_EFFECT_FAMILY = 'Special';
+
 function getTowerEffectHostSkinId(family) {
+  if (family === BOMBOT_EFFECT_FAMILY) return PERSONALIZABLE_BOMBOT_SKIN_ID;
   if (!getFamilyRgbSkin(family)) return null;
   return getFamilyRewampBaseSkin(family)?.id || 'default';
 }
 
+// Tipos de torre a los que se aplica el efecto de la familia.
+function getTowerEffectTypes(family) {
+  if (family === BOMBOT_EFFECT_FAMILY) return ['Work_Bombot'];
+  return getFamilyRgbSkin(family)?.rgbTypes || [];
+}
+
 function getTowerSkinEffectOptions(family) {
-  if (!getTowerEffectHostSkinId(family) || !isFamilyRewampBaseUnlocked(family)) return [];
+  if (!getTowerEffectHostSkinId(family)) return [];
+  const isBombot = family === BOMBOT_EFFECT_FAMILY;
+  const baseUnlocked = isBombot
+    ? gameState.debugState === 'unlocked' || gameState.unlockedSkins?.includes(PERSONALIZABLE_BOMBOT_SKIN_ID)
+    : isFamilyRewampBaseUnlocked(family);
+  if (!baseUnlocked) return [];
   const options = ['original'];
-  if (gameState.debugState === 'unlocked' || isProfileRgbRewampUnlocked(getFamilyRgbSkin(family))) {
-    options.push('rgb');
-  }
+  // RGB Secreto: con la skin RGB de la familia (en Bombot, con la misma
+  // condición: reunir todas las imágenes de perfil).
+  const rgbUnlocked = gameState.debugState === 'unlocked' || (isBombot
+    ? hasUnlockedAllProfileImages()
+    : isProfileRgbRewampUnlocked(getFamilyRgbSkin(family)));
+  if (rgbUnlocked) options.push('rgb');
   REWAMP_FX_EFFECT_ORDER.forEach(effectId => {
     if (isFxEffectUnlockedForFamily(effectId, family)) options.push(effectId);
   });
@@ -596,7 +714,7 @@ function getTowerSkinEffect(family, type) {
   if (!chosen || chosen === 'original') return '';
   const hostSkinId = getTowerEffectHostSkinId(family);
   if (!hostSkinId || (gameState.equippedSkins?.[family] || 'default') !== hostSkinId) return '';
-  if (!getFamilyRgbSkin(family)?.rgbTypes?.includes(type)) return '';
+  if (!getTowerEffectTypes(family).includes(type)) return '';
   return getTowerSkinEffectOptions(family).includes(chosen) ? chosen : '';
 }
 
@@ -613,6 +731,8 @@ window.setTowerSkinEffect = function(family, effectId) {
   }
   if (!getTowerSkinEffectOptions(family).includes(effectId)) return;
   gameState.towerSkinEffects = { ...(gameState.towerSkinEffects || {}), [family]: effectId };
+  // Sincronizado: la imagen de perfil de esa familia toma el mismo efecto.
+  syncEffectToProfile(family, effectId);
   const hostSkinId = getTowerEffectHostSkinId(family);
   // Elegir un efecto equipa la skin a la que pertenece (equipSkin redibuja,
   // repinta las torres y guarda).
@@ -631,8 +751,9 @@ window.setTowerSkinEffect = function(family, effectId) {
 // Panel de la tienda (pestaña Skins): una fila por familia con un botón por
 // efecto; cada botón muestra la propia skin con ese efecto.
 function renderTowerSkinEffectPanel(container) {
+  // El Personalizable Bombot tiene su propia pestaña de efectos en su personalizador.
   const families = Object.keys(SKINS_DATA)
-    .filter(family => getTowerSkinEffectOptions(family).length > 1)
+    .filter(family => family !== BOMBOT_EFFECT_FAMILY && getTowerSkinEffectOptions(family).length > 1)
     .sort(compareFxFamilies);
   if (!families.length) return;
   const panel = document.createElement('section');
@@ -671,6 +792,7 @@ function renderTowerSkinEffectPanel(container) {
   panel.innerHTML = `
     <h3>${translate('tower_skin_effect_title')}</h3>
     <p>${translate('tower_skin_effect_desc')}</p>
+    ${getEffectSyncToggleMarkup()}
     ${rows}`;
   container.appendChild(panel);
 }
@@ -747,6 +869,8 @@ function getProfileAvatarVisualEffect(avatar, applyRgbEffect = false) {
 function getProfileAvatarEffectOptions(avatar) {
   const family = avatar?.rewampFamily;
   if (!family) return [];
+  // Personalizable Bombot: los mismos efectos que su pestaña de la tienda.
+  if (family === BOMBOT_EFFECT_FAMILY) return getTowerSkinEffectOptions(BOMBOT_EFFECT_FAMILY);
   const type = /^glob:([^:]+):/.exec(avatar.id || '')?.[1];
   const options = ['original'];
   if (gameState.debugState === 'unlocked' ||
@@ -972,6 +1096,12 @@ function createProfileAvatarImage(avatar, size, alt = '', visualEffect = '') {
       layers.appendChild(layer);
     });
     if (effect) layers.style.setProperty(maskProperty, `url("${imageUrl}")`);
+    // Capa canvas con todas las capas (cuerpo + accesorios), de fondo a frente.
+    if (effect && getEffectCanvasVariant(effect)) {
+      // avatar.layers va de delante hacia atrás: se invierte para apilar.
+      layers.dataset.rgbSources = [imageUrl, ...avatar.layers.map(getSafeProfileImageUrl).reverse()]
+        .map(getAbsoluteAssetUrl).join('|');
+    }
     return layers;
   }
   const image = document.createElement('img');
@@ -2351,6 +2481,9 @@ let gameState = {
   unlockedRecolors: [],      // efectos del Pase de Invierno desbloqueados (monochrome, negative, snowy, alternate)
   profileAvatarEffect: '',   // efecto elegido para la imagen Rewamp/RGB del perfil ('' = el de la imagen)
   towerSkinEffects: {},      // efecto elegido para la skin Rewamp de cada familia ({ familia: efecto })
+  profileEffectSync: false,  // true: el efecto de la imagen de perfil y el de la skin van sincronizados
+  unlockedSandbox: false,    // modo Sandbox desbloqueado (tenerlo todo); staff lo tiene siempre
+  sandboxTowerOffset: 0,     // primer Glob visible en la barra del Sandbox
   unlockedBombotAttacks: [], // ataques del Personalizable Bombot comprados
   equippedBombotAttack: 'default',
   iexFamilyUses: 0,          // veces que se ha usado (detonado) la familia Bomb Glob
@@ -2705,6 +2838,19 @@ function getBombotBodyImage(baseImage, accessories = gameState.equippedBombotAcc
   return (reskinId && getBombotAccessoryImage(reskinId)) || baseImage;
 }
 
+// Imágenes del Personalizable Bombot de fondo a frente (cuerpo/reskin y luego
+// accesorios), en URL absoluta. Las usan las capas canvas de los efectos para
+// pintar el Bombot completo con lo que lleve puesto.
+function getBombotCompositeSources(baseImage, accessories = gameState.equippedBombotAccessories) {
+  const layers = getBombotAccessoryLayerIds(accessories, false)
+    .map(getBombotAccessoryImage)
+    .filter(Boolean)
+    .reverse();
+  return [getBombotBodyImage(baseImage, accessories), ...layers]
+    .filter(Boolean)
+    .map(getAbsoluteAssetUrl);
+}
+
 function getBombotRenderBackground(baseImage, accessories = gameState.equippedBombotAccessories) {
   const layers = getBombotAccessoryLayerIds(accessories, false)
     .map(getBombotAccessoryImage)
@@ -2985,6 +3131,10 @@ function getTowerPlacementLimits(type) {
       'Comet_Glob': 3, 'Old_Glob': 2, 'Work_Bombot': 1, 'White': 1, 'Pink': 1, 'IEx': 1, 'Worker_Glob': 2
     };
     matchLimit = Math.max(matchLimit, defaultLimits[type] || 3) + 2;
+  }
+
+  if (gameState.mode === 'sandbox' && !multiplayerEnabled) {
+    return { perPlayerLimit: SANDBOX_TOWER_LIMIT, sharedLimit: SANDBOX_TOWER_LIMIT };
   }
 
   if (!multiplayerEnabled) {
@@ -3446,6 +3596,8 @@ function saveProgress() {
     unlockedRecolors: gameState.unlockedRecolors,
     profileAvatarEffect: gameState.profileAvatarEffect || '',
     towerSkinEffects: gameState.towerSkinEffects || {},
+    profileEffectSync: Boolean(gameState.profileEffectSync),
+    unlockedSandbox: Boolean(gameState.unlockedSandbox),
     unlockedBombotAttacks: gameState.unlockedBombotAttacks || [],
     equippedBombotAttack: gameState.equippedBombotAttack || 'default',
     iexFamilyUses: Number(gameState.iexFamilyUses) || 0
@@ -3650,6 +3802,8 @@ function loadProgress(username, allowLocalProgress = true) {
           }
         });
       }
+      gameState.profileEffectSync = progress.profileEffectSync === true;
+      gameState.unlockedSandbox = progress.unlockedSandbox === true;
       // Ataques del Personalizable Bombot. Los usos de la familia Bomb Glob se
       // recuperan también de las colocaciones guardadas antes de este contador.
       gameState.unlockedBombotAttacks = Array.isArray(progress.unlockedBombotAttacks)
@@ -5017,7 +5171,8 @@ function getModeDisplayName(mode) {
     infinito: ['Infinito', 'Infinite'],
     corrupto: ['Corrupto', 'Corrupted'],
     antiNormal: ['Anti-Normal', 'Anti-Normal'],
-    interstellar: ['Interstellar', 'Interstellar']
+    interstellar: ['Interstellar', 'Interstellar'],
+    sandbox: ['Sandbox', 'Sandbox']
   };
   const names = modeNames[mode];
   return names ? names[currentLanguage === 'en' ? 1 : 0] : mode;
@@ -5269,6 +5424,24 @@ function showModeSelection() {
       btn.textContent = translate('across_time_mode_name');
       btn.title = translate('across_time_mode_desc');
       btn.onclick = () => selectMode('acrossTheTime');
+      grid.appendChild(btn);
+    }
+
+    // Sandbox: visible siempre; bloqueado hasta tenerlo todo (o ser staff).
+    {
+      const btn = document.createElement('button');
+      const unlocked = isSandboxUnlocked();
+      btn.className = `mode-btn dynamic-mode mode-btn-sandbox${unlocked ? '' : ' is-locked'}`;
+      btn.dataset.mode = SANDBOX_MODE;
+      btn.textContent = `${translate('sandbox_mode_name')}${unlocked ? '' : ' 🔒'}`;
+      btn.title = translate(unlocked ? 'sandbox_mode_desc' : 'sandbox_mode_locked');
+      btn.onclick = () => {
+        if (!isSandboxUnlocked()) {
+          showMessage(translate('sandbox_mode_locked'), 'warning');
+          return;
+        }
+        selectMode(SANDBOX_MODE);
+      };
       grid.appendChild(btn);
     }
 
@@ -6046,6 +6219,17 @@ function selectMode(mode) {
     showMessage(translate('tutorial_solo_required'), 'warning');
     return;
   }
+  if (mode === SANDBOX_MODE) {
+    if (!isSandboxUnlocked()) {
+      showMessage(translate('sandbox_mode_locked'), 'warning');
+      return;
+    }
+    // Es un modo de pruebas en solitario (sin sincronizar con otros jugadores).
+    if (multiplayerEnabled || currentSeed) {
+      showMessage(translate('sandbox_solo_required'), 'warning');
+      return;
+    }
+  }
   if (mode === 'timeAttack') {
     beginTimeAttackReplay();
     return;
@@ -6086,7 +6270,7 @@ function selectMode(mode) {
   gameState.mode = mode;
   updateBuffs();
   gameState.modeConfirmed = true;
-  const limits = { tutorial: 5, facil: 10, normal: 15, dificil: 25, extremo: 40, infinito: 999, corrupto: 40, antiNormal: 35, interstellar: 40 };
+  const limits = { tutorial: 5, facil: 10, normal: 15, dificil: 25, extremo: 40, infinito: 999, corrupto: 40, antiNormal: 35, interstellar: 40, sandbox: 999 };
   gameState.maxWaves = limits[mode] || 15;
 
   if (gameState.blockQuestActive && gameState.map === 'urbanistic_road' && ['dificil', 'extremo', 'corrupto', 'antiNormal'].includes(mode)) {
@@ -6112,10 +6296,17 @@ function selectMode(mode) {
   renderMultiplayerPlayerList(multiplayerPlayers);
   applyScale();
 
-  gameState.globetines = mode === 'tutorial' ? 650 : 500;
+  gameState.globetines = mode === SANDBOX_MODE ? SANDBOX_MONEY : mode === 'tutorial' ? 650 : 500;
+  if (mode === SANDBOX_MODE) {
+    gameState.autoWave = false;
+    document.getElementById('auto-wave')?.classList.remove('active');
+    gameState.sandboxTowerOffset = 0;
+    drawTowerShop();
+  }
   if (mode !== 'tutorial') setTutorialStage(null);
   updateUI();
   showMessage(translate('mode_selected', { mode: mode.toUpperCase() }), 'info');
+  if (mode === SANDBOX_MODE) showMessage(translate('sandbox_welcome'), 'info');
 
   setTimeout(() => {
     if (gameState.mode === 'tutorial') return;
@@ -6997,6 +7188,121 @@ function isOwnerDebugUser() {
   return role === 'OWNER' || role === 'DEVBUILD';
 }
 
+// ===================== MODO SANDBOX =====================
+// Modo de pruebas: dinero infinito, la base no cae, sin oleadas (los enemigos
+// se spawnean desde su panel) y todos los Globs en la barra, en grupos de 5
+// que se desplazan de uno en uno con flechas. No da recompensas ni emblemas.
+// Se consigue teniéndolo todo (familias de Globs, emblemas y enmarcados) o
+// siendo OWNER / ADMIN / DEVBUILD.
+const SANDBOX_MODE = 'sandbox';
+const SANDBOX_MONEY = 999999;
+const SANDBOX_TOWER_WINDOW = 5;
+const SANDBOX_TOWER_LIMIT = 99;
+const SANDBOX_MAX_SPAWN = 50;
+const SANDBOX_STAFF_ROLES = ['OWNER', 'ADMIN', 'DEVBUILD'];
+// Familias que cuentan para "tenerlo todo".
+const SANDBOX_REQUIRED_FAMILIES = [
+  'Glob', 'Red_Glob', 'Soap_Glob', 'Ducky_Glob', 'Comet_Glob', 'Grey', 'Brown', 'Special',
+  'Worker_Glob', 'White', 'Pink', 'IEx', 'Pirate_Glob'
+];
+
+function isSandboxMode() {
+  return gameState.mode === SANDBOX_MODE;
+}
+
+function isSandboxStaffUser() {
+  return SANDBOX_STAFF_ROLES.includes(getSessionUserRole());
+}
+
+function hasCompletedEverythingForSandbox() {
+  const allFamilies = SANDBOX_REQUIRED_FAMILIES.every(isTowerOwned);
+  const allBadges = Object.values(BADGES).every(badge => badge.unlocked);
+  return allFamilies && allBadges && hasUnlockedAllProfileFrames();
+}
+
+function isSandboxUnlocked() {
+  return Boolean(gameState.unlockedSandbox) || isSandboxStaffUser() || gameState.debugState === 'unlocked';
+}
+
+// Se comprueba al ganar emblemas, enmarcar enemigos y desbloquear familias.
+function checkSandboxUnlock() {
+  if (gameState.unlockedSandbox || isSandboxMode()) return false;
+  if (!hasCompletedEverythingForSandbox()) return false;
+  gameState.unlockedSandbox = true;
+  showMessage(translate('sandbox_unlocked_notice'), 'success');
+  saveProgress();
+  return true;
+}
+
+// Panel de enemigos del Sandbox y clase del body (oculta los botones de oleada).
+function updateSandboxUI() {
+  const active = isSandboxMode() && gameState.modeConfirmed && !gameState.gameOver;
+  document.body.classList.toggle('sandbox-mode', active);
+  const panel = document.getElementById('sandbox-panel');
+  if (panel) panel.hidden = !active;
+}
+
+function sandboxSpawnEnemies(type, amount) {
+  if (!isSandboxMode() || !ENEMY_TYPES[type]) return;
+  const count = Math.max(1, Math.min(SANDBOX_MAX_SPAWN, Math.floor(Number(amount) || 1)));
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      if (isSandboxMode() && !gameState.gameOver) spawnEnemy(type);
+    }, i * 250);
+  }
+}
+
+function sandboxClearEnemies() {
+  gameState.enemies.forEach(enemy => enemy.el?.remove());
+  gameState.enemies = [];
+  gameState.projectiles.filter(p => p.isEnemy).forEach(p => p.el?.remove());
+  gameState.projectiles = gameState.projectiles.filter(p => !p.isEnemy);
+  updateUI();
+}
+
+function setupSandboxTools() {
+  const search = document.getElementById('sandbox-enemy-search');
+  const results = document.getElementById('sandbox-enemy-results');
+  const spawnButton = document.getElementById('sandbox-spawn');
+  const amountInput = document.getElementById('sandbox-spawn-amount');
+  const clearButton = document.getElementById('sandbox-clear');
+  const toggleButton = document.getElementById('sandbox-panel-toggle');
+  const panel = document.getElementById('sandbox-panel');
+  if (!search || !results || !spawnButton) return;
+  let selected = null;
+  const render = () => {
+    const query = search.value;
+    const list = Object.entries(ENEMY_TYPES)
+      .map(([id, enemy]) => ({
+        id,
+        image: enemy.image,
+        label: translate(enemy.name || `enemy_${id}_name`) || id,
+        score: debugSearchScore(query, getEnemyDebugAliases(id, enemy))
+      }))
+      .filter(result => result.score > 0)
+      .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+    renderDebugSearchResults(results, list, result => {
+      selected = result;
+      spawnButton.disabled = false;
+      render();
+    }, selected && selected.id);
+  };
+  search.addEventListener('input', render);
+  spawnButton.addEventListener('click', () => {
+    if (!selected) return;
+    sandboxSpawnEnemies(selected.id, amountInput?.value);
+    showMessage(translate('debug_enemy_spawned', { name: selected.label }), 'info');
+  });
+  clearButton?.addEventListener('click', sandboxClearEnemies);
+  toggleButton?.addEventListener('click', () => {
+    const collapsed = panel.classList.toggle('collapsed');
+    toggleButton.setAttribute('aria-expanded', String(!collapsed));
+    toggleButton.textContent = collapsed ? '▸' : '▾';
+  });
+  render();
+  window.refreshSandboxLanguage = render;
+}
+
 function ownerUnlockEverything() {
   Object.keys(TOWER_TYPES).forEach(type => { TOWER_TYPES[type].unlocked = true; });
   gameState.rainbowFuelUnlocked = [...new Set([
@@ -7030,6 +7336,7 @@ function ownerUnlockEverything() {
   };
   gameState.unlockedInfinite = true;
   gameState.unlockedInterstellar = true;
+  gameState.unlockedSandbox = true;
   gameState.duckPassLevel = Math.max(gameState.duckPassLevel, 100);
   const profileFamilies = getProfileGlobFamilies().map(({ family }) => family);
   gameState.maxedFamilies = [...new Set([...(gameState.maxedFamilies || []), ...profileFamilies])];
@@ -7405,6 +7712,7 @@ function setupOwnerDebugTools() {
   window.refreshOwnerDebugLanguage = () => {
     searchEnemies();
     searchSpeakers();
+    window.refreshSandboxLanguage?.();
   };
 }
 
@@ -7562,7 +7870,33 @@ function drawTowerShop() {
   const equippedTowerTypes = gameState.mode === 'tutorial' && gameState.tutorialStage !== 'waves'
     ? ['Glob', 'Red_Glob']
     : (gameState.equippedTowers || ['Glob', 'Red_Glob']);
-  const shopTowers = equippedTowerTypes.map(t => allShopTowers[t]).filter(Boolean);
+  let shopTowers = equippedTowerTypes.map(t => allShopTowers[t]).filter(Boolean);
+
+  // Sandbox: todos los Globs, de 5 en 5. Cada flecha desplaza la ventana un
+  // puesto y da la vuelta al llegar al final.
+  let sandboxNextArrow = null;
+  if (isSandboxMode()) {
+    const allTowers = Object.values(allShopTowers).map(item => ({ ...item, unlocked: true }));
+    const visibleCount = Math.min(SANDBOX_TOWER_WINDOW, allTowers.length);
+    const offset = (((gameState.sandboxTowerOffset || 0) % allTowers.length) + allTowers.length) % allTowers.length;
+    shopTowers = Array.from({ length: visibleCount }, (_, index) => allTowers[(offset + index) % allTowers.length]);
+    const makeArrow = (direction) => {
+      const arrow = document.createElement('button');
+      arrow.type = 'button';
+      arrow.className = 'sandbox-tower-arrow';
+      arrow.textContent = direction < 0 ? '◀' : '▶';
+      arrow.setAttribute('aria-label', translate(direction < 0 ? 'sandbox_prev_globs' : 'sandbox_next_globs'));
+      arrow.title = arrow.getAttribute('aria-label');
+      arrow.onclick = event => {
+        event.stopPropagation();
+        gameState.sandboxTowerOffset = offset + direction;
+        drawTowerShop();
+      };
+      return arrow;
+    };
+    shopContainer.appendChild(makeArrow(-1));
+    sandboxNextArrow = makeArrow(1);
+  }
 
   shopTowers.forEach(item => {
     const type = item.type;
@@ -7639,8 +7973,7 @@ function drawTowerShop() {
 
     shopContainer.appendChild(btn);
   });
-
-
+  if (sandboxNextArrow) shopContainer.appendChild(sandboxNextArrow);
 }
 
 function getBadgeColorGroup(badge) {
@@ -7708,12 +8041,15 @@ function drawBadges() {
 
 function unlockBadge(key) {
   if (multiplayerSpectator) return;
+  // El Sandbox es solo para probar: no da emblemas.
+  if (isSandboxMode()) return;
   if (BADGES[key] && !BADGES[key].unlocked) {
     BADGES[key].unlocked = true;
     saveProgress();
     drawBadges();
     showBadgePopup(BADGES[key]);
     publishMultiplayerProfile();
+    checkSandboxUnlock();
   }
 }
 
@@ -9208,6 +9544,14 @@ function bindEvents() {
     if (document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
     showMessage(translate('debug_everything_unlocked_notice'), 'success');
   });
+  // OWNER DEBUG: modo Sandbox gratis.
+  document.getElementById('debug-grant-sandbox')?.addEventListener('click', () => {
+    if (!isOwnerDebugUser()) return;
+    gameState.unlockedSandbox = true;
+    saveProgress();
+    if (document.getElementById('mode-selection')?.style.display === 'flex') showModeSelection();
+    showMessage(translate('sandbox_unlocked_notice'), 'success');
+  });
   // OWNER DEBUG: desbloquea todas las recompensas navideñas de una vez
   // (Calendario de Adviento completo + todo el Pase de Invierno).
   document.getElementById('debug-grant-christmas')?.addEventListener('click', () => {
@@ -9250,6 +9594,7 @@ function bindEvents() {
     );
   });
   setupOwnerDebugTools();
+  setupSandboxTools();
 
   const shopBtn = document.getElementById('open-shop');
   if (shopBtn) shopBtn.onclick = () => { if (typeof openShop === 'function') openShop(); };
@@ -9533,7 +9878,7 @@ const WINTER_PASS_REWARDS = [
   { level: 15, reward: { type: 'skin', id: 'rewamped_gray_set' } },
   { level: 16, reward: { type: 'skin', id: 'toy_glomb_set' } },
   { level: 17, reward: { type: 'duckpass', amount: 80 } },
-  { level: 18, reward: { type: 'duckpass', amount: 80 } },
+  { level: 18, reward: { type: 'recolor', id: 'blood' } },
   { level: 19, reward: { type: 'duckpass', amount: 80 } },
   { level: 20, reward: { type: 'accessory', id: 'furnace_bombot_reskin' } },
   { level: 21, reward: { type: 'duckpass', amount: 90 } },
@@ -9543,12 +9888,12 @@ const WINTER_PASS_REWARDS = [
   { level: 25, reward: { type: 'recolor', id: 'negative' } },
   { level: 26, reward: { type: 'duckpass', amount: 100 } },
   { level: 27, reward: { type: 'duckpass', amount: 100 } },
-  { level: 28, reward: { type: 'duckpass', amount: 110 } },
+  { level: 28, reward: { type: 'recolor', id: 'shadow' } },
   { level: 29, reward: { type: 'duckpass', amount: 110 } },
   { level: 30, reward: { type: 'accessory', id: 'golderous_spoon' } },
   { level: 31, reward: { type: 'duckpass', amount: 110 } },
   { level: 32, reward: { type: 'duckpass', amount: 120 } },
-  { level: 33, reward: { type: 'duckpass', amount: 120 } },
+  { level: 33, reward: { type: 'recolor', id: 'golden' } },
   { level: 34, reward: { type: 'duckpass', amount: 120 } },
   { level: 35, reward: { type: 'recolor', id: 'snowy' } },
   { level: 36, reward: { type: 'duckpass', amount: 130 } },
@@ -9562,7 +9907,7 @@ const WINTER_PASS_REWARDS = [
   { level: 44, reward: { type: 'duckpass', amount: 160 } },
   { level: 45, reward: { type: 'duckpass', amount: 180 } },
   { level: 46, reward: { type: 'duckpass', amount: 180 } },
-  { level: 47, reward: { type: 'duckpass', amount: 200 } },
+  { level: 47, reward: { type: 'recolor', id: 'crystalized' } },
   { level: 48, reward: { type: 'duckpass', amount: 220 } },
   { level: 49, reward: { type: 'duckpass', amount: 250 } },
   { level: 50, reward: { type: 'duckpass', amount: 300 } }
@@ -9972,7 +10317,7 @@ function getPassRewardVisualMarkup(r) {
     // Vista previa real: el Glob Rewamp con el efecto que se gana.
     const previewImage = SKINS_DATA.Glob?.find(skin => skin.id === 'rewamped_green_set')?.skins?.Glob || IMAGE_PATHS.Glob;
     const preview = getProfileAvatarImageMarkup({ id: `winter-pass:${r.id}`, image: previewImage, label: recolorName, rgb: true, effect: r.id });
-    const isSpecial = r.id === 'shiny-rise';
+    const isSpecial = r.id === 'shiny-rise' || r.id === 'crystalized';
     const specialTag = isSpecial
       ? `<div class="winter-pass-final-tag">✨ ${es ? 'Efecto especial' : 'Special effect'}</div>`
       : '';
@@ -10047,7 +10392,7 @@ function drawWinterPass() {
     el.className = `pass-node ${reached ? 'unlocked' : 'locked'}`;
     const r = entry.reward;
     const rewardLabel = getPassRewardVisualMarkup(r);
-    if (r.type === 'recolor' && r.id === 'shiny-rise') el.classList.add('winter-pass-alternate-node');
+    if (r.type === 'recolor' && ['shiny-rise', 'crystalized'].includes(r.id)) el.classList.add('winter-pass-alternate-node');
     let btnHTML;
     if (isClaimed) {
       btnHTML = `<button class="meta-buy-btn" disabled>${currentLanguage === 'es' ? 'Reclamado' : 'Claimed'}</button>`;
@@ -10781,7 +11126,10 @@ function getProfileAvatarChoices() {
         id: 'special:personalizable-bombot',
         label: currentLanguage === 'en' ? 'Personalizable Bombot' : 'Bombot personalizable',
         image: getBombotBodyImage(bombotImage),
-        layers: getBombotAccessoryLayerIds(undefined, false).map(getBombotAccessoryImage).filter(Boolean)
+        layers: getBombotAccessoryLayerIds(undefined, false).map(getBombotAccessoryImage).filter(Boolean),
+        // Cuenta como Rewamp: puede llevar los mismos efectos que su skin.
+        rewampFamily: BOMBOT_EFFECT_FAMILY,
+        defaultEffect: 'original'
       });
     }
   }
@@ -11214,6 +11562,7 @@ function getProfileAvatarEffectPickerMarkup(avatar, selectedEffect) {
   if (options.length < 2) return '';
   return `
     <h3 class="profile-avatar-section-title">${currentLanguage === 'en' ? 'Image effect' : 'Efecto de la imagen'}</h3>
+    ${getEffectSyncToggleMarkup()}
     <div class="profile-choice-grid profile-effect-picker">
       ${options.map(effectId => `
         <button class="profile-choice ${effectId === selectedEffect ? 'selected' : ''}" type="button"
@@ -11227,10 +11576,62 @@ window.setProfileAvatarEffect = function(effectId) {
   const avatar = getProfileAvatarById(gameState.profileAvatar);
   if (!getProfileAvatarEffectOptions(avatar).includes(effectId)) return;
   gameState.profileAvatarEffect = effectId;
+  // Sincronizado: el mismo efecto pasa a la skin de esa familia.
+  syncEffectToSkins(avatar.rewampFamily, effectId);
   saveProgress();
   drawUserProfile();
   if (isOfflineSession() || !currentSeed) renderMultiplayerPlayerList([]);
   publishMultiplayerProfile();
+};
+
+// --- Sincronizar efecto entre la imagen de perfil y las skins --------------
+// Sincronizar: el efecto elegido en la imagen de perfil se aplica también a la
+// skin de esa familia (Rewamp, aspecto base o Personalizable Bombot), y al
+// revés. Desincronizar: cada uno lleva su propio efecto.
+function getEffectSyncToggleMarkup() {
+  const synced = Boolean(gameState.profileEffectSync);
+  return `
+    <div class="effect-sync-toggle" role="group" aria-label="${translate('effect_sync_label')}">
+      <button type="button" class="${synced ? 'selected' : ''}" aria-pressed="${synced}"
+        onclick="setProfileEffectSync(true)">🔗 ${translate('effect_sync_on')}</button>
+      <button type="button" class="${synced ? '' : 'selected'}" aria-pressed="${!synced}"
+        onclick="setProfileEffectSync(false)">⛓️‍💥 ${translate('effect_sync_off')}</button>
+      <small>${translate(synced ? 'effect_sync_on_hint' : 'effect_sync_off_hint')}</small>
+    </div>`;
+}
+
+function syncEffectToSkins(family, effectId) {
+  if (!gameState.profileEffectSync || !family || !effectId) return false;
+  if (!getTowerSkinEffectOptions(family).includes(effectId)) return false;
+  gameState.towerSkinEffects = { ...(gameState.towerSkinEffects || {}), [family]: effectId };
+  gameState.towers.forEach(tower => {
+    if (tower.family === family) applyTowerEffects(tower.el, tower.type);
+  });
+  return true;
+}
+
+function syncEffectToProfile(family, effectId) {
+  if (!gameState.profileEffectSync || !family || !effectId) return false;
+  const avatar = getProfileAvatarById(gameState.profileAvatar);
+  if (avatar?.rewampFamily !== family) return false;
+  if (!getProfileAvatarEffectOptions(avatar).includes(effectId)) return false;
+  gameState.profileAvatarEffect = effectId;
+  if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+  publishMultiplayerProfile();
+  return true;
+}
+
+window.setProfileEffectSync = function(enabled) {
+  gameState.profileEffectSync = Boolean(enabled);
+  // Al sincronizar, la skin toma el efecto que lleva ahora la imagen de perfil.
+  if (gameState.profileEffectSync) {
+    const avatar = getProfileAvatarById(gameState.profileAvatar);
+    const effectId = avatar && getSelectedProfileAvatarEffect(avatar);
+    syncEffectToSkins(avatar?.rewampFamily, effectId);
+  }
+  saveProgress();
+  if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+  if (currentShopTab === 'skins' && document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
 };
 
 // Imágenes normales y RGB. Los efectos no repiten imágenes: se eligen en el
@@ -11270,7 +11671,12 @@ function getProfileAvatarImageMarkup(avatar, applyRgbEffect = false) {
     const layers = avatar.layers
       .map(layer => `<img src="${encodeURI(layer)}" alt="">`)
       .join('');
-    return `<span class="profile-avatar-layers${rgb ? ` ${visualClass}${variantClass}` : ''}"${visualStyle}><img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">${layers}</span>`;
+    // Capa canvas con todas las capas (cuerpo + accesorios), de fondo a frente.
+    const canvasEffect = rgb && getEffectCanvasVariant(isRainbowFuel ? 'rainbow-fuel' : effect);
+    const sourcesAttr = canvasEffect
+      ? ` data-rgb-sources="${[avatar.image, ...[...avatar.layers].reverse()].map(getAbsoluteAssetUrl).join('|')}"`
+      : '';
+    return `<span class="profile-avatar-layers${rgb ? ` ${visualClass}${variantClass}` : ''}"${visualStyle}${sourcesAttr}><img src="${imageUrl}" alt="${rgb ? '' : avatar.label}">${layers}</span>`;
   }
   if (isGodsShadow) {
     // El filtro brightness(0) ennegrece todo el elemento, fondo incluido. El
@@ -11286,10 +11692,7 @@ function getProfileAvatarImageMarkup(avatar, applyRgbEffect = false) {
 // Clases/atributos de la miniatura de una skin en la tienda según su efecto.
 function getSkinPreviewFx(skin, previewImg) {
   if (skin?.fxEffect) {
-    const canvasVariant = skin.fxEffect === 'rainbow-fuel' ? 'fuel'
-      : skin.fxEffect === 'shiny-rise' ? 'shiny-rise'
-        : skin.fxEffect === 'monochrome' ? 'tv'
-          : skin.fxEffect === 'snowy' ? 'snow' : '';
+    const canvasVariant = getEffectCanvasVariant(skin.fxEffect);
     return {
       className: canvasVariant ? `rgb-fx-preview fx-${skin.fxEffect}` : `fx-${skin.fxEffect}`,
       attrs: canvasVariant ? ` data-rgb-variant="${canvasVariant}"` : '',
@@ -11535,6 +11938,47 @@ function equipBombotAttack(id) {
   equipSkin('Special', PERSONALIZABLE_BOMBOT_SKIN_ID);
 }
 
+// Vista previa del Personalizable Bombot tal como va equipado, con un efecto.
+function getBombotEffectPreviewMarkup(effectId) {
+  const baseImage = SKINS_DATA.Special?.find(skin => skin.id === PERSONALIZABLE_BOMBOT_SKIN_ID)?.skins?.Work_Bombot ||
+    IMAGE_PATHS.Work_Bombot;
+  const sources = getBombotCompositeSources(baseImage);
+  const variant = effectId === 'original' ? '' : getEffectCanvasVariant(effectId);
+  const classes = ['skin-preview', 'bombot-fx-preview'];
+  if (effectId !== 'original' && effectId !== 'rgb') classes.push(`fx-${effectId}`);
+  if (variant) classes.push('rgb-fx-preview');
+  const attrs = variant
+    ? ` data-rgb-variant="${variant}" data-rgb-sources="${sources.join('|').replace(/"/g, '%22')}"`
+    : '';
+  const stack = sources.map(src => `<img src="${src}" alt="">`).join('');
+  return `<div class="${classes.join(' ')}"${attrs}><span class="bombot-fx-stack">${stack}</span></div>`;
+}
+
+// Grupo "Efectos" del personalizador: el Personalizable Bombot cuenta como
+// Rewamp y sus efectos se aplican a lo que lleve puesto.
+function createBombotEffectSlot() {
+  const options = getTowerSkinEffectOptions(BOMBOT_EFFECT_FAMILY);
+  if (options.length < 2) return null;
+  const group = document.createElement('div');
+  group.className = 'bombot-accessory-slot bombot-effect-slot';
+  const isActive = gameState.equippedSkins.Special === PERSONALIZABLE_BOMBOT_SKIN_ID;
+  const selected = isActive ? (gameState.towerSkinEffects?.[BOMBOT_EFFECT_FAMILY] || 'original') : '';
+  group.innerHTML = `
+    <h4>${translate('bombot_fx_title')}</h4>
+    <p class="bombot-attack-note">${translate('bombot_fx_intro')}</p>
+    ${getEffectSyncToggleMarkup()}
+    <div class="tower-skin-effect-options">
+      ${options.map(effectId => `
+        <button type="button" class="tower-skin-effect-choice${effectId === selected ? ' selected' : ''}"
+          onclick="setTowerSkinEffect('${BOMBOT_EFFECT_FAMILY}', '${effectId}')" aria-pressed="${effectId === selected}"
+          ${gameState.mode === 'tutorial' ? 'disabled' : ''}>
+          ${getBombotEffectPreviewMarkup(effectId)}
+          <span>${getRewampEffectLabel(effectId)}</span>
+        </button>`).join('')}
+    </div>`;
+  return group;
+}
+
 // Grupo "Ataque personalizado" del personalizador.
 function createBombotAttackSlot() {
   const group = document.createElement('div');
@@ -11768,7 +12212,11 @@ function renderBombotAccessoryCustomizer(container, eventFilter = null) {
     group.append(heading, items);
     section.appendChild(group);
   });
-  if (!eventFilter) section.appendChild(createBombotAttackSlot());
+  if (!eventFilter) {
+    const effectSlot = createBombotEffectSlot();
+    if (effectSlot) section.appendChild(effectSlot);
+    section.appendChild(createBombotAttackSlot());
+  }
   container.appendChild(section);
 }
 
@@ -12884,7 +13332,8 @@ function placeTower(spotId, type) {
   gameState.globetines -= cost;
   gameState.moneySpentThisGame = (gameState.moneySpentThisGame || 0) + cost;
   gameState.towerCounts[type] = (gameState.towerCounts[type] || 0) + 1;
-  gameState.globsPlaced[type] = (gameState.globsPlaced[type] || 0) + 1;
+  // El Sandbox no cuenta para el progreso (Globs colocados, familias al máximo).
+  if (!isSandboxMode()) gameState.globsPlaced[type] = (gameState.globsPlaced[type] || 0) + 1;
   spot.occupied = true;
   if (gameState.mode === 'tutorial') {
     if (gameState.tutorialStage === 'place_green') {
@@ -12896,13 +13345,13 @@ function placeTower(spotId, type) {
       updateTutorialArmyProgress();
     }
   }
-  if (!tCfg.evolution && !gameState.maxedFamilies.includes(family)) {
+  if (!tCfg.evolution && !gameState.maxedFamilies.includes(family) && !isSandboxMode()) {
     gameState.maxedFamilies.push(family);
     publishMultiplayerProfile();
   }
 
   recalculateAuras();
-  if (typeof checkEncyclopediaMaster === 'function') checkEncyclopediaMaster();
+  if (typeof checkEncyclopediaMaster === 'function' && !isSandboxMode()) checkEncyclopediaMaster();
   updateUI(); drawTowerShop();
   updateAllTowerRanges();
   sendMultiplayerAction({ type: 'place-tower', spotId, towerType: type });
@@ -13184,7 +13633,7 @@ function activateGTack(t) {
     tower.el.style.backgroundImage = `url('${encodeURI(getTowerImage(nextType))}')`; applyTowerEffects(tower.el, nextType);
     if (!next.evolution) {
       unlockBadge('evolution');
-      if (!gameState.maxedFamilies.includes(tower.family)) {
+      if (!gameState.maxedFamilies.includes(tower.family) && !isSandboxMode()) {
         gameState.maxedFamilies.push(tower.family);
         publishMultiplayerProfile();
       }
@@ -13520,6 +13969,12 @@ function activateGTack(t) {
       return;
     }
     if (gameState.waveActive || gameState.gameOver || gameState.paused) return;
+    // Sandbox: sin oleadas; los enemigos se spawnean desde su panel.
+    if (isSandboxMode()) {
+      gameState.autoWave = false;
+      showMessage(translate('sandbox_waves_disabled'), 'info');
+      return;
+    }
 
     let maxWaves = gameState.maxWaves || 20;
     if (gameState.mode === 'pesadilla') maxWaves = 50;
@@ -14573,7 +15028,8 @@ function activateGTack(t) {
   }
 
   function checkpointActiveRound() {
-    if (!gameState.modeConfirmed || gameState.gameOver || multiplayerSpectator ||
+    // El Sandbox no se guarda como partida.
+    if (!gameState.modeConfirmed || gameState.gameOver || multiplayerSpectator || isSandboxMode() ||
         (currentSeed && !isSeedHost)) return false;
     const snapshot = getMultiplayerGameState(true);
     if (!snapshot) return false;
@@ -15024,6 +15480,11 @@ function activateGTack(t) {
   // nunca borre la base de golpe, el dano se limita a una fraccion de la vida
   // maxima de la base por impacto (mas alta para los cristalizados).
   function damageBaseFromEnemy(enemy) {
+    // Sandbox: la base no cae (solo se muestra el golpe).
+    if (isSandboxMode()) {
+      showEffect(enemy.x, enemy.y, '🛡️');
+      return;
+    }
     const vitality = Math.max(0, (Number(enemy.health) || 0) + (Number(enemy.shield) || 0));
     const crystallized = Boolean(enemy.isCrystallized);
     const rawDamage = crystallized ? vitality * 1.5 : vitality;
@@ -15158,6 +15619,10 @@ function activateGTack(t) {
             const ratio = Math.min(1, vitality / maxVitality);
             e.el.remove();
             gameState.enemies.splice(i, 1);
+            if (isSandboxMode()) {
+              showEffect(e.x, e.y, '🛡️');
+              continue;
+            }
             if (ratio >= 0.6) {
               // Llega con fuerza: destruye la base.
               gameState.health = 0;
@@ -15176,7 +15641,7 @@ function activateGTack(t) {
             updateUI();
             continue;
           }
-          if (e.instakill) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
+          if (e.instakill && !isSandboxMode()) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
           if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
           e.el.remove(); gameState.enemies.splice(i, 1);
           damageBaseFromEnemy(e);
@@ -15732,7 +16197,7 @@ function activateGTack(t) {
             if (gameState.roundIExExplosions >= 100) unlockBadge('explosiones_por_doquier');
             // Usos de la familia Bomb Glob (desbloquean el ataque Bomb Glob del
             // Personalizable Bombot al pasar de 200).
-            if (!multiplayerSpectator && gameState.mode !== 'tutorial') {
+            if (!multiplayerSpectator && !['tutorial', 'sandbox'].includes(gameState.mode)) {
               gameState.iexFamilyUses = (Number(gameState.iexFamilyUses) || 0) + 1;
             }
 
@@ -16908,12 +17373,16 @@ function activateGTack(t) {
       showCollectionMasterDialogue();
       saveProgress();
     }
+    checkSandboxUnlock();
   }
 
 
   function die(e, idx) {
+    // Sandbox: se mantienen las mecánicas al morir (explosiones, divisiones,
+    // transformaciones), pero no da recompensas ni cuenta para el progreso.
+    const sandbox = isSandboxMode();
     triggerHalloweenJumpscare(e.type, e.el, null, true);
-    if (e.type === 'Sharowd') {
+    if (e.type === 'Sharowd' && !sandbox) {
       finishBlockQuest();
     }
 
@@ -16928,7 +17397,7 @@ function activateGTack(t) {
       }, 700);
     }
 
-    if (e.type === 'Crystalic_Orb') {
+    if (e.type === 'Crystalic_Orb' && !sandbox) {
       gameState.paracristalFinal = false;
       gameState.paracristalActive = false;
       unlockBadge('paracristal_dimension');
@@ -16968,7 +17437,7 @@ function activateGTack(t) {
       }
     }
 
-    if (e.type === 'AstrorbTF') {
+    if (e.type === 'AstrorbTF' && !sandbox) {
       if (!gameState.unlockedSkins.includes('cuby_bombot')) {
         gameState.unlockedSkins.push('cuby_bombot');
         showMessage(translate('skin_unlocked_cuby'), 'success');
@@ -17005,6 +17474,16 @@ function activateGTack(t) {
           showEffect(other.x, other.y - 10, translate('effect_contagion'), "#9b59b6");
         }
       });
+    }
+    if (sandbox) {
+      if (e.el) {
+        const dyingEl = e.el;
+        dyingEl.classList.add('dying');
+        setTimeout(() => dyingEl.remove(), 240);
+      }
+      gameState.enemies.splice(idx, 1);
+      updateUI();
+      return;
     }
     gameState.globetines += e.reward;
     if (e.mimic) {
@@ -17101,8 +17580,15 @@ function activateGTack(t) {
   }
 
   function updateUI() {
+    // Sandbox: dinero infinito (se rellena siempre) y panel de enemigos.
+    if (isSandboxMode() && gameState.modeConfirmed) gameState.globetines = SANDBOX_MONEY;
+    updateSandboxUI();
     setStatValue('health', Math.max(0, gameState.health));
     setStatValue('money', Math.floor(gameState.globetines));
+    if (isSandboxMode() && gameState.modeConfirmed) {
+      const moneyEl = document.getElementById('money');
+      if (moneyEl) moneyEl.textContent = '∞';
+    }
     document.getElementById('wave-count').textContent = gameState.wave;
     if (gameState.settings.showTotalDamage) document.getElementById('total-damage').textContent = Math.floor(gameState.totalDamage);
 
@@ -17487,15 +17973,16 @@ function activateGTack(t) {
       el.style.removeProperty('--rgb-rewamp-mask-image');
       el.style.removeProperty('--rainbow-fuel-mask-image');
     }
-    // Capa RGB en canvas (funciona también con file://; ver createRgbOverlayCanvas).
+    // Capa canvas del efecto (funciona también con file://; ver createRgbOverlayCanvas).
+    // El Personalizable Bombot usa su imagen completa: cuerpo + accesorios.
+    const isCustomBombot = type === 'Work_Bombot' &&
+      gameState.equippedSkins.Special === PERSONALIZABLE_BOMBOT_SKIN_ID;
     syncRgbOverlay(
       el,
-      rgbEffect === 'rainbow-fuel' ? 'fuel'
-        : rgbEffect === 'rgb-rewamp' ? 'rgb'
-          : rgbEffect === 'shiny-rise' ? 'shiny-rise'
-            : rgbEffect === 'monochrome' ? 'tv'
-              : rgbEffect === 'snowy' ? 'snow' : '',
-      getAbsoluteAssetUrl(getTowerImage(type))
+      getEffectCanvasVariant(rgbEffect),
+      isCustomBombot
+        ? getBombotCompositeSources(getTowerImage(type))
+        : getAbsoluteAssetUrl(getTowerImage(type))
     );
     const enemyBasedSkins = ['pyce_morph', 'mimic_set', 'astrorb_set', 'crystal_bombot'];
     if (enemyBasedSkins.includes(globalSkin) || enemyBasedSkins.includes(equippedSkin)) {
@@ -17727,10 +18214,12 @@ function activateGTack(t) {
       setTutorialSkinsEnabled(false);
       setTutorialProgressionEnabled(false);
     }
+    if (gameState.mode === 'sandbox') gameState.mode = null;
     updateBuffs();
     retryGame();
     document.getElementById('map-selection').style.display = 'none';
     showModeSelection();
+    updateSandboxUI();
   }
 
   function chooseMapAfterGame() {
@@ -17743,9 +18232,11 @@ function activateGTack(t) {
       setTutorialSkinsEnabled(false);
       setTutorialProgressionEnabled(false);
     }
+    if (gameState.mode === 'sandbox') gameState.mode = null;
     updateBuffs();
     retryGame();
     gameState.modeConfirmed = false;
+    updateSandboxUI();
     setMultiplayerSpectator(false);
     renderMultiplayerPlayerList([]);
     document.getElementById('mode-selection').style.display = 'none';
@@ -17772,6 +18263,7 @@ function activateGTack(t) {
     multiplayerServerClosed = false;
     document.getElementById('seed-display').style.display = 'none';
     gameState.mode = null;
+    updateSandboxUI();
     updateBuffs();
     gameState.map = null;
     gameState.modeConfirmed = false;
@@ -17825,6 +18317,18 @@ function activateGTack(t) {
           restartAcrossTimeEvent();
         }
       }, 2500);
+      return;
+    }
+
+    // Sandbox: no hay victoria ni recompensas; al terminar solo se cierra.
+    if (gameState.mode === 'sandbox') {
+      updateSandboxUI();
+      if (content) content.classList.remove('victory');
+      if (title) {
+        title.removeAttribute('data-i18n');
+        title.textContent = translate('sandbox_mode_name');
+      }
+      if (msg) msg.textContent = translate('sandbox_end_msg');
       return;
     }
 

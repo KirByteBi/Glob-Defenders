@@ -8229,6 +8229,37 @@ body.placing-tower .tower-spot {
     animation: binary-love-orbit 7s linear infinite;
 }
 
+/* Alas azules a los lados del borde, con un aleteo suave. Cada ala son tres
+   plumas (elipses) que se abren hacia fuera; escalan con el tamaño del borde. */
+.profile-avatar-frame.binary-love::after,
+.profile-border-swatch.binary-love::after,
+.profile-placeholder-sample.binary-love::after,
+.multiplayer-profile-badge.binary-love::after {
+    content: '';
+    position: absolute;
+    top: 6%;
+    left: -46%;
+    width: 192%;
+    height: 70%;
+    z-index: -2;
+    background:
+        radial-gradient(ellipse 20% 34% at 13% 30%, #9fdcff 0 58%, #3f8ce0 60% 74%, transparent 76%),
+        radial-gradient(ellipse 17% 28% at 10% 58%, #7cc6ff 0 56%, #2f72c9 58% 72%, transparent 74%),
+        radial-gradient(ellipse 13% 21% at 9% 84%, #5aaaf2 0 54%, #245fb0 56% 70%, transparent 72%),
+        radial-gradient(ellipse 20% 34% at 87% 30%, #9fdcff 0 58%, #3f8ce0 60% 74%, transparent 76%),
+        radial-gradient(ellipse 17% 28% at 90% 58%, #7cc6ff 0 56%, #2f72c9 58% 72%, transparent 74%),
+        radial-gradient(ellipse 13% 21% at 91% 84%, #5aaaf2 0 54%, #245fb0 56% 70%, transparent 72%);
+    filter: drop-shadow(0 0 4px rgba(120, 200, 255, 0.75));
+    transform-origin: 50% 60%;
+    pointer-events: none;
+    animation: binary-love-wings 2.6s ease-in-out infinite;
+}
+
+@keyframes binary-love-wings {
+    0%, 100% { transform: scaleX(1) translateY(0); }
+    50% { transform: scaleX(1.06) translateY(-4%); }
+}
+
 @keyframes binary-love-halo {
     0%, 100% { box-shadow: 0 0 10px rgba(73, 180, 98, 0.8), 0 0 20px rgba(246, 191, 213, 0.7); }
     50% { box-shadow: 0 0 15px rgba(111, 221, 135, 0.95), 0 0 26px rgba(255, 217, 233, 0.9); }
@@ -8369,6 +8400,71 @@ body.placing-tower .tower-spot {
     display: none;
 }
 
+/* SOMBRA: el Glob en negro con una sombra que lo envuelve. Conserva un poco
+   de relieve para que se lean sus formas. */
+.skin-preview.fx-shadow img,
+.rgb-avatar-image.shadow > img {
+    filter: grayscale(1) brightness(0.22) contrast(1.4) drop-shadow(0 0 4px rgba(0, 0, 0, 0.95));
+    mix-blend-mode: normal;
+}
+.tower.tower-rgb-shadow {
+    filter: grayscale(1) brightness(0.22) contrast(1.4)
+        drop-shadow(0 0 6px rgba(0, 0, 0, 0.95)) drop-shadow(6px 8px 6px rgba(0, 0, 0, 0.8));
+}
+
+/* SANGRE: tonos rojos sea cual sea el color original del Glob. */
+.skin-preview.fx-blood img,
+.rgb-avatar-image.blood > img {
+    filter: grayscale(1) sepia(1) saturate(6) hue-rotate(-42deg) brightness(0.9) contrast(1.15);
+    mix-blend-mode: normal;
+}
+.tower.tower-rgb-blood {
+    filter: grayscale(1) sepia(1) saturate(6) hue-rotate(-42deg) brightness(0.9) contrast(1.15)
+        drop-shadow(0 0 6px rgba(160, 0, 20, 0.6));
+}
+
+/* DORADO (extra): todo el Glob en oro con un brillo cálido. */
+.skin-preview.fx-golden img,
+.rgb-avatar-image.golden > img {
+    filter: grayscale(1) sepia(1) saturate(3.2) brightness(1.15) hue-rotate(-6deg);
+    mix-blend-mode: normal;
+}
+.tower.tower-rgb-golden {
+    filter: grayscale(1) sepia(1) saturate(3.2) brightness(1.15) hue-rotate(-6deg)
+        drop-shadow(0 0 7px rgba(255, 200, 60, 0.7));
+}
+
+.tower.tower-rgb-shadow::before,
+.tower.tower-rgb-blood::before,
+.tower.tower-rgb-golden::before,
+.rgb-avatar-image.shadow::after,
+.rgb-avatar-image.blood::after,
+.rgb-avatar-image.golden::after,
+.rgb-avatar-image.crystalized::after,
+.rgb-avatar-image.shiny-rise.rgb-canvas::after {
+    display: none;
+}
+
+/* CRISTALIZADO: halo fijo cian y rosa pastel alrededor de la capa canvas. */
+.rgb-overlay.rgb-overlay-crystalized.ready {
+    filter: drop-shadow(0 0 3px #9ff3ff) drop-shadow(0 0 7px rgba(255, 174, 224, 0.65));
+}
+
+/* Vista previa del Personalizable Bombot con todo lo que lleva puesto. */
+.bombot-fx-stack {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.bombot-fx-stack > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .profile-avatar-section-title {
     margin-top: 18px;
 }
@@ -8397,7 +8493,10 @@ body.placing-tower .tower-spot {
 /* Negativo y Alternativo son solo filtro (sin capa canvas). Monochrome (tele
    antigua) y Nevado (nevada) sí llevan su capa animada. */
 .rgb-avatar-image.negative > .rgb-overlay,
-.rgb-avatar-image.alternate > .rgb-overlay {
+.rgb-avatar-image.alternate > .rgb-overlay,
+.rgb-avatar-image.shadow > .rgb-overlay,
+.rgb-avatar-image.blood > .rgb-overlay,
+.rgb-avatar-image.golden > .rgb-overlay {
     display: none;
 }
 
@@ -8622,4 +8721,163 @@ body.placing-tower .tower-spot {
 .bombot-accessory-thumb.advent-day-reward-thumb > img {
     width: 34px;
     height: 34px;
+}
+
+/* Interruptor Sincronizar / Desincronizar (perfil y skins) */
+.effect-sync-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0 10px;
+}
+
+.effect-sync-toggle button {
+    padding: 6px 12px;
+    border: 1px solid rgba(104, 194, 255, 0.4);
+    border-radius: 999px;
+    background: rgba(8, 22, 42, 0.85);
+    color: #d9f1ff;
+    font-size: 0.78rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.effect-sync-toggle button.selected {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.16);
+    color: #fff;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+.effect-sync-toggle button:focus-visible {
+    outline: 2px solid #8fd0ff;
+    outline-offset: 2px;
+}
+
+.effect-sync-toggle small {
+    flex-basis: 100%;
+    color: #a9dfff;
+    font-size: 0.72rem;
+}
+
+/* ========================================================================
+   MODO SANDBOX — color arena de playa
+   ======================================================================== */
+.mode-btn-sandbox {
+    background: linear-gradient(135deg, #f7e2a8, #e2bb72) !important;
+    border-color: #fff4cf !important;
+    color: #5a3d17 !important;
+    font-weight: 800;
+    box-shadow: 0 0 14px rgba(240, 205, 130, 0.55) !important;
+}
+.mode-btn-sandbox:hover {
+    box-shadow: 0 0 22px rgba(255, 224, 150, 0.85) !important;
+    filter: brightness(1.08);
+}
+.mode-btn-sandbox.is-locked {
+    filter: grayscale(0.55) brightness(0.8);
+    opacity: 0.75;
+}
+
+/* En el Sandbox no hay oleadas: se ocultan sus botones. */
+body.sandbox-mode #start-wave,
+body.sandbox-mode #auto-wave {
+    display: none !important;
+}
+
+.sandbox-tower-arrow {
+    flex: 0 0 auto;
+    align-self: center;
+    width: 34px;
+    min-height: 54px;
+    padding: 0;
+    border: 1px solid #fff1c1;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f7e2a8, #e2bb72);
+    color: #5a3d17;
+    font-size: 1.1rem;
+    font-weight: 900;
+    cursor: pointer;
+}
+.sandbox-tower-arrow:hover {
+    filter: brightness(1.1);
+}
+.sandbox-tower-arrow:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+.sandbox-panel {
+    position: fixed;
+    top: 90px;
+    right: 12px;
+    z-index: 9000;
+    width: min(290px, calc(100vw - 24px));
+    border: 2px solid #e8c77f;
+    border-radius: 14px;
+    background: rgba(48, 36, 18, 0.94);
+    color: #fff7e2;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
+}
+.sandbox-panel[hidden] {
+    display: none;
+}
+.sandbox-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(232, 199, 127, 0.4);
+}
+.sandbox-panel-header button {
+    border: none;
+    background: transparent;
+    color: #fff1c1;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.sandbox-panel.collapsed .sandbox-panel-body {
+    display: none;
+}
+.sandbox-panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+}
+.sandbox-panel-body input[type="search"],
+.sandbox-panel-body input[type="number"] {
+    padding: 6px 8px;
+    border: 1px solid #e8c77f;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+}
+.sandbox-panel-body input[type="number"] {
+    width: 64px;
+}
+.sandbox-panel-body .debug-search-results {
+    max-height: 200px;
+    overflow-y: auto;
+}
+.sandbox-panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+.sandbox-panel-actions button {
+    padding: 6px 10px;
+    border: 1px solid #e8c77f;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f7e2a8, #e2bb72);
+    color: #4a3212;
+    font-weight: 800;
+    cursor: pointer;
+}
+.sandbox-panel-actions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
