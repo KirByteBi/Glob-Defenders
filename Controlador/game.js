@@ -487,15 +487,14 @@ function isRgbRewampSkinId(family, skinId) {
 // - RGB: el de siempre (skins RGB Secretas / borde GLB Fever).
 // - Rainbow Fuel: se desbloquea por familia (100 clics en el login).
 // - Monochrome, Negative, Snowy y Alternate: recompensas del Pase de Invierno.
-// - Shiny Rise: arcoíris con brillo y destellos (aún sin forma de conseguirlo
-//   en juego; se guarda en unlockedRecolors como los del pase).
+// - Shiny Rise: arcoíris con brillo y destellos (nivel 42 del Pase de Invierno).
 const PROFILE_FX_EFFECTS = Object.freeze([
   { id: 'rainbow-fuel', es: 'Rainbow Fuel', en: 'Rainbow Fuel', source: 'fuel' },
   { id: 'monochrome', es: 'Monochrome', en: 'Monochrome', source: 'winter' },
   { id: 'negative', es: 'Negativo', en: 'Negative', source: 'winter' },
   { id: 'snowy', es: 'Nevado', en: 'Snowy', source: 'winter' },
   { id: 'alternate', es: 'Alternativo', en: 'Alternate', source: 'winter' },
-  { id: 'shiny-rise', es: 'Shiny Rise', en: 'Shiny Rise', source: 'special' }
+  { id: 'shiny-rise', es: 'Shiny Rise', en: 'Shiny Rise', source: 'winter' }
 ]);
 // Efectos que se guardan en unlockedRecolors (Pase de Invierno y especiales).
 const RGB_RECOLOR_EFFECT_IDS = Object.freeze(['monochrome', 'negative', 'snowy', 'alternate', 'shiny-rise']);
@@ -9558,7 +9557,7 @@ const WINTER_PASS_REWARDS = [
   { level: 39, reward: { type: 'duckpass', amount: 140 } },
   { level: 40, reward: { type: 'accessory', id: 'red_breath_bombot_reskin' } },
   { level: 41, reward: { type: 'duckpass', amount: 150 } },
-  { level: 42, reward: { type: 'duckpass', amount: 150 } },
+  { level: 42, reward: { type: 'recolor', id: 'shiny-rise' } },
   { level: 43, reward: { type: 'duckpass', amount: 160 } },
   { level: 44, reward: { type: 'duckpass', amount: 160 } },
   { level: 45, reward: { type: 'duckpass', amount: 180 } },
@@ -9973,10 +9972,11 @@ function getPassRewardVisualMarkup(r) {
     // Vista previa real: el Glob Rewamp con el efecto que se gana.
     const previewImage = SKINS_DATA.Glob?.find(skin => skin.id === 'rewamped_green_set')?.skins?.Glob || IMAGE_PATHS.Glob;
     const preview = getProfileAvatarImageMarkup({ id: `winter-pass:${r.id}`, image: previewImage, label: recolorName, rgb: true, effect: r.id });
-    const specialTag = r.id === 'alternate'
+    const isSpecial = r.id === 'shiny-rise';
+    const specialTag = isSpecial
       ? `<div class="winter-pass-final-tag">✨ ${es ? 'Efecto especial' : 'Special effect'}</div>`
       : '';
-    return `<div class="pass-reward-visual">${specialTag}<span class="winter-pass-fx-preview${r.id === 'alternate' ? ' is-alternate' : ''}">${preview}</span>${label(recolorName)}</div>`;
+    return `<div class="pass-reward-visual">${specialTag}<span class="winter-pass-fx-preview${isSpecial ? ' is-alternate' : ''}">${preview}</span>${label(recolorName)}</div>`;
   }
   if (r.type === 'skin') {
     const skin = Object.values(SKINS_DATA).flat().find(s => s.id === r.id);
@@ -10047,7 +10047,7 @@ function drawWinterPass() {
     el.className = `pass-node ${reached ? 'unlocked' : 'locked'}`;
     const r = entry.reward;
     const rewardLabel = getPassRewardVisualMarkup(r);
-    if (r.type === 'recolor' && r.id === 'alternate') el.classList.add('winter-pass-alternate-node');
+    if (r.type === 'recolor' && r.id === 'shiny-rise') el.classList.add('winter-pass-alternate-node');
     let btnHTML;
     if (isClaimed) {
       btnHTML = `<button class="meta-buy-btn" disabled>${currentLanguage === 'es' ? 'Reclamado' : 'Claimed'}</button>`;

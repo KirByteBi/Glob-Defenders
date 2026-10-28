@@ -92,3 +92,6 @@ validación de juego recogida en `pendientes.md`.
   zona visible del PNG (`BOMBOT_ACCESSORY_VISIBLE_AREA` en config.js), en el
   personalizador, el Pase de Invierno y el Calendario de Adviento.
   Verificado en Chrome headless (file://), sin errores de consola.
+- [x] `FX-09` Shiny Rise es la recompensa del nivel 42 del Pase de Invierno
+  (antes 150 DuckPasses), con la etiqueta "Efecto especial" y el borde
+  prismático (que antes llevaba Alternativo).
