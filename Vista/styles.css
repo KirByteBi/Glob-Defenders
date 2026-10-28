@@ -8345,12 +8345,6 @@ body.placing-tower .tower-spot {
     opacity: 1;
 }
 
-/* Alternate: el canvas trae la imagen con el arcoíris mezclado por color;
-   aquí gira el tono (el RGB pre-Kiro, ahora como efecto propio). */
-.rgb-overlay.rgb-overlay-alternate.ready {
-    animation: rgb-rewamp-shift 1.5s linear infinite;
-}
-
 /* Previews de las skins de efecto en la tienda. */
 .skin-preview.rgb-fx-preview {
     position: relative;
@@ -8358,6 +8352,22 @@ body.placing-tower .tower-spot {
 .skin-preview.fx-monochrome img { filter: grayscale(1) contrast(1.05); }
 .skin-preview.fx-negative img { filter: invert(1); }
 .skin-preview.fx-snowy img { filter: grayscale(1) brightness(1.9) contrast(1.5); }
+
+/* ALTERNATIVO: coloración alterna fija (no es un RGB). Gira el tono de toda
+   la paleta: Comet Glob pasa a rojo, las líneas de Dark Glob a azul, la bomba
+   morada de Nuclear Glob a marrón... */
+.skin-preview.fx-alternate img,
+.rgb-avatar-image.alternate > img {
+    filter: hue-rotate(105deg);
+    mix-blend-mode: normal;
+}
+.tower.tower-rgb-alternate {
+    filter: hue-rotate(105deg) drop-shadow(0 5px 10px rgba(0, 0, 0, 0.42));
+}
+.tower.tower-rgb-alternate::before,
+.rgb-avatar-image.alternate::after {
+    display: none;
+}
 
 .profile-avatar-section-title {
     margin-top: 18px;
@@ -8384,26 +8394,32 @@ body.placing-tower .tower-spot {
     display: none;
 }
 
-/* Las variantes del Pase de Invierno sustituyen al arcoíris. */
-.rgb-avatar-image.monochrome > .rgb-overlay,
+/* Negativo y Alternativo son solo filtro (sin capa canvas). Monochrome (tele
+   antigua) y Nevado (nevada) sí llevan su capa animada. */
 .rgb-avatar-image.negative > .rgb-overlay,
-.rgb-avatar-image.snowy > .rgb-overlay {
+.rgb-avatar-image.alternate > .rgb-overlay {
     display: none;
 }
 
+/* Nevado: el canvas ya trae la imagen nevada + los copos. Se quita el filtro
+   de la torre para no blanquear también los copos (queda solo el brillo). */
+.tower.tower-rgb-snowy.rgb-canvas {
+    filter: drop-shadow(0 0 8px rgba(174, 227, 255, 0.72));
+}
+
 /* ========================================================================
-   ALTERNATE (Alternativo): además del arcoíris que gira lleva un brillo
-   holográfico y destellos (canvas) y un halo prismático que cambia de color.
+   SHINY RISE: arcoíris que gira con brillo holográfico y destellos (canvas)
+   y un halo prismático que cambia de color.
    ======================================================================== */
 /* El halo va en el propio canvas (no en .tower, para no pisar el idle): el
    hue-rotate gira a la vez el arcoíris y el color del halo. */
-@keyframes alternate-prism-halo {
+@keyframes shiny-rise-prism-halo {
     from { filter: drop-shadow(0 0 3px #ff3b7a) drop-shadow(0 0 8px rgba(255, 59, 122, 0.6)) hue-rotate(0deg); }
     to   { filter: drop-shadow(0 0 3px #ff3b7a) drop-shadow(0 0 8px rgba(255, 59, 122, 0.6)) hue-rotate(360deg); }
 }
 
-.rgb-overlay.rgb-overlay-alternate.ready {
-    animation: alternate-prism-halo 1.5s linear infinite;
+.rgb-overlay.rgb-overlay-shiny-rise.ready {
+    animation: shiny-rise-prism-halo 1.5s linear infinite;
 }
 
 /* ========================================================================
@@ -8554,11 +8570,6 @@ body.placing-tower .tower-spot {
     font-size: 0.72rem;
 }
 
-.pass-reward-layered {
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-}
 
 .pass-reward-kind {
     color: #a9dfff;
@@ -8586,4 +8597,29 @@ body.placing-tower .tower-spot {
 .pass-reward-image.pass-reward-rainbow {
     filter: saturate(1.6);
     animation: pass-reward-rainbow-spin 2s linear infinite;
+}
+
+/* Miniaturas de accesorios de Bombot con zoom (ver getBombotAccessoryZoom):
+   el contenedor recorta la parte transparente del lienzo. */
+.bombot-accessory-thumb {
+    display: inline-block;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.bombot-accessory-thumb > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.bombot-accessory-thumb.advent-day-reward-thumb {
+    width: 34px;
+    height: 34px;
+}
+
+.bombot-accessory-thumb.advent-day-reward-thumb > img {
+    width: 34px;
+    height: 34px;
 }

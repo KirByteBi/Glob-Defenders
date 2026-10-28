@@ -123,11 +123,17 @@ const RGB_OVERLAY_HOST_SELECTOR = '.rgb-avatar-image, .rainbow-fuel-avatar, .ski
 const RGB_OVERLAY_STYLES = {
   rgb: { stripFilter: 'saturate(0.6) brightness(1.4)', periodMs: 2600, ink: true, colorKeep: 0.35 },
   fuel: { stripFilter: 'saturate(1.6) brightness(1.12)', periodMs: 2500, ink: false, colorKeep: 0 },
-  // Alternate: arcoíris completo mezclado por color sobre la imagen (conserva
-  // sus luces y sombras); el tono gira con CSS (ver .rgb-overlay-alternate).
-  // Para destacar más allá del color lleva además un brillo holográfico que
-  // cruza la silueta, destellos que parpadean y un halo prismático (CSS).
-  alternate: { stripFilter: 'saturate(1.2)', periodMs: 0, ink: false, colorKeep: 0, colorBlend: true, sparkle: true }
+  // Shiny Rise: arcoíris completo mezclado por color sobre la imagen (conserva
+  // sus luces y sombras) con el tono girando (CSS, .rgb-overlay-shiny-rise),
+  // un brillo holográfico que cruza la silueta y destellos que parpadean.
+  'shiny-rise': { stripFilter: 'saturate(1.2)', periodMs: 0, ink: false, colorKeep: 0, colorBlend: true, sparkle: true },
+  // Monochrome: blanco y negro con efecto de tele antigua (líneas, banda que
+  // baja, ruido y parpadeo), solo dentro de la silueta.
+  tv: { stripFilter: 'none', periodMs: 0, ink: false, colorKeep: 0, tv: true },
+  // Nevado: la imagen nevada con copos de nieve cayendo hacia la skin.
+  snow: { stripFilter: 'none', periodMs: 0, ink: false, colorKeep: 0, snow: true }
+  // Alternate (Alternativo) no es un RGB: es una coloración alterna fija con
+  // filtro CSS (ver .tower.tower-rgb-alternate en styles.css).
 };
 // El barrido RGB siempre se anima, como antes de Kiro (ver nota en styles.css
 // sobre reduced-motion).
@@ -197,8 +203,16 @@ function drawRgbOverlayFrame(entry, now) {
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
   ctx.clearRect(0, 0, width, height);
+  if (style.tv) {
+    drawOldTvFrame(entry, now);
+    return;
+  }
+  if (style.snow) {
+    drawSnowfallFrame(entry, now);
+    return;
+  }
   if (style.colorBlend) {
-    // Alternate: imagen original + arcoíris completo en modo 'color'.
+    // Shiny Rise: imagen original + arcoíris completo en modo 'color'.
     const layer = entry.colorLayer || (entry.colorLayer = (() => {
       const c = document.createElement('canvas');
       c.width = width;
@@ -215,7 +229,7 @@ function drawRgbOverlayFrame(entry, now) {
     ctx.drawImage(layer, 0, 0);
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
-    if (style.sparkle) drawAlternateShine(entry, now);
+    if (style.sparkle) drawShinyRiseShine(entry, now);
     return;
   }
   const phase = RGB_OVERLAY_REDUCED_MOTION || !style.periodMs ? 0 : (now % style.periodMs) / style.periodMs;
@@ -239,10 +253,78 @@ function drawRgbOverlayFrame(entry, now) {
   ctx.globalCompositeOperation = 'source-over';
 }
 
-// Extras de Alternate, siempre dentro de la silueta (source-atop): una banda
+// Dibuja la imagen con un filtro CSS de canvas (si el navegador lo admite).
+function drawFilteredOverlayImage(entry, filter) {
+  const { ctx, image, width, height } = entry;
+  if (canvasSupportsFilter(ctx)) ctx.filter = filter;
+  ctx.drawImage(image, 0, 0, width, height);
+  ctx.filter = 'none';
+}
+
+// Monochrome: tele antigua. Líneas de barrido, una banda clara que baja,
+// grano de ruido y un parpadeo suave; todo recortado a la silueta.
+function drawOldTvFrame(entry, now) {
+  const { ctx, width, height } = entry;
+  drawFilteredOverlayImage(entry, 'grayscale(1) contrast(1.1)');
+  ctx.globalCompositeOperation = 'source-atop';
+  const gap = Math.max(3, Math.round(height / 40));
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  for (let y = 0; y < height; y += gap) ctx.fillRect(0, y, width, Math.ceil(gap / 2));
+  const bandHeight = height * 0.16;
+  const bandY = ((now % 3200) / 3200) * (height + bandHeight * 2) - bandHeight;
+  const band = ctx.createLinearGradient(0, bandY, 0, bandY + bandHeight);
+  band.addColorStop(0, 'rgba(255, 255, 255, 0)');
+  band.addColorStop(0.5, 'rgba(255, 255, 255, 0.22)');
+  band.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  ctx.fillStyle = band;
+  ctx.fillRect(0, bandY, width, bandHeight);
+  const grain = Math.max(1, Math.round(width / 90));
+  for (let i = 0; i < 26; i++) {
+    ctx.fillStyle = Math.random() < 0.5 ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.35)';
+    ctx.fillRect(Math.random() * width, Math.random() * height, grain, grain);
+  }
+  ctx.fillStyle = `rgba(0, 0, 0, ${(0.04 + Math.random() * 0.08).toFixed(3)})`;
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// Nevado: la imagen nevada y copos que caen hacia la skin. Los copos llevan
+// un borde azulado para que se vean también sobre el Glob blanco.
+function drawSnowfallFrame(entry, now) {
+  const { ctx, width, height } = entry;
+  drawFilteredOverlayImage(entry, 'grayscale(1) brightness(1.9) contrast(1.45)');
+  if (!entry.flakes) {
+    entry.flakes = Array.from({ length: 14 }, () => ({
+      x: Math.random(),
+      start: Math.random(),
+      speed: 0.00012 + Math.random() * 0.00014,
+      size: 0.018 + Math.random() * 0.022,
+      sway: 0.015 + Math.random() * 0.03,
+      phase: Math.random() * Math.PI * 2
+    }));
+  }
+  const side = Math.min(width, height);
+  ctx.lineWidth = Math.max(1, side / 110);
+  ctx.strokeStyle = 'rgba(70, 125, 190, 0.85)';
+  ctx.fillStyle = '#ffffff';
+  entry.flakes.forEach(flake => {
+    const progress = (flake.start + now * flake.speed) % 1;
+    const y = (progress * 1.1 - 0.05) * height;
+    const x = (flake.x + Math.sin(now / 700 + flake.phase) * flake.sway) * width;
+    const r = flake.size * side;
+    ctx.globalAlpha = progress > 0.85 ? (1 - progress) / 0.15 : 1;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+}
+
+// Extras de Shiny Rise, siempre dentro de la silueta (source-atop): una banda
 // de brillo holográfico que la cruza en diagonal y destellos de cuatro puntas
 // que parpadean desfasados.
-function drawAlternateShine(entry, now) {
+function drawShinyRiseShine(entry, now) {
   const { ctx, width, height } = entry;
   if (!entry.sparkles) {
     entry.sparkles = Array.from({ length: 5 }, (_, index) => ({
@@ -305,7 +387,7 @@ function createRgbOverlayCanvas(src, variant, onReady) {
   const style = RGB_OVERLAY_STYLES[variant] || RGB_OVERLAY_STYLES.rgb;
   const canvas = document.createElement('canvas');
   canvas.className = variant === 'fuel' ? 'rgb-overlay rgb-overlay-fuel'
-    : variant === 'alternate' ? 'rgb-overlay rgb-overlay-alternate' : 'rgb-overlay';
+    : variant === 'shiny-rise' ? 'rgb-overlay rgb-overlay-shiny-rise' : 'rgb-overlay';
   canvas.dataset.src = src;
   canvas.dataset.variant = variant;
   canvas.setAttribute('aria-hidden', 'true');
@@ -328,7 +410,7 @@ function createRgbOverlayCanvas(src, variant, onReady) {
     drawRgbOverlayFrame(entry, performance.now());
     canvas.classList.add('ready');
     if (typeof onReady === 'function') onReady();
-    // El tono de Alternate lo gira CSS; entra en el bucle por sus destellos.
+    // El tono de Shiny Rise lo gira CSS; entra en el bucle por sus destellos.
     if (RGB_OVERLAY_REDUCED_MOTION || (style.colorBlend && !style.sparkle)) return;
     rgbOverlayRegistry.add(entry);
     if (!rgbOverlayFrame) rgbOverlayFrame = setTimeout(tickRgbOverlays, 33);
@@ -365,13 +447,16 @@ function hydrateRgbOverlays(root) {
   root.querySelectorAll?.(RGB_OVERLAY_HOST_SELECTOR).forEach(host => hosts.push(host));
   hosts.forEach(host => {
     if (host.querySelector(':scope > .rgb-overlay')) return;
-    // Los efectos de filtro (Monochrome, Negativo, Nevado) son solo CSS.
-    if (['monochrome', 'negative', 'snowy'].some(effect => host.classList.contains(effect))) return;
+    // Los efectos de filtro (Monochrome, Negativo, Nevado, Alternativo) son solo CSS.
+    // (Lista directa: esto se ejecuta al cargar, antes de PROFILE_FILTER_EFFECT_IDS.)
+    if (['negative', 'alternate'].some(effect => host.classList.contains(effect))) return;
     const image = host.querySelector(':scope > img');
     if (!image?.src) return;
     const variant = host.dataset.rgbVariant ||
       (host.classList.contains('rainbow-fuel-avatar') ? 'fuel'
-        : host.classList.contains('alternate') ? 'alternate' : 'rgb');
+        : host.classList.contains('shiny-rise') ? 'shiny-rise'
+          : host.classList.contains('monochrome') ? 'tv'
+            : host.classList.contains('snowy') ? 'snow' : 'rgb');
     image.after(createRgbOverlayCanvas(image.src, variant, () => host.classList.add('rgb-canvas')));
   });
 }
@@ -402,17 +487,30 @@ function isRgbRewampSkinId(family, skinId) {
 // - RGB: el de siempre (skins RGB Secretas / borde GLB Fever).
 // - Rainbow Fuel: se desbloquea por familia (100 clics en el login).
 // - Monochrome, Negative, Snowy y Alternate: recompensas del Pase de Invierno.
+// - Shiny Rise: arcoíris con brillo y destellos (aún sin forma de conseguirlo
+//   en juego; se guarda en unlockedRecolors como los del pase).
 const PROFILE_FX_EFFECTS = Object.freeze([
   { id: 'rainbow-fuel', es: 'Rainbow Fuel', en: 'Rainbow Fuel', source: 'fuel' },
   { id: 'monochrome', es: 'Monochrome', en: 'Monochrome', source: 'winter' },
   { id: 'negative', es: 'Negativo', en: 'Negative', source: 'winter' },
   { id: 'snowy', es: 'Nevado', en: 'Snowy', source: 'winter' },
-  { id: 'alternate', es: 'Alternativo', en: 'Alternate', source: 'winter' }
+  { id: 'alternate', es: 'Alternativo', en: 'Alternate', source: 'winter' },
+  { id: 'shiny-rise', es: 'Shiny Rise', en: 'Shiny Rise', source: 'special' }
 ]);
-// Efectos que se ganan en el Pase de Invierno (se guardan en unlockedRecolors).
-const RGB_RECOLOR_EFFECT_IDS = Object.freeze(['monochrome', 'negative', 'snowy', 'alternate']);
+// Efectos que se guardan en unlockedRecolors (Pase de Invierno y especiales).
+const RGB_RECOLOR_EFFECT_IDS = Object.freeze(['monochrome', 'negative', 'snowy', 'alternate', 'shiny-rise']);
 // Efectos que son solo un filtro CSS sobre la imagen (sin capa canvas).
-const PROFILE_FILTER_EFFECT_IDS = Object.freeze(['monochrome', 'negative', 'snowy']);
+const PROFILE_FILTER_EFFECT_IDS = Object.freeze(['monochrome', 'negative', 'snowy', 'alternate']);
+// Orden de las familias en los apartados de efectos (selector de la tienda y
+// categoría "✨ Efectos"): Verde, Rojo, Ducky, Soap, Comet, Old, Worker, Bomb.
+const FX_FAMILY_ORDER = Object.freeze(['Glob', 'Red_Glob', 'Ducky_Glob', 'Soap_Glob', 'Comet_Glob', 'Grey', 'Worker_Glob', 'IEx']);
+function compareFxFamilies(a, b) {
+  const rank = family => {
+    const index = FX_FAMILY_ORDER.indexOf(family);
+    return index < 0 ? FX_FAMILY_ORDER.length : index;
+  };
+  return rank(a) - rank(b);
+}
 
 function isRgbRecolorEffect(effectId) {
   return RGB_RECOLOR_EFFECT_IDS.includes(effectId);
@@ -469,7 +567,7 @@ function isFxSkinUnlocked(skin) {
 // Worker e IEx, que no tienen Rewamp, se aplica a su aspecto base). Solo se
 // ofrece con la skin original desbloqueada y cada efecto con su desbloqueo.
 // Orden de los efectos en los selectores (tras Original y RGB Secreto).
-const REWAMP_FX_EFFECT_ORDER = Object.freeze(['rainbow-fuel', 'negative', 'monochrome', 'snowy', 'alternate']);
+const REWAMP_FX_EFFECT_ORDER = Object.freeze(['rainbow-fuel', 'negative', 'monochrome', 'snowy', 'alternate', 'shiny-rise']);
 const TOWER_SKIN_EFFECT_IDS = Object.freeze(['original', 'rgb', ...REWAMP_FX_EFFECT_ORDER]);
 
 // Skin sobre la que se aplica el efecto elegido: la Rewamp de la familia, o
@@ -534,7 +632,9 @@ window.setTowerSkinEffect = function(family, effectId) {
 // Panel de la tienda (pestaña Skins): una fila por familia con un botón por
 // efecto; cada botón muestra la propia skin con ese efecto.
 function renderTowerSkinEffectPanel(container) {
-  const families = Object.keys(SKINS_DATA).filter(family => getTowerSkinEffectOptions(family).length > 1);
+  const families = Object.keys(SKINS_DATA)
+    .filter(family => getTowerSkinEffectOptions(family).length > 1)
+    .sort(compareFxFamilies);
   if (!families.length) return;
   const panel = document.createElement('section');
   panel.className = 'tower-rgb-effect-panel tower-skin-effect-panel';
@@ -605,10 +705,14 @@ function renderTowerSkinEffectPanel(container) {
         `${towerEn}${hasRewamp ? ' Rewamp' : ''} · ${effect.en}`);
       const reqEs = effect.source === 'fuel'
         ? 'Requiere RAINBOW FUEL de esta familia'
-        : `Requiere el efecto ${effect.es} del Pase de Invierno`;
+        : effect.source === 'winter'
+          ? `Requiere el efecto ${effect.es} del Pase de Invierno`
+          : `Requiere el efecto ${effect.es}`;
       const reqEn = effect.source === 'fuel'
         ? 'Requires this family\'s RAINBOW FUEL'
-        : `Requires the ${effect.en} effect from the Winter Pass`;
+        : effect.source === 'winter'
+          ? `Requires the ${effect.en} effect from the Winter Pass`
+          : `Requires the ${effect.en} effect`;
       addText(descKey,
         `La familia ${hasRewamp ? 'Rewamp' : 'base'} con el filtro ${effect.es}. ${reqEs}${hasRewamp ? ' y la skin Rewamp de la familia' : ''}.`,
         `The ${hasRewamp ? 'Rewamp' : 'base'} family with the ${effect.en} filter. ${reqEn}${hasRewamp ? ' and the family Rewamp skin' : ''}.`);
@@ -2497,18 +2601,43 @@ const BOMBOT_ACCESSORIES = [
 ];
 const BOMBOT_ACCESSORY_ASSET_ROOT = 'Recursos/Spooks in the Desert (UPD4)/Skins/Personalizable Bombot (SKIN + ACCESORIES)/';
 
-const BOMBOT_ACCESSORY_PREVIEWS = {
-  girly_eyelashes: { scale: 3.5, x: 6.3, y: 13.9 },
-  girly_eyelashes_dark: { scale: 3.5, x: 6.3, y: 13.9 },
-  magic_wand: { scale: 1.9, x: 37.8, y: 17.4 },
-  microphone: { scale: 1.8, x: 35.6, y: 20.8 },
-  cyborg: { scale: 2.2, x: 14.8, y: 4.4 },
-  glasses1: { scale: 2.2, x: 8.3, y: 9.7 },
-  glasses2: { scale: 2.2, x: 8.3, y: 9.7 },
-  sunglasses: { scale: 2.2, x: 6.3, y: 10.2 },
-  pyce2_headset: { scale: 1.8, x: 3.5, y: 6.5 },
-  rewamped_glob: { scale: 1.8, x: -13.9, y: 18.8 }
-};
+// Las imágenes de accesorios tienen el mismo lienzo que Bombot (1080x1080) con
+// la pieza ya colocada en su sitio, así que en una miniatura algunas quedan
+// diminutas. Para las vistas previas (personalizador, pases, calendario) se
+// hace zoom sobre la zona visible del PNG (BOMBOT_ACCESSORY_VISIBLE_AREA en
+// config.js). Sobre el Bombot se siguen usando tal cual.
+const BOMBOT_ACCESSORY_ZOOM_FILL = 0.86; // parte de la miniatura que ocupa la pieza
+const BOMBOT_ACCESSORY_ZOOM_MAX = 4;
+
+function getBombotAccessoryZoom(id) {
+  const accessory = BOMBOT_ACCESSORIES.find(item => item.id === id);
+  const area = accessory && BOMBOT_ACCESSORY_VISIBLE_AREA[accessory.image];
+  if (!area) return null;
+  const [x, y, w, h] = area;
+  const scale = Math.min(BOMBOT_ACCESSORY_ZOOM_MAX, BOMBOT_ACCESSORY_ZOOM_FILL / Math.max(w, h));
+  // Los aspectos completos (reskins) ya ocupan casi toda la imagen.
+  if (scale < 1.05) return null;
+  // Con transform-origin 0 0, translate(t) scale(s) lleva el punto p a p*s + t:
+  // se elige t para que el centro de la pieza quede en el centro.
+  return {
+    scale,
+    x: (0.5 - (x + w / 2) * scale) * 100,
+    y: (0.5 - (y + h / 2) * scale) * 100
+  };
+}
+
+function getBombotAccessoryZoomStyle(id) {
+  const zoom = getBombotAccessoryZoom(id);
+  if (!zoom) return '';
+  return `transform-origin:0 0;transform:translate(${zoom.x.toFixed(1)}%, ${zoom.y.toFixed(1)}%) scale(${zoom.scale.toFixed(2)});`;
+}
+
+// Miniatura recortada de un accesorio (el contenedor recorta lo que sobra).
+function getBombotAccessoryThumbMarkup(id, className, alt = '') {
+  const image = getBombotAccessoryImage(id);
+  if (!image) return '';
+  return `<span class="bombot-accessory-thumb ${className}"><img src="${encodeURI(image)}" alt="${alt}" style="${getBombotAccessoryZoomStyle(id)}"></span>`;
+}
 
 function getBombotAccessoryName(accessory) {
   if (!accessory) return '';
@@ -6880,6 +7009,8 @@ function ownerUnlockEverything() {
     ...BOMBOT_ACCESSORIES.map(accessory => accessory.id)
   ])];
   gameState.unlockedBombotAttacks = BOMBOT_CUSTOM_ATTACKS.filter(attack => attack.cost).map(attack => attack.id);
+  // Todos los efectos (Pase de Invierno y Shiny Rise).
+  gameState.unlockedRecolors = [...RGB_RECOLOR_EFFECT_IDS];
   gameState.iexFamilyUses = Math.max(Number(gameState.iexFamilyUses) || 0,
     ...BOMBOT_CUSTOM_ATTACKS.map(attack => (attack.usesRequired || 0) + 1));
   Object.values(SKINS_DATA).forEach(skins => skins.forEach(skin => {
@@ -9642,7 +9773,9 @@ function renderAdventCalendar() {
           : reward.type === 'skin'
             ? SKINS_DATA.Glob.find(skin => skin.id === reward.id)?.skins.Glob
             : null;
-    if (imagePath) {
+    if (imagePath && reward.type === 'accessory' && getBombotAccessoryZoom(reward.id)) {
+      line.insertAdjacentHTML('beforeend', getBombotAccessoryThumbMarkup(reward.id, 'advent-day-reward-thumb'));
+    } else if (imagePath) {
       const image = document.createElement('img');
       image.src = encodeURI(imagePath);
       image.alt = '';
@@ -9859,12 +9992,10 @@ function getPassRewardVisualMarkup(r) {
     const kind = isReskin
       ? (es ? 'Aspecto de Bombot' : 'Bombot reskin')
       : (es ? 'Accesorio de Bombot' : 'Bombot accessory');
-    // Los accesorios son capas pensadas para ir sobre el Bombot: se muestran
-    // ya puestos sobre el Personalizable Bombot para que se vean a buen tamaño.
-    const bombotBase = SKINS_DATA.Special?.find(skin => skin.id === PERSONALIZABLE_BOMBOT_SKIN_ID)?.skins?.Work_Bombot || IMAGE_PATHS.Work_Bombot;
+    // Zoom sobre la pieza para que no se pierda en la miniatura.
     const visual = isReskin
       ? getPassRewardImageMarkup(image, name)
-      : `<span class="pass-reward-image pass-reward-layered" role="img" aria-label="${name}" style="background-image:url('${encodeURI(image)}'),url('${encodeURI(bombotBase)}')"></span>`;
+      : getBombotAccessoryThumbMarkup(r.id, 'pass-reward-image', name);
     return `<div class="pass-reward-visual">${visual}${label(name)}<small class="pass-reward-kind">${kind}</small></div>`;
   }
   // Filtro u otro tipo sin imagen propia: el Glob base con el filtro.
@@ -11156,7 +11287,9 @@ function getProfileAvatarImageMarkup(avatar, applyRgbEffect = false) {
 function getSkinPreviewFx(skin, previewImg) {
   if (skin?.fxEffect) {
     const canvasVariant = skin.fxEffect === 'rainbow-fuel' ? 'fuel'
-      : skin.fxEffect === 'alternate' ? 'alternate' : '';
+      : skin.fxEffect === 'shiny-rise' ? 'shiny-rise'
+        : skin.fxEffect === 'monochrome' ? 'tv'
+          : skin.fxEffect === 'snowy' ? 'snow' : '';
     return {
       className: canvasVariant ? `rgb-fx-preview fx-${skin.fxEffect}` : `fx-${skin.fxEffect}`,
       attrs: canvasVariant ? ` data-rgb-variant="${canvasVariant}"` : '',
@@ -11575,11 +11708,7 @@ function renderBombotAccessoryCustomizer(container, eventFilter = null) {
       image.alt = accName;
       const imgBox = document.createElement('div');
       imgBox.className = 'bombot-accessory-img-box';
-      const preview = BOMBOT_ACCESSORY_PREVIEWS[accessory.id];
-      if (preview) {
-        image.style.transformOrigin = 'top left';
-        image.style.transform = `scale(${preview.scale}) translate(${preview.x}%, ${preview.y}%)`;
-      }
+      image.style.cssText = getBombotAccessoryZoomStyle(accessory.id);
       imgBox.appendChild(image);
       const name = document.createElement('strong');
       name.textContent = accName;
@@ -12173,6 +12302,11 @@ function drawShop() {
 
       renderCategory(unlockableSkins.mapa, currentLanguage === 'es' ? '🗺️ Mapa' : '🗺️ Map', '#f39c12'); // Naranja
       renderCategory(unlockableSkins.misiones, currentLanguage === 'es' ? '🎯 Misiones / Collab' : '🎯 Missions / Collab', '#2ecc71'); // Verde
+      // Por familia en el orden de FX_FAMILY_ORDER; dentro de cada familia, el
+      // orden de los efectos del selector.
+      unlockableSkins.efectos.sort((a, b) =>
+        compareFxFamilies(a.family, b.family) ||
+        REWAMP_FX_EFFECT_ORDER.indexOf(a.skin.fxEffect) - REWAMP_FX_EFFECT_ORDER.indexOf(b.skin.fxEffect));
       renderCategory(unlockableSkins.efectos, currentLanguage === 'es' ? '✨ Efectos' : '✨ Effects', '#8fd0ff'); // Azul hielo
       renderCategory(unlockableSkins.otros, currentLanguage === 'es' ? '🏆 Otros' : '🏆 Others', '#ff69b4'); // Rosa
     }
@@ -17358,7 +17492,9 @@ function activateGTack(t) {
       el,
       rgbEffect === 'rainbow-fuel' ? 'fuel'
         : rgbEffect === 'rgb-rewamp' ? 'rgb'
-          : rgbEffect === 'alternate' ? 'alternate' : '',
+          : rgbEffect === 'shiny-rise' ? 'shiny-rise'
+            : rgbEffect === 'monochrome' ? 'tv'
+              : rgbEffect === 'snowy' ? 'snow' : '',
       getAbsoluteAssetUrl(getTowerImage(type))
     );
     const enemyBasedSkins = ['pyce_morph', 'mimic_set', 'astrorb_set', 'crystal_bombot'];

@@ -73,3 +73,22 @@ validación de juego recogida en `pendientes.md`.
 - [x] Emblemas: nombres de Sunlight Seaside (día → noche) y 12 nuevos de
   Aridez Escalofriante y Frosty Christmas. Iconos-imagen de logros arreglados.
   Verificado en Chrome headless (file://), sin errores de consola.
+
+## Efectos (2026-10-28)
+
+- [x] `FX-04` Alternativo pasa a ser una coloración alterna fija (no RGB):
+  `hue-rotate(105deg)` en torre, perfil y tienda (Comet Glob rojo, líneas de
+  Dark Glob azules, bomba de Nuclear Glob marrón). Nivel 12 del Pase de Invierno.
+- [x] `FX-05` El Alternativo anterior (arcoíris por color que gira + brillo
+  holográfico + destellos + halo) se conserva como efecto nuevo **Shiny Rise**
+  (`shiny-rise`). Se guarda en `unlockedRecolors`; de momento solo se
+  consigue con el debug "Desbloquear todo".
+- [x] `FX-06` Monochrome con efecto de tele antigua (líneas, banda que baja,
+  grano y parpadeo) y Nevado con copos que caen hacia la skin. En canvas, así
+  que también funcionan abriendo el juego como archivo local.
+- [x] `FX-07` Orden de familias en el selector de efectos y en "✨ Efectos":
+  Verde, Rojo, Ducky, Soap, Comet, Old, Worker, Bomb (`FX_FAMILY_ORDER`).
+- [x] `FX-08` Miniaturas de accesorios de Bombot con zoom automático sobre la
+  zona visible del PNG (`BOMBOT_ACCESSORY_VISIBLE_AREA` en config.js), en el
+  personalizador, el Pase de Invierno y el Calendario de Adviento.
+  Verificado en Chrome headless (file://), sin errores de consola.
