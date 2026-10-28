@@ -365,6 +365,8 @@ const TRANSLATIONS = {
     badge_across_time_desc: "Completa Across the Time: GlD (EVENT).",
     // Efecto de la skin Rewamp (tienda)
     fx_effect_secret_rgb: "RGB Secreto",
+    fx_effect_random: "Aleatorio",
+    fx_effect_random_desc: "Cada Glob que coloques lleva un efecto al azar de los que tienes desbloqueados.",
     tower_skin_effect_title: "✨ Efecto de la skin Rewamp",
     tower_skin_effect_desc: "Elige qué efecto lleva la skin Rewamp de cada familia (en Worker e IEx, su aspecto base). Las skins de efecto de siempre siguen en la categoría Efectos.",
     tower_skin_effect_active: "Skin equipada",
@@ -387,6 +389,8 @@ const TRANSLATIONS = {
     bombot_attack_in_use: "En uso",
     bombot_attack_unlock_interstellar: "💎 Supera Interstellar Menace",
     bombot_attack_unlock_iex: "💣 Usa la familia Bomb Glob más de {limit} veces ({uses}/{limit})",
+    bombot_attack_unlock_skin: "🎁 Consigue la skin {skin}",
+    bombot_attack_unlock_framed: "🖼️ Enmarca a {enemy} ({kills}/{target})",
     // Ctrl + G
     gtack_all_activated: "⚡ {count} G-Tacks activadas a la vez.",
     gtack_all_none: "No hay G-Tacks listas para activar.",
@@ -1083,6 +1087,8 @@ const TRANSLATIONS = {
     badge_across_time_desc: "Complete Across the Time: GlD (EVENT).",
     // Rewamp skin effect (shop)
     fx_effect_secret_rgb: "Secret RGB",
+    fx_effect_random: "Random",
+    fx_effect_random_desc: "Every Glob you place gets a random effect from the ones you've unlocked.",
     tower_skin_effect_title: "✨ Rewamp skin effect",
     tower_skin_effect_desc: "Choose the effect for each family's Rewamp skin (Worker and IEx use their base look). The usual effect skins are still in the Effects category.",
     tower_skin_effect_active: "Skin equipped",
@@ -1105,6 +1111,8 @@ const TRANSLATIONS = {
     bombot_attack_in_use: "In use",
     bombot_attack_unlock_interstellar: "💎 Beat Interstellar Menace",
     bombot_attack_unlock_iex: "💣 Use the Bomb Glob family more than {limit} times ({uses}/{limit})",
+    bombot_attack_unlock_skin: "🎁 Get the {skin} skin",
+    bombot_attack_unlock_framed: "🖼️ Frame {enemy} ({kills}/{target})",
     // Ctrl + G
     gtack_all_activated: "⚡ {count} G-Tacks activated at once.",
     gtack_all_none: "No G-Tacks are ready to activate.",

@@ -115,3 +115,20 @@ validación de juego recogida en `pendientes.md`.
   partida y solo es individual. Se desbloquea teniéndolo todo (13 familias,
   todos los emblemas y enmarcados) o siendo OWNER/ADMIN/DEVBUILD; botón debug
   "Obtener modo Sandbox". Verificado en Chrome headless (file://).
+
+## Efectos, Bombot y vallas (2026-10-28, tanda 3)
+
+- [x] `FX-13` Efectos nuevos del Pase de Invierno: Neón (7), Píxel (23),
+  Cómic (38) y Glitch (45, el color salta al azar con fallos de imagen).
+- [x] `FX-14` Opción **Aleatorio** (icono MysteryBug) en el selector de skins:
+  cada Glob colocado lleva un efecto al azar de los desbloqueados y lo
+  conserva al evolucionar. No aparece en la imagen de perfil.
+- [x] `MEC-09` Ataques nuevos del Personalizable Bombot: **Regalados** (regalos
+  giratorios de Santa's Workshop; explosión de cristal de Fracstral EVO1; se
+  consigue con la skin Santa's Workshop) y **Hueso** (hueso de SkeleBone Pyce;
+  explosión negra; se consigue enmarcando a SkeleBone Pyce).
+- [x] `MEC-10` Worker y su familia ya ponen varias vallas: antes solo se
+  miraban las esquinas del camino y casi siempre había una a su alcance;
+  ahora se recorre cada tramo cada 25 px.
+- [x] `FX-15` Las vallas (y las invocaciones, cuando la familia Marina tenga
+  efectos) llevan el efecto del Glob que las crea (`applyEntityEffect`).

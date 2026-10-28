@@ -8881,3 +8881,75 @@ body.sandbox-mode #auto-wave {
     opacity: 0.55;
     cursor: not-allowed;
 }
+
+/* ========================================================================
+   EFECTOS NUEVOS: Neón (CSS), Píxel, Cómic y Glitch (canvas) y Aleatorio
+   ======================================================================== */
+/* NEÓN: el Glob a oscuras con su contorno brillando en cian y rosa. */
+.skin-preview.fx-neon img,
+.rgb-avatar-image.neon > img {
+    filter: brightness(0.35) saturate(1.6)
+        drop-shadow(0 0 2px #00f0ff) drop-shadow(0 0 6px #ff2bd6);
+    mix-blend-mode: normal;
+}
+.tower.tower-rgb-neon {
+    filter: brightness(0.35) saturate(1.6)
+        drop-shadow(0 0 2px #00f0ff) drop-shadow(0 0 6px #ff2bd6) drop-shadow(0 0 12px rgba(255, 43, 214, 0.55));
+}
+
+/* Píxel y Glitch dibujan la skin entera en el canvas: se oculta la imagen
+   base para que no asome por los bordes pixelados ni por las bandas. */
+.tower.tower-rgb-pixel.rgb-canvas,
+.tower.tower-rgb-glitch-color.rgb-canvas {
+    background-image: none !important;
+}
+.rgb-avatar-image.pixel.rgb-canvas > img,
+.rgb-avatar-image.glitch-color.rgb-canvas > img,
+.skin-preview.fx-pixel.rgb-canvas img,
+.skin-preview.fx-glitch-color.rgb-canvas img {
+    opacity: 0;
+}
+.rgb-overlay.rgb-overlay-pixel {
+    image-rendering: pixelated;
+}
+
+/* Sin capa arcoíris (el ::after RGB) mientras carga el canvas. */
+.rgb-avatar-image.neon::after,
+.rgb-avatar-image.pixel::after,
+.rgb-avatar-image.comic::after,
+.rgb-avatar-image.glitch-color::after,
+.tower.tower-rgb-neon::before,
+.tower.tower-rgb-pixel::before,
+.tower.tower-rgb-comic::before,
+.tower.tower-rgb-glitch-color::before {
+    display: none;
+}
+.rgb-avatar-image.neon > .rgb-overlay {
+    display: none;
+}
+
+/* ALEATORIO: el MysteryBug con un brillo suave. */
+.effect-random-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.55));
+}
+
+/* Proyectiles giratorios del Personalizable Bombot (Regalados y Hueso). */
+@keyframes projectile-spin {
+    to { transform: rotate(360deg); }
+}
+.projectile.projectile-spin {
+    animation: projectile-spin 0.45s linear infinite;
+}
+
+/* Vallas e invocaciones con el efecto de su Glob (applyEntityEffect). */
+.trap-entity > .rgb-overlay,
+.boat > .rgb-overlay {
+    object-fit: contain;
+}
+.trap-entity.fx-entity-replace-base.rgb-canvas,
+.boat.fx-entity-replace-base.rgb-canvas {
+    background-image: none !important;
+}

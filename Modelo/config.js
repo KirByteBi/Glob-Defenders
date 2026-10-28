@@ -246,7 +246,15 @@ const BOMBOT_CUSTOM_ATTACKS = [
   { id: 'default', name: { es: 'Bomba clásica', en: 'Classic Bomb' }, projectile: 'Recursos/img/Proyectiles/Proyectil_Bomba.png' },
   { id: 'cubic_bomb', name: { es: 'Bomba Cúbica', en: 'Cubic Bomb' }, projectile: IMAGE_PATHS.Cube_Bomb_CB, cost: 200 },
   { id: 'crystal_meteor', name: { es: 'Meteoro de Cristal', en: 'Crystal Meteor' }, projectile: 'Recursos/img/Proyectiles/Crystal Metor.png', unlock: 'interstellar' },
-  { id: 'bomb_glob', name: { es: 'Bomb Glob', en: 'Bomb Glob' }, projectile: IMAGE_PATHS.Bomb_Glob, unlock: 'iex_uses', usesRequired: 200, explosion: 'Bomb_Glob', splashRadius: 80, splashDamage: 0.5 }
+  { id: 'bomb_glob', name: { es: 'Bomb Glob', en: 'Bomb Glob' }, projectile: IMAGE_PATHS.Bomb_Glob, unlock: 'iex_uses', usesRequired: 200, explosion: 'Bomb_Glob', splashRadius: 80, splashDamage: 0.5 },
+  // Regalados: los regalos giratorios de Santa's Workshop. Explotan con la
+  // explosión de cristal de la primera evolución del Set Fracstral.
+  { id: 'gifted', name: { es: 'Regalados', en: 'Gifted' }, projectile: IMAGE_PATHS.Santa_Workshop_Gift_Projectile, unlock: 'skin', skinId: 'santa_workshop_set',
+    spin: true, explosion: 'Bomb_Glob', explosionImage: 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Fracstral Set/Explosiones/Crystal Explosion (1).png', splashRadius: 70, splashDamage: 0.4 },
+  // Hueso: el proyectil de SkeleBone Pyce. Explota con la explosión normal
+  // pintada toda de negro.
+  { id: 'bone', name: { es: 'Hueso', en: 'Bone' }, projectile: IMAGE_PATHS.SkeleBone_Bone, unlock: 'framed', enemyType: 'SkeleBone_Pyce',
+    spin: true, explosion: 'Bomb_Glob', explosionFilter: 'brightness(0)', splashRadius: 70, splashDamage: 0.4 }
 ];
 
 const BADGES = {

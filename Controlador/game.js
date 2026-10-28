@@ -138,7 +138,14 @@ const RGB_OVERLAY_STYLES = {
     stripFilter: 'none', periodMs: 3200, ink: false, colorKeep: 0, crystal: true, sparkle: true,
     colors: ['#7fe9ff', '#ffaee0', '#fff1a1', '#7fe9ff'],
     sparkleColors: ['#c9f7ff', '#ffd2ee', '#fff6c4']
-  }
+  },
+  // Glitch: el color salta a tonos al azar, con bandas desplazadas y una
+  // copia fantasma de otro color durante los fallos.
+  'glitch-color': { stripFilter: 'none', periodMs: 0, ink: false, colorKeep: 0, glitchColor: true },
+  // Píxel: la skin en baja resolución, como un sprite de 8 bits (estático).
+  pixel: { stripFilter: 'none', periodMs: 0, ink: false, colorKeep: 0, pixel: true, static: true },
+  // Cómic: colores saturados con trama de puntos de cómic (estático).
+  comic: { stripFilter: 'none', periodMs: 0, ink: false, colorKeep: 0, comic: true, static: true }
   // Alternativo, Sombra, Sangre y Dorado no son RGB: son filtros CSS fijos
   // (ver .tower.tower-rgb-<efecto> en styles.css).
 };
@@ -149,9 +156,16 @@ const CANVAS_EFFECT_VARIANTS = Object.freeze({
   'shiny-rise': 'shiny-rise',
   crystalized: 'crystalized',
   monochrome: 'tv',
-  snowy: 'snow'
+  snowy: 'snow',
+  'glitch-color': 'glitch-color',
+  pixel: 'pixel',
+  comic: 'comic'
 });
-const CSS_ONLY_EFFECT_IDS = Object.freeze(['negative', 'alternate', 'shadow', 'blood', 'golden']);
+const CSS_ONLY_EFFECT_IDS = Object.freeze(['negative', 'alternate', 'shadow', 'blood', 'golden', 'neon']);
+// Opción "Aleatorio" del selector de skins: cada Glob colocado lleva un
+// efecto al azar de entre los desbloqueados. Icono: el MysteryBug.
+const RANDOM_EFFECT_ID = 'random';
+const RANDOM_EFFECT_ICON = 'Recursos/img/Sellos/MysteryBug.png';
 
 function getEffectCanvasVariant(effectId) {
   if (effectId === 'rgb' || effectId === 'rgb-rewamp') return 'rgb';
@@ -236,6 +250,18 @@ function drawRgbOverlayFrame(entry, now) {
   }
   if (style.crystal) {
     drawCrystalizedFrame(entry, now);
+    return;
+  }
+  if (style.glitchColor) {
+    drawGlitchColorFrame(entry, now);
+    return;
+  }
+  if (style.pixel) {
+    drawPixelFrame(entry);
+    return;
+  }
+  if (style.comic) {
+    drawComicFrame(entry);
     return;
   }
   if (style.colorBlend) {
@@ -346,6 +372,71 @@ function drawSnowfallFrame(entry, now) {
     ctx.stroke();
   });
   ctx.globalAlpha = 1;
+}
+
+// Glitch: cada poco el tono salta a un color al azar. En algunos saltos hay
+// un "fallo": bandas horizontales desplazadas y una copia de otro color.
+function drawGlitchColorFrame(entry, now) {
+  const { ctx, image, width, height } = entry;
+  if (entry.filterOk === undefined) entry.filterOk = canvasSupportsFilter(ctx);
+  const state = entry.glitch || (entry.glitch = { hue: Math.random() * 360, next: 0, burst: 0 });
+  if (now >= state.next) {
+    state.hue = Math.random() * 360;
+    state.next = now + 180 + Math.random() * 520;
+    if (Math.random() < 0.45) state.burst = now + 90 + Math.random() * 130;
+  }
+  if (entry.filterOk) ctx.filter = `hue-rotate(${Math.round(state.hue)}deg) saturate(1.5)`;
+  ctx.drawImage(image, 0, 0, width, height);
+  if (now < state.burst) {
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+    for (let i = 0; i < 4; i++) {
+      const y = Math.random() * height;
+      const bandHeight = height * (0.04 + Math.random() * 0.1);
+      const shift = (Math.random() - 0.5) * width * 0.18;
+      ctx.clearRect(0, y, width, bandHeight);
+      ctx.drawImage(image, 0, (y / height) * sourceHeight, sourceWidth, (bandHeight / height) * sourceHeight,
+        shift, y, width, bandHeight);
+    }
+    if (entry.filterOk) ctx.filter = `hue-rotate(${Math.round(state.hue + 150) % 360}deg) saturate(2)`;
+    ctx.globalAlpha = 0.4;
+    ctx.drawImage(image, width * 0.035, 0, width, height);
+    ctx.globalAlpha = 1;
+  }
+  ctx.filter = 'none';
+}
+
+// Píxel: se dibuja en una rejilla pequeña y se amplía sin suavizado.
+function drawPixelFrame(entry) {
+  const { ctx, image, width, height } = entry;
+  const cells = 26;
+  const small = document.createElement('canvas');
+  small.width = cells;
+  small.height = Math.max(1, Math.round(cells * height / width));
+  const smallCtx = small.getContext('2d');
+  if (canvasSupportsFilter(smallCtx)) smallCtx.filter = 'saturate(1.25) contrast(1.1)';
+  smallCtx.drawImage(image, 0, 0, small.width, small.height);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(small, 0, 0, width, height);
+  ctx.imageSmoothingEnabled = true;
+}
+
+// Cómic: colores vivos y con contraste, más una trama de puntos de imprenta.
+function drawComicFrame(entry) {
+  const { ctx, width, height } = entry;
+  drawFilteredOverlayImage(entry, 'saturate(2.1) contrast(1.45) brightness(1.06)');
+  ctx.globalCompositeOperation = 'source-atop';
+  const spacing = Math.max(4, width / 26);
+  const radius = spacing * 0.27;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+  for (let row = 0, y = spacing / 2; y < height; row++, y += spacing) {
+    for (let x = (row % 2 ? spacing : spacing / 2); x < width; x += spacing) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation = 'source-over';
 }
 
 // Cristalizado: la imagen con un barrido pastel (cian, rosa, amarillo) mezclado
@@ -499,7 +590,8 @@ function createRgbOverlayCanvas(src, variant, onReady) {
     canvas.classList.add('ready');
     if (typeof onReady === 'function') onReady();
     // El tono de Shiny Rise lo gira CSS; entra en el bucle por sus destellos.
-    if (RGB_OVERLAY_REDUCED_MOTION || (style.colorBlend && !style.sparkle)) return;
+    // Los estáticos (Píxel, Cómic) se dibujan una vez y no entran en el bucle.
+    if (RGB_OVERLAY_REDUCED_MOTION || style.static || (style.colorBlend && !style.sparkle)) return;
     rgbOverlayRegistry.add(entry);
     if (!rgbOverlayFrame) rgbOverlayFrame = setTimeout(tickRgbOverlays, 33);
   });
@@ -589,11 +681,16 @@ const PROFILE_FX_EFFECTS = Object.freeze([
   { id: 'crystalized', es: 'Cristalizado', en: 'Crystalized', source: 'winter' },
   { id: 'shadow', es: 'Sombra', en: 'Shadow', source: 'winter' },
   { id: 'blood', es: 'Sangre', en: 'Blood', source: 'winter' },
-  { id: 'golden', es: 'Dorado', en: 'Golden', source: 'winter' }
+  { id: 'golden', es: 'Dorado', en: 'Golden', source: 'winter' },
+  { id: 'neon', es: 'Neón', en: 'Neon', source: 'winter' },
+  { id: 'pixel', es: 'Píxel', en: 'Pixel', source: 'winter' },
+  { id: 'comic', es: 'Cómic', en: 'Comic', source: 'winter' },
+  { id: 'glitch-color', es: 'Glitch', en: 'Glitch', source: 'winter' }
 ]);
 // Efectos que se guardan en unlockedRecolors (todos los del Pase de Invierno).
 const RGB_RECOLOR_EFFECT_IDS = Object.freeze([
-  'monochrome', 'negative', 'snowy', 'alternate', 'shiny-rise', 'crystalized', 'shadow', 'blood', 'golden'
+  'monochrome', 'negative', 'snowy', 'alternate', 'shiny-rise', 'crystalized', 'shadow', 'blood', 'golden',
+  'neon', 'pixel', 'comic', 'glitch-color'
 ]);
 // Efectos que son solo un filtro CSS sobre la imagen (sin capa canvas).
 const PROFILE_FILTER_EFFECT_IDS = CSS_ONLY_EFFECT_IDS;
@@ -621,6 +718,7 @@ function getUnlockedRgbRecolorEffects() {
 
 function getFxEffectLabel(effectId) {
   if (effectId === 'rgb') return translate('fx_effect_secret_rgb');
+  if (effectId === 'random') return translate('fx_effect_random');
   const effect = PROFILE_FX_EFFECTS.find(item => item.id === effectId);
   return effect ? (currentLanguage === 'en' ? effect.en : effect.es) : effectId;
 }
@@ -664,9 +762,10 @@ function isFxSkinUnlocked(skin) {
 // ofrece con la skin original desbloqueada y cada efecto con su desbloqueo.
 // Orden de los efectos en los selectores (tras Original y RGB Secreto).
 const REWAMP_FX_EFFECT_ORDER = Object.freeze([
-  'rainbow-fuel', 'negative', 'monochrome', 'snowy', 'alternate', 'blood', 'shadow', 'golden', 'shiny-rise', 'crystalized'
+  'rainbow-fuel', 'negative', 'monochrome', 'snowy', 'alternate', 'blood', 'shadow', 'golden',
+  'neon', 'pixel', 'comic', 'glitch-color', 'shiny-rise', 'crystalized'
 ]);
-const TOWER_SKIN_EFFECT_IDS = Object.freeze(['original', 'rgb', ...REWAMP_FX_EFFECT_ORDER]);
+const TOWER_SKIN_EFFECT_IDS = Object.freeze(['original', 'rgb', ...REWAMP_FX_EFFECT_ORDER, RANDOM_EFFECT_ID]);
 
 // Skin sobre la que se aplica el efecto elegido: la Rewamp de la familia, o
 // 'default' en familias con skin RGB pero sin Rewamp (Worker e IEx).
@@ -703,7 +802,68 @@ function getTowerSkinEffectOptions(family) {
   REWAMP_FX_EFFECT_ORDER.forEach(effectId => {
     if (isFxEffectUnlockedForFamily(effectId, family)) options.push(effectId);
   });
+  // "Aleatorio" al final, en cuanto hay al menos dos efectos entre los que elegir.
+  if (options.length >= 3) options.push(RANDOM_EFFECT_ID);
   return options;
+}
+
+// Efecto al azar de un Glob concreto con la opción "Aleatorio". Se guarda en
+// su elemento para que no cambie al evolucionar ni al repintar las torres.
+function getTowerRandomEffect(el, family) {
+  const pool = getTowerSkinEffectOptions(family).filter(id => id !== 'original' && id !== RANDOM_EFFECT_ID);
+  if (!pool.length) return '';
+  if (!pool.includes(el.dataset.randomFx)) {
+    el.dataset.randomFx = pool[Math.floor(Math.random() * pool.length)];
+  }
+  return el.dataset.randomFx;
+}
+
+// --- Efecto en vallas e invocaciones -----------------------------------------
+// Las vallas (familia Worker) y las invocaciones (familia Marina, cuando tenga
+// efectos) llevan el mismo efecto que el Glob que las crea. Los efectos de
+// filtro van como filter en línea (mismos valores que .tower.tower-rgb-* en
+// styles.css) y los demás con la misma capa canvas que las torres.
+const ENTITY_FX_FILTERS = Object.freeze({
+  negative: 'invert(1) hue-rotate(180deg) contrast(1.06)',
+  alternate: 'hue-rotate(105deg)',
+  shadow: 'grayscale(1) brightness(0.22) contrast(1.4) drop-shadow(0 0 5px rgba(0, 0, 0, 0.95))',
+  blood: 'grayscale(1) sepia(1) saturate(6) hue-rotate(-42deg) brightness(0.9) contrast(1.15)',
+  golden: 'grayscale(1) sepia(1) saturate(3.2) brightness(1.15) hue-rotate(-6deg)',
+  neon: 'brightness(0.35) saturate(1.6) drop-shadow(0 0 2px #00f0ff) drop-shadow(0 0 5px #ff2bd6)'
+});
+// Efectos que pintan la imagen entera en el canvas (se oculta la de debajo).
+const ENTITY_FX_REPLACE_BASE = Object.freeze(['pixel', 'glitch-color', 'snowy']);
+
+function applyEntityEffect(el, effectId, imagePath) {
+  if (!el) return;
+  const effect = effectId || '';
+  el.style.filter = ENTITY_FX_FILTERS[effect] || '';
+  el.classList.toggle('fx-entity-replace-base', ENTITY_FX_REPLACE_BASE.includes(effect));
+  const variant = getEffectCanvasVariant(effect);
+  syncRgbOverlay(el, variant, variant && imagePath ? getAbsoluteAssetUrl(imagePath) : '');
+}
+
+function getTrapImage(trap) {
+  const family = TOWER_TYPES[trap.parentType]?.family;
+  return getTowerSkinSet(family)?.traps?.[trap.trapType] || IMAGE_PATHS[trap.trapType];
+}
+
+function applyTrapEffect(trap) {
+  applyEntityEffect(trap.el, trap.ownerEl?.dataset.fxEffect || '', getTrapImage(trap));
+}
+
+// Repinta las vallas de una familia tras cambiar su skin o su efecto.
+function refreshFamilyTrapEffects(family) {
+  (gameState.traps || []).forEach(trap => {
+    if (!trap.el || TOWER_TYPES[trap.parentType]?.family !== family) return;
+    trap.el.style.backgroundImage = `url('${encodeURI(getTrapImage(trap))}')`;
+    applyTrapEffect(trap);
+  });
+}
+
+// Vista previa de la opción "Aleatorio": el MysteryBug.
+function getRandomEffectPreviewMarkup() {
+  return `<div class="skin-preview effect-random-preview"><img src="${encodeURI(RANDOM_EFFECT_ICON)}" alt=""></div>`;
 }
 
 // Efecto que debe pintar una torre: '' si la skin equipada no es la Rewamp
@@ -743,6 +903,7 @@ window.setTowerSkinEffect = function(family, effectId) {
   gameState.towers.forEach(tower => {
     if (tower.family === family) applyTowerEffects(tower.el, tower.type);
   });
+  refreshFamilyTrapEffects(family);
   saveProgress();
   if (currentShopTab === 'skins') drawShop();
   showMessage(translate('appearance_updated'), 'success');
@@ -768,14 +929,18 @@ function renderTowerSkinEffectPanel(container) {
     const isActive = (gameState.equippedSkins[family] || 'default') === hostSkinId;
     const selected = gameState.towerSkinEffects?.[family] || 'original';
     const buttons = getTowerSkinEffectOptions(family).map(effectId => {
-      const fx = effectId === 'original'
+      const fx = effectId === 'original' || effectId === RANDOM_EFFECT_ID
         ? { className: '', attrs: '', style: '' }
         : getSkinPreviewFx(effectId === 'rgb' ? { rgbTypes: [firstType] } : { fxEffect: effectId }, previewImg);
       const isSelected = isActive && effectId === selected;
+      const preview = effectId === RANDOM_EFFECT_ID
+        ? getRandomEffectPreviewMarkup()
+        : `<div class="skin-preview ${fx.className}"${fx.attrs} style="${fx.style}"><img src="${encodeURI(previewImg)}" alt=""></div>`;
       return `
         <button type="button" class="tower-skin-effect-choice${isSelected ? ' selected' : ''}"
-          onclick="setTowerSkinEffect('${family}', '${effectId}')" aria-pressed="${isSelected}">
-          <div class="skin-preview ${fx.className}"${fx.attrs} style="${fx.style}"><img src="${encodeURI(previewImg)}" alt=""></div>
+          onclick="setTowerSkinEffect('${family}', '${effectId}')" aria-pressed="${isSelected}"
+          ${effectId === RANDOM_EFFECT_ID ? `title="${translate('fx_effect_random_desc')}"` : ''}>
+          ${preview}
           <span>${getRewampEffectLabel(effectId)}</span>
         </button>`;
     }).join('');
@@ -870,7 +1035,10 @@ function getProfileAvatarEffectOptions(avatar) {
   const family = avatar?.rewampFamily;
   if (!family) return [];
   // Personalizable Bombot: los mismos efectos que su pestaña de la tienda.
-  if (family === BOMBOT_EFFECT_FAMILY) return getTowerSkinEffectOptions(BOMBOT_EFFECT_FAMILY);
+  // ("Aleatorio" es solo para los Globs colocados, no para la imagen de perfil.)
+  if (family === BOMBOT_EFFECT_FAMILY) {
+    return getTowerSkinEffectOptions(BOMBOT_EFFECT_FAMILY).filter(id => id !== RANDOM_EFFECT_ID);
+  }
   const type = /^glob:([^:]+):/.exec(avatar.id || '')?.[1];
   const options = ['original'];
   if (gameState.debugState === 'unlocked' ||
@@ -9867,7 +10035,7 @@ const WINTER_PASS_REWARDS = [
   { level: 4, reward: { type: 'duckpass', amount: 50 } },
   { level: 5, reward: { type: 'recolor', id: 'monochrome' } },
   { level: 6, reward: { type: 'duckpass', amount: 50 } },
-  { level: 7, reward: { type: 'duckpass', amount: 50 } },
+  { level: 7, reward: { type: 'recolor', id: 'neon' } },
   { level: 8, reward: { type: 'accessory', id: 'clockwork_bombot_reskin' } },
   { level: 9, reward: { type: 'duckpass', amount: 60 } },
   { level: 10, reward: { type: 'accessory', id: 'bakhef' } },
@@ -9883,7 +10051,7 @@ const WINTER_PASS_REWARDS = [
   { level: 20, reward: { type: 'accessory', id: 'furnace_bombot_reskin' } },
   { level: 21, reward: { type: 'duckpass', amount: 90 } },
   { level: 22, reward: { type: 'duckpass', amount: 90 } },
-  { level: 23, reward: { type: 'duckpass', amount: 90 } },
+  { level: 23, reward: { type: 'recolor', id: 'pixel' } },
   { level: 24, reward: { type: 'duckpass', amount: 100 } },
   { level: 25, reward: { type: 'recolor', id: 'negative' } },
   { level: 26, reward: { type: 'duckpass', amount: 100 } },
@@ -9898,14 +10066,14 @@ const WINTER_PASS_REWARDS = [
   { level: 35, reward: { type: 'recolor', id: 'snowy' } },
   { level: 36, reward: { type: 'duckpass', amount: 130 } },
   { level: 37, reward: { type: 'duckpass', amount: 130 } },
-  { level: 38, reward: { type: 'duckpass', amount: 140 } },
+  { level: 38, reward: { type: 'recolor', id: 'comic' } },
   { level: 39, reward: { type: 'duckpass', amount: 140 } },
   { level: 40, reward: { type: 'accessory', id: 'red_breath_bombot_reskin' } },
   { level: 41, reward: { type: 'duckpass', amount: 150 } },
   { level: 42, reward: { type: 'recolor', id: 'shiny-rise' } },
   { level: 43, reward: { type: 'duckpass', amount: 160 } },
   { level: 44, reward: { type: 'duckpass', amount: 160 } },
-  { level: 45, reward: { type: 'duckpass', amount: 180 } },
+  { level: 45, reward: { type: 'recolor', id: 'glitch-color' } },
   { level: 46, reward: { type: 'duckpass', amount: 180 } },
   { level: 47, reward: { type: 'recolor', id: 'crystalized' } },
   { level: 48, reward: { type: 'duckpass', amount: 220 } },
@@ -11607,6 +11775,7 @@ function syncEffectToSkins(family, effectId) {
   gameState.towers.forEach(tower => {
     if (tower.family === family) applyTowerEffects(tower.el, tower.type);
   });
+  refreshFamilyTrapEffects(family);
   return true;
 }
 
@@ -11890,6 +12059,12 @@ function isBombotAttackUnlocked(attack) {
   if (attack.unlock === 'iex_uses') {
     return (Number(gameState.iexFamilyUses) || 0) > (attack.usesRequired || 0);
   }
+  // Tener la skin de la que sale el ataque.
+  if (attack.unlock === 'skin') return Boolean(gameState.unlockedSkins?.includes(attack.skinId));
+  // Tener enmarcado al enemigo que lanza ese proyectil.
+  if (attack.unlock === 'framed') {
+    return (gameState.pycesKilled?.[attack.enemyType] || 0) >= getPyceKillTarget(attack.enemyType);
+  }
   return false;
 }
 
@@ -11901,6 +12076,18 @@ function getEquippedBombotAttack() {
 
 function getBombotAttackUnlockText(attack) {
   if (attack.unlock === 'interstellar') return translate('bombot_attack_unlock_interstellar');
+  if (attack.unlock === 'skin') {
+    const skin = Object.values(SKINS_DATA).flat().find(item => item.id === attack.skinId);
+    return translate('bombot_attack_unlock_skin', { skin: skin ? translate(skin.name) : attack.skinId });
+  }
+  if (attack.unlock === 'framed') {
+    const enemy = ENEMY_TYPES[attack.enemyType];
+    return translate('bombot_attack_unlock_framed', {
+      enemy: enemy ? translate(enemy.name) : attack.enemyType,
+      kills: Math.min(gameState.pycesKilled?.[attack.enemyType] || 0, getPyceKillTarget(attack.enemyType)),
+      target: getPyceKillTarget(attack.enemyType)
+    });
+  }
   if (attack.unlock === 'iex_uses') {
     return translate('bombot_attack_unlock_iex', {
       limit: attack.usesRequired,
@@ -11940,6 +12127,7 @@ function equipBombotAttack(id) {
 
 // Vista previa del Personalizable Bombot tal como va equipado, con un efecto.
 function getBombotEffectPreviewMarkup(effectId) {
+  if (effectId === RANDOM_EFFECT_ID) return getRandomEffectPreviewMarkup();
   const baseImage = SKINS_DATA.Special?.find(skin => skin.id === PERSONALIZABLE_BOMBOT_SKIN_ID)?.skins?.Work_Bombot ||
     IMAGE_PATHS.Work_Bombot;
   const sources = getBombotCompositeSources(baseImage);
@@ -13078,14 +13266,8 @@ function equipSkin(family, skinId) {
     gameState.unlockedSkins.push(skin.id);
   }
   gameState.towers.forEach(t => { if (t.family === family || family === 'Global') { t.el.style.backgroundImage = `url('${encodeURI(getTowerImage(t.type))}')`; applyTowerEffects(t.el, t.type); } });
-  if (family === 'Worker_Glob') {
-    const trapImages = skin?.traps || {};
-    gameState.traps?.forEach(trap => {
-      if (TOWER_TYPES[trap.parentType]?.family !== family) return;
-      const image = trapImages[trap.trapType] || IMAGE_PATHS[trap.trapType];
-      trap.el.style.backgroundImage = `url('${encodeURI(image)}')`;
-    });
-  }
+  // Vallas: nueva imagen de la skin y el efecto actual de su Glob.
+  refreshFamilyTrapEffects(family);
   if (currentShopTab === 'skins') drawShop();
   if (document.getElementById('pass-modal').style.display === 'flex') drawPass();
   saveProgress();
@@ -15177,6 +15359,9 @@ function activateGTack(t) {
     el.style.backgroundRepeat = 'no-repeat';
     el.style.backgroundPosition = 'center';
     el.style.zIndex = '6';
+    // La invocación lleva el efecto de su Glob (la familia Marina aún no
+    // tiene efectos, así que de momento queda sin efecto).
+    applyEntityEffect(el, tower.el?.dataset.fxEffect || '', imagePath);
 
     const mapElement = document.getElementById('map') || document.getElementById('game-area');
     if (!mapElement) {
@@ -16254,21 +16439,36 @@ function activateGTack(t) {
             if (!gameState.traps) gameState.traps = [];
 
             let potentialSpots = [];
-            // Combine all available paths on the map
+            // Los caminos solo guardan sus esquinas: antes solo se miraban esos
+            // puntos y, con el rango del Worker, casi siempre había uno solo a
+            // su alcance (de ahí que pusiera una única valla). Ahora se recorre
+            // cada tramo cada TRAP_PATH_STEP px para tener sitios a lo largo
+            // de todo el camino. index = avance en el camino (para ordenar).
+            const TRAP_PATH_STEP = 25;
             const allPaths = ENEMY_PATHS && ENEMY_PATHS.length > 0 ? ENEMY_PATHS : [];
+            const tryTrapSpot = (x, y, index) => {
+              if (Math.hypot(x - t.x, y - t.y) > t.range) return;
+              // Colisión: ninguna trampa activa a menos de 50px (de cualquier evo)
+              const occupied = gameState.traps.some(tr =>
+                tr.active && Math.hypot(tr.x - x, tr.y - y) < 50
+              );
+              if (!occupied) potentialSpots.push({ x, y, index });
+            };
             allPaths.forEach(path => {
-              if (path && path.length > 0) {
-                for (let i = 0; i < path.length; i++) {
-                  let pt = path[i];
-                  if (Math.hypot(pt.x - t.x, pt.y - t.y) <= t.range) {
-                    // Colisión: ninguna trampa activa a menos de 50px (de cualquier evo)
-                    const occupied = gameState.traps.some(tr =>
-                      tr.active && Math.hypot(tr.x - pt.x, tr.y - pt.y) < 50
-                    );
-                    if (!occupied) potentialSpots.push({ x: pt.x, y: pt.y, index: i });
-                  }
+              if (!path || path.length === 0) return;
+              if (path.length === 1) { tryTrapSpot(path[0].x, path[0].y, 0); return; }
+              for (let i = 0; i < path.length - 1; i++) {
+                const from = path[i];
+                const to = path[i + 1];
+                const length = Math.hypot(to.x - from.x, to.y - from.y);
+                const steps = Math.max(1, Math.round(length / TRAP_PATH_STEP));
+                for (let s = 0; s < steps; s++) {
+                  const f = s / steps;
+                  tryTrapSpot(from.x + (to.x - from.x) * f, from.y + (to.y - from.y) * f, i + f);
                 }
               }
+              const last = path[path.length - 1];
+              tryTrapSpot(last.x, last.y, path.length - 1);
             });
 
             const isDJ = t.type === 'DJ_Glob';
@@ -16290,6 +16490,7 @@ function activateGTack(t) {
                 whiteSupport: !!(t.whiteSupportTimer && t.whiteSupportTimer > 0),
                 active: true,
                 radius: trapRadius,
+                ownerEl: t.el,
                 el: document.createElement('div')
               };
               trap.el.className = 'trap-entity';
@@ -16298,9 +16499,11 @@ function activateGTack(t) {
                 `left:${spot.x}px;top:${spot.y}px;` +
                 `width:${trapSize}px;height:${trapSize}px;` +
                 `transform:translate(-50%,-50%);` +
-                `background:url('${encodeURI(getTowerSkinSet(t.family)?.traps?.[trapType] || IMAGE_PATHS[trapType])}') center/contain no-repeat;` +
+                `background:url('${encodeURI(getTrapImage(trap))}') center/contain no-repeat;` +
                 `z-index:5;`;
               mapEl.appendChild(trap.el);
+              // La valla lleva el mismo efecto que el Glob que la pone.
+              applyTrapEffect(trap);
               gameState.traps.push(trap);
             }
             // Cooldown: DJ Glob x3 más lento
@@ -16483,7 +16686,10 @@ function activateGTack(t) {
           if (p.family !== 'IEx') target.nonIExDamage = true;
         }
         if (p.meta?.boatBomb) {
-          showBoatBombExplosion(target.x, target.y, p.meta.bombType);
+          showBoatBombExplosion(target.x, target.y, p.meta.bombType, {
+            image: p.meta.explosionImage,
+            filter: p.meta.explosionFilter
+          });
         }
         // Daño en área (p. ej. el ataque Bomb Glob del Personalizable Bombot).
         if (p.meta?.splashRadius) {
@@ -17170,6 +17376,12 @@ function activateGTack(t) {
     if (projClass === 'binary_code') {
       el.textContent = Math.random() < 0.5 ? '0' : '1';
     }
+    // Proyectiles que giran en el aire (regalos y huesos del Bombot).
+    if (opts.spin) {
+      el.classList.add('projectile-spin');
+      el.style.width = '30px';
+      el.style.height = '30px';
+    }
 
     const mapEl = document.getElementById('map') || document.getElementById('game-area') || document.body;
     mapEl.appendChild(el);
@@ -17847,7 +18059,8 @@ function activateGTack(t) {
     document.getElementById('map').appendChild(el); setTimeout(() => el.remove(), 1000);
   }
 
-  function showBoatBombExplosion(x, y, bombType) {
+  // custom: { image, filter } para ataques con su propia explosión (Bombot).
+  function showBoatBombExplosion(x, y, bombType, custom = {}) {
     let image = 'Recursos/img/Proyectiles/Explosion Effect.png';
     let size = 110;
     if (gameState.equippedSkins['IEx'] === 'fracstal_set') {
@@ -17867,10 +18080,13 @@ function activateGTack(t) {
       size = 190;
     }
 
+    if (custom.image) image = custom.image;
+
     const map = document.getElementById('map');
     if (!map) return;
     const explosion = document.createElement('div');
-    explosion.style.cssText = [
+    if (custom.filter) explosion.style.filter = custom.filter;
+    explosion.style.cssText += [
       'position:absolute',
       `left:${x}px`,
       `top:${y}px`,
@@ -17948,7 +18164,9 @@ function activateGTack(t) {
     const fxEffect = skinSet?.fxEffect && skinSet.fxTypes?.includes(type) ? skinSet.fxEffect : '';
     // Efecto elegido en el selector de la skin Rewamp (o del aspecto base en
     // Worker/IEx). Las skins RGB y de efecto conservan el suyo.
-    const rewampEffect = getTowerSkinEffect(family, type);
+    let rewampEffect = getTowerSkinEffect(family, type);
+    // "Aleatorio": cada Glob colocado lleva su propio efecto al azar.
+    if (rewampEffect === RANDOM_EFFECT_ID) rewampEffect = getTowerRandomEffect(el, family);
 
     let rgbEffect = '';
     if (globalSkin !== 'pyce_morph') {
@@ -17956,6 +18174,8 @@ function activateGTack(t) {
       else if (fxEffect) rgbEffect = fxEffect;
       else if (rewampEffect) rgbEffect = rewampEffect === 'rgb' ? 'rgb-rewamp' : rewampEffect;
     }
+    // Lo que pinta este Glob: lo heredan sus vallas e invocaciones.
+    el.dataset.fxEffect = rgbEffect;
 
     if (rgbEffect === 'rainbow-fuel') {
       el.classList.add('rainbow-fuel');
@@ -18680,7 +18900,10 @@ function activateGTack(t) {
       if (attack.explosion) {
         opts.boatBomb = true;
         opts.bombType = attack.explosion;
+        if (attack.explosionImage) opts.explosionImage = attack.explosionImage;
+        if (attack.explosionFilter) opts.explosionFilter = attack.explosionFilter;
       }
+      if (attack.spin) opts.spin = true;
       if (attack.splashRadius) {
         opts.splashRadius = attack.splashRadius;
         opts.splashDamage = attack.splashDamage || 0.5;
