@@ -295,4 +295,36 @@ $$;
 revoke all on function public.link_star_jump_account(integer) from public, anon;
 grant execute on function public.link_star_jump_account(integer) to authenticated;
 
+create table if not exists public.star_jump_progress (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  progress jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now(),
+  constraint star_jump_progress_is_object check (jsonb_typeof(progress) = 'object'),
+  constraint star_jump_progress_max_size check (pg_column_size(progress) <= 16384)
+);
+
+alter table public.star_jump_progress enable row level security;
+revoke all on public.star_jump_progress from public, anon, authenticated;
+grant select, insert, update on public.star_jump_progress to authenticated;
+grant all on public.star_jump_progress to service_role;
+
+drop policy if exists "Users can read their own Star Jump progress" on public.star_jump_progress;
+create policy "Users can read their own Star Jump progress"
+  on public.star_jump_progress for select
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
+drop policy if exists "Users can insert their own Star Jump progress" on public.star_jump_progress;
+create policy "Users can insert their own Star Jump progress"
+  on public.star_jump_progress for insert
+  to authenticated
+  with check ((select auth.uid()) = user_id);
+
+drop policy if exists "Users can update their own Star Jump progress" on public.star_jump_progress;
+create policy "Users can update their own Star Jump progress"
+  on public.star_jump_progress for update
+  to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
+
 commit;

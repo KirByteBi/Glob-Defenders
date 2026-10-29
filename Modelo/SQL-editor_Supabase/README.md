@@ -8,7 +8,7 @@ Esta carpeta contiene los esquemas que se ejecutan en **Supabase → SQL Editor*
 | 2 | [`supabase-progress-schema.sql`](./supabase-progress-schema.sql) | Guardado de progreso por cuenta (`player_progress`). |
 | 3 | [`supabase-moderation-schema.sql`](./supabase-moderation-schema.sql) | Registro de infracciones del chat. |
 | 4 | [`supabase-one-time-skin-codes-schema.sql`](./supabase-one-time-skin-codes-schema.sql) | Códigos de un solo uso: `FROGGY_VICTEST` (reservado a `Victorillo_24`), `ASTRAL-CREDIBLE` (reservado a `credible`), `NITRO-BOOMER` y `THE-USER-BOMB`. Requiere el 1. |
-| 5 | [`supabase-star-jump-link-schema.sql`](./supabase-star-jump-link-schema.sql) | Colaboración con Star Jump: tabla `star_jump_links` y función `link_star_jump_account`. |
+| 5 | [`supabase-star-jump-link-schema.sql`](./supabase-star-jump-link-schema.sql) | Colaboración con Star Jump: tabla `star_jump_links` + función `link_star_jump_account`, y `star_jump_progress` (guardado en la nube de metros y skins de Star Jump). |
 
 [`supabase-schemas-all.sql`](./supabase-schemas-all.sql) es la unión de los cinco
 en ese orden dentro de una transacción. Es la opción más sencilla: pégalo y
