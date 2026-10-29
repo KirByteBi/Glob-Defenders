@@ -161,7 +161,7 @@ const CANVAS_EFFECT_VARIANTS = Object.freeze({
   pixel: 'pixel',
   comic: 'comic'
 });
-const CSS_ONLY_EFFECT_IDS = Object.freeze(['negative', 'alternate', 'shadow', 'blood', 'golden', 'neon']);
+const CSS_ONLY_EFFECT_IDS = Object.freeze(['negative', 'alternate', 'shadow', 'blood', 'golden', 'neon', 'estelar', 'cosmic-dust']);
 // Opción "Aleatorio" del selector de skins: cada Glob colocado lleva un
 // efecto al azar de entre los desbloqueados. Icono: el MysteryBug.
 const RANDOM_EFFECT_ID = 'random';
@@ -685,12 +685,15 @@ const PROFILE_FX_EFFECTS = Object.freeze([
   { id: 'neon', es: 'Neón', en: 'Neon', source: 'winter' },
   { id: 'pixel', es: 'Píxel', en: 'Pixel', source: 'winter' },
   { id: 'comic', es: 'Cómic', en: 'Comic', source: 'winter' },
-  { id: 'glitch-color', es: 'Glitch', en: 'Glitch', source: 'winter' }
+  { id: 'glitch-color', es: 'Glitch', en: 'Glitch', source: 'winter' },
+  // Colaboración Star Jump (canjeados con metros).
+  { id: 'estelar', es: 'Estelar', en: 'Stellar', source: 'starjump' },
+  { id: 'cosmic-dust', es: 'Polvo Cósmico', en: 'Cosmic Dust', source: 'starjump' }
 ]);
 // Efectos que se guardan en unlockedRecolors (todos los del Pase de Invierno).
 const RGB_RECOLOR_EFFECT_IDS = Object.freeze([
   'monochrome', 'negative', 'snowy', 'alternate', 'shiny-rise', 'crystalized', 'shadow', 'blood', 'golden',
-  'neon', 'pixel', 'comic', 'glitch-color'
+  'neon', 'pixel', 'comic', 'glitch-color', 'estelar', 'cosmic-dust'
 ]);
 // Efectos que son solo un filtro CSS sobre la imagen (sin capa canvas).
 const PROFILE_FILTER_EFFECT_IDS = CSS_ONLY_EFFECT_IDS;
@@ -763,7 +766,7 @@ function isFxSkinUnlocked(skin) {
 // Orden de los efectos en los selectores (tras Original y RGB Secreto).
 const REWAMP_FX_EFFECT_ORDER = Object.freeze([
   'rainbow-fuel', 'negative', 'monochrome', 'snowy', 'alternate', 'blood', 'shadow', 'golden',
-  'neon', 'pixel', 'comic', 'glitch-color', 'shiny-rise', 'crystalized'
+  'neon', 'pixel', 'comic', 'glitch-color', 'shiny-rise', 'crystalized', 'estelar', 'cosmic-dust'
 ]);
 const TOWER_SKIN_EFFECT_IDS = Object.freeze(['original', 'rgb', ...REWAMP_FX_EFFECT_ORDER, RANDOM_EFFECT_ID]);
 
@@ -2680,6 +2683,8 @@ let gameState = {
   winterPassXP: 0,           // XP del pase de invierno (nivel sube cada 100)
   winterPassLevel: 1,
   winterPassClaimed: [],     // niveles de recompensa del pase de invierno ya reclamados
+  starJumpMeters: 0,         // metros totales leídos de star_jump_links.best_meters (colab Star Jump)
+  starJumpClaimedRewards: [],// ids de recompensas de Star Jump canjeadas con metros
   unlockedRecolors: [],      // efectos del Pase de Invierno desbloqueados (monochrome, negative, snowy, alternate)
   profileAvatarEffect: '',   // efecto elegido para la imagen Rewamp/RGB del perfil ('' = el de la imagen)
   towerSkinEffects: {},      // efecto elegido para la skin Rewamp de cada familia ({ familia: efecto })
@@ -2865,6 +2870,7 @@ const ADVENT_CALENDAR_SHOP_PRICES = {
   bunnity_bombot_reskin: 250
 };
 const WINTER_PASS_ACCESSORY_ROOT = 'Recursos/FROZEN CALENDAR CHRISTMAS (UPD6)/Skins/P.Bombot AccesoriesReskins/';
+const STAR_PAINT_ACCESSORY_ROOT = 'Recursos/STAR + PAINT/Personalizaciones Bombot/';
 const BOMBOT_ACCESSORIES = [
   // --- ASPECTOS BASE (RESKINS) ---
   { id: 'cuby_reskin', name: { es: 'Aspecto Cuby', en: 'Cuby Reskin' }, slot: 'reskin', image: 'Cuby (RESKIN).png', unlock: 'duckpass_cuby' },
@@ -2931,7 +2937,15 @@ const BOMBOT_ACCESSORIES = [
   { id: 'red_breath_bombot_reskin', name: { es: 'Bombot Barba Roja', en: 'Red Beard Bombot' }, slot: 'reskin', image: 'Red Breath Bombot.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass' },
   { id: 'bakhef', name: { es: 'Pastecinero', en: 'Bakhef' }, slot: 'head', image: 'Bakhef.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass' },
   { id: 'golderous_spoon', name: { es: 'Cuchara Dorada', en: 'Golderous Spoon' }, slot: 'front', frontType: 'hand', image: 'Golderous Spoon.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass' },
-  { id: 'dingdong_ticktock', name: { es: 'Dingdong Tictac', en: 'Ding-a-Ling Ticktock' }, slot: 'front', frontType: 'hand', image: 'Ding-a-Ling Ticktock.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass' }
+  { id: 'dingdong_ticktock', name: { es: 'Dingdong Tictac', en: 'Ding-a-Ling Ticktock' }, slot: 'front', frontType: 'hand', image: 'Ding-a-Ling Ticktock.png', assetRoot: WINTER_PASS_ACCESSORY_ROOT, unlock: 'winter_pass' },
+
+  // --- STAR + PAINT (colaboración Star Jump): accesorios Bombot, con PyCoins ---
+  // Splatted Bombot es el Bombot normal pero pintado: admite todo lo equipable.
+  // Acuagun (pistola de agua) desbloquea además el ataque de agua (Water Splat).
+  { id: 'splatted_bombot_reskin', name: { es: 'Bombot Pintado', en: 'Splatted Bombot' }, slot: 'reskin', image: 'Splatted Bombot.png', assetRoot: STAR_PAINT_ACCESSORY_ROOT, cost: 300 },
+  { id: 'agent_headsets', name: { es: 'Auriculares de Agente', en: 'Agent Headsets' }, slot: 'head', image: 'Agent Headsets.png', assetRoot: STAR_PAINT_ACCESSORY_ROOT, cost: 150 },
+  { id: 'octogoggles', name: { es: 'Octogafas', en: 'Octogoggles' }, slot: 'front', frontType: 'glasses', image: 'Octogoggles.png', assetRoot: STAR_PAINT_ACCESSORY_ROOT, cost: 150 },
+  { id: 'acuagun', name: { es: 'Acuagun', en: 'Acuagun' }, slot: 'front', frontType: 'hand', image: 'Acuagun.png', assetRoot: STAR_PAINT_ACCESSORY_ROOT, cost: 200 }
 ];
 const BOMBOT_ACCESSORY_ASSET_ROOT = 'Recursos/Spooks in the Desert (UPD4)/Skins/Personalizable Bombot (SKIN + ACCESORIES)/';
 
@@ -3795,6 +3809,8 @@ function saveProgress() {
     winterPassXP: gameState.winterPassXP,
     winterPassLevel: gameState.winterPassLevel,
     winterPassClaimed: gameState.winterPassClaimed,
+    starJumpMeters: gameState.starJumpMeters || 0,
+    starJumpClaimedRewards: gameState.starJumpClaimedRewards || [],
     unlockedRecolors: gameState.unlockedRecolors,
     profileAvatarEffect: gameState.profileAvatarEffect || '',
     towerSkinEffects: gameState.towerSkinEffects || {},
@@ -3977,6 +3993,8 @@ function loadProgress(username, allowLocalProgress = true) {
       gameState.winterPassXP = Number(progress.winterPassXP) || 0;
       gameState.winterPassLevel = Number(progress.winterPassLevel) || 1;
       gameState.winterPassClaimed = Array.isArray(progress.winterPassClaimed) ? progress.winterPassClaimed : [];
+      gameState.starJumpMeters = Number(progress.starJumpMeters) || 0;
+      gameState.starJumpClaimedRewards = Array.isArray(progress.starJumpClaimedRewards) ? progress.starJumpClaimedRewards : [];
       // Recupera efectos reclamados por partidas antiguas incluso si el array de
       // desbloqueos no se llegó a guardar antes de cerrar el juego.
       const claimedWinterRecolors = WINTER_PASS_REWARDS
@@ -4627,7 +4645,6 @@ function getSupabaseAuthEmail(username) {
 // Colaboración Star Jump: si la cuenta se vinculó desde Star Jump (tabla star_jump_links),
 // concede el emblema de la colaboración una sola vez. No bloquea el inicio de sesión.
 async function checkStarJumpLinkReward(userId) {
-  if (!BADGES.starJumpCollab || BADGES.starJumpCollab.unlocked) return;
   try {
     const { data, error } = await getSupabaseClient()
       .from('star_jump_links')
@@ -4636,13 +4653,94 @@ async function checkStarJumpLinkReward(userId) {
       .maybeSingle();
     if (error) throw error;
     if (!data || activeCloudUserId !== userId) return;
-    unlockBadge('starJumpCollab');
-    showMessage(translate('star_jump_link_reward'), 'success');
+    // Metros disponibles para canjear recompensas de la colaboración.
+    gameState.starJumpMeters = Number(data.best_meters) || 0;
+    let changed = false;
+    // Emblema de la colaboración (una sola vez).
+    if (BADGES.starJumpCollab && !BADGES.starJumpCollab.unlocked) {
+      unlockBadge('starJumpCollab');
+      showMessage(translate('star_jump_link_reward'), 'success');
+      changed = true;
+    }
+    // Destellito (starjump_set) gratis por vincular la cuenta.
+    if (!gameState.unlockedSkins.includes('starjump_set')) {
+      gameState.unlockedSkins = [...new Set([...gameState.unlockedSkins, 'starjump_set'])];
+      showMessage(translate('star_jump_destellito_reward'), 'success');
+      changed = true;
+    }
+    saveProgress();
+    if (changed && document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
   } catch (error) {
     // Si la tabla aún no existe en Supabase, simplemente no hay recompensa
     console.warn('No se pudo comprobar la vinculación con Star Jump:', error);
   }
 }
+
+// --- Recompensas de la colaboración Star Jump canjeables con metros ----------
+// Los metros (star_jump_links.best_meters) se GASTAN para desbloquear perfiles,
+// bordes y efectos de la colab. Cada recompensa tiene un coste en metros y un
+// destino (avatar/borde/efecto/skin). El total gastado se descuenta de los
+// metros disponibles. Precios tasados por calidad/diferencia del original.
+const STAR_JUMP_REWARDS = [
+  // Avatares de perfil (familia StarGlob)
+  { id: 'avatar_globstar',        meters: 1500, type: 'avatar', name: { es: 'Globstar (imagen)', en: 'Globstar (avatar)' } },
+  { id: 'avatar_shiny_globstar',  meters: 3000, type: 'avatar', name: { es: 'Shiny Globstar (imagen)', en: 'Shiny Globstar (avatar)' } },
+  { id: 'avatar_angel_globstar',  meters: 3000, type: 'avatar', name: { es: 'Ángel Globstar (imagen)', en: 'Angel Globstar (avatar)' } },
+  { id: 'avatar_possesed_globstar', meters: 4500, type: 'avatar', name: { es: 'Possesed Globstar (imagen)', en: 'Possesed Globstar (avatar)' } },
+  // Bordes de perfil
+  { id: 'border_estelar',  meters: 1500, type: 'border', name: { es: 'Borde Estelar', en: 'Stellar Frame' } },
+  { id: 'border_espacial', meters: 4500, type: 'border', name: { es: 'Borde Espacial', en: 'Spatial Frame' } },
+  // Efectos de perfil/skin
+  { id: 'estelar',      meters: 3000, type: 'effect', name: { es: 'Efecto Estelar', en: 'Stellar effect' } },
+  { id: 'cosmic-dust',  meters: 4500, type: 'effect', name: { es: 'Efecto Polvo Cósmico', en: 'Cosmic Dust effect' } },
+  // Skin de colaboración (tope). Requiere además la vinculación (todas las skins SJ).
+  { id: 'starglob_set', meters: 8000, type: 'skin', skinId: 'starglob_set', name: { es: "StarGlob's Space Trip", en: "StarGlob's Space Trip" } }
+];
+
+function getStarJumpReward(id) {
+  return STAR_JUMP_REWARDS.find(r => r.id === id) || null;
+}
+
+function isStarJumpRewardClaimed(id) {
+  return Array.isArray(gameState.starJumpClaimedRewards) && gameState.starJumpClaimedRewards.includes(id);
+}
+
+// Metros ya gastados = suma de costes de las recompensas canjeadas.
+function getStarJumpSpentMeters() {
+  if (!Array.isArray(gameState.starJumpClaimedRewards)) return 0;
+  return gameState.starJumpClaimedRewards.reduce((sum, id) => sum + (getStarJumpReward(id)?.meters || 0), 0);
+}
+
+function getStarJumpAvailableMeters() {
+  return Math.max(0, (Number(gameState.starJumpMeters) || 0) - getStarJumpSpentMeters());
+}
+
+window.redeemStarJumpReward = function(id) {
+  const reward = getStarJumpReward(id);
+  if (!reward || isStarJumpRewardClaimed(id)) return;
+  if (getStarJumpAvailableMeters() < reward.meters) {
+    showMessage(currentLanguage === 'en'
+      ? 'Not enough Star Jump meters.'
+      : 'No tienes suficientes metros de Star Jump.', 'warning');
+    return;
+  }
+  // Aplica el desbloqueo según el destino de la recompensa.
+  if (reward.type === 'effect') {
+    gameState.unlockedRecolors = [...new Set([...(gameState.unlockedRecolors || []), reward.id])];
+  } else if (reward.type === 'skin') {
+    gameState.unlockedSkins = [...new Set([...(gameState.unlockedSkins || []), reward.skinId])];
+  }
+  // Avatares y bordes se habilitan por su presencia en starJumpClaimedRewards
+  // (se leen en getProfileAvatarChoices / getAvailableProfileBorders).
+  if (!Array.isArray(gameState.starJumpClaimedRewards)) gameState.starJumpClaimedRewards = [];
+  gameState.starJumpClaimedRewards.push(id);
+  saveProgress();
+  showMessage(currentLanguage === 'en'
+    ? `Unlocked: ${reward.name.en}`
+    : `Desbloqueado: ${reward.name.es}`, 'success');
+  if (document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+  if (typeof drawShop === 'function' && document.getElementById('shop-modal')?.style.display === 'flex') drawShop();
+};
 
 async function startGameSession(username, offline, accountId = null, isNewAccount = false) {
   cloudProgressReady = false;
@@ -11035,7 +11133,7 @@ const PROFILE_EVENT_BORDERS = [
 ];
 const PROFILE_BORDER_STYLE_CLASSES = new Set([
   'candy', 'bomb', 'ice', 'gift', 'festive', 'elf', 'santa', 'time-attack-a', 'time-attack-b',
-  'spooky', 'pumpkin', 'interstellar',
+  'spooky', 'pumpkin', 'interstellar', 'estelar', 'espacial',
   'map-gelatin', 'map-urban', 'map-seaside', 'map-spook', 'frosty'
 ]);
 const PROFILE_TIME_ATTACK_BORDERS = [
@@ -11313,6 +11411,23 @@ function getAvailableProfileBorders() {
       rgb: true
     });
   }
+  // Bordes de la colaboración Star Jump (canjeados con metros).
+  if (gameState.debugState === 'unlocked' || isStarJumpRewardClaimed('border_estelar')) {
+    borders.push({
+      id: 'estelar',
+      label: currentLanguage === 'en' ? 'Stellar' : 'Estelar',
+      colors: ['#ffe27a', '#8a6a12'],
+      style: 'estelar'
+    });
+  }
+  if (gameState.debugState === 'unlocked' || isStarJumpRewardClaimed('border_espacial')) {
+    borders.push({
+      id: 'espacial',
+      label: currentLanguage === 'en' ? 'Spatial' : 'Espacial',
+      colors: ['#b58cff', '#070716'],
+      style: 'espacial'
+    });
+  }
   return borders;
 }
 
@@ -11469,6 +11584,19 @@ function getProfileAvatarChoices() {
       image: IMAGE_PATHS.Omnipresent_Glob
     });
   }
+  // Imágenes de perfil de la colaboración Star Jump (canjeadas con metros).
+  const SJ_ROOT = 'Recursos/STAR + PAINT/Star Jump Glob (VERDE)/';
+  const starJumpAvatars = [
+    { reward: 'avatar_globstar',         id: 'special:sj-globstar',          label: 'Globstar',          image: `${SJ_ROOT}Globstar (EVO1).png` },
+    { reward: 'avatar_shiny_globstar',   id: 'special:sj-shiny-globstar',    label: 'Shiny Globstar',    image: `${SJ_ROOT}Shiny Globstar (EVO2).png` },
+    { reward: 'avatar_angel_globstar',   id: 'special:sj-angel-globstar',    label: 'Ángel Globstar',    image: `${SJ_ROOT}Especiales (SJ)/Ángel Globstar.png` },
+    { reward: 'avatar_possesed_globstar',id: 'special:sj-possesed-globstar', label: 'Possesed Globstar', image: `${SJ_ROOT}Especiales (SJ)/Possesed Globstar.png` }
+  ];
+  starJumpAvatars.forEach(a => {
+    if (gameState.debugState === 'unlocked' || isStarJumpRewardClaimed(a.reward)) {
+      avatars.push({ id: a.id, label: a.label, image: a.image });
+    }
+  });
   return avatars;
 }
 
@@ -11554,6 +11682,45 @@ function renderProfileShop(container) {
       <div class="cost">${owned ? '✅' : `<img src="${icon}" width="18"> ${border.cost}`}</div>
       <button class="meta-buy-btn" ${owned || balance < border.cost ? 'disabled' : ''}
         onclick="buyProfileBorder('${border.id}')">${owned ? (currentLanguage === 'en' ? 'Owned' : 'Comprado') : translate('buy')}</button>`;
+    container.appendChild(card);
+  });
+
+  renderStarJumpRewardsShop(container);
+}
+
+// Sección de canje de recompensas de Star Jump (se gastan metros). Solo se
+// muestra si la cuenta está vinculada (tiene metros) o en modo debug.
+function renderStarJumpRewardsShop(container) {
+  const linked = (Number(gameState.starJumpMeters) || 0) > 0 ||
+    (Array.isArray(gameState.starJumpClaimedRewards) && gameState.starJumpClaimedRewards.length > 0) ||
+    gameState.debugState === 'unlocked';
+  if (!linked) return;
+  const available = getStarJumpAvailableMeters();
+
+  const heading = document.createElement('div');
+  heading.className = 'profile-shop-heading';
+  heading.innerHTML = currentLanguage === 'en'
+    ? `⭐ Star Jump collaboration <small style="font-weight:normal; opacity:0.85;">· ${available} m available</small>`
+    : `⭐ Colaboración Star Jump <small style="font-weight:normal; opacity:0.85;">· ${available} m disponibles</small>`;
+  container.appendChild(heading);
+
+  STAR_JUMP_REWARDS.forEach(reward => {
+    const claimed = isStarJumpRewardClaimed(reward.id);
+    const canAfford = available >= reward.meters;
+    const typeLabel = {
+      avatar: currentLanguage === 'en' ? 'Avatar' : 'Imagen',
+      border: currentLanguage === 'en' ? 'Frame' : 'Borde',
+      effect: currentLanguage === 'en' ? 'Effect' : 'Efecto',
+      skin: 'Skin'
+    }[reward.type] || '';
+    const card = document.createElement('div');
+    card.className = `meta-item ${claimed ? 'unlocked' : ''}`;
+    card.innerHTML = `
+      <h3>${currentLanguage === 'en' ? reward.name.en : reward.name.es}</h3>
+      <p>${typeLabel}</p>
+      <div class="cost">${claimed ? '✅' : `⭐ ${reward.meters} m`}</div>
+      <button class="meta-buy-btn" ${claimed || !canAfford ? 'disabled' : ''}
+        onclick="redeemStarJumpReward('${reward.id}')">${claimed ? (currentLanguage === 'en' ? 'Unlocked' : 'Desbloqueado') : (currentLanguage === 'en' ? 'Redeem' : 'Canjear')}</button>`;
     container.appendChild(card);
   });
 }
@@ -12171,6 +12338,10 @@ function isBombotAttackUnlocked(attack) {
   // Tener enmarcado al enemigo que lanza ese proyectil.
   if (attack.unlock === 'framed') {
     return (gameState.pycesKilled?.[attack.enemyType] || 0) >= getPyceKillTarget(attack.enemyType);
+  }
+  // Haber comprado el accesorio del que sale el ataque (p. ej. Acuagun -> agua).
+  if (attack.unlock === 'accessory') {
+    return Boolean(gameState.unlockedBombotAccessories?.includes(attack.accessoryId));
   }
   return false;
 }
@@ -12937,6 +13108,8 @@ function drawShop() {
         if (condition === 'astrorb_frame') return currentLanguage === 'es' ? '📖 Enmarca todos los Astrorb en la Enciclopedia' : '📖 Frame all Astrorb variants in the Encyclopedia';
         if (condition === 'all_boss_frames') return currentLanguage === 'es' ? '💎 Enmarca todos los enemigos cristalizados' : '💎 Frame all crystallized enemies';
         if (condition === 'winter_pass') return currentLanguage === 'es' ? '❄️ Recompensa del Pase de Invierno' : '❄️ Winter Pass reward';
+        if (condition === 'star_jump_link') return currentLanguage === 'es' ? '⭐ Gratis al vincular tu cuenta con Star Jump' : '⭐ Free when you link your account with Star Jump';
+        if (condition === 'star_jump_meters') return currentLanguage === 'es' ? '⭐ Canjea con metros de Star Jump' : '⭐ Redeem with Star Jump meters';
         if (condition === 'profile_effect') {
           const fxSkin = Object.values(SKINS_DATA).flat().find(item => item.id === skinId);
           const rewamp = fxSkin && getFamilyRewampBaseSkin(fxSkin.fxFamily);
@@ -19307,6 +19480,22 @@ function activateGTack(t) {
     } else if (currentStoryTab === 'logs') {
       if (currentLanguage === 'es') {
         container.innerHTML = `
+        <h3 style="color:#ffd84a;">📋 Historial de Actualizaciones (GlD V6.1-1 — Starry's Spacial Collab)</h3>
+        <div style="text-align:center; margin: 10px 0;">
+          <img src="Recursos/img/Collabs (SJ)/IconoStarJump.png" alt="Star Jump" style="max-width:100%; max-height:160px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+        </div>
+        <p style="color:#8fd0ff;">¡Glob Defenders se vincula con <strong>Star Jump</strong>! Conecta tu cuenta de GlD desde Star Jump y trae tu progreso para desbloquear recompensas exclusivas con tus <strong>metros</strong>.</p>
+        <h4>Novedades del Parche:</h4>
+        <ul>
+          <li>🔗 <strong style="color:#ffd84a;">Vinculación de cuentas</strong>: Inicia sesión con tu cuenta de GlD dentro de Star Jump para vincularla. Al hacerlo consigues el emblema <strong>Salto Estelar</strong> y la skin <strong>Destellito</strong> gratis (antes costaba PyCoins).</li>
+          <li>⭐ <strong>Recompensas por metros</strong>: Gasta los metros que logres en Star Jump para desbloquear imágenes de perfil, bordes y efectos de la colaboración. A más metros, mejores recompensas.</li>
+          <li>🟢 <strong style="color:#8fd0ff;">Skin StarGlob's Space Trip</strong>: La familia Verde convertida en StarGlobs que lanzan estrellas. Recompensa tope: requiere tener todas las skins de Star Jump y vincular la cuenta.</li>
+          <li>🖼️ <strong>Imágenes de perfil StarGlob</strong>: Globstar, Shiny Globstar y los especiales Ángel/Possesed Globstar.</li>
+          <li>🟡 <strong>Bordes nuevos</strong>: <strong>Estelar</strong> (el aro es una estrella amarilla) y <strong>Espacial</strong> (lila sobre fondo negro con estrellitas y planetas).</li>
+          <li>✨ <strong>Efectos nuevos</strong>: <strong>Estelar</strong> (como el Cristalizado pero en amarillo, azul y blanco) y <strong>Polvo Cósmico</strong> (el "cosmic dust" de Star Jump).</li>
+        </ul>
+        <p style="color:#aaa; font-size:0.82rem; font-style:italic;">Colaboración entre Glob Defenders (KirByte_Bi) y Star Jump.</p>
+
         <h3 style="color:#ff6f91;">📋 Historial de Actualizaciones (GlD V6.1-0 — Frosty Calendar · GlD Christmas PART 1)</h3>
         <p style="color:#8fd0ff;">¡Comienza la primera parte del evento de invierno! Del 1 de noviembre al 8 de enero, el frío trae nuevos jefes, enemigos, efectos y un Pase de Invierno con sus propias recompensas.</p>
         <h4>Novedades del Parche:</h4>
@@ -19494,6 +19683,22 @@ function activateGTack(t) {
       `;
       } else {
         container.innerHTML = `
+        <h3 style="color:#ffd84a;">📋 Update Logs (GlD V6.1-1 — Starry's Spacial Collab)</h3>
+        <div style="text-align:center; margin: 10px 0;">
+          <img src="Recursos/img/Collabs (SJ)/IconoStarJump.png" alt="Star Jump" style="max-width:100%; max-height:160px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+        </div>
+        <p style="color:#8fd0ff;">Glob Defenders links up with <strong>Star Jump</strong>! Connect your GlD account from Star Jump and bring over your progress to unlock exclusive rewards with your <strong>meters</strong>.</p>
+        <h4>What's New in this Patch:</h4>
+        <ul>
+          <li>🔗 <strong style="color:#ffd84a;">Account linking</strong>: Sign in with your GlD account inside Star Jump to link it. Doing so grants the <strong>Star Leap</strong> badge and the <strong>Starry</strong> skin for free (it used to cost PyCoins).</li>
+          <li>⭐ <strong>Meter rewards</strong>: Spend the meters you earn in Star Jump to unlock collaboration profile pictures, frames and effects. The more meters, the better the reward.</li>
+          <li>🟢 <strong style="color:#8fd0ff;">StarGlob's Space Trip skin</strong>: The Green family turned into star-shooting StarGlobs. Top reward: requires every Star Jump skin and a linked account.</li>
+          <li>🖼️ <strong>StarGlob profile pictures</strong>: Globstar, Shiny Globstar and the Angel/Possesed Globstar specials.</li>
+          <li>🟡 <strong>New frames</strong>: <strong>Stellar</strong> (the ring is a yellow star) and <strong>Spatial</strong> (purple over a black background with little stars and planets).</li>
+          <li>✨ <strong>New effects</strong>: <strong>Stellar</strong> (like Crystalized but in yellow, blue and white) and <strong>Cosmic Dust</strong> (Star Jump's cosmic dust).</li>
+        </ul>
+        <p style="color:#aaa; font-size:0.82rem; font-style:italic;">A collaboration between Glob Defenders (KirByte_Bi) and Star Jump.</p>
+
         <h3 style="color:#69e5ff;">📋 Update Logs (GlD v6.0.0 — Frozen Calendar Christmas)</h3>
         <p style="color:#80edb0;">The Advent Calendar has arrived! From December 1 to 25, beat any map to claim that day's reward: PyCoins, Duckpasses, XP, accessories, and the SnowGlob set. Missed days can be recovered with Duckpasses; the first costs 637 and each later recovery adds 100. If the clock moves backwards, unclaimed rewards become paid. This local check is deterrence, not secure server-side validation.</p>
         <button type="button" class="advent-entry-btn" onclick="openAdventCalendar()">🎄 Open Advent Calendar</button>

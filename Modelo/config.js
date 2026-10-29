@@ -254,7 +254,12 @@ const BOMBOT_CUSTOM_ATTACKS = [
   // Hueso: el proyectil de SkeleBone Pyce. Explota con la explosión normal
   // pintada toda de negro.
   { id: 'bone', name: { es: 'Hueso', en: 'Bone' }, projectile: IMAGE_PATHS.SkeleBone_Bone, unlock: 'framed', enemyType: 'SkeleBone_Pyce',
-    spin: true, explosion: 'Bomb_Glob', explosionFilter: 'brightness(0)', splashRadius: 70, splashDamage: 0.4 }
+    spin: true, explosion: 'Bomb_Glob', explosionFilter: 'brightness(0)', splashRadius: 70, splashDamage: 0.4 },
+  // Colaboración Star Jump: proyectil y explosión de agua. Se desbloquea al
+  // comprar el accesorio Acuagun (pistola de agua) del Personalizable Bombot.
+  { id: 'water_splat', name: { es: 'Chorro de Agua', en: 'Water Splat' }, projectile: 'Recursos/STAR + PAINT/Personalizaciones Bombot/Water Proyectile.png',
+    unlock: 'accessory', accessoryId: 'acuagun',
+    explosion: 'Bomb_Glob', explosionImage: 'Recursos/STAR + PAINT/Personalizaciones Bombot/Splatted Explosion.png', splashRadius: 75, splashDamage: 0.4 }
 ];
 
 const BADGES = {
@@ -595,6 +600,23 @@ const SKINS_DATA = {
       }
     },
     {
+      // Colaboración Star Jump: skin de la familia Verde (lanza estrellas).
+      // Se desbloquea canjeando metros de Star Jump (tier tope).
+      id: 'starglob_set', name: 'skin_starglob_name', desc: 'skin_starglob_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'star_jump_meters',
+      skins: {
+        'Glob': 'Recursos/STAR + PAINT/Star Jump Glob (VERDE)/Globstar (EVO1).png',
+        'Poop_Glob': 'Recursos/STAR + PAINT/Star Jump Glob (VERDE)/Shiny Globstar (EVO2).png',
+        'Golden_Glob': 'Recursos/STAR + PAINT/Star Jump Glob (VERDE)/Platforming Starglobs (EVO3).png',
+        'Rainbow_Glob': 'Recursos/STAR + PAINT/Star Jump Glob (VERDE)/TheStargrounds (EVO4).png'
+      },
+      names: {
+        'Glob': 'Globstar',
+        'Poop_Glob': 'Shiny Globstar',
+        'Golden_Glob': 'Platforming Starglobs',
+        'Rainbow_Glob': 'TheStargrounds'
+      }
+    },
+    {
       id: 'green_rgb_sr', name: 'skin_green_rgb_sr_name', desc: 'skin_green_rgb_sr_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'all_profile_images',
       skins: {
         'Glob': 'Recursos/Interestelar Menace (COLLAB UPD)/Skins/Rewamps/Green/Rewmped_Green_SK-EVO1.png',
@@ -788,7 +810,7 @@ const SKINS_DATA = {
       }
     },
     {
-      id: 'starjump_set', name: 'skin_starry_name', desc: 'skin_starry_desc', cost: 777, duckpass_cost: 666, type: 'pycoin', isSpecial: true,
+      id: 'starjump_set', name: 'skin_starry_name', desc: 'skin_starry_desc', cost: 0, type: 'free', isSpecial: true, unlockCondition: 'star_jump_link',
       skins: {
         'Old_Glob': 'Recursos/img/Collabs (SJ)/Skin/Starry (SK-EVO1).png',
         'Pyce_Glob': 'Recursos/img/Collabs (SJ)/Skin/Astral_Starry (SK_EVO2).png',
