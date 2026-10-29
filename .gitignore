@@ -37,3 +37,7 @@ zz*.txt
 # Demo-trailer privado (solo local, no se publica)
 _trailer.html
 Trailer/
+
+# Herramientas temporales de limpieza de imágenes (puntitos sueltos)
+_imgclean/
+*.bak.png
