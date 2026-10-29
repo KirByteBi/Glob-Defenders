@@ -33,3 +33,6 @@ node_modules/
 # Archivos temporales de diagnóstico
 _*.txt
 zz*.txt
+
+# Demo-trailer privado (solo local, no se publica)
+_trailer.html
