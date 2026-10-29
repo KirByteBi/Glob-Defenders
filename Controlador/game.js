@@ -7639,6 +7639,16 @@ function ownerUnlockEverything() {
   gameState.unlockedBombotAttacks = BOMBOT_CUSTOM_ATTACKS.filter(attack => attack.cost).map(attack => attack.id);
   // Todos los efectos (Pase de Invierno y Shiny Rise).
   gameState.unlockedRecolors = [...RGB_RECOLOR_EFFECT_IDS];
+  // Colaboración Star Jump: da los metros tope y marca todas las recompensas
+  // (imágenes de perfil, bordes, efectos y skin) como canjeadas; Destellito
+  // gratis. Así "desbloquear todo" también entrega los cosméticos de SJ.
+  if (typeof STAR_JUMP_REWARDS !== 'undefined') {
+    gameState.starJumpMeters = Math.max(Number(gameState.starJumpMeters) || 0, 999999);
+    gameState.starJumpClaimedRewards = [...new Set([
+      ...(Array.isArray(gameState.starJumpClaimedRewards) ? gameState.starJumpClaimedRewards : []),
+      ...STAR_JUMP_REWARDS.map(r => r.id)
+    ])];
+  }
   gameState.iexFamilyUses = Math.max(Number(gameState.iexFamilyUses) || 0,
     ...BOMBOT_CUSTOM_ATTACKS.map(attack => (attack.usesRequired || 0) + 1));
   Object.values(SKINS_DATA).forEach(skins => skins.forEach(skin => {
@@ -10921,6 +10931,7 @@ function applyScale() {
     container.style.transform = 'none';
     container.style.marginTop = '0';
     container.style.width = '';
+    container.style.minHeight = '';
     updateResponsiveGameLayout();
     return;
   }
@@ -10944,6 +10955,10 @@ function applyScale() {
   container.style.transform = 'none';
   container.style.marginTop = '0';
   container.style.width = '1000px'; // Force PC layout width
+  // Neutralizar el min-height:100vh mientras medimos, para que scrollHeight
+  // refleje la ALTURA REAL del contenido (cabecera + barra + área de juego) y
+  // el escalado pueda reducirlo hasta que quepa entero en la pantalla.
+  container.style.minHeight = '0';
 
   // Force reflow
   void container.offsetHeight;
