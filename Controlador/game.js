@@ -1367,7 +1367,7 @@ function renderMultiplayerPlayerList(players) {
   const localOnly = isOfflineSession() || !currentSeed;
   const visiblePlayers = localOnly
     ? [{
-        username: localStorage.getItem('glob_username') || (currentLanguage === 'en' ? 'Player' : 'Jugador'),
+        username: getSessionUsername() || (currentLanguage === 'en' ? 'Player' : 'Jugador'),
         profile: getMultiplayerProfile(),
         isHost: false
       }]
@@ -1552,7 +1552,7 @@ async function sendMultiplayerChatMessage(text) {
     blockOffensiveUsername(message, 'chat');
     addMultiplayerChatEntry({
       own: true,
-      username: localStorage.getItem('glob_username') || (currentLanguage === 'en' ? 'Player' : 'Jugador'),
+      username: getSessionUsername() || (currentLanguage === 'en' ? 'Player' : 'Jugador'),
       blockedImage: true
     });
     try {
@@ -1579,7 +1579,7 @@ async function sendMultiplayerChatMessage(text) {
     await connection.send('chat-message', { text: message });
     if (socket !== connection || currentSeed !== seed) return 'rejected';
     addMultiplayerChatEntry({
-      username: localStorage.getItem('glob_username') || (currentLanguage === 'en' ? 'Player' : 'Jugador'),
+      username: getSessionUsername() || (currentLanguage === 'en' ? 'Player' : 'Jugador'),
       text: message,
       own: true
     });
@@ -1688,11 +1688,45 @@ function getSupabaseClient() {
       : 'No se pudo cargar la librería cliente de Supabase.');
   }
 
+  // La sesión de Supabase se guarda por pestaña (sessionStorage): si se usara
+  // localStorage, iniciar sesión con otra cuenta en otra pestaña sustituiría el
+  // token de esta y ambas pestañas actuarían como la última cuenta.
+  const authOptions = { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true };
+  try {
+    if (window.sessionStorage) authOptions.storage = window.sessionStorage;
+  } catch (e) { /* sessionStorage no disponible: se usa el almacenamiento por defecto */ }
+
   supabaseClient = window.supabase.createClient(url.origin, key, {
     realtime: { params: { eventsPerSecond: 10 } },
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    auth: authOptions
   });
   return supabaseClient;
+}
+
+// Nombre de la cuenta con la que se ha iniciado sesión EN ESTA PESTAÑA.
+// localStorage es compartido por todas las pestañas del navegador, así que
+// 'glob_username' solo se usa como último usuario conocido (rellenar el login).
+var sessionUsername = null;
+
+function getSessionUsername() {
+  if (sessionUsername) return sessionUsername;
+  try {
+    const tabName = sessionStorage.getItem('glob_session_username');
+    if (tabName) return tabName;
+  } catch (e) { /* sessionStorage no disponible */ }
+  try {
+    return localStorage.getItem('glob_username');
+  } catch (e) {
+    return null;
+  }
+}
+
+function setSessionUsername(username) {
+  sessionUsername = username || null;
+  try {
+    if (sessionUsername) sessionStorage.setItem('glob_session_username', sessionUsername);
+    else sessionStorage.removeItem('glob_session_username');
+  } catch (e) { /* sessionStorage no disponible */ }
 }
 
 function isSupabaseServiceRoleKey(key) {
@@ -2054,7 +2088,7 @@ async function joinMultiplayerSeed(seed, creating) {
     if (socket?.connected) socket.disconnect();
     connection = new SupabaseGameConnection(
       seed,
-      localStorage.getItem('glob_username') || 'Jugador',
+      getSessionUsername() || 'Jugador',
       getMultiplayerProfile()
     );
     connection.on('room-full', () => {
@@ -3312,11 +3346,11 @@ function getTowerPlacementLimits(type) {
   const players = multiplayerPlayers.length
     ? multiplayerPlayers
     : [{
-      playerId: socket?.id || localStorage.getItem('glob_username') || 'Jugador',
+      playerId: socket?.id || getSessionUsername() || 'Jugador',
       profile: getMultiplayerProfile()
     }];
   const eligiblePlayers = players.filter(player => profileHasTowerFamily(player, family));
-  const localPlayerId = multiplayerActionOwner || socket?.id || localStorage.getItem('glob_username') || 'Jugador';
+  const localPlayerId = multiplayerActionOwner || socket?.id || getSessionUsername() || 'Jugador';
   const availablePlayers = multiplayerPlayers.length ? eligiblePlayers : players;
   const playerIndex = availablePlayers.findIndex(player => player.playerId === localPlayerId);
 
@@ -3680,7 +3714,7 @@ function normalizeAdventCalendarState(value = {}) {
 
 function saveProgress() {
   if (multiplayerSpectator) return;
-  const user = localStorage.getItem('glob_username') || 'default';
+  const user = getSessionUsername() || 'default';
   const progress = {
     badges: Object.fromEntries(Object.entries(BADGES).map(([k, v]) => [k, v.unlocked])),
     unlockedInfinite: gameState.unlockedInfinite,
@@ -3777,7 +3811,7 @@ function saveProgress() {
 
 function loadProgress(username, allowLocalProgress = true) {
   try {
-    const user = username || localStorage.getItem('glob_username');
+    const user = username || getSessionUsername();
     if (!user) return;
 
     let data = allowLocalProgress ? localStorage.getItem('glob_progress_' + user) : null;
@@ -4634,6 +4668,7 @@ async function startGameSession(username, offline, accountId = null, isNewAccoun
   }
 
   startSessionClock();
+  setSessionUsername(username);
   localStorage.setItem('glob_username', username);
   if (!offline) localStorage.setItem('glob_login_username', document.getElementById('username-input').value.trim().toLowerCase());
   if (offline) {
@@ -4862,7 +4897,7 @@ function showLoginError(message) {
 }
 
 function getSessionUserRole() {
-  const username = localStorage.getItem('glob_username') || '';
+  const username = getSessionUsername() || '';
   return typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
 }
 
@@ -5161,7 +5196,7 @@ async function handleModeratedAccountDeletion() {
   }
   document.querySelector('.username-warning-jumpscare')?.remove();
 
-  const username = localStorage.getItem('glob_username');
+  const username = getSessionUsername();
   const english = currentLanguage === 'en';
   const data = NARRATOR_DATA.omnipresent;
   window._showNarratorMsg?.(
@@ -5199,6 +5234,7 @@ async function handleModeratedAccountDeletion() {
         : 'La cuenta se borró, pero no se pudo eliminar su guardado local de este navegador.');
     }
   }
+  setSessionUsername(null);
   localStorage.removeItem('glob_username');
   localStorage.removeItem('glob_login_username');
   localStorage.removeItem('glob_offline_mode');
@@ -7071,7 +7107,7 @@ function confirmReset() {
   } else if (resetCounter === 3) {
     btn.textContent = translate('reset_confirm_3') || "💥 ÚLTIMO AVISO: BORRAR TODO (3/3)";
   } else if (resetCounter >= 4) {
-    const user = localStorage.getItem('glob_username') || 'default';
+    const user = getSessionUsername() || 'default';
     localStorage.removeItem('glob_progress_' + user);
     localStorage.removeItem('glob_defenders_save');
     localStorage.removeItem(HYPERMUTATED_CLICK_KEY);
@@ -8073,7 +8109,7 @@ function drawTowerShop() {
 
     const capacity = getTowerPlacementLimits(type);
     const family = t.family || type;
-    const ownerId = multiplayerActionOwner || socket?.id || localStorage.getItem('glob_username') || 'Jugador';
+    const ownerId = multiplayerActionOwner || socket?.id || getSessionUsername() || 'Jugador';
     const currentCount = multiplayerEnabled
       ? gameState.towers.filter(tower =>
         (tower.family || tower.type) === family && tower.ownerId === ownerId
@@ -9136,6 +9172,56 @@ function bindEvents() {
     });
     return orderedTips;
   }
+
+  // Tips generales (controles y jefes) que también salen en la pantalla de carga.
+  const loadingGeneralTips = {
+    es: [
+      'Pulsa U para mejorar todas las torres que puedas pagar.',
+      'Pulsa Ctrl + G para activar todas las G-Tacks a la vez.',
+      'Evoluciona una torre al máximo para desbloquear todo su poder.',
+      'Los jefes pegan fuerte; concentra el daño antes de que pasen.',
+      'Las auras de ralentización te dan margen para reaccionar.'
+    ],
+    en: [
+      'Press U to upgrade every tower you can afford.',
+      'Press Ctrl + G to activate every G-Tack at once.',
+      'Evolve a tower to its max to unlock its full power.',
+      'Bosses hit hard; focus your damage before they break through.',
+      'Slow auras give you room to react before the clash.'
+    ]
+  };
+
+  // Botón "Ver todos los tips" (pantalla de carga y novedades).
+  window.openLoadingTipsModal = function () {
+    const modal = document.getElementById('tips-modal');
+    const list = document.getElementById('tips-list');
+    if (!modal || !list) return;
+    const language = currentLanguage === 'en' ? 'en' : 'es';
+    const title = document.getElementById('tips-title');
+    if (title) title.textContent = language === 'en' ? '💡 Game tips' : '💡 Tips de juego';
+
+    const sections = [[language === 'en' ? 'General' : 'General', loadingGeneralTips[language]]];
+    Object.entries(loadingFamilyTips[language] || loadingFamilyTips.es).forEach(([family, tips]) => {
+      const typeName = TOWER_TYPES[family]?.name;
+      const label = (typeName && translate(typeName) !== typeName ? translate(typeName) : null) ||
+        (family === 'IEx' ? 'IEx' : family.replace(/_/g, ' '));
+      sections.push([label, tips]);
+    });
+
+    list.replaceChildren();
+    sections.forEach(([label, tips]) => {
+      tips.forEach(tip => {
+        const item = document.createElement('div');
+        item.className = 'tips-item';
+        const strong = document.createElement('strong');
+        strong.textContent = `${label}: `;
+        item.append(strong, document.createTextNode(tip));
+        list.appendChild(item);
+      });
+    });
+    list.scrollTop = 0;
+    modal.style.display = 'flex';
+  };
 
   const musicToggle = document.getElementById('music-toggle-btn');
   if (musicToggle) musicToggle.onclick = toggleMusic;
@@ -11031,7 +11117,7 @@ function isProfileImageUnlockConditionMet(skin) {
 }
 
 function canUseStaffProfileAvatar() {
-  const username = localStorage.getItem('glob_username') || '';
+  const username = getSessionUsername() || '';
   const role = typeof getUserRole === 'function' ? getUserRole(username) : 'USER';
   return gameState.debugState === 'unlocked' || ['OWNER', 'ADMIN', 'DEVBUILD'].includes(role);
 }
@@ -11160,7 +11246,7 @@ function getAvailableProfileBorders() {
     borders.push({ id: 'interstellar', label: 'Interstellar', colors: ['#ff68d1', '#174caa'], style: 'interstellar' });
   }
   if (gameState.debugState === 'unlocked' ||
-      (localStorage.getItem('glob_username') || '').toLowerCase() === 'kirbytebi') {
+      (getSessionUsername() || '').toLowerCase() === 'kirbytebi') {
     borders.push({
       id: 'kirb',
       label: currentLanguage === 'en' ? 'Binary Love' : 'Amor Binario',
@@ -11338,7 +11424,7 @@ function getProfileAvatarChoices() {
     }
   }
   if (gameState.debugState === 'unlocked' ||
-      (localStorage.getItem('glob_username') || '').toLowerCase() === 'kirbytebi') {
+      (getSessionUsername() || '').toLowerCase() === 'kirbytebi') {
     avatars.push({
       id: 'special:kirbytebi',
       label: currentLanguage === 'en' ? 'Kirb' : 'Kirb',
@@ -11688,7 +11774,7 @@ function drawUserProfile() {
   const avatar = getProfileAvatarById(gameState.profileAvatar);
   const border = getProfileBorderById(gameState.profileBorder);
   if (!avatar || !border) return;
-  const username = localStorage.getItem('glob_username') || (currentLanguage === 'en' ? 'Player' : 'Jugador');
+  const username = getSessionUsername() || (currentLanguage === 'en' ? 'Player' : 'Jugador');
   const selectedEffect = getSelectedProfileAvatarEffect(avatar);
   const displayAvatar = withProfileAvatarEffect(avatar, selectedEffect);
   const effectSuffix = selectedEffect && selectedEffect !== avatar.defaultEffect
@@ -13353,6 +13439,58 @@ function buyUpgrade(id, cost, type) {
   publishMultiplayerProfile();
 }
 
+// Efectos del Pase de Invierno que vuelven al Duck Pass cuando el pase termina
+// (DUCKPASS_WINTER_EFFECTS en config.js). Mientras el Pase de Invierno está
+// abierto no salen: ese pase es la forma fácil de conseguirlos.
+function areDuckPassWinterEffectsAvailable(date = new Date()) {
+  if (typeof DUCKPASS_WINTER_EFFECTS === 'undefined') return false;
+  if (gameState.debugState === 'unlocked') return true;
+  if (isWinterEventActive(date)) return false;
+  return date >= new Date(`${DUCKPASS_WINTER_EFFECTS.availableFrom}T00:00:00`);
+}
+
+function drawDuckPassWinterEffects(container) {
+  if (!areDuckPassWinterEffectsAvailable()) return;
+  const owned = Array.isArray(gameState.unlockedRecolors) ? gameState.unlockedRecolors : [];
+  const heading = document.createElement('div');
+  heading.className = 'pass-separator';
+  heading.innerHTML = `<h2 style="color:#8fd0ff;text-align:center;margin:20px 0;">${translate('duckpass_winter_fx_tag')}</h2>`;
+  container.appendChild(heading);
+  DUCKPASS_WINTER_EFFECTS.rewards.forEach(({ level, effect }) => {
+    const reached = gameState.duckPassLevel >= level;
+    const has = owned.includes(effect);
+    const el = document.createElement('div');
+    el.className = `pass-node ${reached || has ? 'unlocked' : 'locked'}`;
+    const action = has
+      ? `<b style="color:#2ecc71;">${translate('duckpass_winter_fx_owned')}</b>`
+      : reached
+        ? `<button class="meta-buy-btn equip" onclick="claimDuckPassWinterEffect('${effect}')">${translate('duckpass_winter_fx_claim')}</button>`
+        : `<button class="meta-buy-btn" disabled>${translate('req_level', { level })}</button>`;
+    el.innerHTML = `
+      <div class="pass-level-badge">LVL ${level}</div>
+      <div class="pass-node-content">
+        ${getPassRewardVisualMarkup({ type: 'recolor', id: effect })}
+        <p style="font-size:0.8rem;color:#ccc;margin-bottom:10px;">${translate('duckpass_winter_fx_desc')}</p>
+      </div>
+      ${action}`;
+    container.appendChild(el);
+  });
+}
+
+function claimDuckPassWinterEffect(effect) {
+  if (!areDuckPassWinterEffectsAvailable()) return;
+  const entry = DUCKPASS_WINTER_EFFECTS.rewards.find(r => r.effect === effect);
+  if (!entry || gameState.duckPassLevel < entry.level) return;
+  if (!Array.isArray(gameState.unlockedRecolors)) gameState.unlockedRecolors = [];
+  if (gameState.unlockedRecolors.includes(effect)) return;
+  // Mismo desbloqueo que el Pase de Invierno: aparece en perfil y tienda.
+  grantWinterPassReward({ type: 'recolor', id: effect });
+  saveProgress();
+  drawPass();
+  showMessage(translate('duckpass_winter_fx_claimed', { effect: getFxEffectLabel(effect) }), 'success');
+}
+window.claimDuckPassWinterEffect = claimDuckPassWinterEffect;
+
 function drawPass() {
   const container = document.getElementById('pass-rewards');
   if (!container) return; container.innerHTML = '';
@@ -13415,6 +13553,8 @@ function drawPass() {
     container.appendChild(el);
   });
 
+  drawDuckPassWinterEffects(container);
+
   const profilePassHeading = document.createElement('div');
   profilePassHeading.className = 'pass-separator';
   profilePassHeading.innerHTML = `<h2 style="color:#79d6a0;text-align:center;margin:20px 0;">${currentLanguage === 'es' ? '👤 BORDES DE PERFIL' : '👤 PROFILE FRAMES'}</h2>`;
@@ -13451,7 +13591,7 @@ function placeTower(spotId, type) {
   const family = tCfg.family || type;
   const currentCount = getFamilyCount(type);
   const capacity = getTowerPlacementLimits(type);
-  const ownerId = multiplayerActionOwner || socket?.id || localStorage.getItem('glob_username') || 'Jugador';
+  const ownerId = multiplayerActionOwner || socket?.id || getSessionUsername() || 'Jugador';
   if (multiplayerEnabled) {
     const ownedCount = gameState.towers.filter(tower =>
       (tower.family || tower.type) === family && tower.ownerId === ownerId
@@ -15759,6 +15899,23 @@ function activateGTack(t) {
             e.el.style.left = `${e.x}px`; e.el.style.top = `${e.y}px`;
           }
         } else {
+          // Jefes que vuelven a su base (NOIRrupt, vueltas dobles): antes se
+          // ponía pathIndex = 0 sin mover al enemigo, así que cruzaba el mapa
+          // en línea recta hasta el inicio. Ahora recorre el camino al revés y,
+          // al llegar a su base, retoma el camino normal.
+          if (e.returningToSpawn) {
+            e.currentPath = e.forwardPath || [...e.currentPath].reverse();
+            e.forwardPath = null;
+            e.pathIndex = 0;
+            e.returningToSpawn = false;
+            continue;
+          }
+          const sendBossBackToSpawn = () => {
+            e.forwardPath = e.currentPath;
+            e.currentPath = [...e.currentPath].reverse();
+            e.pathIndex = 0;
+            e.returningToSpawn = true;
+          };
           if (gameState.mode === 'acrossTheTime' && gameState.acrossTheTimeSpace === 4 &&
               gameState.wave === 50 && e.type === 'GODs_Shadow') {
             if (e.acrossTimeReturning) {
@@ -15788,7 +15945,7 @@ function activateGTack(t) {
             // (mucha vida = destruye la base; poca vida = solo la debilita).
             e.lapCount = (e.lapCount || 0) + 1;
             if (e.lapCount < 3) {
-              e.pathIndex = 0;
+              sendBossBackToSpawn();
               showMessage(
                 currentLanguage === 'es'
                   ? `¡${e.name} regresa! Vuelta ${e.lapCount} de 3...`
@@ -15827,7 +15984,7 @@ function activateGTack(t) {
             continue;
           }
           if (e.instakill && !isSandboxMode()) { gameState.baseTookDamage = true; gameState.health = 0; endGame(); return; }
-          if (e.doubleLap && !e.lapped) { e.pathIndex = 0; e.lapped = true; continue; }
+          if (e.doubleLap && !e.lapped) { sendBossBackToSpawn(); e.lapped = true; continue; }
           e.el.remove(); gameState.enemies.splice(i, 1);
           damageBaseFromEnemy(e);
           continue;
@@ -16073,11 +16230,12 @@ function activateGTack(t) {
         }
         if (e.type === 'AstrorbTF') {
           e.attackTimer1 = (e.attackTimer1 || 0) + dt;
-          if (e.attackTimer1 > 4) {
+          const tfData = ENEMY_TYPES.AstrorbTF || {};
+          if (e.attackTimer1 > (tfData.meteorInterval ?? 4)) {
             e.attackTimer1 = 0;
             if (gameState.towers.length > 0) {
               const targetTower = gameState.towers[Math.floor(Math.random() * gameState.towers.length)];
-              shoot(e, targetTower, { isEnemy: true, image: 'Recursos/img/Proyectiles/Crystal Metor.png', speed: 4, stun: 4 });
+              shoot(e, targetTower, { isEnemy: true, image: 'Recursos/img/Proyectiles/Crystal Metor.png', speed: 4, stun: tfData.meteorStun ?? 4 });
             }
             if (Math.random() < 0.3 && gameState.mode === 'interstellar') {
               const msgs = [
@@ -16091,7 +16249,8 @@ function activateGTack(t) {
         }
         if (['NO_CrystEye_CB', 'AstrorbOrbe', 'AstrorbContenida', 'Crystalic_Orb'].includes(e.type)) {
           e.crystalMeteorTimer = (e.crystalMeteorTimer || 0) + dt;
-          const attackInterval = e.type === 'NO_CrystEye_CB' ? 8 : 5;
+          const meteorData = ENEMY_TYPES[e.type] || {};
+          const attackInterval = meteorData.meteorInterval ?? (e.type === 'NO_CrystEye_CB' ? 8 : 5);
           if (e.crystalMeteorTimer > attackInterval) {
             e.crystalMeteorTimer = 0;
             if (gameState.towers.length > 0) {
@@ -16101,7 +16260,7 @@ function activateGTack(t) {
                 isEnemy: true,
                 image: 'Recursos/img/Proyectiles/Crystal Metor.png',
                 speed: isFinalAstrorb ? 4 : e.type === 'NO_CrystEye_CB' ? 3.5 : 3,
-                stun: isFinalAstrorb ? 4 : e.type === 'NO_CrystEye_CB' ? 2.5 : 3
+                stun: meteorData.meteorStun ?? (isFinalAstrorb ? 4 : e.type === 'NO_CrystEye_CB' ? 2.5 : 3)
               });
             }
           }
@@ -17903,7 +18062,10 @@ function activateGTack(t) {
       if (parent.id === 'start-wave') el.textContent = translate('startWave');
       if (parent.id === 'auto-wave') el.textContent = translate('autoWave');
       if (parent.id === 'deselect-tower') el.textContent = translate('cancel');
-      if (parent.classList.contains('back-btn')) el.textContent = translate('back_to_modes');
+      // El botón "❄️ Pase de Invierno" del Duck Pass también usa la clase back-btn
+      // (por el estilo); no debe recibir el texto "Volver a Modos".
+      if (parent.id === 'duckpass-to-winter') el.textContent = translate('winter_pass_button');
+      else if (parent.classList.contains('back-btn')) el.textContent = translate('back_to_modes');
       if (parent.id === 'resume-game') el.textContent = currentLanguage === 'en' ? 'Resume' : 'Reanudar';
       else if (parent.classList.contains('retry-btn')) el.textContent = translate('playAgain');
     });
@@ -18985,18 +19147,18 @@ function activateGTack(t) {
       if (currentLanguage === 'es') {
         container.innerHTML = `
         <h3>📖 La historia de Glob Defenders</h3>
-        <p><strong>Glob Defenders</strong> transcurre en un mundo habitado por criaturas y seres muy diferentes entre sí. En una de sus regiones, <strong>Gelatin Lake</strong>, viven los <strong>Globs</strong>, criaturas de gelatina creadas y criadas por el propio lago para defenderse de las amenazas que aparecen en sus alrededores.</p>
-        <p>Los Globs no son un ejército tradicional. Cada uno pertenece a una <strong>familia</strong> con características, habilidades y formas de evolucionar diferentes. Con el tiempo, han aprendido a trabajar juntos y a utilizar sus distintas capacidades para proteger sus territorios.</p>
-        <p>Una de las principales amenazas son los <strong>Pyces</strong>. Aunque algunos Pyces son enemigos, la situación es bastante más complicada que una simple guerra entre dos especies. Existen diferentes grupos, individuos y entidades con sus propios objetivos, y no todos los Pyces actúan de la misma manera.</p>
-        <p>Para ayudar a los Globs está <strong>Work-Bombot</strong>, un robot que actúa como guía y aliado durante sus aventuras. Gracias a él, los Globs conocen otros lugares y terminan involucrándose en conflictos que van mucho más allá de Gelatin Lake.</p>
-        <p>La aventura comienza principalmente en <strong>Gelatin Lake</strong>, pero poco a poco se extiende hacia otras regiones.</p>
-        <p>Una de ellas es <strong>Urbanistic Road</strong>, una zona mucho más desarrollada, con carreteras, ríos y zonas urbanas. Allí los Globs deben adaptarse a un entorno diferente mientras aparecen nuevas amenazas, nuevos personajes y nuevas formas de combatir.</p>
-        <p>Más adelante, los Globs también llegan a <strong>Sunlight Seaside</strong>, una zona costera y portuaria que conecta con otros lugares del mundo. Defender sus instalaciones se vuelve importante para poder continuar explorando y ayudar a otras zonas que también están siendo atacadas.</p>
-        <p>A medida que los Globs avanzan, los conflictos empiezan a involucrar fenómenos cada vez más extraños: corrupción, tecnología, dimensiones, energía desconocida y fuerzas que parecen estar muy por encima de los enemigos normales.</p>
-        <p>Esto alcanza uno de sus puntos más importantes con <strong>Interstellar Menace</strong>, donde los acontecimientos dejan de limitarse a los problemas habituales de los Globs y empiezan a relacionarse con fenómenos de escala mucho mayor.</p>
-        <p>Aun así, <strong>Glob Defenders no trata únicamente sobre salvar el mundo</strong>. También trata sobre descubrir nuevos lugares, conocer a sus habitantes, enfrentarse a personajes extraños, encontrar secretos y entender poco a poco cómo está conectado todo lo que rodea a los Globs.</p>
+        <p><strong>Glob Defenders</strong> transcurre en un mundo habitado por criaturas muy diferentes entre sí: animales, objetos vivientes, robots, almas, golems y seres de todo tipo. Antes era un mundo enorme y unido, con valles, castillos, bosques, ruinas, zonas entre las nubes e incluso un lugar en el espacio, todos conectados por un <strong>hub central</strong> con la estatua de un Glob y la de un Monster.</p>
+        <p>No era un mundo pacífico, pero ninguna fuerza lo controlaba todo: cada región tenía sus propios habitantes y sus propios problemas.</p>
+        <p>Uno de esos lugares es <strong>Gelatin Lake</strong>, de cuyas aguas nacen los <strong>Globs</strong>. Son criaturas simples, sociables y algo despistadas, pero imposibles de predecir: un Glob puede ser de gelatina, de barro, de jabón o de pólvora, o tener un trabajo, y sigue siendo un Glob. Por eso cada <strong>familia</strong> evoluciona a su manera. Su rey es <strong>Gelatin Guy</strong>.</p>
+        <p>Con el tiempo llegó la compañía <strong>PixelStar</strong>. De ella surgieron los <strong>Pyces</strong>, criaturas artificiales muy sociables y parecidas a los Globs, pero con una jerarquía mucho más marcada y una larga historia propia antes de llegar aquí. No todos actúan igual ni persiguen lo mismo.</p>
+        <p>PixelStar creó también a <strong>Work-Bombot</strong> para estudiar a las especies. Pero Work-Bombot se encariñó con los Globs: les ayudó a construir casas y conseguir recursos y, al final, decidió quedarse a su lado y enseñarles a defenderse.</p>
+        <p>Después, gran parte de aquel mundo desapareció. Lugares emblemáticos fueron destruidos, muchas zonas dejaron de estar conectadas y las que sobrevivieron no siempre conservan su nombre original.</p>
+        <p><strong>Urbanistic Road</strong> se levantó como refugio para las especies que perdieron su hogar. Allí sobrevive un fragmento de Gambling Gaming, el casino de <strong>Arky</strong>, que no es exactamente un villano: simplemente desconfía de todo el que llega.</p>
+        <p><strong>Sunlight Seaside</strong> conserva los puertos que unen las islas. Antes conectaban un mundo entero; ahora conectan sus fragmentos.</p>
+        <p>Tras la caída, cada habitante reaccionó a su manera: unos huyeron, otros lucharon por su cuenta, otros se escondieron tan bien que parecen seres nuevos y otros se unieron a quienes prometían poder o seguridad. Por eso el mundo no se divide fácilmente entre buenos y malos.</p>
+        <p>En medio de todo, los Globs, que antes eran unas criaturas más, se han convertido en <strong>defensores</strong>. No porque sean los más fuertes ni los más listos, sino porque nadie ha conseguido entenderlos del todo... y ahora saben protegerse.</p>
         <p>Y cuanto más avanzan...</p>
-        <p><strong>más evidente se vuelve que el mundo en el que viven es mucho más grande de lo que parecía al principio.</strong></p>
+        <p><strong>más claro queda que defienden mucho más que una base: defienden una pequeña parte de lo que aquel mundo fue.</strong></p>
 
         <div style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px;">
           <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">Ver familias</button>
@@ -19006,18 +19168,18 @@ function activateGTack(t) {
       } else {
         container.innerHTML = `
         <h3>🌎 The story of Glob Defenders</h3>
-        <p><strong>Glob Defenders</strong> takes place in a world filled with very different creatures and beings. In one of its regions, <strong>Gelatin Lake</strong>, live the <strong>Globs</strong>, gelatin creatures created and raised by the lake itself to defend themselves against the threats that appear around them.</p>
-        <p>The Globs are not a traditional army. Each one belongs to a <strong>family</strong> with different traits, abilities, and ways of evolving. Over time, they have learned to work together and use their different capabilities to protect their territories.</p>
-        <p>One of the main threats is the <strong>Pyces</strong>. Although some Pyces are enemies, the situation is far more complicated than a simple war between two species. There are different groups, individuals, and entities with their own goals, and not all Pyces behave the same way.</p>
-        <p>To help the Globs stands <strong>Work-Bombot</strong>, a robot who acts as a guide and ally on their adventures. Thanks to him, the Globs discover other places and end up getting involved in conflicts that go far beyond Gelatin Lake.</p>
-        <p>The adventure begins mainly in <strong>Gelatin Lake</strong>, but little by little it expands to other regions.</p>
-        <p>One of them is <strong>Urbanistic Road</strong>, a much more developed area with roads, rivers, and urban zones. There, the Globs must adapt to a different environment while new threats, new characters, and new ways of fighting appear.</p>
-        <p>Later, the Globs also reach <strong>Sunlight Seaside</strong>, a coastal and port area connected to other places in the world. Defending its installations becomes important in order to continue exploring and helping other zones that are also under attack.</p>
-        <p>As the Globs advance, the conflicts begin to involve stranger phenomena: corruption, technology, dimensions, unknown energy, and forces that seem far above ordinary enemies.</p>
-        <p>This reaches one of its most important points with <strong>Interstellar Menace</strong>, where events stop being limited to ordinary Glob problems and begin to connect to much larger-scale phenomena.</p>
-        <p>Even so, <strong>Glob Defenders is not only about saving the world</strong>. It is also about discovering new places, meeting their inhabitants, facing strange characters, finding secrets, and gradually understanding how everything around the Globs is connected.</p>
+        <p><strong>Glob Defenders</strong> takes place in a world full of very different creatures: animals, living objects, robots, souls, golems, and beings of every kind. It used to be a huge, united world, with valleys, castles, forests, ruins, lands among the clouds, and even a place in space, all linked by a <strong>central hub</strong> with a statue of a Glob and one of a Monster.</p>
+        <p>It was not a peaceful world, but no single force controlled it: each region had its own inhabitants and its own problems.</p>
+        <p>One of those places is <strong>Gelatin Lake</strong>, whose waters give birth to the <strong>Globs</strong>. They are simple, sociable, and a bit clueless, yet impossible to predict: a Glob can be made of gelatin, mud, soap, or gunpowder, or even have a job, and it is still a Glob. That is why every <strong>family</strong> evolves in its own way. Their king is <strong>Gelatin Guy</strong>.</p>
+        <p>In time, the company <strong>PixelStar</strong> arrived. From it came the <strong>Pyces</strong>, artificial creatures that are very sociable and similar to the Globs, but with a much stricter hierarchy and a long history of their own before arriving here. Not all of them act the same or want the same things.</p>
+        <p>PixelStar also created <strong>Work-Bombot</strong> to study the species. But Work-Bombot grew fond of the Globs: he helped them build homes and gather resources and, in the end, chose to stay by their side and teach them to defend themselves.</p>
+        <p>Later, much of that world vanished. Iconic places were destroyed, many zones lost their connections, and the ones that survived do not always keep their original names.</p>
+        <p><strong>Urbanistic Road</strong> was built as a refuge for the species that lost their homes. A fragment of Gambling Gaming survives there too: the casino of <strong>Arky</strong>, who is not exactly a villain; he simply distrusts everyone who shows up.</p>
+        <p><strong>Sunlight Seaside</strong> keeps the ports that link the islands. They once connected a whole world; now they connect its fragments.</p>
+        <p>After the fall, every inhabitant reacted in their own way: some fled, some fought on their own, some hid so well they seem like new beings, and some joined those who promised power or safety. That is why the world cannot be easily split into good and evil.</p>
+        <p>In the middle of it all, the Globs, once just another kind of creature, have become <strong>defenders</strong>. Not because they are the strongest or the smartest, but because nobody has ever fully understood them... and now they know how to protect themselves.</p>
         <p>And the more they advance...</p>
-        <p><strong>the clearer it becomes that the world they live in is much bigger than it seemed at first.</strong></p>
+        <p><strong>the clearer it becomes that they defend much more than a base: they defend a small piece of what that world once was.</strong></p>
 
         <div style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px;">
           <button type="button" style="background:#2e8b57; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;" onclick="openEncyclopedia(); setTimeout(() => switchEncyclopediaTab('globs'), 30);">View families</button>

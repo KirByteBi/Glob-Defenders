@@ -6202,6 +6202,11 @@ body.tablet-landscape #light-mode-toggle {
     transform: translateY(-1px);
 }
 
+/* Se abre desde la pantalla de carga (z-index 99999): debe quedar encima. */
+#tips-modal {
+    z-index: 100000;
+}
+
 .tips-content {
     width: min(760px, 88vw);
     max-height: 78vh;

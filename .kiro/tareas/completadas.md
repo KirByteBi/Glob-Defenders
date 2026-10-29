@@ -132,3 +132,34 @@ validación de juego recogida en `pendientes.md`.
   ahora se recorre cada tramo cada 25 px.
 - [x] `FX-15` Las vallas (y las invocaciones, cuando la familia Marina tenga
   efectos) llevan el efecto del Glob que las crea (`applyEntityEffect`).
+- [x] `MEC-11` Los jefes que vuelven a su base (doble/triple vuelta) recorren
+  el camino al revés en vez de teletransportarse (`sendBossBackToSpawn`).
+  Nota: MoonStar y Astrorb TF tienen `instakill` y `doubleLap`; el instakill se
+  comprueba antes, así que su doble vuelta nunca llega a activarse.
+- [x] `BAL-01` Astrorb: más vida a cambio de meteoritos más lentos y aturdimiento
+  más corto (valores en `config.js`: `meteorInterval`, `meteorStun`).
+  Orbe 800→1300 HP, cada 5→7 s, aturde 3→2 s. Contenida 600→1000 HP,
+  velocidad 2.0→1.6, cada 5→7 s, aturde 3→2 s. True Form 3000→4500 HP,
+  cada 4→6 s, aturde 4→3 s. Crystalic Orb sin cambios.
+- [x] `ACC-01` El nombre de la sesión es ahora por pestaña
+  (`getSessionUsername` / `setSessionUsername`, sessionStorage) y la sesión de
+  Supabase Auth también se guarda en sessionStorage. Antes `glob_username` y el
+  token vivían en localStorage, compartido entre pestañas: entrar con "glob" en
+  otra pestaña hacía que la de KirByteBi se mostrara (y guardara) como "Glob".
+- [x] `UI-03` El botón "❄️ Pase de Invierno" del Duck Pass salía como
+  "❄️ Volver a Modos": usa la clase `back-btn` y el refresco de idioma le ponía
+  ese texto. Ahora recibe `winter_pass_button` (ES/EN).
+- [x] `UI-04` El botón "Ver todos los tips" no hacía nada: llamaba a
+  `openLoadingTipsModal()`, que no existía. Ahora abre `#tips-modal` con los
+  tips generales y los de cada familia (ES/EN), por encima de la pantalla de
+  carga (`#tips-modal` z-index 100000). Verificado en Chrome headless.
+- [x] `LORE-01` Lore de "Historia y Logs" reescrito (ES/EN) a partir del PDF
+  "El pasado de GlD" (mundo de muchas criaturas, hub, PixelStar, Pyces,
+  Work-Bombot, caída, UR/Arky, Sunlight Seaside) sin revelar MadStars ni la
+  inmortalidad. Plan completo con spoilers en `readmes/lore_tecnico.txt`
+  (ignorado por git). PDF borrado.
+- [x] `PASS-01` El Duck Pass recupera 9 efectos del Pase de Invierno cuando el
+  evento acaba (`DUCKPASS_WINTER_EFFECTS`, desde el 9-1-2027): Monocromo 35,
+  Cómic 45, Píxel 60, Neón 65, Sangre 75, Sombra 80, Alternativo 88,
+  Negativo 90, Dorado 98. Nevado, Glitch, Shiny Rise y Cristalizado quedan
+  exclusivos del Pase de Invierno. Sin verificar en navegador.

@@ -150,9 +150,9 @@ const ENEMY_TYPES = {
   'Dreamy_SPyce': { name: 'enemy_Dreamy_SPyce_name', desc: 'enemy_Dreamy_SPyce_desc', health: 180, speed: 3.2, reward: 40, image: IMAGE_PATHS.Dreamy_SPyce, isCrystallized: true },
   'Astral_BPyce': { name: 'enemy_Astral_BPyce_name', desc: 'enemy_Astral_BPyce_desc', mechanic_key: 'mechanic_bomb', health: 230, speed: 1.5, reward: 45, image: IMAGE_PATHS.Astral_BPyce, isCrystallized: true },
   'NO_CrystEye_CB': { name: 'enemy_NOCrystEye_CB_name', desc: 'enemy_NOCrystEye_CB_desc', health: 1200, speed: 0.4, reward: 800, image: IMAGE_PATHS.NO_CrystEye_CB, isCrystallized: true, boss: true, paralyzeLaser: true, stunCooldown: 12, category: 'other', crystEyeVariantOf: 'NOeye_Pyce', shieldRatio: 0.2 },
-  'AstrorbOrbe': { name: 'enemy_AstrorbOrbe_name', desc: 'enemy_AstrorbOrbe_desc', health: 800, speed: 1.2, reward: 0, image: IMAGE_PATHS.AstrorbOrbe, boss: true, category: 'other', astrorbGroup: true },
-  'AstrorbContenida': { name: 'enemy_AstrorbContenida_name', desc: 'enemy_AstrorbContenida_desc', health: 600, speed: 2.0, reward: 1000, image: IMAGE_PATHS.AstrorbContenida, boss: true, category: 'other', astrorbGroup: true, astrorbForm: 2, shieldRatio: 0.2 },
-  'AstrorbTF': { name: 'enemy_AstrorbTF_name', desc: 'enemy_AstrorbTF_desc', health: 3000, speed: 0.3, reward: 3000, image: IMAGE_PATHS.AstrorbTF, boss: true, instakill: true, doubleLap: true, category: 'other', astrorbGroup: true, astrorbForm: 3, shieldRatio: 0.4 },
+  'AstrorbOrbe': { name: 'enemy_AstrorbOrbe_name', desc: 'enemy_AstrorbOrbe_desc', health: 1300, speed: 1.2, meteorInterval: 7, meteorStun: 2, reward: 0, image: IMAGE_PATHS.AstrorbOrbe, boss: true, category: 'other', astrorbGroup: true },
+  'AstrorbContenida': { name: 'enemy_AstrorbContenida_name', desc: 'enemy_AstrorbContenida_desc', health: 1000, speed: 1.6, meteorInterval: 7, meteorStun: 2, reward: 1000, image: IMAGE_PATHS.AstrorbContenida, boss: true, category: 'other', astrorbGroup: true, astrorbForm: 2, shieldRatio: 0.2 },
+  'AstrorbTF': { name: 'enemy_AstrorbTF_name', desc: 'enemy_AstrorbTF_desc', health: 4500, speed: 0.3, meteorInterval: 6, meteorStun: 3, reward: 3000, image: IMAGE_PATHS.AstrorbTF, boss: true, instakill: true, doubleLap: true, category: 'other', astrorbGroup: true, astrorbForm: 3, shieldRatio: 0.4 },
   'Crystalic_Orb': { name: 'enemy_Crystalic_Orb_name', desc: 'enemy_Crystalic_Orb_desc', health: 5000, speed: 0.28, reward: 5000, image: IMAGE_PATHS.Crystalic_Orb, boss: true, instakill: true, category: 'other', isCrystallized: true, astrorbGroup: true, astrorbForm: 4, shieldRatio: 0.4 },
   'Sharowd': { name: 'enemy_Sharowd_name', desc: 'enemy_Sharowd_desc', health: 1200, speed: 0.45, reward: 1200, image: IMAGE_PATHS.Sharowd, boss: true, category: 'other', blockQuestBoss: true },
 
@@ -1440,4 +1440,25 @@ const BOMBOT_ACCESSORY_VISIBLE_AREA = {
   'Furnace Bombot.png': [0.049, 0.018, 0.925, 0.959],
   'Golderous Spoon.png': [0.056, 0.066, 0.221, 0.527],
   'Red Breath Bombot.png': [0.049, 0.265, 0.925, 0.712]
+};
+
+// Efectos del Pase de Invierno que vuelven al Duck Pass cuando el pase termina.
+// El Pase de Invierno sigue siendo la forma fácil de conseguirlos: en el Duck
+// Pass salen más tarde (niveles altos y repartidos entre las recompensas que ya
+// había). Nevado, Glitch, Shiny Rise y Cristalizado quedan exclusivos del
+// Pase de Invierno (sus recompensas más especiales).
+// availableFrom: primer día sin Pase de Invierno (el evento acaba el 8 de enero).
+const DUCKPASS_WINTER_EFFECTS = {
+  availableFrom: '2027-01-09',
+  rewards: [
+    { level: 35, effect: 'monochrome' },
+    { level: 45, effect: 'comic' },
+    { level: 60, effect: 'pixel' },
+    { level: 65, effect: 'neon' },
+    { level: 75, effect: 'blood' },
+    { level: 80, effect: 'shadow' },
+    { level: 88, effect: 'alternate' },
+    { level: 90, effect: 'negative' },
+    { level: 98, effect: 'golden' }
+  ]
 };

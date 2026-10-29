@@ -3,6 +3,10 @@ codigos.txt
 
 # Ignorar el archivo de usuarios y roles
 usuarios_roles.txt
+# Plan técnico del lore con spoilers (solo local)
+lore_tecnico.txt
+# Documentos fuente (PDF) de lore/diseño
+Recursos/**/*.pdf
 
 # Ignorar instrucciones internas de moderación y despliegue
 Modelo/supabase/README.md

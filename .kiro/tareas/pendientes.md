@@ -128,7 +128,8 @@ Tareas por hacer. Leyenda: `[ ]` por hacer · `[!]` bloqueada · P0/P1/P2 priori
 
 ## Por decidir (2026-10-28)
 
-- [ ] `GEN-04` (P1) El commit local `0c08479 EFFECTS REWORKS (TESTING)` guardó
+- [x] `GEN-04` (resuelto: los commits posteriores, hasta `3b637f3`, ya llevan
+  `game.js` completo y están subidos). El commit local `0c08479 EFFECTS REWORKS (TESTING)` guardó
   `Controlador/game.js` cortado (línea 9399). La copia de trabajo está completa:
   un commit nuevo lo arregla. No está subido.
 - [ ] `GEN-05` (P2) Mover `_vid.txt` y `ATT-BIGUPD.txt` a `readmes/` y
