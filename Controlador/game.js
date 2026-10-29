@@ -4624,6 +4624,26 @@ function getSupabaseAuthEmail(username) {
   return `${normalizedUsername}@accounts.glob-defenders.invalid`;
 }
 
+// Colaboración Star Jump: si la cuenta se vinculó desde Star Jump (tabla star_jump_links),
+// concede el emblema de la colaboración una sola vez. No bloquea el inicio de sesión.
+async function checkStarJumpLinkReward(userId) {
+  if (!BADGES.starJumpCollab || BADGES.starJumpCollab.unlocked) return;
+  try {
+    const { data, error } = await getSupabaseClient()
+      .from('star_jump_links')
+      .select('best_meters, linked_at')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data || activeCloudUserId !== userId) return;
+    unlockBadge('starJumpCollab');
+    showMessage(translate('star_jump_link_reward'), 'success');
+  } catch (error) {
+    // Si la tabla aún no existe en Supabase, simplemente no hay recompensa
+    console.warn('No se pudo comprobar la vinculación con Star Jump:', error);
+  }
+}
+
 async function startGameSession(username, offline, accountId = null, isNewAccount = false) {
   cloudProgressReady = false;
   let shouldOfferFirstTutorial = false;
@@ -4701,6 +4721,7 @@ async function startGameSession(username, offline, accountId = null, isNewAccoun
   }
   offlineModeActive = offline;
   updateRoleIndicator();
+  if (!offline && activeCloudUserId) checkStarJumpLinkReward(activeCloudUserId);
 
   const offlineIndicator = document.getElementById('offline-indicator');
   if (offlineIndicator) offlineIndicator.style.display = offline ? 'block' : 'none';

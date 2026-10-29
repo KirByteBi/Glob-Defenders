@@ -1,10 +1,36 @@
 -- Esquema combinado para pegar una sola vez en Supabase > SQL Editor.
--- Incluye progreso de cuentas, moderacion y codigos globales de skin de un uso.
--- Ejecuta este archivo o los tres esquemas individuales, pero no hace falta ejecutar ambos.
+-- Es la unión, en orden, de los archivos individuales de esta carpeta.
+-- Si editas uno de ellos, copia el cambio también aquí.
+-- Incluye: auxiliares, progreso, moderación, códigos de un uso y vinculación con Star Jump.
+-- Se puede volver a ejecutar sobre una base ya instalada (todo es idempotente).
 
 begin;
 
--- Progreso de las cuentas
+-- ===== Funciones auxiliares (supabase-shared-helpers.sql) =====
+
+create or replace function public.jsonb_text_array_union(base jsonb, extra text[])
+returns jsonb
+language sql
+immutable
+set search_path = ''
+as $$
+  select coalesce(pg_catalog.jsonb_agg(merged.value), '[]'::jsonb)
+    from (
+      select existing.value
+        from pg_catalog.jsonb_array_elements_text(
+          case when pg_catalog.jsonb_typeof(base) = 'array' then base else '[]'::jsonb end
+        ) as existing(value)
+      union
+      select added.value
+        from pg_catalog.unnest(coalesce(extra, array[]::text[])) as added(value)
+    ) as merged;
+$$;
+
+revoke all on function public.jsonb_text_array_union(jsonb, text[]) from public, anon, authenticated;
+grant execute on function public.jsonb_text_array_union(jsonb, text[]) to service_role;
+
+-- ===== Progreso de las cuentas (supabase-progress-schema.sql) =====
+
 create table if not exists public.player_progress (
   user_id uuid primary key references auth.users (id) on delete cascade,
   progress jsonb not null default '{}'::jsonb,
@@ -34,7 +60,8 @@ create policy "Users can update their own progress"
 
 grant select, insert, update on public.player_progress to authenticated;
 
--- Contador de infracciones del chat
+-- ===== Contador de infracciones del chat (supabase-moderation-schema.sql) =====
+
 create table if not exists public.offensive_chat_attempts (
   user_id uuid primary key references auth.users (id) on delete cascade,
   attempts integer not null default 0 check (attempts >= 0),
@@ -62,7 +89,8 @@ $$;
 revoke all on function public.record_offensive_chat_attempt(uuid) from public, anon, authenticated;
 grant execute on function public.record_offensive_chat_attempt(uuid) to service_role;
 
--- Registro global de codigos de skin de un solo uso
+-- ===== Códigos de skin de un solo uso (supabase-one-time-skin-codes-schema.sql) =====
+
 create table if not exists public.one_time_skin_code_redemptions (
   code text primary key,
   user_id uuid not null,
@@ -84,60 +112,54 @@ set search_path = ''
 as $$
 declare
   normalized_code text := upper(trim(target_code));
-  skin_id text;
+  reward jsonb;
   skin_ids text[];
   tower_unlocks text[];
   tower_progress jsonb;
+  reserved_email text;
   target_email text;
   claimed_by uuid;
   inserted_code text;
   existing_progress jsonb;
-  unlocked_skins jsonb;
 begin
   if target_user_id is null then
     return jsonb_build_object('result', 'invalid');
   end if;
 
-  skin_id := case normalized_code
-    when 'FROGGY_VICTEST' then 'froggy_set'
-    when 'NITRO-BOOMER' then 'sharkbot_bombot'
-    when 'ASTRAL-CREDIBLE' then 'fracstal_set'
+  reward := case normalized_code
+    when 'FROGGY_VICTEST' then jsonb_build_object(
+      'skins', jsonb_build_array('froggy_set'),
+      'towers', '[]'::jsonb,
+      'progress', '{}'::jsonb,
+      'reservedEmail', 'victorillo_24@accounts.glob-defenders.invalid')
+    when 'NITRO-BOOMER' then jsonb_build_object(
+      'skins', jsonb_build_array('sharkbot_bombot'),
+      'towers', '[]'::jsonb,
+      'progress', '{}'::jsonb)
+    when 'ASTRAL-CREDIBLE' then jsonb_build_object(
+      'skins', jsonb_build_array('fracstal_set'),
+      'towers', jsonb_build_array('Worker_Glob'),
+      'progress', jsonb_build_object('unlockedWorkerGlob', true),
+      'reservedEmail', 'credible@accounts.glob-defenders.invalid')
+    when 'THE-USER-BOMB' then jsonb_build_object(
+      'skins', '[]'::jsonb,
+      'towers', jsonb_build_array('Bomb_Glob'),
+      'progress', jsonb_build_object('unlockedBombGlob', true))
     else null
-  end;
-  skin_ids := case normalized_code
-    when 'FROGGY_VICTEST' then array['froggy_set']::text[]
-    when 'NITRO-BOOMER' then array['sharkbot_bombot']::text[]
-    when 'ASTRAL-CREDIBLE' then array['fracstal_set']::text[]
-    when 'THE-USER-BOMB' then array[]::text[]
-    else null
-  end;
-  tower_unlocks := case normalized_code
-    when 'ASTRAL-CREDIBLE' then array['Worker_Glob']::text[]
-    when 'THE-USER-BOMB' then array['Bomb_Glob']::text[]
-    else array[]::text[]
-  end;
-  tower_progress := case normalized_code
-    when 'ASTRAL-CREDIBLE' then jsonb_build_object('unlockedWorkerGlob', true)
-    when 'THE-USER-BOMB' then jsonb_build_object('unlockedBombGlob', true)
-    else '{}'::jsonb
   end;
 
-  if skin_ids is null then
+  if reward is null then
     return jsonb_build_object('result', 'invalid');
   end if;
 
-  if normalized_code in ('FROGGY_VICTEST', 'ASTRAL-CREDIBLE') then
-    select lower(email)
-      into target_email
-      from auth.users
-      where id = target_user_id;
+  skin_ids := array(select jsonb_array_elements_text(reward -> 'skins'));
+  tower_unlocks := array(select jsonb_array_elements_text(reward -> 'towers'));
+  tower_progress := reward -> 'progress';
+  reserved_email := reward ->> 'reservedEmail';
 
-    if normalized_code = 'FROGGY_VICTEST' and
-       target_email is distinct from 'victorillo_24@accounts.glob-defenders.invalid' then
-      return jsonb_build_object('result', 'not_eligible');
-    end if;
-    if normalized_code = 'ASTRAL-CREDIBLE' and
-       target_email is distinct from 'credible@accounts.glob-defenders.invalid' then
+  if reserved_email is not null then
+    select lower(email) into target_email from auth.users where id = target_user_id;
+    if target_email is distinct from reserved_email then
       return jsonb_build_object('result', 'not_eligible');
     end if;
   end if;
@@ -157,23 +179,11 @@ begin
     return jsonb_build_object('result', 'already_claimed');
   end if;
 
-  unlocked_skins := case
-    when jsonb_typeof(existing_progress -> 'unlockedSkins') = 'array'
-      then existing_progress -> 'unlockedSkins'
-    else '[]'::jsonb
-  end;
-
-  if claimed_by is null and unlocked_skins @> to_jsonb(skin_ids) and
+  if claimed_by is null and
+     public.jsonb_text_array_union(existing_progress -> 'unlockedSkins', null) @> to_jsonb(skin_ids) and
      coalesce(existing_progress, '{}'::jsonb) @> tower_progress then
-    return jsonb_build_object('result', 'already_owned', 'skinId', skin_id);
+    return jsonb_build_object('result', 'already_owned', 'skinId', skin_ids[1]);
   end if;
-
-  select coalesce(jsonb_agg(to_jsonb(skins.skin)), '[]'::jsonb)
-    into unlocked_skins
-    from (
-      select distinct value as skin
-        from jsonb_array_elements_text(unlocked_skins || to_jsonb(skin_ids)) as existing_skins(value)
-    ) as skins;
 
   if claimed_by is null then
     insert into public.one_time_skin_code_redemptions (code, user_id)
@@ -182,11 +192,9 @@ begin
       returning code into inserted_code;
 
     if inserted_code is null then
-      select user_id
-        into claimed_by
+      select user_id into claimed_by
         from public.one_time_skin_code_redemptions
         where code = normalized_code;
-
       if claimed_by is distinct from target_user_id then
         return jsonb_build_object('result', 'already_claimed');
       end if;
@@ -197,7 +205,7 @@ begin
     values (
       target_user_id,
       jsonb_build_object(
-        'unlockedSkins', unlocked_skins,
+        'unlockedSkins', to_jsonb(skin_ids),
         'usedCodes', jsonb_build_object(normalized_code, true)
       ) || tower_progress,
       now()
@@ -205,21 +213,8 @@ begin
     on conflict (user_id) do update
       set progress = coalesce(public.player_progress.progress, '{}'::jsonb) ||
         jsonb_build_object(
-          'unlockedSkins', (
-            select coalesce(jsonb_agg(to_jsonb(skins.skin)), '[]'::jsonb)
-              from (
-                select distinct value as skin
-                  from jsonb_array_elements_text(
-                    (
-                      case
-                        when jsonb_typeof(public.player_progress.progress -> 'unlockedSkins') = 'array'
-                          then public.player_progress.progress -> 'unlockedSkins'
-                        else '[]'::jsonb
-                      end
-                    ) || to_jsonb(skin_ids)
-                  ) as existing_skins(value)
-              ) as skins
-          ),
+          'unlockedSkins',
+            public.jsonb_text_array_union(public.player_progress.progress -> 'unlockedSkins', skin_ids),
           'usedCodes',
             coalesce(public.player_progress.progress -> 'usedCodes', '{}'::jsonb) ||
             jsonb_build_object(normalized_code, true)
@@ -228,7 +223,7 @@ begin
 
   return jsonb_build_object(
     'result', 'redeemed',
-    'skinId', skin_id,
+    'skinId', skin_ids[1],
     'skinIds', to_jsonb(skin_ids),
     'towerUnlocks', to_jsonb(tower_unlocks)
   );
@@ -237,5 +232,67 @@ $$;
 
 revoke all on function public.redeem_one_time_skin_code(text, uuid) from public, anon, authenticated;
 grant execute on function public.redeem_one_time_skin_code(text, uuid) to service_role;
+
+-- ===== Colaboración Star Jump (supabase-star-jump-link-schema.sql) =====
+
+create table if not exists public.star_jump_links (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  best_meters integer not null default 0 check (best_meters between 0 and 1000000),
+  linked_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.star_jump_links enable row level security;
+revoke all on public.star_jump_links from public, anon, authenticated;
+grant select, delete on public.star_jump_links to authenticated;
+grant all on public.star_jump_links to service_role;
+
+drop policy if exists "Users can read their own Star Jump link" on public.star_jump_links;
+create policy "Users can read their own Star Jump link"
+  on public.star_jump_links for select
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
+drop policy if exists "Users can remove their own Star Jump link" on public.star_jump_links;
+create policy "Users can remove their own Star Jump link"
+  on public.star_jump_links for delete
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
+create or replace function public.link_star_jump_account(sj_best_meters integer default 0)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  current_user_id uuid := auth.uid();
+  clean_meters integer := least(greatest(coalesce(sj_best_meters, 0), 0), 1000000);
+  was_linked boolean;
+  stored public.star_jump_links;
+begin
+  if current_user_id is null then
+    return jsonb_build_object('result', 'not_authenticated');
+  end if;
+
+  select true into was_linked from public.star_jump_links where user_id = current_user_id;
+
+  insert into public.star_jump_links (user_id, best_meters, linked_at, updated_at)
+    values (current_user_id, clean_meters, now(), now())
+    on conflict (user_id) do update
+      set best_meters = greatest(public.star_jump_links.best_meters, excluded.best_meters),
+          updated_at = now()
+    returning * into stored;
+
+  return jsonb_build_object(
+    'result', case when was_linked then 'updated' else 'linked' end,
+    'bestMeters', stored.best_meters,
+    'linkedAt', stored.linked_at
+  );
+end;
+$$;
+
+revoke all on function public.link_star_jump_account(integer) from public, anon;
+grant execute on function public.link_star_jump_account(integer) to authenticated;
 
 commit;

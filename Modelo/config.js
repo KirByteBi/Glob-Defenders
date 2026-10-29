@@ -339,7 +339,9 @@ const BADGES = {
   frosty_dificil: { key: 'frosty_dificil', icon: '🎁', unlocked: false, reward: { pycoins: 500, xp: 400 }, category: 'modos' },
   frosty_extremo: { key: 'frosty_extremo', icon: '🌨️', unlocked: false, reward: { pycoins: 800, xp: 700 }, category: 'modos' },
   frosty_corrupto: { key: 'frosty_corrupto', icon: '👻', unlocked: false, reward: { pycoins: 1000, xp: 1000 }, category: 'modos' },
-  frosty_anti_normal: { key: 'frosty_anti_normal', icon: '🌑', unlocked: false, reward: { duckpass: 50, xp: 1500 }, category: 'modos' }
+  frosty_anti_normal: { key: 'frosty_anti_normal', icon: '🌑', unlocked: false, reward: { duckpass: 50, xp: 1500 }, category: 'modos' },
+  // Colaboración con Star Jump: se concede al vincular la cuenta desde Star Jump
+  starJumpCollab: { key: 'starJumpCollab', icon: '⭐', unlocked: false, reward: { pycoins: 500, duckpass: 50, xp: 300 }, category: 'interacciones' }
 };
 
 const MAPS = {
