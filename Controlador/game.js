@@ -4670,6 +4670,9 @@ async function checkStarJumpLinkReward(userId) {
     }
     saveProgress();
     if (changed && document.getElementById('profile-modal')?.style.display === 'flex') drawUserProfile();
+    // Vínculo de vuelta: GlD confirma la vinculación y Star Jump entrega GlobStar.
+    const { error: confirmError } = await getSupabaseClient().rpc('confirm_star_jump_link_from_gld');
+    if (confirmError) console.warn('No se pudo confirmar el vínculo con Star Jump:', confirmError);
   } catch (error) {
     // Si la tabla aún no existe en Supabase, simplemente no hay recompensa
     console.warn('No se pudo comprobar la vinculación con Star Jump:', error);

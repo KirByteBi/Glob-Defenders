@@ -65,6 +65,37 @@ $$;
 revoke all on function public.link_star_jump_account(integer) from public, anon;
 grant execute on function public.link_star_jump_account(integer) to authenticated;
 
+-- Vínculo de vuelta: Glob Defenders lo marca al iniciar sesión con una cuenta ya
+-- vinculada desde Star Jump. Star Jump lo lee y entrega la skin GlobStar.
+alter table public.star_jump_links add column if not exists gld_confirmed_at timestamptz;
+
+create or replace function public.confirm_star_jump_link_from_gld()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  current_user_id uuid := auth.uid();
+  confirmed timestamptz;
+begin
+  if current_user_id is null then
+    return jsonb_build_object('result', 'not_authenticated');
+  end if;
+  update public.star_jump_links
+    set gld_confirmed_at = coalesce(gld_confirmed_at, now()), updated_at = now()
+    where user_id = current_user_id
+    returning gld_confirmed_at into confirmed;
+  if confirmed is null then
+    return jsonb_build_object('result', 'not_linked');
+  end if;
+  return jsonb_build_object('result', 'confirmed', 'confirmedAt', confirmed);
+end;
+$$;
+
+revoke all on function public.confirm_star_jump_link_from_gld() from public, anon;
+grant execute on function public.confirm_star_jump_link_from_gld() to authenticated;
+
 -- Guardado en la nube de Star Jump (metros, skins, skin equipada) para cuentas vinculadas.
 -- Mismo modelo que player_progress: cada usuario solo lee y escribe su propia fila.
 create table if not exists public.star_jump_progress (
